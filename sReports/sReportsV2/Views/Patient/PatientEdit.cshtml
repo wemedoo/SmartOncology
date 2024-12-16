@@ -1,0 +1,101 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.User.DTO;
+
+@model sReportsV2.DTOs.Patient.PatientDataOut
+@{
+    ViewData["Title"] = @sReportsV2.Cache.Resources.TextLanguage.Patient_Create;
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+@if (Model == null)
+{
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Patients }, { "linkLevel1", "/Patient/GetAll" }, { "level2", @sReportsV2.Cache.Resources.TextLanguage.Patient_Create }, { "activeLevel", 2 } })
+}
+else
+{
+    var episodeOfCareId = ViewBag.ActiveEOC;
+    List<CodeDataOut> episodeOfCareTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
+    List<CodeDataOut> encounterTypes = ViewBag.EncounterTypes as List<CodeDataOut>;
+    UserCookieData userCookieData = ViewBag.UserCookieData as UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    string action = readOnly ? "View" : "Edit";
+
+    if (episodeOfCareId != null)
+    {
+        @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData)
+        {
+            { "level1", @sReportsV2.Cache.Resources.TextLanguage.Patients },
+            { "linkLevel1", "/Patient/GetAll" },
+            { "level2", Model.GetPatientBasicInfo(Model.Name, Model.FamilyName, Model.BirthDate) },
+            { "linkLevel2", "/Patient/" + action + "?patientId=" + Model.Id },
+            { "level3", Model.ConvertEOCAndEncounterTypeCDToDisplayName(episodeOfCareId, episodeOfCareTypes, encounterTypes, activeLanguage) },
+            { "linkLevel3", "/Patient/" + action + "PatientEncounters?patientId=" + Model.Id + "&episodeOfCareId=" + episodeOfCareId} ,
+            { "level4", (readOnly ? @sReportsV2.Cache.Resources.TextLanguage.View : @sReportsV2.Cache.Resources.TextLanguage.Edit) + " " + @sReportsV2.Cache.Resources.TextLanguage.Patient.ToLower() + " " + @sReportsV2.Cache.Resources.TextLanguage.GeneralInfo.ToLower() },
+            { "activeLevel", 4 }
+        })
+    }
+    else
+    {
+       @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData)
+       {
+           { "level1", @sReportsV2.Cache.Resources.TextLanguage.Patients },
+           { "linkLevel1", "/Patient/GetAll" },
+           { "level2", Model.GetPatientBasicInfo(Model.Name, Model.FamilyName, Model.BirthDate) },
+           { "linkLevel2", "/Patient/" + action + "?patientId=" + Model.Id },
+           { "level3", (readOnly ? @sReportsV2.Cache.Resources.TextLanguage.View : @sReportsV2.Cache.Resources.TextLanguage.Edit) + " " + @sReportsV2.Cache.Resources.TextLanguage.Patient.ToLower() + " " + @sReportsV2.Cache.Resources.TextLanguage.GeneralInfo.ToLower() },
+           { "activeLevel", 3 }
+       })
+    }
+}
+<div id="editPatientContainer" class="padding-top-30">
+    <div class="patient-background-grey">
+        <form method="post" id="idPatientInfo" class="formPatientInfo patient-create" onsubmit="return submitForm(this)" novalidate>
+            <input type="hidden" class="form-control" id="patientId" name="Id" value="@( Model != null && Model.Id != 0 ? Model.Id : 0)" />
+            <div>
+                <div class="info-align" id="createGroup">
+                    <div class="tab-item active" onclick="showGeneralInfo(event, this)">
+                        <i id="general-icon" class="tab-icon general-info-icon active"></i>
+                        <span type="text" id="generalButton">@sReportsV2.Cache.Resources.TextLanguage.GeneralInfo</span>
+                    </div>
+                    <div class="tab-item" onclick="showAddressAndTelecomInfo(event, this)">
+                        <i id="telecom-icon" class="tab-icon telecom-info-icon"></i>
+                        <span type="text" id="telecoms">@sReportsV2.Cache.Resources.TextLanguage.ContactAndAddress</span>
+                    </div>
+                    <div class="tab-item" onclick="showContactPerson(event, this)">
+                        <i id="contact-icon" class="tab-icon contact-info-icon"></i>
+                        <span type="text" id="contact">@sReportsV2.Cache.Resources.TextLanguage.Contact_Person</span>
+                    </div>
+                </div>
+                <div id="patientInfoPartial" class="patient-partial">
+                    @await Html.PartialAsync("GeneralInfo")
+                </div>
+                <div id="patientAddressAndTelecomPartial" class="info-partial">
+                    @await Html.PartialAsync("PatientAddressAndTelecom")
+                </div>
+                <div id="contactPersonPartial" class="info-partial">
+                    @await Html.PartialAsync("PatientContacts", Model != null ? Model.Contacts : new List<sReportsV2.DTOs.Common.DTO.ContactDTO>())
+                </div>
+
+                <div class="button-partial">
+                    @if (!readOnly)
+                    {
+                        <button class="submit-patient right-button" type="submit" style="outline: none;">
+                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Patient_submit</span>
+                        </button>
+                    }
+                    <i class="angle-left fas fa-angle-left"></i>
+                    <div class="text-underline right-button" type="button" onclick="cancelPatientEdit(event, @readOnly.ToJsBoolean())">
+                        <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Back</span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@await Html.PartialAsync("IdentifierModal")
+@await Html.PartialAsync("TelecomModal")
+@await Html.PartialAsync("AddressModal")
+
+@Html.Raw(ScriptHelper.RenderBundle("js/patientInfo-bundle.min.js"))

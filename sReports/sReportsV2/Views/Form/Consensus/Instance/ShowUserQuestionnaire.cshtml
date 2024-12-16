@@ -1,0 +1,11 @@
+@{
+    ViewBag.Title = "Questionnaire results";
+}
+
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@model FormDataOut
+@ScriptHelper.RenderStylesheet(Url.Content("/css/nestable.min.css"))
+<div class="mb-2">
+    @await Html.PartialAsync("~/Views/Form/Consensus/Instance/ConsensusUserQuestionnaire.cshtml", Model)
+</div>

@@ -1,0 +1,60 @@
+﻿@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@model sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut.PersonnelTeamDataOut
+
+<div class="form-group col-md-12">
+
+    <form id="personnel-team-form">
+
+        <div class="d-flex advanced-filter-header" style="overflow-wrap: anywhere">
+            @sReportsV2.Cache.Resources.TextLanguage.Edit @Model.Name
+        </div>
+
+        <div class="advanced-filter-item input-margin d-flex">
+            <div class="personnel-team-input-container mr-2">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Team_Name
+                </div>
+                <input required value="@Model.Name" class="filter-input" type="text" id="personnel-team-name-input" name="personnelTeamNameInput" style="font-size:14px !important" />
+            </div>
+            <div class="personnel-team-input-container">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Team_Type
+                </div>
+                <select required class="filter-input arrow-select" id="personnel-team-type-input" data-codesetid="@((int)CodeSetList.TeamType)">
+                    <option value="" disabled selected></option>
+                    @{
+                        var teamTypes = ViewBag.TeamTypes as List<CodeDataOut>;
+                        var filteredTeamTypes = ObjectExtension.FilterDataSource(teamTypes);
+                        bool selectedGendersExists = false;
+                        foreach (var teamType in filteredTeamTypes)
+                        {
+                            bool isSelected = Model != null && Model.Type != null && teamType.Id == Model.Type.Id;
+                            selectedGendersExists |= isSelected;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(teamType, false, isSelected))
+                        }
+                        if (Model != null && Model.Type != null && Model.Type.Id != 0 && !selectedGendersExists)
+                        {
+                            ViewBag.SelectedId = Model.Type.Id;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(teamTypes.Find(x => x.Id == Model.Type.Id), true, true))
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="button-members">
+        <button class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="addNewPersonnelTeam(event, @Model.PersonnelTeamId)" dismiss="modal">
+            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+        </button>
+        <div class="button-wrapper-filter float-right" id="close">
+            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+            </a>
+        </div>
+    </div>
+
+</div>

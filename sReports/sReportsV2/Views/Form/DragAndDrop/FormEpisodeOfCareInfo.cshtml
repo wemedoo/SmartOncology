@@ -1,0 +1,69 @@
+﻿@using sReportsV2.Common.Extensions;
+<div class="designer-form-section chechbox-section">
+    <div class="designer-form-section-title">
+        @sReportsV2.Cache.Resources.TextLanguage.Episodes_Of_Care
+    </div>
+
+    <div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.EOC_DiagnosisRole_Name
+        </div>
+        <select class="designer-form-input" id="episodeOfCareDignosisRole" name="episodeOfCareDiagnosisRole" @ViewBag.Disabled>
+            <option value=""></option>
+            @foreach (var roleOption in ObjectExtension.FilterDataSource(ViewBag.DiagnosisRoles, ViewBag.ReadOnly))
+            {
+                <option value="@roleOption.Thesaurus.Id" @(Model != null && Model.EpisodeOfCare != null && Model.EpisodeOfCare.DiagnosisRole != null && Model.EpisodeOfCare.DiagnosisRole.Equals(roleOption.Thesaurus.Id) ? "selected" : "")>
+                    @GetLocalizedString(roleOption.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string))
+                </option>
+            }
+        </select>
+    </div><!--
+    --><div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Status:
+        </div>
+        <select class="designer-form-input" id="episodeOfCareStatus" name="episodeOfCareStatus" @ViewBag.Disabled>
+            <option value=""></option>
+            @foreach (var statusOption in Enum.GetNames(typeof(sReportsV2.Common.Enums.EocStatus)))
+            {
+                <option value="@statusOption" @(Model != null && Model.EpisodeOfCare != null && Model.EpisodeOfCare.Status != null && Model.EpisodeOfCare.Status.Equals(statusOption) ? "selected" : "")>
+                    @GetLocalizedString(statusOption)
+                </option>
+            }
+        </select>
+    </div><!--
+    --><div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Type:
+        </div>
+        <select class="designer-form-input" id="episodeOfCareType" name="episodeOfCareType" @ViewBag.Disabled>
+            <option value=""></option>
+            @foreach (var episodeOfCareType in ObjectExtension.FilterDataSource(ViewBag.EpisodeOfCareTypes, ViewBag.ReadOnly))
+            {
+                <option value="@episodeOfCareType.Thesaurus.Id" @(Model != null && Model.EpisodeOfCare != null && Model.EpisodeOfCare.Type != null && Model.EpisodeOfCare.Type.Equals(episodeOfCareType.Thesaurus.Id) ? "selected" : "")>
+                    @GetLocalizedString(episodeOfCareType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string))
+                </option>
+            }
+        </select>
+    </div><!--
+    --><div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.EOC_DiagnosisCondition_Name
+        </div>
+        <input class="designer-form-input" id="episodeOfCareDiagnosisCondition" name="EpisodeOfCareDiagnosisCondition" type="text" value="@(Model != null && Model.EpisodeOfCare != null ? Model.EpisodeOfCare.DiagnosisCondition : "")" @ViewBag.Disabled />
+    </div><!--
+    --><div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.EOC_DiagnosisRank_Name
+        </div>
+        <input class="designer-form-input" id="episodeOfCareDiagnosisRank" name="EpisodeOfCareDiagnosisRank" type="text" value="@(Model != null && Model.EpisodeOfCare != null ? Model.EpisodeOfCare.DiagnosisRank : "")" @ViewBag.Disabled />
+    </div>
+</div>
+
+@functions {
+    static string GetLocalizedString(string key)
+    {
+        string localizedString = sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(key);
+        return localizedString ?? key;
+    }
+}

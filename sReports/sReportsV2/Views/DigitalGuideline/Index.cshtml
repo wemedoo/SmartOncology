@@ -1,0 +1,43 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DigitalGuideline.DataOut;
+@model GuidelineDataOut
+
+@section Scripts
+{
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.15.2/cytoscape.min.js", "sha512-PqivlaNWoXvHYlvku80fbWO/yBiRmGhISj5uVdAodyqsGprDcVZy6aecJDVNE0fIIE/YeiOzp5yJTR5ZjFlR4Q==", "anonymous"))
+}
+
+@section Stylesheet
+{
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/digital-guideline.css"), "", "")
+}
+
+@{
+    ViewBag.Title = "Digital guideline";
+}
+
+<form>
+    <input type="hidden" id="guidelineId" name="id" value="@(Model != null ? Model.Id : "")" />
+    <input class="form-control" id="lastUpdate" name="LastUpdate" value="@(Model != null && Model.LastUpdate != null ? Model.LastUpdate.Value.ToString("o") : "")" type="hidden" />
+    <div class="guideline-header-container">
+        <a id="showJsonDataButton" href="#" class="guideline-header-option active" onclick="showJsonData(event);return false;">
+            JSON data
+        </a>
+        <a id="showNodePreviewButton" href="#" class="guideline-header-option" onclick="showNodePreview(event);return false;">Active node preview</a>
+    </div>
+    <div class="guideline-container">
+        @await Html.PartialAsync("~/Views/DigitalGuideline/DigitalGuidelineGraph.cshtml")
+        <div class="guideline-sidebar">
+            <div id="jsoneditorCode" class="guideline-sidebar-element json-editor"></div>
+            <div id="nodePreview" class="guideline-sidebar-element node-preview">
+                <div> Node preview</div>
+            </div>
+        </div>
+    </div>
+    <div class="guideline-button-container">
+        <button type="button" class="btn btn-filter-primary update-guideline">Update graph</button>
+        <button type="button" class="btn btn-filter-primary submit-data" onclick="submitGuidline(event)">@sReportsV2.Cache.Resources.TextLanguage.Submit</button>
+    </div>
+</form>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/digitalGuideline-bundle.min.js"))

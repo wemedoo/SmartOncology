@@ -1,0 +1,148 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+<div class="designer-form-modal fade" id="thesaurusFilterModal">
+    <div class="designer-form-modal-body">
+        <div class="close-designer-form-modal-button"></div>
+        <div class="designer-form-section thesaurus-section">
+            <form class="designer-item-form" id="thesaurusFilterModalForm">
+                <div class="current-thesaurus">
+                    <div id="activeThesaurusInfo">
+                    </div>
+                </div>
+                <div class="thesarus-container">
+                    <div class="d-flex margin-top-10">
+
+                        @if (ViewBag.FilterData.CodeSetId == null)
+                        {
+                            <div class="thesaurus-modal-inputs">
+                                <div class="advanced-filter-item filter-item margin-bottom-17">
+                                    <div class="input-container">
+                                        <div class="label filter-label">
+                                            @sReportsV2.Cache.Resources.TextLanguage.CodeSetId
+                                        </div>
+                                        <input class="filter-input search-input" type="number" name="codeSetIdInput" id="codeSetIdInput" />
+                                    </div>
+                                </div>
+
+                                <div class="advanced-filter-item filter-item margin-bottom-17">
+                                    <div class="label filter-label">
+                                        @sReportsV2.Cache.Resources.TextLanguage.ActiveFrom
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                                    {
+                                     InputAttributes = new Dictionary<object, object> {
+                                                         { "class", "filter-input" },
+                                                         { "id", "activeFromDate" },
+                                                         { "name", "activeFromDate" }
+                                                     },
+                                     InputBtnAttributes = new Dictionary<object, object> {
+                                                         { "class", "date-img eoc-form-date-img" },
+                                                         { "id", "startDateCalendar"},
+                                                         { "onClick", "showDatePicker(event)"}
+                                                     },
+                                     })
+                                </div>
+
+                                <div class="advanced-filter-item filter-item margin-bottom-17">
+                                    <div class="label filter-label">
+                                        @sReportsV2.Cache.Resources.TextLanguage.ActiveTo
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                                    {
+                                        InputAttributes = new Dictionary<object, object> {
+                                                         { "class", "filter-input" },
+                                                         { "id", "activeToDate" },
+                                                         { "name", "activeToDate" }
+                                        },
+                                        InputBtnAttributes = new Dictionary<object, object> {
+                                                         { "class", "date-img eoc-form-date-img" },
+                                                         { "id", "startDateCalendar"},
+                                                         { "onClick", "showDatePicker(event)"}
+                                                     },
+                                    })
+                                </div>
+
+                                <div class="advanced-filter-item filter-item">
+                                    <div class="label filter-label">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Applicable_In_Designer
+                                    </div>
+                                    <div class="position-relative margin-top-10">
+                                        <label class="form-radio-label margin-right-20">
+                                            <input type="radio" id="applicableInDesigner-yes" name="applicableInDesigner" value="true" class="form-radio-field">
+
+                                            <i class="form-radio-button user-radio"></i>
+                                            <span class="user-radio-span">
+                                                @sReportsV2.Cache.Resources.TextLanguage.Yes
+                                            </span>
+                                        </label>
+                                        <label class="form-radio-label margin-right-20">
+                                            <input type="radio" id="applicableInDesigner-no" name="applicableInDesigner" value="false" class="form-radio-field">
+
+                                            <i class="form-radio-button user-radio"></i>
+                                            <span class="user-radio-span">
+                                                @sReportsV2.Cache.Resources.TextLanguage.No_
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                            </div>
+                        }
+
+                        <div class="advanced-filter-item">
+                            <div class="codeset-thesaurus-group">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry
+                                </div>
+                                <div class="search-container">
+                                    <div class="input-container padding-bottom-15 @(ViewBag.FilterData.CodeSetId != null ? "thesaurus-input-container" : "")">
+                                        <input class="filter-input search-input" type="text" id="thesaurusSearchInput" name="thesaurusSearchInput" />
+                                        <img alt="" id="applySearchButton" class="search-thesaurus-button" src="/css/img/icons/search_green.svg" />
+                                    </div>
+                                    <div class="d-flex padding-bottom-15">
+                                        <div class="thesaurus-table-container" id="thesaurusTableContainer">
+                                            <div class="single-table thesaurus-search-table">
+                                                <table class="table table-striped table-sreports search-thesaurus-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>04.0MT ID</th>
+                                                            <th>@sReportsV2.Cache.Resources.TextLanguage.Preferred_term</th>
+                                                            <th>@sReportsV2.Cache.Resources.TextLanguage.Definition</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-container" id="reviewContainer"></div>
+
+                        </div>
+                    </div>
+                    
+                </div>
+                @if (ViewBag.FilterData.CodeSetId == null)
+                {
+                    <div class="button-partial margin-right-20">
+                        <button class="submit-patient right-button" type="button" onclick="submitCodeSetEntry(event, true)" style="outline: none;">
+                            <span class="submit-patient-info">Save</span>
+                        </button>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).on('keypress', '.search-input', function (e) {
+        if (e.which === enter) {
+            e.preventDefault();
+            e.stopPropagation();
+            thesaurusFilterModal(e, document.getElementById("thesaurusSearchInput").value);
+        }
+    });
+</script>

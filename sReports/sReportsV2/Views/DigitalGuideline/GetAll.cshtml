@@ -1,0 +1,35 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DigitalGuideline.DataOut;
+@using sReportsV2.DTOs.DigitalGuideline.DataIn;
+@using sReportsV2.Common.Constants;
+
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn>
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Designer;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.ClinicalPathway);
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.ClinicalPathwayBuilder }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.ClinicalPathwayBuilder
+        @if (hasCreatePerm)
+        {
+            <button class="btn btn-create float-right" onclick="redirectToCreate()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+        }
+    </div>
+    @await Html.PartialAsync("GuidelineFilterGroup")
+
+    <div id="tableContainer">
+
+    </div>
+</div>
+@await Html.PartialAsync("AdvancedFilterModal")
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/digitalGuidelineTable-bundle.min.js"))

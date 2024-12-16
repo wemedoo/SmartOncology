@@ -1,0 +1,157 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@model sReportsV2.DTOs.DTOs.TrialManagement.ClinicalTrialDataOut
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.ProjectManagement);
+
+    string id = Model != null ? Model.ClinicalTrialId.ToString() : "0";
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault() || !hasUpdatePerm;
+    string disabled = readOnly ? "disabled" : "";
+    string activeLanguage = ViewBag.UserCookieData.ActiveLanguage ?? sReportsV2.Common.Constants.LanguageConstants.EN;
+}
+<form id="trialDataForm" class="optional-placeholder">
+    <div class="clinical-trial" data-id="@id">
+        <input type="hidden" id="isArchived-@id" class="form-control" value="@( Model != null && Model.IsArchived != null ? Model.IsArchived.ToString() : "false")" />
+
+        <div class="input-group-title d-flex">
+            <div>@sReportsV2.Cache.Resources.TextLanguage.Clinical_Research_and_Academic_Data</div>
+        </div>
+
+        <div class="d-flex px-3">
+            <div class="user-input-group">
+                <div class="advanced-filter-item input-margin margin-top-15">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Title
+                    </div>
+                    <input class="filter-input ct-name" required type="text" id="trialTitle" name="trialTitle" value="@(Model != null && Model.ClinicalTrialTitle != null ? Model.ClinicalTrialTitle : string.Empty)" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Acronym
+                    </div>
+                    <input class="filter-input" type="text" id="acronym" name="acronym" value="@(Model != null && Model.ClinicalTrialAcronym != null ? Model.ClinicalTrialAcronym : string.Empty)" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin margin-top-15">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Data_Management_Provider_Identifier <p class="char-limit-text d-inline pl-1"></p>
+                    </div>
+                    <input class="filter-input text-with-limit" type="text" maxlength="300" id="datamanagement-provider-id" name="datamanagement-provider-id"  value="@(Model != null && Model.ClinicalTrialDataManagementProvider != null ? Model.ClinicalTrialDataManagementProvider : string.Empty)" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin margin-top-15">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Sponsors_Full_Name <p class="char-limit-text d-inline pl-1"></p>
+                    </div>
+                    <input class="filter-input ct-name text-with-limit" type="text" maxlength="300" id="sponsor-name" name="sponsor-name" value="@(Model != null && Model.ClinicalTrialSponsorName != null ? Model.ClinicalTrialSponsorName : string.Empty)" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Sponsor_Identifier
+                    </div>
+                    <input class="filter-input" id="sponsor-id" name="sponsor-id" value="@(Model != null && Model.ClinicalTrialSponsorIdentifier != null ? Model.ClinicalTrialSponsorIdentifier : null)" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Sponsor_Identifier_Type <div class="user-placeholder">@sReportsV2.Cache.Resources.TextLanguage.Optional</div>
+                    </div>
+                    <select id="sponsor-id-type" name="sponsor-id-type"
+                            class="filter-input arrow-select patient-background padding-right-36"
+                            value="" @disabled data-codesetid="@((int)CodeSetList.ClinicalTrialSponsorIdentifierType)">
+                        <option value="" class="form-select-placeholder"></option>
+                        @if (ViewBag.ClinicalTrialSponsorIdentifierTypes != null && ViewBag.ClinicalTrialSponsorIdentifierTypes.Count > 0)
+                        {
+                            var clinicalTrialSponsorIdentifierTypes = ViewBag.ClinicalTrialSponsorIdentifierTypes as List<CodeDataOut>;
+                            var filteredClinicalTrialSponsorIdentifierTypes = ObjectExtension.FilterDataSource(clinicalTrialSponsorIdentifierTypes, readOnly, Model != null ? Model.ClinicalTrialSponsorIdentifierTypeCD : null);
+                            bool selectedIdentifierExists = false;
+                            foreach (var filteredClinicalTrialSponsorIdentifierType in filteredClinicalTrialSponsorIdentifierTypes)
+                            {
+                                bool isSelected = Model != null && filteredClinicalTrialSponsorIdentifierType.Id == Model.ClinicalTrialSponsorIdentifierTypeCD;
+                                selectedIdentifierExists |= isSelected;
+                                @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(filteredClinicalTrialSponsorIdentifierType, false, isSelected))
+                            }
+                            if (Model != null && Model.ClinicalTrialSponsorIdentifierTypeCD != null && !selectedIdentifierExists)
+                            {
+                                ViewBag.SelectedId = Model.ClinicalTrialSponsorIdentifierTypeCD;
+                                @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(clinicalTrialSponsorIdentifierTypes.Find(x => x.Id == Model.ClinicalTrialSponsorIdentifierTypeCD), true, true))
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="user-input-group">
+                <div class="advanced-filter-item input-margin margin-top-15">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Identifier <p class="char-limit-text d-inline pl-1"></p>
+                    </div>
+                    <input class="filter-input ct-name text-with-limit" type="text" maxlength="60" id="clinicaltrial-id" name="clinicaltrial-id" value="@(Model != null && Model.ClinicalTrialIdentifier != null ? Model.ClinicalTrialIdentifier : "")" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Identifier_Type <div class="user-placeholder">@sReportsV2.Cache.Resources.TextLanguage.Optional</div>
+                    </div>
+                    <select id="clinicaltrial-id-type" name="clinicaltrial-id-type"
+                            class="filter-input arrow-select patient-background padding-right-36"
+                            value="" @disabled data-codesetid="@((int)CodeSetList.ClinicalTrialIdentifiers)">
+                        <option value="" class="form-select-placeholder"></option>
+                        @if (ViewBag.ClinicalTrialIdentifiers != null && ViewBag.ClinicalTrialIdentifiers.Count > 0)
+                        {
+                            var clinicalTrialIdentifiers = ViewBag.ClinicalTrialIdentifiers as List<CodeDataOut>;
+                            var filteredClinicalTrialIdentifiers = ObjectExtension.FilterDataSource(clinicalTrialIdentifiers, readOnly, Model != null ? Model.ClinicalTrialIdentifierTypeCD : null);
+                            bool selectedClinicalTrialIdentifierExists = false;
+                            foreach (var filteredClinicalTrialIdentifier in filteredClinicalTrialIdentifiers)
+                            {
+                                bool isSelected = Model != null && filteredClinicalTrialIdentifier.Id == Model.ClinicalTrialSponsorIdentifierTypeCD;
+                                selectedClinicalTrialIdentifierExists |= isSelected;
+                                @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(filteredClinicalTrialIdentifier, false, isSelected))
+                            }
+                            if (Model != null && Model.ClinicalTrialIdentifierTypeCD != null && !selectedClinicalTrialIdentifierExists)
+                            {
+                                ViewBag.SelectedId = Model.ClinicalTrialIdentifierTypeCD;
+                                @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(clinicalTrialIdentifiers.Find(x => x.Id == Model.ClinicalTrialIdentifierTypeCD), true, true))
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Data_Provider_Identifier
+                    </div>
+                    <input class="filter-input" id="dataprovider-id" name="dataprovider-id" value="@(Model != null && Model.ClinicalTrialDataProviderIdentifier != null ? Model.ClinicalTrialDataProviderIdentifier : null)" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @disabled />
+                </div>
+                <div class="advanced-filter-item input-margin margin-top-15 col-12">
+                    <div class="label filter-label row">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Trial_Recruitment_Status <div class="user-placeholder">@sReportsV2.Cache.Resources.TextLanguage.Optional</div>
+                    </div>
+                    <div class="position-relative margin-top-10 row">
+                        @if (ViewBag.ClinicalTrialRecruitmentsStatuses != null && ViewBag.ClinicalTrialRecruitmentsStatuses.Count > 0)
+                        {
+                            foreach (CodeDataOut clinicalTrialRecruitmentsStatus in ObjectExtension.FilterDataSource(ViewBag.ClinicalTrialRecruitmentsStatuses, ViewBag.ReadOnly))
+                            {
+                                string displayedStatusValue = clinicalTrialRecruitmentsStatus.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage);
+                                <label class="form-radio-label col-6">
+                                    <input type="radio"
+                                           data-display="@displayedStatusValue"
+                                           id="status"
+                                           name="status"
+                                           value="@clinicalTrialRecruitmentsStatus.Id"
+                                           class="form-radio-field ct-status"
+                                           @(Model != null && Model.ClinicalTrialRecruitmentStatusCD == clinicalTrialRecruitmentsStatus.Id ? "checked" : string.Empty) @disabled>
+
+                                    <i class="form-radio-button user-radio"></i>
+                                    <span class="user-radio-span">
+                                        @displayedStatusValue
+                                    </span>
+                                </label>
+                            }
+                        }
+                    </div>
+                </div>
+
+            </div>
+            <div class="user-input-group" hidden></div>
+        </div>
+    </div>
+</form>

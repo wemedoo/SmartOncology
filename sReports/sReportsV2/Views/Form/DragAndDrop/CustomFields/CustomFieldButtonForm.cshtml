@@ -1,0 +1,37 @@
+﻿@using sReportsV2.DTOs.Field.DataOut.Custom
+@using sReportsV2.DTOs.Field.DataOut.Custom.Action
+@using sReportsV2.Common.Constants;
+@model CustomFieldButtonDataOut
+
+    @await Html.PartialAsync("~/Views/Form/Common/Obligatory.cshtml")
+    <div class="designer-form-section">
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Select_Action_Type
+            </div>
+
+            <select class="designer-form-input" id="customActionType" required @ViewBag.Disabled>
+                <option value="">@sReportsV2.Cache.Resources.TextLanguage.Select_Action_Type</option>
+                <option value="@CustomActionTypes.ControllerAction" @(Model.CustomAction != null && Model.CustomAction.ActionType == CustomActionTypes.ControllerAction ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Controller_Action</option>
+                <option value="@CustomActionTypes.JavascriptAction" @(Model.CustomAction != null && Model.CustomAction.ActionType == CustomActionTypes.JavascriptAction ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Javascript_Action</option>
+            </select>
+        </div><!--
+     --><div class="designer-form-input-group two-margins javascript-action-container" @(Model.CustomAction != null && Model.CustomAction is JavascriptActionDataOut ? "" : "style=display:none;")>
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Method_Name
+            </div>
+            <input class="designer-form-input" id="methodName" value="@(Model.CustomAction != null && Model.CustomAction is JavascriptActionDataOut ? (Model.CustomAction as JavascriptActionDataOut).MethodName : "")" @ViewBag.Disabled/>
+        </div><!--
+     --><div class="designer-form-input-group two-margins controller-action-container" @(Model.CustomAction != null && Model.CustomAction is ControllerActionDataOut ? "": "style=display:none;")>
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Action_Name
+            </div>
+        <input class="designer-form-input" id="actionName"  value="@(Model.CustomAction != null && Model.CustomAction is ControllerActionDataOut ?  (Model.CustomAction as ControllerActionDataOut).ActionName : "")" @ViewBag.Disabled/>
+        </div><!--
+     --><div class="designer-form-input-group two-margins no-margin-right controller-action-container" @(Model.CustomAction != null && Model.CustomAction is ControllerActionDataOut ? "": "style=display:none;")>
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Action_Name
+            </div>
+        <input class="designer-form-input" id="controllerName"  value="@(Model.CustomAction != null && Model.CustomAction is ControllerActionDataOut ? (Model.CustomAction as ControllerActionDataOut).ControllerName : "")" @ViewBag.Disabled/>
+        </div>
+    </div>

@@ -1,0 +1,77 @@
+trigger:
+- dev
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/sReports.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: NuGetToolInstaller@1
+  inputs:
+    checkLatest: true
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: SonarQubePrepare@7
+  inputs:
+    SonarQube: 'SonarQube'
+    scannerMode: 'dotnet'
+    projectKey: 'sReports_sReports_d24d240a-6fe4-4498-bc28-26169ae4cc4e'
+    sonarHostUrl: 'http://20.111.59.193:9000'
+    extraProperties: |
+      sonar.exclusions=**/bin/**,**/obj/**,**/wwwroot/js/jquery-nestable/**,**/wwwroot/js/libs/**,**/*bootstrap*,**/wwwroot/css/libs/**,**/wwwroot/css/open-oncology/**
+      sonar.scanner.scanAll=false
+      sonar.cs.roslyn.ignoreIssues=true
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      if ($env:SONARQUBE_SCANNER_PARAMS) {
+        $params = $env:SONARQUBE_SCANNER_PARAMS | ConvertFrom-Json
+        if ($params.PSObject.Properties['sonar.branch.name']) {
+          $params.PSObject.Properties.Remove('sonar.branch.name')
+        }
+        $json = $params | ConvertTo-Json -Depth 100 -Compress
+        $env:SONARQUBE_SCANNER_PARAMS = $json
+        Write-Host "##vso[task.setvariable variable=SONARQUBE_SCANNER_PARAMS]$json"
+        Write-Host "Modified SONARQUBE_SCANNER_PARAMS: $json"
+      } else {
+        Write-Host "SONARQUBE_SCANNER_PARAMS is not set or is empty."
+      }
+    displayName: 'Remove sonar.branch.name from SONARQUBE_SCANNER_PARAMS'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArgs: '/p:PrecompileBeforePublish=false /p:UseMerge=true /p:SingleAssemblyName=AppCode /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.ArtifactStagingDirectory)"'
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+    maximumCpuCount: true
+
+- task: SonarQubeAnalyze@7
+  inputs:
+    sonarQube: 'SonarQube'
+
+- task: SonarQubePublish@7
+  inputs:
+    pollingTimeoutSec: '300'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+- task: AdvancedSecurity-Dependency-Scanning@1
+# - task: AdvancedSecurity-Codeql-Analyze@1

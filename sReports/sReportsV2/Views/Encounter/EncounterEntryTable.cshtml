@@ -1,0 +1,182 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DTOs.Encounter.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.User.DTO;
+
+@{
+    UserCookieData userCookieData = ViewBag.UserCookieData as UserCookieData;
+    Dictionary<string, bool> permissions = new Dictionary<string, bool>()
+    {
+        { PermissionNames.Update, userCookieData.UserHasPermission(PermissionNames.UpdateEncounter, ModuleNames.Patients) },
+        { PermissionNames.View, userCookieData.UserHasPermission(PermissionNames.ViewEncounter, ModuleNames.Patients)} ,
+        { PermissionNames.Delete, userCookieData.UserHasPermission(PermissionNames.RemoveEncounter, ModuleNames.Patients) }
+    };
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> genders = ViewBag.Genders as List<CodeDataOut>;
+    List<CodeDataOut> statuses = ViewBag.EncounterStatuses as List<CodeDataOut>;
+    List<CodeDataOut> episodeOfCareTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
+    List<CodeDataOut> types = ViewBag.EncounterTypes as List<CodeDataOut>;
+    bool reloadEncounterFromPatient = ViewBag.ReloadEncounterFromPatient;
+    string dateFormat = ViewBag.DateFormat as string;
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+<div id="encounterTableContent" class="table-responsive @(reloadEncounterFromPatient ? "encounters-fix-head patient-encounters-border" : "filter-border")"
+     @if (reloadEncounterFromPatient) { <text> onscroll="encounterTableIsScrolled()" </text>  }>
+    <table id="encounterTable" class="table table-striped @(!reloadEncounterFromPatient ? "table-border" : "")">
+        @{
+            RenderTableHeader(reloadEncounterFromPatient);
+        }
+        <tbody class="color-header">
+            @foreach (EncounterViewDataOut entry in Model.Data)
+            {
+                <tr id="row-@entry.EncounterId" onclick="openUpdateEncounterView(event, '@entry.PatientId', '@entry.EpisodeOfCareId', '@entry.EncounterId', @readOnly.ToJsBoolean())" class="table-content-row">
+                    <td id="encounterType-@entry.EncounterId">@entry.ConvertTypeCDToDisplayName(types, activeLanguage) </td>
+                    <td id="encounterStatus-@entry.EncounterId">@entry.ConvertStatusCDToDisplayName(statuses, activeLanguage)</td>
+                    <td id="name-@entry.EncounterId">@entry.NameGiven</td>
+                    <td id="familyName-@entry.EncounterId">@entry.NameFamily</td>
+                    <td id="gender-@entry.EncounterId">@entry.ConvertGenderCDToDisplayName(genders, activeLanguage)</td>
+                    <td id="birthDate-@entry.EncounterId">@entry.BirthDate.ConvertNullableDateForDisplay(dateFormat)</td>
+                    <td id="episodeOfCareType-@entry.EncounterId">@entry.ConvertEOCTypeCDToDisplayName(episodeOfCareTypes, activeLanguage)</td>
+                    <td id="admissionDate-@entry.EncounterId">@(entry.AdmissionDate != null ? entry.AdmissionDate.Value.GetDateTimeDisplay(dateFormat) : string.Empty)</td>
+                    <td id="dischargeDate-@entry.EncounterId">@(entry.DischargeDate != null ? entry.DischargeDate.Value.GetDateTimeDisplay(dateFormat) : string.Empty)</td>
+                    <td>
+                        @{
+                            RenderDropdown(permissions, entry, reloadEncounterFromPatient, readOnly);
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+    @if (Model.Data.Count > 0 && !reloadEncounterFromPatient)
+    {
+        <div class="pager-container">
+            @await Html.PartialAsync("Pagination")
+        </div>
+    }
+</div>
+
+@await Html.PartialAsync("~/Views/Encounter/EncounterInfoModal.cshtml")
+
+@functions {
+    private void RenderEncounterTh(string columnName, string sortingColumnName, bool isAscending, string columnNameTranslated, bool reloadEncounterFromPatient)
+    {
+        sortingColumnName = reloadEncounterFromPatient ? sortingColumnName : "";
+        string eventHandlerName = reloadEncounterFromPatient ? "sortEncounterTable" : "sortTable";
+        <th id="@columnName" class="@HtmlExtension.GetSortArrowClass(columnName, sortingColumnName, isAscending) encounter-th" onclick="@(reloadEncounterFromPatient ? eventHandlerName + "(event, '" + columnName + "')" : eventHandlerName + "('" + columnName + "')")">@columnNameTranslated.ToUpper()</th>
+    }
+
+    private void RenderTableHeader(bool reloadEncounterFromPatient)
+    {
+        string sortingColumnMame = Model.DataIn.ColumnName;
+        bool isAscending = Model.DataIn.IsAscending;
+        <thead class="color-header">
+            <tr class="table-header-row">
+                @foreach (Tuple<string, string> column in GetTableColumns(reloadEncounterFromPatient))
+                {
+                    RenderEncounterTh(column.Item1, sortingColumnMame, isAscending, column.Item2, reloadEncounterFromPatient);
+                }
+                <th class="encounter-th"></th>
+            </tr>
+        </thead>
+    }
+
+    private void RenderDropdown(Dictionary<string, bool> permissions, EncounterViewDataOut entry, bool reloadEncounterFromPatient, bool readOnly)
+    {
+        bool hasCreateUpdatePerm = permissions[PermissionNames.Update];
+        bool hasViewPerm = permissions[PermissionNames.View];
+        bool hasDeletePerm = permissions[PermissionNames.Delete];
+
+        if (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm)
+        {
+            <div class="dropdown">
+                <a class="dropdown-button @(reloadEncounterFromPatient ? "encounter-dropdown" : "")" href="#"
+                   id="dropdownMenuLink-@entry.EncounterId"
+                @if (!reloadEncounterFromPatient)
+                {
+                    <text> data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" </text>
+                }>
+                                            <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                        </a>
+                <div class="dropdown-menu ecnounter-dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.EncounterId">
+                    @if (hasViewPerm)
+                    {
+                        <a class="dropdown-item pointer hover view-a" onclick="showEncounterModal(event, true, '@entry.EncounterId', true, true)">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg"> @sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.EncounterInfo
+                        </a>
+                    }
+                    @if (hasCreateUpdatePerm && !readOnly && !reloadEncounterFromPatient)
+                    {
+                        <a class="dropdown-item pointer hover view-a" onclick="showEncounterModal(event, true, '@entry.EncounterId', @readOnly.ToJsBoolean(), true)">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg"> @sReportsV2.Cache.Resources.TextLanguage.Edit @sReportsV2.Cache.Resources.TextLanguage.EncounterInfo
+                        </a>
+                    }
+                    @if (hasDeletePerm && !readOnly && !reloadEncounterFromPatient)
+                    {
+                        <a class="dropdown-item pointer hover view-a" onclick="deleteEncounter(event, '@entry.EncounterId', @reloadEncounterFromPatient.ToJsBoolean())">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg"> @sReportsV2.Cache.Resources.TextLanguage.Remove
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    public List<Tuple<string, string>> GetTableColumns(bool reloadEncounterFromPatient)
+    {
+        List<Tuple<string, string>> tableColumns = new List<Tuple<string, string>>()
+            {
+                new Tuple<string, string>("TypeCD", @sReportsV2.Cache.Resources.TextLanguage.Type),
+                new Tuple<string, string>("Status", @sReportsV2.Cache.Resources.TextLanguage.Status),
+                new Tuple<string, string>("AdmissionDate", @sReportsV2.Cache.Resources.TextLanguage.AdmitDatetime),
+                new Tuple<string, string>("DischargeDate", @sReportsV2.Cache.Resources.TextLanguage.DischargeDatetime)
+            };
+        if (!reloadEncounterFromPatient)
+        {
+            tableColumns.InsertRange(
+                2,
+                new List<Tuple<string, string>>()
+                            {
+                        new Tuple<string, string>("NameGiven", @sReportsV2.Cache.Resources.TextLanguage.Given),
+                        new Tuple<string, string>("NameFamily", @sReportsV2.Cache.Resources.TextLanguage.FamilyName),
+                        new Tuple<string, string>("Gender", @sReportsV2.Cache.Resources.TextLanguage.Gender),
+                        new Tuple<string, string>("BirthDate", @sReportsV2.Cache.Resources.TextLanguage.BirthDate),
+                        new Tuple<string, string>("EpisodeOfCareTypeCD", @sReportsV2.Cache.Resources.TextLanguage.EpisodeOfCareType)
+                            }
+            );
+        }
+        else
+        {
+            tableColumns.InsertRange(
+                    2,
+                    new List<Tuple<string, string>>()
+                                {
+                            new Tuple<string, string>("PatientNameGiven", @sReportsV2.Cache.Resources.TextLanguage.Given),
+                            new Tuple<string, string>("PatientNameFamily", @sReportsV2.Cache.Resources.TextLanguage.FamilyName),
+                            new Tuple<string, string>("PatientGender", @sReportsV2.Cache.Resources.TextLanguage.Gender),
+                            new Tuple<string, string>("PatientBirthDate", @sReportsV2.Cache.Resources.TextLanguage.BirthDate),
+                            new Tuple<string, string>("EpisodeOfCareTypeCD", @sReportsV2.Cache.Resources.TextLanguage.EpisodeOfCareType)
+                                }
+                );
+        }
+        return tableColumns;
+    }
+}
+
+<div class="modal fade hide-overflow-y" id="addEncounterModal" role="dialog"></div>
+
+<script>
+    window.onresize = function () {
+        setTableMaxHeight("encounterTable", "encounterTableContent");
+    }
+</script>

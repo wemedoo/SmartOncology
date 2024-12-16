@@ -1,0 +1,36 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Encounter;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model List<EncounterDataOut>
+@{
+    List<CodeDataOut> serviceTypes = ViewBag.ServiceTypes as List<CodeDataOut>;
+}
+
+@for (int i = 0; i < Model.Count; i++)
+{
+    <div class="single-encounter" id="@Model[i].Id">
+        <div class="h-line">
+
+        </div>
+        <div class="content">
+            @(Model[i].ServiceTypeId != null ? serviceTypes.Find(x => x.Id == Model[i].ServiceTypeId)?.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage) : "Not defined")
+
+            <span class="encounter-startdatetime">
+                -
+                @if (Model[i].Period != null)
+                {
+                    @Model[i].Period.StartDate.ToTimeZoned(ViewBag.DateFormat as string)
+                }
+            </span>
+        </div>
+    </div>
+}
+@if (Model.Count > 0)
+{
+    <script>
+        $(document).ready(function () {
+            $('#@ViewBag.EpisodeOfCareId .vertical-line').show();
+        })
+    </script>
+}

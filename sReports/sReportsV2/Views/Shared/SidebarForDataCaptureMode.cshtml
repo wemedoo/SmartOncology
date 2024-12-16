@@ -1,0 +1,22 @@
+﻿@using sReportsV2.Common.Constants;
+
+@{
+    string action = ViewContext.RouteData.Values["Action"].ToString();
+    string controller = ViewContext.RouteData.Values["Controller"].ToString();
+    var userCookieData = ViewBag.UserCookieData;
+}
+<div class="sidebar" id="sidebar">
+    <ul class="nav flex-column">
+        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Engine))
+        {
+            <li class="nav-item @(((action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("GetAllByFormThesaurus") || action.Equals("GetAllFormDefinitions") || action.Equals(EndpointConstants.View)) && controller.Equals("FormInstance")) ? "active" : "")">
+                <a class="nav-link d-flex nav-link-remove-padding" href="~/FormInstance/DataCaptureViewMode">
+                    <div class="sidebar-img">
+                        <img alt="" src="/css/img/icons/@(((action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("GetAllByFormThesaurus") || action.Equals("GetAllFormDefinitions") || action.Equals(EndpointConstants.View)) && controller.Equals("FormInstance")) ? "engine_black.svg" : "engine_silver.svg")">
+                    </div>
+                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.DataCaptureEngine </div>
+                </a>
+            </li>
+        }
+        </ul>
+</div>

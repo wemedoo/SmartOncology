@@ -1,0 +1,48 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Field.DataOut;
+@model FieldSelectDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+}
+<fieldset id="@Model.Id">
+    <div class="field-group">
+        <div for="sel-@Model.Id" class="filter-label form-label-size d-inline-block">
+            <span class="comment-target-item" id="@Model.Id">@Html.Raw(Model.FullLabel)</span>
+        </div>
+        <div class="repetitive-field filter-input d-inline-block arrow-select">
+            @{ AddSelect(Model.IsReadonly || isChapterReadonly); }
+        </div>
+        @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model)
+    </div>
+</fieldset>
+
+@functions {
+    private void AddSelect(bool isDisabled)
+    {
+        <select
+                id="sel-@Model.Id"
+                name="sel-@Model.Id"
+                class="form-element-field"
+                disabled
+                >
+               <option value="" class="form-select-placeholder" data-itemtype="fieldvalue"></option>
+               @foreach (FormFieldValueDataOut ffv in Model.Values)
+               {
+                    <option
+                     value="@ffv.Value"
+                      title="@ffv.Label"
+                    @Html.Raw(ffv.GetDataAttr())
+                    data-valuetype="option"
+                    data-itemtype="fieldvalue"
+                >@ffv.GetShortValue()</option>
+               }
+        </select>
+
+        if (isDisabled)
+        {
+            <input type="hidden" id="sel-@Model.Id" name="sel-@Model.Id" class="form-element-field">
+        }
+    }
+}
+

@@ -1,0 +1,46 @@
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Helpers
+
+@model sReportsV2.DTOs.Patient.PatientDataOut
+
+@section Stylesheet
+{
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/digital-guideline.css"), "", "")
+}
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    ViewData["Title"] = string.Format("{0} {1}", readOnly ? sReportsV2.Cache.Resources.TextLanguage.View : sReportsV2.Cache.Resources.TextLanguage.Edit, sReportsV2.Cache.Resources.TextLanguage.Patients);
+    ViewBag.Action = "/Patient/Edit";
+    string breadcrumbLevel2 = Model.GetPatientBasicInfo(Model.Name, Model.FamilyName, Model.BirthDate);
+
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData)
+    {
+        { "level1", @sReportsV2.Cache.Resources.TextLanguage.Patients },
+        { "linkLevel1", "/Patient/GetAll" },
+        { "level2", Model != null ? breadcrumbLevel2 : @sReportsV2.Cache.Resources.TextLanguage.Patient_Create },
+        { "activeLevel", 2 }
+    })
+}
+
+<div id="editPatientContainer">
+    <input type="hidden" id="patientId" value="@Model.Id">
+    <div class="row patient-basic-content" id="patientBasicInfo">
+        @await Html.PartialAsync("~/Views/Patient/PatientBasicInfo.cshtml", Model)
+    </div>
+
+    <hr class="hr" />
+
+    <div class="flex">
+        <div class="eoc-info epsiodeofcares-info" id="eocInfo">
+            @await Html.PartialAsync("~/Views/EpisodeOfCare/ShowEOCContent.cshtml")
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="patientId" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.PatientId : "")">
+<div class="modal fade" id="addEocModal" role="dialog"></div>
+@Html.Raw(ScriptHelper.RenderBundle("js/patient-bundle.min.js"))
+<script>
+    var readOnly = @readOnly.ToJsBoolean();
+</script>

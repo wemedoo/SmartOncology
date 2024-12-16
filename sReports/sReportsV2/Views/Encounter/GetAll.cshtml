@@ -1,0 +1,25 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Encounters;
+}
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Encounters }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Encounters
+    </div>
+    @await Html.PartialAsync("EncounterFilterGroup")
+    <div id="encounterTableContainer">
+
+    </div>
+</div>
+@await Html.PartialAsync("AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/encounterGetAll-bundle.min.js"))

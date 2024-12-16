@@ -1,0 +1,98 @@
+﻿[
+  {
+    "outputFile": "wwwroot/css/main.css",
+    "inputFile": "wwwroot/css/main.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/login.css",
+    "inputFile": "wwwroot/css/login.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/nestable.css",
+    "inputFile": "wwwroot/css/nestable.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/newMain.css",
+    "inputFile": "wwwroot/css/newMain.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/digital-guideline.css",
+    "inputFile": "wwwroot/css/digital-guideline.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/swissOpenOncology.css",
+    "inputFile": "wwwroot/css/swissOpenOncology.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/abstracts/_mixins.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/abstracts/_mixins.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/abstracts/_variables.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/abstracts/_variables.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/base/_base.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/base/_base.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/base/_typography.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/base/_typography.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/base/_utilities.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/base/_utilities.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/layout/_header.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/layout/_header.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/layout/_main.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/layout/_main.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/style.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/style.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/schema_style.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/schema_style.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/open-oncology/scss/components/schema/_main.css",
+    "inputFile": "wwwroot/css/open-oncology/scss/components/schema/_main.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/toggle-switch-button.css",
+    "inputFile": "wwwroot/css/toggle-switch-button.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/common.css",
+    "inputFile": "wwwroot/css/common.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/modules/patient.css",
+    "inputFile": "wwwroot/css/modules/patient.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/modules/designer.css",
+    "inputFile": "wwwroot/css/modules/designer.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/modules/encounter.css",
+    "inputFile": "wwwroot/css/modules/encounter.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/modules/field-instance-history.css",
+    "inputFile": "wwwroot/css/modules/field-instance-history.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/modules/form-instance.css",
+    "inputFile": "wwwroot/css/modules/form-instance.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/components/scroll-list.css",
+    "inputFile": "wwwroot/css/components/scroll-list.scss"
+  }
+]

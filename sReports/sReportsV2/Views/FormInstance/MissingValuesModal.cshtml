@@ -1,0 +1,84 @@
+﻿@using System.Linq;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.DTOs.Form.DataOut;
+
+@model FormDataOut
+@{
+    var codeDataOut = ViewBag.NullFlavors as List<CodeDataOut>;
+    string activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
+}
+<form id="missingValuesForm" name="missingValuesModalForm" onsubmit="return false">
+    <div class="modal fade" id="missingValuesModal" tabindex="-1" role="dialog" aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content missing-value-content">
+                <div class="missing-value-modal-content">
+                    <div class="missing-value-modal-title">
+                        <img alt="" src="/css/img/icons/green_pen.svg">
+                        <span class="missing-value-modal-title-text">
+                            @sReportsV2.Cache.Resources.TextLanguage.MissingObligatoryData
+                        </span>
+                        <div class="cancel-button-missing-value-modal ">
+                            <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                        </div>
+                    </div>
+                    <div class="missing-value-header">
+                        @sReportsV2.Cache.Resources.TextLanguage.DataPointIsObligatory:
+                    </div>
+                    @foreach (var field in Model.RequiredFieldsWithoutValue)
+                    {
+                        <div class="row-container align-header-center">
+                            <div class="d-flex missing-value-header-red">
+                                <img alt="" src="/css/img/icons/red_pen.svg">
+                                <div class="obligatory-data-title">
+                                    @field.Label
+                                </div>
+                            </div>
+                            <div class="provide-info-header">
+                                @sReportsV2.Cache.Resources.TextLanguage.ProvideAnAnwerWhyDataIsMissing
+                            </div>
+                            <div class="d-flex font-weight-600 margin-top-12">
+                                <div class="w-50">
+                                    @{
+                                        int length = field.NullFlavors.Count;
+                                        int half = (length + 1) / 2;
+                                    }
+                                    @{ RenderNullFlavorRadios(field.NullFlavors.Take(half), codeDataOut, field.Id, activeLanguage); }
+                                </div>
+                                <div class="w-50">
+                                    @{ RenderNullFlavorRadios(field.NullFlavors.Skip(half), codeDataOut, field.Id, activeLanguage); }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="missing-value-modal-buttons">
+                    <button id="identifier-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="populateMissingValues(event)" dismiss="modal">
+                        <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.UpdateValues</span>
+                    </button>
+                    <div class="float-right" id="close">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@functions {
+    private void RenderNullFlavorRadios(IEnumerable<int> nullFlavors, IEnumerable<CodeDataOut> codeDataOut, string fieldId, string activeLanguage)
+    {
+        foreach (int nullFlavor in nullFlavors)
+        {
+            CodeDataOut nullFlavorCode = codeDataOut.FirstOrDefault(x => x.Id == nullFlavor);
+            <label class="form-radio-label margin-right-20">
+                <input type="radio" id="@fieldId" name="@fieldId" value="@nullFlavorCode.Id" missing-code-value-option class="form-radio-field">
+                <i class="form-radio-button user-radio"></i>
+                <span class="missing-value-radio">
+                    @nullFlavorCode.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage)
+                </span>
+            </label>
+        }
+    }
+}

@@ -1,0 +1,19 @@
+﻿
+
+@using sReportsV2.Common.Constants;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewPersonnelTablePermission = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration);
+}
+
+@if (hasViewPersonnelTablePermission)
+{
+    <div id="patientlist-personnel-tab" class="scroll-list-tab-container" style="display:none">
+        @await Html.PartialAsync("~/Views/PatientList/Personnel/PatientListPersonnelFilterGroup.cshtml")
+
+        <div id="PatientListPersonnelTable">
+        </div>
+
+    </div>
+}

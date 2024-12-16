@@ -1,0 +1,41 @@
+﻿
+<script>
+
+    function elementsPastedSuccess() {
+        toastr.success('@sReportsV2.Cache.Resources.TextLanguage.elementsPastedSuccess');
+    }
+
+    function elementsCopiedSuccess() {
+        toastr.success('@sReportsV2.Cache.Resources.TextLanguage.elementsCopiedSuccess');
+    }
+
+    function incompatibleTypeWarning() {
+        toastr.warning("@sReportsV2.Cache.Resources.TextLanguage.incompatibleTypeWarning");
+    }
+
+    function nothingWasCopiedWarning() {
+        toastr.warning("@sReportsV2.Cache.Resources.TextLanguage.nothingWasCopiedWarning");
+    }
+
+    function noSelectedElementsWarning() {
+        toastr.warning('@sReportsV2.Cache.Resources.TextLanguage.noSelectedElementsWarning');
+    }
+
+    function noTargetIdFoundError() {
+        toastr.error("@sReportsV2.Cache.Resources.TextLanguage.noTargetIdFoundError");
+    }
+
+    function pleaseWaitInfo() {
+        toastr.info("@sReportsV2.Cache.Resources.TextLanguage.pleaseWaitInfo")
+    }
+
+
+    function buildPastePlaceholderElement(itemType, targetId, beforeTarget = false) {
+        let pastableClass = beforeTarget ? "before-pastable-destination" : "after-pastable-destination";
+        return `
+        <li class='drag-and-drop-element dd-item dd-item-placeholder cursor-pointer ${pastableClass}' data-itemtype='${itemType}' data-targetid=${targetId}>
+            @sReportsV2.Cache.Resources.TextLanguage.Paste ${itemType}@sReportsV2.Cache.Resources.TextLanguage._s_ @sReportsV2.Cache.Resources.TextLanguage.Here.ToLower()
+        </li>`;
+    }
+
+</script>

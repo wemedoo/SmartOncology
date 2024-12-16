@@ -1,0 +1,18 @@
+﻿@await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+
+<div class="designer-form-section">
+    <div class="d-inline-block checkbox-container">
+
+        <div class="d-flex selectable-field-option">
+            <label class="form-checkbox-label width-fit-content">
+                <input name="enableDataExtraction" @(Model.DataExtractionEnabled ? "checked" : string.Empty) id="enableDataExtraction" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled />
+
+                <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                <span>@sReportsV2.Cache.Resources.TextLanguage.Enable_Data_Extraction</span>
+            </label>
+        </div>
+
+    </div>
+</div>
+
+

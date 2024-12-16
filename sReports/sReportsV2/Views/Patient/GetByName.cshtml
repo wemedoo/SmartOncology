@@ -1,0 +1,13 @@
+﻿@using System.Web
+@using sReportsV2.DTOs.Patient.DataOut;
+@model List<PatientTableDataOut>
+
+@foreach (PatientTableDataOut patient in Model)
+{
+    string name = patient.FirstName + " " + patient.LastName + " ";
+    <div class="option" data-value="@patient.Id" onclick="patientOptionClicked(event, '@patient.Id', '@System.Net.WebUtility.HtmlEncode(name)')">
+        @name
+    </div>
+}
+
+

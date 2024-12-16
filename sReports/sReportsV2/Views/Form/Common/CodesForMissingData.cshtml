@@ -1,0 +1,14 @@
+﻿@model sReportsV2.DTOs.Field.DataOut.FieldDataOut
+
+@if (ViewBag.formInstanceId != null && Model.ShowCodeMissingValue() && !Model.HasValue(0))
+{
+    <div class="d-flex">
+        <div class="form-label-size d-inline-block" hidden></div>
+        <div class="missing-data-background @(Model.IsDisabled ? "pe-none" : "")" onclick="showMissingValuesModal(event, '@Model.Id', true)">
+            <img alt="" class="mr-1" src="/css/img/icons/missing_codes_arrow.svg">
+            <span class="missing-data">
+                @sReportsV2.Cache.Resources.TextLanguage.MissingData
+            </span>
+        </div>
+    </div>
+}

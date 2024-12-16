@@ -1,0 +1,69 @@
+﻿<nav aria-label="breadcrumb">
+    <ol class="breadcrumb " style="padding: 6px 0px; background-color: transparent; padding-top: 12px;">
+        @if ((int)ViewData["activeLevel"] == 0)
+        {
+            <li class="breadcrumb-item active breadcrumb-active" aria-current="page">
+                <img alt="" src="/css/img/icons/overview_silver.svg" class="breadcrumb-icon">
+                <a href="~/Home/Index">@sReportsV2.Cache.Resources.TextLanguage.HomeStart</a>
+            </li>
+        }
+        else
+        {
+            <li class="breadcrumb-item breadcrumb-pasive">
+                <img alt="" style="margin-bottom:3px;width:13px;" src="/css/img/icons/overview_silver.svg">
+                <a class="breadcrumb-pasive" href="~/Home/Index">@sReportsV2.Cache.Resources.TextLanguage.HomeStart</a>
+            </li>
+        }
+
+        @if (ViewData["level1"] != null)
+        {
+            if ((int)ViewData["activeLevel"] == 1)
+            {
+                <li class="breadcrumb-item active breadcrumb-active" aria-current="page"><a>@ViewData["level1"]</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb-item breadcrumb-pasive"><a href="@ViewData["linkLevel1"]">@ViewData["level1"]</a></li>
+            }
+
+        }
+        @if (ViewData["level2"] != null)
+        {
+            if ((int)ViewData["activeLevel"] == 2)
+            {
+                <li class="breadcrumb-item active breadcrumb-active" aria-current="page"><a>@ViewData["level2"]</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb-item breadcrumb-pasive"><a href="@ViewData["linkLevel2"]">@ViewData["level2"]</a></li>
+            }
+        }
+
+        @if (ViewData["level3"] != null)
+        {
+            if ((int)ViewData["activeLevel"] == 3)
+            {
+                <li class="breadcrumb-item active breadcrumb-active" aria-current="page"><a>@ViewData["level3"]</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb-item breadcrumb-pasive"><a href="@ViewData["linkLevel3"]">@ViewData["level3"]</a></li>
+            }
+        }
+        @if (ViewData["level4"] != null)
+        {
+            if ((int)ViewData["activeLevel"] == 4)
+            {
+                <li class="breadcrumb-item active breadcrumb-active" aria-current="page"><a>@ViewData["level4"]</a></li>
+            }
+            else
+            {
+                <li class="breadcrumb-item breadcrumb-pasive"><a href="#">@ViewData["level4"]</a></li>
+            }
+        }
+    </ol>
+</nav>
+@if (ViewData["ShowBreadcrumbLine"] != null)
+{
+    <div class="breadcrumb-line"></div>
+}

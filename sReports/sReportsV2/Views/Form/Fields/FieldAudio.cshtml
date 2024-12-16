@@ -1,0 +1,87 @@
+﻿@using Microsoft.AspNetCore.Routing
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+
+@model FieldAudioDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+}
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass">
+    <div class="repetitive-values d-inline-block form-input-size">
+        @if (Model.HasValue())
+        {
+            for (int i = 0; i < Model.FieldInstanceValues.Count; i++)
+            {
+                string value = !string.IsNullOrEmpty(Model.FieldInstanceValues[i].FirstValue) ? Model.FieldInstanceValues[i].FirstValue : "";
+                await AddField(Html, Model, isChapterReadonly, fieldSetId, i + 1, value);
+            }
+        }
+        else
+        {
+            await AddField(Html, Model, isChapterReadonly, fieldSetId, 1, "");
+        }
+    </div>
+</fieldset>
+
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string value)
+    {
+        var fieldInstanceRepetitionInfo = objectModel.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
+        <div class="field-group">
+            <div for="@fieldInstanceRepetitionInfo.Item1" class="filter-label form-label-size d-inline-block">
+                @html.Raw(objectModel.FullLabel)
+            </div>
+            <div class="repetitive-field filter-input d-inline-block">
+                @{
+                    await AddInput(Model, isChapterReadonly, fieldSetId, value, fieldInstanceRepetitionInfo);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", value } })
+        </div>
+    }
+
+    private async Task AddInput(FieldAudioDataOut objectModel, bool isChapterReadonly, string fieldSetId, string value, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        await AddAudioInput(objectModel, fieldSetId, value, fieldInstanceRepetitionInfo, isChapterReadonly);
+    }
+
+    private async Task AddAudioInput(FieldAudioDataOut objectModel, string fieldSetId, string value, Tuple<string, bool> fieldInstanceRepetitionInfo, bool isChapterReadonly)
+    {
+        string repetitiveValue = !fieldInstanceRepetitionInfo.Item2 ? value : "";
+        <div class="audio-container">
+            <div class="startRecord start-rec-icon" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.StartRecording"></div>
+            <div class="stopRecord stop-rec-icon" style="display: none;" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.StopRecording"></div>
+            <div class="pauseRecord pause-rec-icon" style="display: none;"></div>
+            <div class="continueRecord continue-rec-icon" style="display: none;"></div>
+            <div class="timer typography" style="display: none;"><span>00:00 / 00:00</span></div>
+            <audio data-audioid="@fieldInstanceRepetitionInfo.Item1" class="audioPlayback" style="height: auto;" controls src="@Url.OopusDownloadLink(repetitiveValue, StorageDirectoryNames.Audio)"></audio>
+
+            <input class="audio-hid" type="hidden" id="@fieldInstanceRepetitionInfo.Item1" value="@repetitiveValue" data-fileid="@fieldInstanceRepetitionInfo.Item1"
+            @Html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, 1)) />
+        </div>
+        @await Html.PartialAsync(
+            "~/Views/Form/Fields/Custom/BinaryDisplayElement.cshtml",
+            Model,
+            new ViewDataDictionary(ViewData)
+            {
+                { "isReadonly", objectModel.IsReadonly },
+                { "isChapterReadonly", isChapterReadonly },
+                { "repetitiveValue", repetitiveValue },
+                { "specialValue", fieldInstanceRepetitionInfo.Item2 }
+            }
+            )
+    }
+
+}
+
+<script>
+    $(document).ready(function () {
+        audioFieldFunctions();
+        $('[data-toggle="tooltip"]').tooltip({
+            placement: 'bottom'
+        });
+    });
+</script>

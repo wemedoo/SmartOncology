@@ -1,0 +1,68 @@
+﻿@using sReportsV2.DTOs.DTOs.CodeAssociation.DataOut
+@using sReportsV2.Common.Constants;
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    var codeIdColumn = ViewBag.IsChildToParent ? ViewBag.TableId + "_ChildId" : ViewBag.TableId + "_ParentId";
+    var preferredTermColumn = ViewBag.TableId + "_PreferredTerm";
+    var preferredTermChildColumn = ViewBag.TableId + "_ChildPreferredTerm";
+    var isChildToParent = ViewBag.IsChildToParent;
+    var isReadOnly = ViewBag.ReadOnly;
+}
+<div class="d-flex">
+    <div id="parentElement-nominator" class="association-table-content" style="left:0" onclick="childToParent('nominator')">
+        <i class="child-level-icon" id="childIcon"></i>
+        <span class="umls-title">@sReportsV2.Cache.Resources.TextLanguage.Child_to_parent</span>
+
+    </div>
+    <div id="childElement-nominator" class="association-table-content association-table-content-grey parent-to-child" style="right:0" onclick="parentToChild('nominator')">
+        <i class="parent-level-icon" id="parentIcon"></i>
+        <span class="umls-title">@sReportsV2.Cache.Resources.TextLanguage.Parent_to_child</span>
+
+    </div>
+</div>
+
+<div class="table-responsive table-border nominee-fix-head association-table-style" id="associationContainer">
+    <table class="table table-striped" id="associationTable">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="@codeIdColumn" class="sort-arrow" style="border-bottom: unset;border-top: unset; padding-right: 20px" onclick="sortAssociation('@codeIdColumn')">@sReportsV2.Cache.Resources.TextLanguage.CodeValue.ToUpper()</th>
+                <th id="@preferredTermColumn" class="sort-arrow" style="border-bottom: unset;border-top: unset; padding-right: 15px" onclick="sortAssociation('@preferredTermColumn')">@sReportsV2.Cache.Resources.TextLanguage.Parent.ToUpper()</th>
+                <th id="@preferredTermChildColumn" class="sort-arrow" style="border-bottom: unset;border-top: unset; padding-right: 15px" onclick="sortAssociation('@preferredTermChildColumn')">@sReportsV2.Cache.Resources.TextLanguage.Child.ToUpper()</th>
+                <th style="border-bottom: unset;border-top: unset;" ></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (CodeAssociationDataOut entry in Model.Data)
+            {
+                <tr id="row-@entry.CodeAssociationId" class="table-content-row association-row association-entry" 
+                    onclick="selectAssociation(event, this, '@(isChildToParent ? entry.Child.CodeSetId : entry.Parent.CodeSetId)', '@(isChildToParent ? entry.ParentId : entry.ChildId)', '@(isChildToParent ? entry.ChildId : entry.ParentId)')">
+                    <td data-property="codeId">@(isChildToParent ? entry.ChildId : entry.ParentId)</td>
+                    <td data-property="parent">
+                        @entry.Parent.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm
+                    </td>
+                    <td data-property="child">
+                        @entry.Child.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm                   
+                    </td>
+                    @if (userCookieData.UserHasPermission(PermissionNames.DeleteAssociation, ModuleNames.CodeSet) && !isReadOnly)
+                    {
+                        <td onclick="removeAssociationFromRow(event, '@entry.CodeAssociationId')">
+                            <i class="remove-association"></i>
+                        </td>
+                    }
+                    else 
+                    {
+                        <td></td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Data.Count == 0)
+    {
+        <div class="no-result-content" id="noContentAssociation">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+</div>

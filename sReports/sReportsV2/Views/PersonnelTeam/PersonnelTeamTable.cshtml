@@ -1,0 +1,90 @@
+﻿
+@using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Common;
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<PersonnelTeamDataOut, DataIn>
+
+@{
+    var activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
+    var userCookieData = ViewBag.UserCookieData;
+    var hasCreateUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Administration);
+    var hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.Administration);
+    var hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration);
+}
+
+@if (hasViewPerm)
+{
+    <div class="" style="min-height:35px">
+
+        <table id="personnelTeamTable" class="personnel-team-table">
+            <thead class="personnel-team-table-head">
+                <tr>
+                    <th class="personnel-team-table-header-borders-left"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.Team_Name.ToUpper()</span></th>
+                    <th class="personnel-team-table-headers"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.Team_Type.ToUpper()</span></th>
+                    <th class="personnel-team-table-headers"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.Members.ToUpper()</span></th>
+                    <th class="personnel-team-table-header-borders-right personnel-team-options-dropdown-header"></th>
+                </tr>
+            </thead>
+            <tbody class="personnel-team-table-body">
+                @if (Model.Data != null)
+                {
+                    foreach (PersonnelTeamDataOut personnelTeam in Model.Data)
+                    {
+                        <tr class="tr edit-raw" data-value="@personnelTeam.PersonnelTeamId">
+                            <td data-property="name" data-value="@personnelTeam.Name" title="" class="personnel-team-table-cells external-cell-left" onclick="showSinglePersonnelTeamTable(event, @personnelTeam.PersonnelTeamId)">
+                                @personnelTeam.Name
+                            </td>
+                            <td data-property="type" data-value="@{
+                                    if (personnelTeam.Type != null)
+                                    {
+                                        @personnelTeam.Type.Id
+                                    }
+                                }" title="" class="personnel-team-table-cells" onclick="showSinglePersonnelTeamTable(event, @personnelTeam.PersonnelTeamId)">
+                                @foreach (CodeDataOut teamType in ObjectExtension.FilterDataSource(ViewBag.TeamTypes, readOnlyMode: true))
+                                {
+                                    @(personnelTeam.Type != null && personnelTeam.Type.Id == teamType.Id ? teamType.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : null)
+                                }
+                            </td>
+                            <td data-property="members" data-value="" title="" class="personnel-team-table-cells" onclick="showSinglePersonnelTeamTable(event, @personnelTeam.PersonnelTeamId)">
+                                @(personnelTeam.PersonnelTeamRelations != null ? personnelTeam.PersonnelTeamRelations.Count : 0)
+                                <span class="view-personnelteam-members-span">View</span>
+                            </td>                          
+                            <td class="personnel-team-table-cells external-cell-right">
+                                @if (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm)
+                                {
+                                    <div class="dropdown show external-cell-right personnel-team-options-dropdown ">
+                                        <div class="dropdown-button" role="button" id="dropdownMenuLink-@personnelTeam.PersonnelTeamId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                        </div>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@personnelTeam.PersonnelTeamId">
+                                            @if (hasViewPerm)
+                                            {
+                                                <div class="dropdown-item" onclick="showSinglePersonnelTeamTable(event, @personnelTeam.PersonnelTeamId)"><img alt="" class="edit-svg-size" src="/css/img/icons/eye_fill_gray.svg">@sReportsV2.Cache.Resources.TextLanguage.View</div>
+                                            }
+                                            @if (hasCreateUpdatePerm)
+                                            {
+                                                <div class="dropdown-item" onclick="showEditPersonnelTeamModal(event,'@personnelTeam.PersonnelTeamId')"><img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit</div>
+                                            }
+                                            @if (hasDeletePerm)
+                                            {
+                                                <div class="dropdown-item" onclick="showDeletePersonnelTeamModal(event,'@personnelTeam.PersonnelTeamId')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="pager-container" style="width:100%; height:50px">
+            @await Html.PartialAsync("~/Views/PersonnelTeam/Common/PersonnelTeamPagination.cshtml")
+        </div>
+
+    </div>
+}
+

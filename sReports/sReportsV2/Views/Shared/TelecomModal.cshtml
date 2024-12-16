@@ -1,0 +1,90 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    var allTelecomSystems = ViewBag.TelecomSystem as List<CodeDataOut>;
+    var telecomSystems = allTelecomSystems.Where(x => x.IsActive()).ToList();
+    var inactiveTelecomSystems = allTelecomSystems.Where(x => x.IsInactive()).ToList();
+    inactiveTelecomSystems.ForEach(inactive => inactive.PreferredTerm = inactive.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage));
+
+    var allTelecomUseTypes = ViewBag.TelecomUse as List<CodeDataOut>;
+    var telecomUseTypes = allTelecomUseTypes.Where(x => x.IsActive()).ToList();
+    var inactiveTelecomUseTypes = allTelecomUseTypes.Where(x => x.IsInactive()).ToList();
+    inactiveTelecomUseTypes.ForEach(inactive => inactive.PreferredTerm = inactive.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage));
+}
+<div class="modal fade" id="telecomModal" tabindex="-1" role="dialog" aria-labelledby="telecomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-password">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+                    <form id="newTelecomForm">
+                        <input type="hidden" id="telecomEntityId" name="telecomEntityId">
+                        <input type="hidden" id="telecomEntityVersion" name="telecomEntityVersion">
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/change_password.svg">
+                            <div id="telecomModalTitle"></div>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Telecom_System
+                            </div>
+                            <select class="filter-input arrow-select" id="system" name="system" data-codesetid="@((int)CodeSetList.TelecomSystemType)" @ViewBag.Disabled>
+                                <option value=""></option>
+                                @foreach (var system in telecomSystems)
+                                {
+                                    <option value="@system.Id">
+                                        @system.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Telecom_Value
+                            </div>
+                            <input required class="filter-input" type="text" id="value" name="value" onkeydown="pressButtonOnEnterKey(event, 'telecom-modal-button')" @ViewBag.Disabled/>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Telecom_Use
+                            </div>
+                            <select class="filter-input arrow-select" id="use" name="use" data-codesetid="@((int)CodeSetList.TelecomUseType)" @ViewBag.Disabled>
+                                <option value=""></option>
+                                @foreach (var useType in telecomUseTypes)
+                                {
+                                    <option value="@useType.Id">
+                                        @useType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="button-partial">
+                            @if (!readOnly)
+                            {
+                                <button id="telecom-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="addNewTelecom(event)" dismiss="modal">
+                                    <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                                </button>
+                            }
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var telecomActiveEntity = '@this.ViewContext.RouteData.Values["controller"].ToString()';
+    var viewOrAddTelecomModalTitle = '@(readOnly ? sReportsV2.Cache.Resources.TextLanguage.View + " " + sReportsV2.Cache.Resources.TextLanguage.Telecom : sReportsV2.Cache.Resources.TextLanguage.Telecom_Add)';
+    var editTelecomModalTitle = '@sReportsV2.Cache.Resources.TextLanguage.EditTelecom';
+    var inactiveTelecomSystems = @Html.Raw(Json.Serialize(inactiveTelecomSystems));
+    var inactiveTelecomUseTypes = @Html.Raw(Json.Serialize(inactiveTelecomUseTypes));
+</script>

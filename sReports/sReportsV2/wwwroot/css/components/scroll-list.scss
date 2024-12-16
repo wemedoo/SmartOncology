@@ -1,0 +1,171 @@
+﻿
+.scroll-list-container {
+    border-bottom: 1px solid #DFDFDF;
+    height: 2rem;
+    overflow: visible;
+    display: flex;
+
+    .scroll-list {
+        max-width: 80%;
+        overflow: hidden;
+    }
+
+    .scroll-list-width-100 {
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .scroll-list-item {
+        cursor: pointer;
+        justify-content: flex-start;
+        align-items: center;
+        border-bottom: 2px white solid;
+
+        &.selected {
+            border-bottom: 2px #1C94A3 solid;
+        }
+
+        .scroll-list-item-title {
+            color: black;
+            font-size: 14px;
+            font-family: Nunito Sans, sans-serif;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+
+            &:hover {
+                color: #1C94A3;
+            }
+
+            &.no-max-width-limit {
+                max-width: 100% !important;
+            }
+        }
+    }
+
+    .scroll-list-arrow {
+        cursor: pointer;
+        margin-right: 0.5rem;
+        margin-left: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-top: 0.5rem;
+
+        &.scroll-list-arrow-left {
+            content: url("../img/icons/arrow_scroll_left.svg");
+        }
+
+        &.scroll-list-arrow-right {
+            content: url("../img/icons/arrow_scroll_right.svg");
+        }
+    }
+
+    .load-more-scroll-list-items {
+        color: #1C94A3 !important;
+        @extend .scroll-list-item;
+
+        .scroll-list-item-title {
+            color: #1C94A3;
+        }
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .item-spacer {
+        width: 37px;
+        float: right;
+        padding: 10px;
+        margin: -4px;
+    }
+}
+
+.add-list-btn {
+    background: none;
+    color: #1C94A3;
+    font-size: 14px;
+    font-family: Nunito Sans, sans-serif;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &:hover {
+        color: #1C94A3;
+    }
+}
+
+.scroll-list-dropdown-item {
+    font-size: 13px;
+    word-wrap: break-word;
+    display: flex;
+
+    &:hover {
+        img {
+            filter: brightness(0) saturate(100%) invert(43%) sepia(53%) saturate(578%) hue-rotate(138deg) brightness(100%) contrast(98%); // applies #1C94A3 to svg
+        }
+    }
+
+    .icon-container {
+        width: 1rem;
+    }
+}
+
+.scroll-list-modal-icon {
+    width: 1.5rem;
+    margin-right: 0.5rem;
+    filter: brightness(0) saturate(100%) invert(43%) sepia(53%) saturate(578%) hue-rotate(138deg) brightness(100%) contrast(98%); // applies #1C94A3 to svg
+}
+
+.segmented-btn-group {
+    background-color: #F0F1F1;
+    border-radius: 0.5rem 0.5rem 0.5rem 0.5rem !important;
+
+    .segmented-btn {
+        background: #F0F1F1;
+        color: black !important;
+        font-size: 14px;
+        border-radius: 0.5rem 0.5rem 0.5rem 0.5rem !important;
+        border-color: #F0F1F1 !important;
+        margin-right: 0.1rem;
+
+        &:focus, &.pressed {
+            background: #FFFFFF !important;
+            box-shadow: none !important;
+            border-color: #CED4DA !important;
+        }
+
+        &:active {
+            background: #FFFFFF !important;
+            box-shadow: none !important;
+        }
+
+        &:hover {
+            z-index: unset;
+        }
+
+
+        &:last-child {
+            margin-right: unset !important;
+        }
+    }
+}
+
+
+.scroll-list-tab {
+    @extend .scroll-list-item
+}
+
+.smart-onc-alert-info {
+    color: #1C94A3;
+    background-color: #E8FCFF;
+    border-color: #E8FCFF;
+}
+
+.dropdown-title {
+    max-height: 30px;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}

@@ -1,0 +1,29 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model sReportsV2.DTOs.Common.DataOut.UserDataOut
+@{
+    List<CodeDataOut> personnelPositions = ObjectExtension.FilterDataSource(ViewBag.PersonnelPositions, readOnlyMode: true);
+    IEnumerable<string> roles = Model.RenderUserRoleNames(ViewBag.UserCookieData.ActiveLanguage, personnelPositions);
+}
+<div class="advanced-filter-item input-margin">
+    <div class="label filter-label">
+        @sReportsV2.Cache.Resources.TextLanguage.Roles
+    </div>
+    <div class="margin-top-10 container-persmission-role">
+        @if (!roles.Any())
+        {
+            <div class="filter-element">@sReportsV2.Cache.Resources.TextLanguage.None</div>
+        }
+        else
+        {
+            foreach (var role in roles)
+            {
+                <div class="filter-element">@role</div>
+            }
+        }
+    </div>
+</div>
+
+
+

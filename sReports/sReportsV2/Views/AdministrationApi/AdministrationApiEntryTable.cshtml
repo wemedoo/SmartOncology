@@ -1,0 +1,56 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+<div class="table-responsive filter-border">
+    <table class="table table-striped table-border">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="ApiName" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ApiName')">API NAME</th>
+                <th id="ApiRequestDirection" class="sort-arrow" style="border-bottom: unset;border-top: unset; width: 15%" onclick="sortTable('ApiRequestDirection')">API DIRECTION</th>
+                <th id="RequestTimestamp" class="sort-arrow" style="border-bottom: unset; border-top: unset; width: 20%" onclick="sortTable('RequestTimestamp')">REQUEST TIMESTAMP</th>
+                <th id="RequestPayload" class="sort-arrow" style="border-bottom: unset;border-top: unset; width: 7%" onclick="sortTable('RequestPayload')">REQUEST PAYLOAD</th>
+                <th id="ResponseTimestamp" class="sort-arrow" style="border-bottom: unset; border-top: unset; width: 20%" onclick="sortTable('ResponseTimestamp')">RESPONSE TIMESTAMP</th>
+                <th id="ResponseStatus" class="sort-arrow" style="border-bottom: unset;border-top: unset; width: 15%" onclick="sortTable('ApiRequestDirection')">RESPONSE STATUS</th>
+                <th id="ResponsePayload" class="sort-arrow" style="border-bottom: unset;border-top: unset; width: 7%" onclick="sortTable('ResponsePayload')">RESPONSE PAYLOAD</th>
+                <th style="border-bottom: unset; border-top: unset; width: 3%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (sReportsV2.DTOs.AdministrationApi.DataOut.AdministrationApiDataOut entry in Model.Data)
+            {
+                <tr id="row-@entry.ApiRequestLogId" class="table-content-row" onclick="clickedRow(event, true, '@entry.ApiRequestLogId')">
+                    <td>@entry.ApiName</td>
+                    <td>@entry.ApiRequestDirection</td>
+                    <td>@entry.RequestTimestamp.ToTimeZoned(ViewBag.DateFormat as string, seconds: true, milliseconds: true)</td>
+                    <td class="preview-api-content">
+                        <a href="@Url.Action("ViewLog", "AdministrationApi", new { apiRequestLogId = entry.ApiRequestLogId })" target="_blank" rel="noopener">
+                            Request
+                            <i class="fa fa-eye fa-lg" aria-hidden="true"></i>
+                        </a>
+                    </td>
+                    <td>@entry.ResponseTimestamp.ToTimeZoned(ViewBag.DateFormat as string, seconds: true, milliseconds: true)</td>
+                    <td>@entry.GetResponseCode(ViewBag.HttpStatusCodes)</td>
+                    <td class="preview-api-content">
+                        <a href="@Url.Action("ViewLog", "AdministrationApi", new { apiRequestLogId = entry.ApiRequestLogId })" target="_blank" rel="noopener">
+                            Response
+                            <i class="fa fa-eye fa-lg" aria-hidden="true"></i>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="dropdown show">
+                            <a class="dropdown-button" href="#" role="button" id="dropdownMenuLink-@entry.ApiRequestLogId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.ApiRequestLogId">
+                                <a class="dropdown-item" href="#" onclick="viewEntity(event,'@entry.ApiRequestLogId')"><img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View</a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pager-container">
+        @await Html.PartialAsync("Pagination")
+    </div>
+</div>
+

@@ -1,0 +1,21 @@
+﻿@using sReportsV2.DTOs.Form.DataOut.Tree
+
+@model TreeDataOut
+
+@if (Model.Forms.Count == 0)
+{
+    <div class="no-result-content">
+        <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+        <br>
+        <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+    </div>
+
+}
+else
+{
+    <div class="found-in-count" id="thesaurusAppearances-@Model.O4MtId">@ViewBag.TotalAppeareance</div>
+
+    <div class="form-tree" id="foundInContainer-@Model.O4MtId">
+        @await Html.PartialAsync("Thesaurus/FormThesaurusTreePartial")
+    </div>
+}

@@ -1,0 +1,36 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Field.DataOut.Custom;
+
+@model CustomFieldButtonDataOut
+
+@{
+    string fieldSetId = ViewBag.FieldSetId;
+}
+
+<fieldset id="@fieldSetId-0-@Model.Id-1" class="form-element form-input position-relative">
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            await AddField(fieldSetId); 
+        }
+    </div>
+</fieldset>
+
+@functions {
+    private async Task AddField(string fieldSetId)
+    {
+        <div class="field-group">
+            <div for="@Model.Id" class="filter-label form-label-size d-inline-block">
+                @sReportsV2.Cache.Resources.TextLanguage.Call_To_Action:
+            </div>
+            <div class="repetitive-field filter-input d-inline-block">
+                @{ AddInput(fieldSetId, 0); }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model)
+        </div>
+    }
+
+    private void AddInput(string fieldSetId, int repetitiveCounter)
+    {
+        <button name="@fieldSetId-0-@Model.Id-@repetitiveCounter" id="@Model.Id" type="button" class="btn custom-button btn-filter-primary" @Html.Disabled(Model.IsDisabled)>@Model.Label</button>
+    }
+}

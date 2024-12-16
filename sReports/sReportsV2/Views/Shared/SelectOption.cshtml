@@ -1,0 +1,7 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model Tuple<CodeDataOut, bool, bool>
+
+<option value="@Model.Item1.Id" class='@(Model.Item2 ? "option-disabled" : "")' @(Model.Item2 ? "disabled" : "") @(Model.Item3 ? "selected" : "")>
+    @Model.Item1.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+</option>

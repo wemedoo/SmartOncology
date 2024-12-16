@@ -1,0 +1,149 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+
+@model sReportsV2.DTOs.Encounter.EncounterDataOut
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasAddDocumentPerm = userCookieData.UserHasPermission(PermissionNames.AddDocument, ModuleNames.Patients);
+    bool hasRemoveDocumentPerm = userCookieData.UserHasPermission(PermissionNames.DeleteDocument, ModuleNames.Patients);
+    bool hasUpdateDocumentPerm = userCookieData.UserHasPermission(PermissionNames.UpdateDocument, ModuleNames.Patients);
+    bool hasViewDocumentPerm = userCookieData.UserHasPermission(PermissionNames.ViewDocument, ModuleNames.Patients);
+}
+
+
+<div class="patient-subtitle-div flex margin-right-8 document-subtitle">
+    <p class="patient-title">@sReportsV2.Cache.Resources.TextLanguage.Documentation_of_Encounter.ToUpper()</p>
+    @if (!readOnly && Model != null && Model.FormInstances.Count > 0 && hasAddDocumentPerm)
+    {
+        <div class="add-button">
+            <button class="btn btn-add-enc btn-add-eoc d-flex show-form-referrals-button">
+                <i class="fas fa-plus-circle plus-enc-button"></i>
+                <span class="plus-enc-label">@sReportsV2.Cache.Resources.TextLanguage.Add</span>
+            </button>
+        </div>
+    }
+</div>
+
+<div class="patient-documents">
+    <div class="documents-container-expandable doc-container">
+        <div class="input-container position-relative">
+            <input class="filter-input document-search-input" type="text" id="searchDocumentCondition" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Search" />
+            <span class="search-doc-icon">
+                <img alt="" src="/css/img/icons/search_document_icon.svg" />
+            </span>
+        </div>
+        @if (Model != null)
+        {
+            if (Model.FormInstances.Count == 0)
+            {
+                <div class="no-document-result">
+                    <img alt="" class="margin-" src="/css/img/icons/no_doc_or_task.svg">
+                    <br>
+                    <div class="no-document-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoDocumentAdded </div>
+                </div>
+                if (!readOnly && hasAddDocumentPerm)
+                {
+                    <div class="button-filter add-btn-div add-button btn-add-empty-task">
+                        <button class="btn btn-add-enc h-100 show-form-referrals-button btn-add-doc">
+                            <i class="fas fa-plus-circle"></i>
+                            @sReportsV2.Cache.Resources.TextLanguage.Add
+                        </button>
+                    </div>
+                }
+            }
+            else
+            {
+                if (hasViewDocumentPerm)
+                {
+                    for (int i = 0; i < Model.FormInstances.Count; i++)
+                    {
+                        string showPencilAction = hasUpdateDocumentPerm ? string.Format("onclick=\"showFormInstanceDetails('{0}')\"", Model.FormInstances[i].Id) : string.Format("onclick=\"showFormInstanceDetails('{0}', null, true)\"", Model.FormInstances[i].Id);
+                        <div class="documents-expand documents-div-expandable">
+                            <div class="document-section document-header-expandable flex" id="id-@Model.FormInstances[i].Id" data-toggle="collapse" aria-expanded="true">
+                                <div class="numberCircle">
+                                    @(Model.FormInstances.Count - i)
+                                </div>
+                                <div @Html.Raw(hasViewDocumentPerm ? string.Format("onclick=\"showFormInstanceDetails('{0}', null, true)\"", Model.FormInstances[i].Id) : "")>
+                                    <p class="documents-title forminstance-title margin-bottom-unset" data-form-instance-title="@Model.FormInstances[i].Title" id="forminstance-@Model.FormInstances[i].Id" title="@Model.FormInstances[i].Title">
+                                        @Model.FormInstances[i].Title
+                                    </p>
+                                    <p class="forminstance-title last-task-margin">@Model.FormInstances[i].EntryDatetime.ToTimeZonedDatePart(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string)</p>
+                                </div>
+
+                                <div class="edit-view-icons-div flex">
+                                    <img alt="" class="edit gray-pencil @(readOnly ? "hidden" : "")" id="edit-@Model.FormInstances[i].Id" data-form-instance-id="@Model.FormInstances[i].Id"
+                                         @Html.Raw(showPencilAction)>
+                                    <img alt="" class="view gray-eye" id="eye-@Model.FormInstances[i].Id" onclick="showExtended('@Model.FormInstances[i].Id')" />
+                                    @if (hasRemoveDocumentPerm && !readOnly)
+                                    {
+                                        <i class="fa fa-trash-o fa-sm pl-2 delete-btn-document-encounter" onclick="showDeleteModal(event, '@Model.FormInstances[i].Id', 'deleteDocumentFromEncounter', '@(Model.FormInstances[i].LastUpdate != null ? Model.FormInstances[i].LastUpdate.Value.ToString("o") : null)', null)" aria-hidden="true"></i>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="extended-div hidden-element" id="details-@Model.FormInstances[i].Id">
+                                <div class="row patient-info-div">
+                                    <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.Created_by:</p>
+                                    <p class="col-5 left">@Model.FormInstances[i].ShortNameInfo</p>
+                                </div>
+                                <div class="row patient-info-div">
+                                    <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.Created_date</p>
+                                    <p class="col-5 left blue">@Model.FormInstances[i].EntryDatetime.ToTimeZonedDatePart(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string)</p>
+                                </div>
+                                <div class="row patient-info-div">
+                                    <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.Last_update_date</p>
+                                    <p class="col-5 left blue">@(Model.FormInstances[i].LastUpdate != null ? Model.FormInstances[i].LastUpdate.Value.ToTimeZonedDatePart(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string) : null)</p>
+                                </div>
+                                <div class="patient-info-div flex">
+                                    <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.Status: </p>
+                                    <div class="left flex document-status-div">
+                                        @{
+                                            double percentage = Model.FormInstances[i].NonEmptyValuePercentage;
+                                            string colorClass;
+
+                                            if (percentage < 33.33)
+                                            {
+                                                colorClass = "progress-red";
+                                            }
+                                            else if (percentage > 66.66)
+                                            {
+                                                colorClass = "progress-green";
+                                            }
+                                            else
+                                            {
+                                                colorClass = "progress-yellow";
+                                            }
+                                            double progressBarWidth = percentage * 1.29;
+                                        }
+                                        <progress class="progress document-status @colorClass" value="50" max="100" style="width: @(progressBarWidth.ToString() + "px")"></progress>
+                                        <p>@percentage%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#searchDocumentCondition').on('keyup', function () {
+            var searchText = $(this).val().toLowerCase();
+            $('.documents-expand').each(function () {
+                var title = $(this).find('.documents-title').text().toLowerCase();
+                if (title.indexOf(searchText) === -1) {
+                    $(this).hide();
+                } else {
+                    $(this).show();
+                }
+            });
+        });
+    });
+</script>
+
+@await Html.PartialAsync("~/Views/Task/PatientTasks.cshtml")

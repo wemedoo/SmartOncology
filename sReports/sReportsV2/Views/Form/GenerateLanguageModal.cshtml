@@ -1,0 +1,48 @@
+﻿@using sReportsV2.Cache.Extensions;
+@model sReportsV2.DTOs.DTOs.Form.DataOut.FormGenerateNewLanguageDataOut;
+@{
+    bool canGenerateNewLanguage = Model.PossibleLanguages.Count > 0;
+}
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-content-generate">
+        <div class="float-right filter-close-btn">
+            <img alt="" class="close-modal set-right" src="/css/img/icons/close_black.svg">
+        </div>
+        <div class="modal-body">
+            <div class="form-group col-md-12">
+                <form id="newGenerateForm">
+                    <div class="d-flex advanced-filter-header" style="margin-bottom:18px;">
+                        <img alt="" class="mr-3" src="/css/img/icons/translation.svg">@sReportsV2.Cache.Resources.TextLanguage.GenerateNew
+                    </div>
+
+                    @if(canGenerateNewLanguage)
+                    {
+                        <div class="advanced-filter-item input-margin generate-translation-input">
+                            <input type="hidden" id="generatedFormId" value="@Model.FormId" />
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Language
+                            </div>
+                            <select class="filter-input arrow-select" id="language">
+                                <option value=""></option>
+                                @foreach (var language in Model.PossibleLanguages)
+                                {
+                                    <option value="@language.Value">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetStringOrDefault(language.Label)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="button-partial">
+                            <button class="submit-patient right-button generate-translation-btn" style="outline:none;    padding-top: 8px; padding-bottom: 9px;" type="button" onclick="generateNewLanguage()" dismiss="modal">
+                                <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Generate</span>
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center"><h1>@Html.Raw(string.Format(sReportsV2.Cache.Resources.TextLanguage.NoGenerateNewLanguage, Model.Title))</h1></div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

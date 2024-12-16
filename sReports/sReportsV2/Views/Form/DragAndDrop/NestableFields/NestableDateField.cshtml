@@ -1,0 +1,23 @@
+﻿
+@using sReportsV2.DTOs.Field.DataOut;
+@model FieldDateDataOut
+
+<fieldset class="form-input">
+    <div class="filter-label form-label-size d-inline-block">
+        <span class="comment-target-item" id="@Model.Id">  @Html.Raw(Model.FullLabel) </span>
+</div>
+    <div class="repetitive-field filter-input d-inline-block">
+        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+        {
+            InputAttributes = new Dictionary<object, object> { 
+                { "class", "form-element-field" }, 
+                {"readonly", null } 
+            },
+            InputBtnAttributes = new Dictionary<object, object> { { "class", "date-img dynamic-form" } },
+        })
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model)
+</fieldset>
+<a class="add-comment-link comment-block-hide" onclick="addComment('@Model.Id')">
+    <img alt="" class="add-comment-icon" src="/css/img/icons/add_comment_1.svg">
+</a>

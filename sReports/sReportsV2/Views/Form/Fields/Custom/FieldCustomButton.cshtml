@@ -1,0 +1,86 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Field.DataOut.Custom;
+@using sReportsV2.DTOs.Field.DataOut.Custom.Action;
+
+@model CustomFieldButtonDataOut
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            await AddField(Html, Model, 1, "", "", "", customLabel: "Call to action:"); 
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+<script>
+    $(document).on('click', '.custom-button', function (event) {
+        executeEventFunctions(event);
+
+            @if (Model.CustomAction is ControllerActionDataOut customAction)
+            {
+                <text>
+                    let action = $('#fid').attr('action');
+                    let splitted = action.split('/');
+                    let actionAndQuery = splitted[2].split('?');
+                    actionAndQuery[0] = '@(customAction.ActionName)';
+                    splitted[2] = actionAndQuery.join('?')
+                        splitted[1] = '@(customAction.ControllerName)';
+                    $('#fid').attr('action', `${splitted.join('/')}`);
+                    $('#fid').submit();
+                </text>
+                }
+                else
+                {
+                    <text>@((Model.CustomAction as JavascriptActionDataOut).MethodName)()</text>
+                }
+    })
+</script>
+
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+
+@*
+    ---------------------------------------------------------------------------------------------------
+                                        Temporarily - Hotfix
+    ---------------------------------------------------------------------------------------------------
+*@
+
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, int repetitiveCounter, string repetitiveValue, string additionalFieldClass, string additionalInputClass, string customLabel = "")
+    {
+        <div class="field-group @additionalFieldClass">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @if (string.IsNullOrEmpty(customLabel))
+                {
+                    @html.Raw(objectModel.FullLabel)
+                }
+                else
+                {
+                    @customLabel
+                }
+            </div>
+            <div class="repetitive-field filter-input d-inline-block @additionalInputClass">
+                @{
+                    AddInput(html, objectModel);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData){ { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+        </div>
+    }
+
+    private void AddInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel)
+    {
+        AddCustomButtonInput(html, objectModel);
+    }
+
+    private void AddCustomButtonInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel)
+    {
+        <button 
+                type="button" 
+                class="btn custom-button btn-filter-primary" 
+                @html.Disabled(objectModel.IsDisabled)
+                >@objectModel.Label</button>
+    }
+
+}

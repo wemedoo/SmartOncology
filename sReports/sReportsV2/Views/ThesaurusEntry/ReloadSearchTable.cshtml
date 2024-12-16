@@ -1,0 +1,48 @@
+﻿@using sReportsV2.DTOs.DTOs.ThesaurusEntry.DataOut
+
+<div id="activeThesaurus" data-value="@ViewBag.ActiveThesaurus"></div>
+<div class="single-table thesaurus-search-table">
+    <table class="table table-striped table-sreports search-thesaurus-table">
+        <thead>
+            <tr>
+                <th>04.0MT ID</th>
+                <th>@sReportsV2.Cache.Resources.TextLanguage.Preferred_term</th>
+                <th>@sReportsV2.Cache.Resources.TextLanguage.Definition</th>
+                <th>@sReportsV2.Cache.Resources.TextLanguage.Action</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (ThesaurusEntryViewDataOut entry in Model.Data)
+            {
+                <tr id="row-@entry.ThesaurusEntryId">
+                    <td>@entry.ThesaurusEntryId</td>
+                    <td>@entry.PreferredTerm</td>
+                    <td>@entry.Definition</td>
+                    <td class="radio-cell td-o4mtid" style="border-bottom-width: 0px;">
+                        <label class="form-radio-label action-thesaurus-label flex">
+                            <input type="radio" name="radioThesaurus" id="radioThesaurus" value="@entry.ThesaurusEntryId" data-preferredterm="@entry.PreferredTerm" class="checkbox-radio form-radio-field" @(entry.ThesaurusEntryId == ViewBag.ActiveThesaurus ? "checked" : "") />
+                            <i class="form-radio-button"></i>
+                            <span class="select-span ">@sReportsV2.Cache.Resources.TextLanguage.Select</span>
+                            <label class="thesaurus-review" data-id="" onclick="showThesaurusReview('@entry.ThesaurusEntryId', event, '@entry.PreferredTerm')"></label>
+                        </label>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@if (Model.Data.Count == 0)
+{
+    <div class="no-result-content">
+        <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+        <br>
+        <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+    </div>
+}
+<div class="pager-container">
+    @{
+        ViewBag.PreventPushHistoryState = true;
+    }
+    @await Html.PartialAsync("Pagination")
+</div>

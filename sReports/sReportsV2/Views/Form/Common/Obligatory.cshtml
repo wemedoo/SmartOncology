@@ -1,0 +1,21 @@
+﻿<div id="obligatoryArea" class="designer-form-section thesaurus-section">
+    <div class="label filter-label">
+        @sReportsV2.Cache.Resources.TextLanguage.IsThisAnObligatoryField?
+    </div>
+    <div class="obligatory-table">
+        <div>
+            <div class="preferred-language-group">
+                <span class="radio-space">
+                    <input id="nonObligatory" type="radio" name="obligatoryField" class="form-radio-field" @ViewBag.Disabled data-no-color-change="true" @(Model != null && !Model.IsRequired ? "checked" : string.Empty)>
+                </span>
+                <span class="preferred-language-text"> @sReportsV2.Cache.Resources.TextLanguage.No_</span>
+            </div>
+            <div class="preferred-language-group">
+                <span class="radio-space">
+                    <input id="isRequired" type="radio" name="obligatoryField" class="form-radio-field" @ViewBag.Disabled data-no-color-change="true" @(Model != null && Model.IsRequired ? "checked" : string.Empty)>
+                </span>
+                <span class="preferred-language-text"> @sReportsV2.Cache.Resources.TextLanguage.Yes</span>
+            </div>
+        </div>
+    </div>
+</div>

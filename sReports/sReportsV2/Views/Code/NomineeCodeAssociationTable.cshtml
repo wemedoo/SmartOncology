@@ -1,0 +1,70 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.Common.Constants;
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.CreateAssociation, ModuleNames.CodeSet);
+}
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Nominee_Code_Set_Name
+            </div>
+            <div id="dropdownSearch" class="position-relative dropdown-search">
+                <div id="codeSet-search">
+                    <input autocomplete="off" class="designer-form-input filter-input" id="nomineeCodeSetDisplay" name="Patient" type="text" value="@(Model.DataIn.CodeSetDisplay)"/>
+                </div>
+                <div id="codeSetOptions" class="patient-options" aria-labelledby="codeSet-search">
+                </div>
+            </div>
+        </div>
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.NomineeCodeSetNumber
+            </div>
+            <input type="text" class="filter-input" id="nomineeCodeSetId" value="@(Model.DataIn.CodeSetId != 0 ? Model.DataIn.CodeSetId : null)">
+        </div>
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-filter" id="nomineeSubmitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="reloadNomineeTable()"> @sReportsV2.Cache.Resources.TextLanguage.Apply </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive table-border nominee-fix-head">
+    <table class="table table-striped" id="nomineeAssociationTable">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="Nominee_CodeId" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortNomineeTable('Nominee_CodeId')">@sReportsV2.Cache.Resources.TextLanguage.CodeValue.ToUpper()</th>
+                <th id="Nominee_PreferredTerm" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortNomineeTable('Nominee_PreferredTerm')">@sReportsV2.Cache.Resources.TextLanguage.CodeValueDisplay.ToUpper()</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (CodeDataOut entry in Model.Data)
+            {
+            <tr id="nominee-@entry.Id" class="table-content-row nominee-row"
+                @if (hasCreatePerm)
+                {
+                    <text>onclick="selectNomineeCode(this, '@entry.Id', '@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm')"</text>
+                }>
+                <td>@entry.Id</td>
+                <td>@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Data.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+</div>
+
+<script>
+        var loadMore = '@sReportsV2.Cache.Resources.TextLanguage.Load_more';
+</script>

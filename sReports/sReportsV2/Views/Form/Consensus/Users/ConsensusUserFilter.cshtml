@@ -1,0 +1,32 @@
+﻿@using sReportsV2.DTOs.DTOs.Consensus.DataOut
+@model ConsensusUsersDataOut
+
+<div class="c-user-filter-title">
+    <img alt="" class="user-filter-icon" src="/css/img/icons/select_table.svg"> @sReportsV2.Cache.Resources.TextLanguage.Select_All_Users_Entering_CF
+</div>
+<div class="d-flex" id="consensusUserFilter">
+    @await Html.PartialAsync("~/Views/Form/Consensus/Users/MapFilterPartial.cshtml")
+    @await Html.PartialAsync("~/Views/Form/Consensus/Users/OrganizationFilter.cshtml", Model.OrganizationUsersCount)
+
+    <div id="consensusUsers" class="user-filter-part" style="margin-top:45px;">
+    </div>
+</div>
+<div id="consensusOrganizationUserInfo" class="d-flex">
+    @await Html.PartialAsync("~/Views/Form/Consensus/Users/ConsensusOrganizationUserInfo.cshtml", Model.ConsensusOrganizationUserInfoData)
+</div>
+
+<div id="usersInsideSystem" class="d-flex">
+    @await Html.PartialAsync("~/Views/Form/Consensus/Users/ConsensusUsersList.cshtml", Model.Users, new ViewDataDictionary(ViewData) { { "IsOutsideUserList", false } })
+</div>
+
+<div id="usersOutsideSystem" class="d-flex">
+    @await Html.PartialAsync("~/Views/Form/Consensus/Users/ConsensusUsersList.cshtml", Model.OutsideUsers, new ViewDataDictionary(ViewData) { { "IsOutsideUserList", true } })
+</div>
+
+@await Html.PartialAsync("~/Views/Form/Consensus/Users/AddOutsideUserModal.cshtml")
+
+<script>
+    $(document).ready(function () {
+        updateNumberOfSelectedUsers();
+    });
+</script>

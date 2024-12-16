@@ -1,0 +1,22 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.Form.DataOut;
+
+@model FormPageDataOut
+
+@{
+    FormPageImageMapDataOut imageMap = Model.ImageMap;
+}
+
+@if (imageMap != null)
+{
+    <div class="col-lg-6 col-md-12">
+        <div class="image-map-container">
+            <img alt="" src="@Url.OopusDownloadLink(imageMap.Url.ToString(), StorageDirectoryNames.ImageMap)"
+                 usemap="#@imageMap.MapId" />
+            <map name="@imageMap.MapId" id="@imageMap.MapId">
+                @Html.Raw(imageMap.Map)
+            </map>
+        </div>
+    </div>
+}

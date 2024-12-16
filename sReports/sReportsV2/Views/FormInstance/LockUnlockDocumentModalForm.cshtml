@@ -1,0 +1,79 @@
+﻿@using sReportsV2.Common.Enums;
+@using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
+@using sReportsV2.Common.Constants;
+
+@{
+    Dictionary<string, string> arguments = new Dictionary<string, string>();
+    if (Model is FormInstanceLockUnlockRequestDataIn)
+    {
+        arguments[FormInstanceConstants.IsFormInstanceLocking] = "true";
+        bool unlockAction = Model.FormInstanceNextState == FormState.Unlocked;
+        arguments[FormInstanceConstants.Title] = unlockAction ? sReportsV2.Cache.Resources.TextLanguage.UnlockDocument : sReportsV2.Cache.Resources.TextLanguage.LockDocument;
+        arguments[FormInstanceConstants.SubmitTitle] = unlockAction ? sReportsV2.Cache.Resources.TextLanguage.Unlock :  @sReportsV2.Cache.Resources.TextLanguage.Lock;
+        arguments[FormInstanceConstants.SubmitAction] = "lockOrUnlockDocument";
+    }
+    else
+    {
+        bool isPageAction = !string.IsNullOrEmpty(Model.PageId);
+        bool isLockAction = Model.IsLockAction();
+        string titlePrefix = isLockAction ? sReportsV2.Cache.Resources.TextLanguage.Lock : sReportsV2.Cache.Resources.TextLanguage.Unlock;
+        string titleSuffix = isPageAction ? sReportsV2.Cache.Resources.TextLanguage.Page : sReportsV2.Cache.Resources.TextLanguage.Chapter;
+        arguments[FormInstanceConstants.IsFormInstanceLocking] = "false";
+        arguments[FormInstanceConstants.Title] = string.Format("{0} {1}", titlePrefix, titleSuffix);
+        arguments[FormInstanceConstants.SubmitTitle] = titlePrefix;
+        arguments[FormInstanceConstants.SubmitAction] = "lockOrUnlockPartially";
+
+    }
+    bool hasPasswordErrors = ViewData.ModelState["Password"] != null && ViewData.ModelState["Password"].Errors.Any();
+}
+
+<form onsubmit="return false;">
+    <div class="d-flex advanced-filter-header">
+        <img alt="" class="mr-3" src="/css/img/icons/change_password.svg">
+        <label>
+            @arguments[FormInstanceConstants.Title]
+        </label>
+    </div>
+    @if (Convert.ToBoolean(arguments[FormInstanceConstants.IsFormInstanceLocking]))
+    {
+        RenderHiddenInputs((FormInstanceLockUnlockRequestDataIn)Model);
+    }
+    else
+    {
+        RenderHiddenInputs((FormInstancePartialLockOrUnlockDataIn)Model);
+    }
+    <div class="advanced-filter-item input-margin">
+        <div class="label filter-label @(hasPasswordErrors ? "error" : "")">
+            @sReportsV2.Cache.Resources.TextLanguage.Password
+        </div>
+        <input required class="filter-input @(hasPasswordErrors ? "error" : "")" type="password" id="lockUnlockDocumentPassword" name="lockUnlockDocumentPassword" value="@(Model != null && !string.IsNullOrEmpty(Model.Password) ? Model.Password : "")" />
+        <div id="lock-unlock-password-error" class="label @(hasPasswordErrors ? "error" : "")">
+            @Html.ValidationMessage("Password")
+        </div>
+    </div>
+    <div class="button-partial">
+        <button id="lockUnlockButton" class="submit-button right-button margin-left-13" type="button" style="outline: none;" data-action="@arguments[FormInstanceConstants.SubmitAction]" dismiss="modal">
+            <span class="submit-patient-info">@arguments[FormInstanceConstants.SubmitTitle]</span>
+        </button>
+        <div class="button-wrapper-filter float-right" id="close">
+            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+            </a>
+        </div>
+    </div>
+</form>
+
+@functions {
+    private void RenderHiddenInputs(FormInstanceLockUnlockRequestDataIn model)
+    {
+        @Html.Hidden("FormInstanceNextState", model.FormInstanceNextState)
+    }
+
+    private void RenderHiddenInputs(FormInstancePartialLockOrUnlockDataIn model)
+    {
+        @Html.Hidden("ChapterId", model.ChapterId)
+        @Html.Hidden("PageId", model.PageId)
+        @Html.Hidden("ActionUrl", model.ActionEndpoint)
+        @Html.Hidden("ChapterPageNextState", model.ChapterPageNextState)
+    }
+}

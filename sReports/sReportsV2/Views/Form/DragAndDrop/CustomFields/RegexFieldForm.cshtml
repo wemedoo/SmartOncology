@@ -1,0 +1,33 @@
+﻿@using sReportsV2.DTOs.Field.DataOut
+@model FieldRegexDataOut
+
+@await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+<div class="designer-form-section">
+    <div class="designer-form-section-title extended">
+        @sReportsV2.Cache.Resources.TextLanguage.Regular_Expression_Settings
+    </div>
+    <div class="absolute-designer-form-input-group">
+        <div class="label filter-label d-inline-block green-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Predefined_Regular_Expression
+        </div>
+        <select class="filter-input" id="regexPredefined" name="regexPredefined" type="text" @ViewBag.Disabled>
+            <option value="">@sReportsV2.Cache.Resources.TextLanguage.Select_Regular_Expression</option>
+            <option value="[abc]">A,B or C</option>
+            <option value="[DEF]">D,E or F</option>
+        </select>
+    </div>
+    <div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Regular_Expression
+        </div>
+        <input required class="designer-form-input" id="regex" name="regex" type="text" value="@(Model != null ? Model.Regex : "")" @ViewBag.Disabled />
+        <img alt="" class="question-icon" src="/css/img/icons/regex_question.svg" />
+    </div>
+    <div class="designer-form-input-group">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Regular_Expression_Description
+        </div>
+        <textarea required class="designer-form-input" rows="4" id="regexDescription" name="regexDescription" value="@(Model != null ? Model.RegexDescription : "")" @ViewBag.Disabled>@(Model != null ? Model.RegexDescription : "")</textarea>
+    </div>
+</div>
+

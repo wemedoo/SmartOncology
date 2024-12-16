@@ -1,0 +1,166 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut
+
+@model sReportsV2.DTOs.User.DataOut.UserOrganizationDataOut
+
+@{
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault() || !ViewBag.UserAdministration;
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> states = ViewBag.UserStates as List<CodeDataOut>;
+    var activeUserState = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Active));
+    int? activeUserStateCD = activeUserState.Id;
+    int? archivedUserStateCD = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Archived))?.Id;
+}
+
+<div class="institution-container" id="institution-@Model.OrganizationId">
+
+    <div class="d-flex institution-header" data-toggle="collapse" role="button" onclick="collapseChapter(this)" data-target="#organization-@Model.OrganizationId" aria-expanded="false" aria-controls="organization-@Model.OrganizationId" tabindex="0">
+        <i class="fas fa-angle-down institution-icon"></i>
+        <div class="institution-header-name">@Model.Organization.Name</div>
+        <div class="institution-header-role">
+            <div class="user-td-color">
+                @sReportsV2.Cache.Resources.TextLanguage.Roles
+            </div>
+            <div>@sReportsV2.Cache.Resources.TextLanguage.Unknown</div>
+        </div>
+        <div class="institution-header-status">
+            <div class="user-td-color">
+                @sReportsV2.Cache.Resources.TextLanguage.InstitutionLegalForm
+            </div>
+            <div class="user-status-item">@sReportsV2.Cache.Resources.TextLanguage.Unknown</div>
+        </div>
+        <div class="institution-header-delete">
+            @if (!readOnly)
+            {
+                <button type="button" class="btn btn-add-new margin-right-10" onclick="showDeleteModal(event, '@Model.OrganizationId', 'removePersonnelFromOrganization', null, '@archivedUserStateCD')">
+                    <i class="fas fa-trash resize-circle"></i> <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.Delete</span>
+                </button>
+            }
+        </div>
+    </div>
+    <div class="single-institution collapse chapter" id="organization-@Model.OrganizationId">
+        <input type="hidden" class="form-control" id="organizationState-@Model.OrganizationId" value="@(Model.StateCD != null ? Model.StateCD : activeUserStateCD)" />
+        <div class="input-group-title">
+            @sReportsV2.Cache.Resources.TextLanguage.InstitutionWorkData
+        </div>
+        <div class="d-flex">
+            <div class="user-input-group">
+                <div class="advanced-filter-item input-margin margin-top-15">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.InstitutionName
+                    </div>
+                    <input readonly class="filter-input" type="text" id="institutionalName-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Name != null ?  Model.Organization.Name : "")" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.InstitutionId
+                    </div>
+                    <input readonly class="filter-input" type="text" id="id-@Model.OrganizationId" value="@(Model != null ?  Model.OrganizationId.ToString() : "")" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Status
+                    </div>
+                    <input readonly class="filter-input" type="text" value="@(Model.StateCD != null ? Model.ConvertStateCDToDisplayName(states, activeLanguage) : activeUserState.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage))" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.IsPractitioner? <div class="user-placeholder">@sReportsV2.Cache.Resources.TextLanguage.Optional</div>
+                    </div>
+                    <div class="position-relative margin-top-10">
+                        <label class="form-radio-label margin-right-20">
+                            <input type="radio"
+                                   id="isPractitioner-@Model.OrganizationId"
+                                   name="isPractitioner-@Model.OrganizationId"
+                                   value="true"
+                                   class="form-radio-field"
+                                   @Html.Disabled(readOnly)
+                                   @(Model != null && Model.IsPracticioner != null && Model.IsPracticioner.Value ? "checked" : string.Empty)>
+
+                            <i class="form-radio-button user-radio"></i>
+                            <span class="user-radio-span">
+                                @sReportsV2.Cache.Resources.TextLanguage.Yes
+                            </span>
+                        </label>
+                        <label class="form-radio-label margin-right-20">
+                            <input type="radio"
+                                   id="isPractitioner-@Model.OrganizationId"
+                                   name="isPractitioner-@Model.OrganizationId"
+                                   value="false"
+                                   class="form-radio-field"
+                                   @Html.Disabled(readOnly)
+                                   @(Model != null && Model.IsPracticioner != null && !Model.IsPracticioner.Value ? "checked" : string.Empty)>
+
+                            <i class="form-radio-button user-radio"></i>
+                            <span class="user-radio-span">
+                                @sReportsV2.Cache.Resources.TextLanguage.No_
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="user-input-group">
+                <div class="advanced-filter-item input-margin margin-top-15">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Qualification
+                    </div>
+                    <input class="filter-input" type="text" id="qualification-@Model.OrganizationId" value="@(Model != null && Model.Qualification != null ?  Model.Qualification : "")" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.SeniorityLevel
+                    </div>
+                    <input class="filter-input" type="text" id="seniority-@Model.OrganizationId" value="@(Model != null && Model.SeniorityLevel != null ?  Model.SeniorityLevel : "")" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Speciality
+                    </div>
+                    <input class="filter-input" type="text" id="speciality-@Model.OrganizationId" value="@(Model != null && Model.Speciality != null ?  Model.Speciality : "")" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Subspeciality
+                    </div>
+                    <input class="filter-input" type="text" id="subspeciality-@Model.OrganizationId" value="@(Model != null && Model.SubSpeciality != null ?  Model.SubSpeciality : "")" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Optional" @Html.Disabled(readOnly) />
+                </div>
+            </div>
+        </div>
+        <div class="input-group-title mb-3">
+            @sReportsV2.Cache.Resources.TextLanguage.InstitutionContactData
+        </div>
+        <div class="d-flex">
+            <div class="user-input-group">
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Country
+                    </div>
+                    <input readonly class="filter-input" type="text" id="country-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.Country : "")" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.State
+                    </div>
+                    <input readonly class="filter-input" type="text" id="state-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.State : "")" @Html.Disabled(readOnly) />
+                </div>
+            </div>
+            <div class="user-input-group">
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Postal_code
+                    </div>
+                    <input readonly class="filter-input" type="text" id="postalNumber-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.PostalCode : "")" @Html.Disabled(readOnly) />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.BusinessEmail
+                    </div>
+                    <input readonly class="filter-input" type="text" id="postalNumber-@Model.OrganizationId" value="@(Model != null && Model.Organization != null ?  Model.Organization.Email : "")" @Html.Disabled(readOnly) />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

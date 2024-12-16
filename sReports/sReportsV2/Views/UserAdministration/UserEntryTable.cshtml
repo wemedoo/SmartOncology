@@ -1,0 +1,79 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.DTOs.DTOs.User.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreateUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Administration);
+    bool hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration);
+    bool showUnassignedUsers = Model.DataIn.ShowUnassignedUsers;
+    List<CodeDataOut> states = ViewBag.UserStates as List<CodeDataOut>;
+    int? activeUserStateCD = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Active))?.Id;
+    int? archivedUserStateCD = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Archived))?.Id;
+    int? blockedUserStateCD = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Blocked))?.Id;
+}
+<div class="table-responsive filter-border">
+    <table class="table table-striped table-border">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="Username" class="sort-arrow" style="border-bottom: unset;border-top: unset; width: 15%" onclick="sortTable('Username')">@sReportsV2.Cache.Resources.TextLanguage.Username.ToUpper()</th>
+                <th id="FirstName" class="sort-arrow" style="border-bottom: unset; border-top: unset; width: 10%" onclick="sortTable('FirstName')">@sReportsV2.Cache.Resources.TextLanguage.FirstName.ToUpper()</th>
+                <th id="LastName" class="sort-arrow" style="border-bottom: unset; border-top: unset; width: 10%" onclick="sortTable('LastName')">@sReportsV2.Cache.Resources.TextLanguage.LastName.ToUpper()</th>
+                <th id="PersonnelOrganizations" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('PersonnelOrganizations')">@sReportsV2.Cache.Resources.TextLanguage.Organizations.ToUpper()</th>
+                <th id="PersonnelPositions" class="sort-arrow" style="border-bottom: unset; border-top: unset; width: 20%" onclick="sortTable('PersonnelPositions')">@sReportsV2.Cache.Resources.TextLanguage.Roles.ToUpper()</th>
+                <th style="border-bottom: unset; border-top: unset; width: 3%"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (UserViewDataOut entry in Model.Data)
+            {
+                bool isUserBlocked = entry.IsUserBlocked(blockedUserStateCD);
+                string userBlockedStyle = isUserBlocked ? "td-user-blocked" : string.Empty;
+
+                <tr id="row-@entry.Id" onclick="clickedRow(event, @hasCreateUpdatePerm.ToJsBoolean(),'@entry.Id')" class="table-content-row ">
+                    <td class="@userBlockedStyle">@entry.Username</td>
+                    <td class="@userBlockedStyle">@entry.FirstName</td>
+                    <td class="@userBlockedStyle">@entry.LastName</td>
+                    <td class="@userBlockedStyle">@entry.PersonnelOrganizations</td>
+                    <td class="@userBlockedStyle">@entry.PersonnelPositions</td>
+                    <td>
+                        @if(hasCreateUpdatePerm || hasViewPerm)
+                        {
+                            <div class="dropdown show">
+                                <a class="dropdown-button" href="#" role="button" id="dropdownMenuLink-@entry.Id" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.Id">
+                                    @if (hasCreateUpdatePerm)
+                                    {
+                                        <a class="dropdown-item" href="#" onclick="editEntity(event,'@entry.Id')"><img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit</a>
+                                        if (showUnassignedUsers)
+                                        {
+                                            <a class="dropdown-item" href="#" onclick="setUserState(event, '@entry.Id', '@userCookieData.ActiveOrganization', '')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove </a>
+                                        }
+                                        else
+                                        {
+                                            <a class="dropdown-item" href="#" onclick="setUserState(event, '@entry.Id', '@userCookieData.ActiveOrganization', '@archivedUserStateCD')"><img alt="" class="edit-svg-size" src="/css/img/icons/archive_1.svg">@sReportsV2.Cache.Resources.TextLanguage.Archive</a>
+                                            <a class="dropdown-item" href="#" onclick="setUserState(event, '@entry.Id', '@userCookieData.ActiveOrganization', '@(isUserBlocked ? activeUserStateCD : blockedUserStateCD)')">
+                                                <img alt="" class="edit-svg-size" src="/css/img/icons/block.svg">@(isUserBlocked? sReportsV2.Cache.Resources.TextLanguage.Unblock : sReportsV2.Cache.Resources.TextLanguage.Block)
+                                            </a>
+                                        }
+                                        <a class="dropdown-item d-flex" href="#" onclick="generatePassword(event, '@entry.Email', false)"><img alt="" class="edit-svg-size mt-auto mb-auto" src="/css/img/icons/password.svg"><div>@sReportsV2.Cache.Resources.TextLanguage.ChangePassword</div></a>
+                                    }
+                                    @if (hasViewPerm)
+                                    {
+                                        <a class="dropdown-item" href="#" onclick="viewEntity(event,'@entry.Id')"><img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pager-container">
+        @await Html.PartialAsync("Pagination")
+    </div>
+</div>

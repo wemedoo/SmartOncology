@@ -1,0 +1,99 @@
+﻿
+@using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<PersonnelTeamRelationDataOut, DataIn>
+
+@{
+    var activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
+    var userCookieData = ViewBag.UserCookieData;
+    var hasCreateUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Administration);
+    var hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.Administration);
+    var hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration);
+
+    if(Model.Data != null)
+    {
+        Model.Data = Model.Data.OrderBy(x => x.RelationType.Id != ViewBag.LeaderCodeId).ToList();
+    }
+}
+
+
+@if (hasViewPerm)
+{
+
+    <div style="min-height:35px">
+
+        <table id="single-personnel-team-table" class="personnel-team-table single-personnel-team-table">
+            <thead class="personnel-team-table-head">
+                <tr>
+                    <th class="personnel-team-table-header-borders-left"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.Member_Username.ToUpper()</span></th>
+                    <th class="personnel-team-table-headers"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.FirstName.ToUpper()</span></th>
+                    <th class="personnel-team-table-headers"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.LastName.ToUpper()</span></th>
+                    <th class="personnel-team-table-headers" style="border-right: unset;"><span class="personnel-team-upper-text">@sReportsV2.Cache.Resources.TextLanguage.Relation.ToUpper() @sReportsV2.Cache.Resources.TextLanguage.Type.ToUpper()</span></th>
+                    <th class="personnel-team-table-header-borders-right personnel-team-options-dropdown-header"></th>
+                </tr>
+            </thead>
+            <tbody class="personnel-team-table-body">
+                @if (Model.Data != null)
+                {
+                    foreach (PersonnelTeamRelationDataOut personnelTeamRelation in Model.Data)
+                    {
+                        <tr class="tr edit-raw">
+                            <td data-property="name" data-value="@personnelTeamRelation.User.Username" title="" class="personnel-team-table-cells external-cell-left">
+                                @personnelTeamRelation.User.Username
+                            </td>
+                            <td data-property="type" data-value="@personnelTeamRelation.User.FirstName" title="" class="personnel-team-table-cells">
+                                @personnelTeamRelation.User.FirstName
+                            </td>
+                            <td data-property="members" data-value="@personnelTeamRelation.User.LastName" title="" class="personnel-team-table-cells">
+                                @personnelTeamRelation.User.LastName
+                            </td>
+                            <td data-property="active" data-value="@personnelTeamRelation.RelationType.Id" title="" class="personnel-team-table-cells">
+                                @foreach (CodeDataOut personnelTeamRelationType in ObjectExtension.FilterDataSource(ViewBag.PersonnelTeamRelationshipType, readOnlyMode: true))
+                                {
+                                    @(personnelTeamRelation.RelationType.Id == personnelTeamRelationType.Id ? personnelTeamRelationType.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : null)
+                                }
+                            </td>
+                            <td class="personnel-team-table-cells external-cell-right" style="">
+                                @if (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm)
+                                {
+                                    <div class="dropdown show external-cell-right personnel-team-options-dropdown">
+                                        <div class="dropdown-button" role="button" id="dropdownMenuLink-@personnelTeamRelation.PersonnelTeamRelationId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                        </div>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@personnelTeamRelation.PersonnelTeamRelationId">
+                                            @if (hasCreateUpdatePerm)
+                                            {
+                                                <div class="dropdown-item" onclick="showEditMemberModal('@personnelTeamRelation.PersonnelTeamRelationId')"><img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit</div>
+                                            }
+                                            @if (hasDeletePerm)
+                                            {
+                                                <div class="dropdown-item" onclick="showDeleteMemberModal('@personnelTeamRelation.PersonnelTeamRelationId')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <div class="pager-container" style="width:100%; height:50px">
+            @await Html.PartialAsync("~/Views/PersonnelTeam/Common/PersonnelTeamPagination.cshtml")
+        </div>
+
+    </div>
+
+    <div class="button-members">
+        <div class="text-underline right-button" type="button" onclick="togglePersonnelTeamTabs()">
+            <i class="angle-left fas fa-angle-left"></i>
+            <span class="back">Back</span>
+        </div>
+    </div>
+
+}

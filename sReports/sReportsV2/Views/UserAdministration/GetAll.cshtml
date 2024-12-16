@@ -1,0 +1,35 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.User_Administration;
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@section Stylesheet
+{
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/toggle-switch-button.css"))
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Users }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Users
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Administration))
+        {
+            <button class="btn btn-create float-right" onclick="createUserEntry()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+        }
+    </div>
+    @await Html.PartialAsync("PersonnelFilterGroup")
+
+    <div id="tableContainer">
+
+    </div>
+</div>
+@await Html.PartialAsync("AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/userGetAll-bundle.min.js"))

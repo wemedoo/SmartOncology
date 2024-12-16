@@ -1,0 +1,54 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.Common.Constants
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool isReadOnly = ViewBag.ReadOnly;
+}
+<div class="margin-bottom-20">
+    <div class="association-content" id="codeAssociationTable" data-toggle="collapse" data-target="#collapseCodeAssociationTable" aria-expanded="true" aria-controls="collapseCodeAssociationTable">
+        <i class="code-association-icon arrow-icon-umls" id="codeAssociationArrow"></i>
+        <span class="code-association-title"> @sReportsV2.Cache.Resources.TextLanguage.CodeValueAssociation</span>
+
+    </div>
+    <div class="collapse show codes-association-table-style" id="collapseCodeAssociationTable">
+        <div class="display-flex">
+            <div id="nominatorTableContainer" class="nominator-table">
+
+            </div>
+            <div id="nomineeTableContainer" class="nominator-table">
+
+            </div>
+        </div>
+
+        @if (userCookieData.UserHasPermission(PermissionNames.CreateAssociation, ModuleNames.CodeSet) && !isReadOnly)
+        {
+            <div class="filter-item border-0 margin-top-15">
+                <div class="button-filter position-relative">
+                    <button id="saveAssociationButton" class="btn btn-filter-primary h-100 float-right padding-left-30" onclick="createAssociation(true)" disabled> @sReportsV2.Cache.Resources.TextLanguage.SaveAndClose</button>
+                </div>
+            </div>
+
+            <div class="filter-item border-0 margin-top-15">
+                <div class="button-filter position-relative">
+                    <button id="applyAssociationButton" class="btn btn-filter-primary h-100 float-right padding-left-30 position-relative margin-right-10" onclick="createAssociation(false)" disabled>
+                        @sReportsV2.Cache.Resources.TextLanguage.Apply
+                        <img alt="" class="create-association-button" src="/css/img/icons/merge_codes.svg">
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="filter-item border-0 margin-top-15">
+                <div class="button-filter position-relative">
+                    <button id="associateButton" class="btn btn-filter-primary h-100 float-right padding-left-30 margin-right-10" onclick="associate()" disabled> @sReportsV2.Cache.Resources.TextLanguage.Associate </button>
+                </div>
+            </div>
+        }
+
+        <div class="line-partial">
+            <div class="nominee-line-bottom"></div>
+        </div>
+
+    </div>
+
+</div>

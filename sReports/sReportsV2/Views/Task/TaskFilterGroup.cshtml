@@ -1,0 +1,31 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+<div class="flex">
+    <div class="d-flex main-filter mb-2">
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label patient-filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.TaskStatus
+            </div>
+            <select class="filter-input arrow-select" id="TaskStatusTemp">
+                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                @foreach (var taskStatus in ObjectExtension.FilterDataSource(ViewBag.TaskStatuses, readOnlyMode: true))
+                {
+                    <option value="@taskStatus.Id">
+                        @taskStatus.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="taskFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="addTaskModal" role="dialog"></div>

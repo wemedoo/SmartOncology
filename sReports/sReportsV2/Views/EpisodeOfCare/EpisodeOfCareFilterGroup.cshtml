@@ -1,0 +1,62 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Constants;
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasAddEOCPerm = userCookieData.UserHasPermission(PermissionNames.AddEpisodeOfCare, ModuleNames.Patients);
+    bool hasViewEOCPerm = userCookieData.UserHasPermission(PermissionNames.ViewEpisodeOfCare, ModuleNames.Patients);
+}
+
+@if (!readOnly && hasAddEOCPerm)
+{
+    <div class="add-eoc-button">
+        <button class="btn btn-add w-100 h-100 " onclick="showAddEocModal(event, 0)">
+            <i class="fas fa-plus-circle"></i>
+            @sReportsV2.Cache.Resources.TextLanguage.Add_New @sReportsV2.Cache.Resources.TextLanguage.Eoc.ToUpper()
+        </button>
+    </div>
+}
+@if (hasViewEOCPerm)
+{
+    <div class="flex">
+        <div class="d-flex main-filter mb-2">
+            <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+                <div class="label patient-filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.EOC_Type
+                </div>
+                <select class="filter-input arrow-select" id="EocTypeTemp">
+                    <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                    @foreach (var episodeOfCareType in ObjectExtension.FilterDataSource(ViewBag.EpisodeOfCareTypes, readOnlyMode: true))
+                    {
+                        <option value="@episodeOfCareType.Id">
+                            @episodeOfCareType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+                <div class="label patient-filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.EOC_Status
+                </div>
+                <select class="filter-input arrow-select" id="EocStatusTemp">
+                    <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                    @foreach (var episodeOfCareStatus in ObjectExtension.FilterDataSource(ViewBag.EpisodeOfCareStatuses, readOnlyMode: true))
+                    {
+                        <option value="@episodeOfCareStatus.Id">
+                            @episodeOfCareStatus.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+                <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                    <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

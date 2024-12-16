@@ -1,0 +1,60 @@
+﻿@using sReportsV2.DTOs.DTOs.ProjectManagement.DataOut;
+@model ProjectDataOut
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+
+<input id="trialId" type="text" hidden value="@(Model != null && Model.ClinicalTrial != null ? Model.ClinicalTrial.ClinicalTrialId : 0)" />
+<input type="hidden" id="clinicalTrialTypeId" value="@ViewBag.ClinicalTrialTypeId" />
+<input id="projectId" type="text" hidden value="@(Model != null ? Model.ProjectId : 0)" />
+<input type="hidden" id="readOnly" value="@(ViewBag.ReadOnly ? "true" :"false")" />
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    string id = Model != null && Model.ClinicalTrial != null ? Model.ClinicalTrial.ClinicalTrialId.ToString() : "0";
+}
+<div class="so-tabs">
+    <div data-id="TrialData" class="so-tab active" title="Edit Project Data">
+        <img alt="" class="pr-1" src="/css/img/icons/designer_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.EditProjectData
+    </div>
+    <div data-id="TrialPersonnel" class="@(Model != null && Model.ClinicalTrial != null ? "so-tab" : "so-tab-disabled")" data-toggle="tooltip" title="@(Model == null || Model.ClinicalTrial == null ? sReportsV2.Cache.Resources.TextLanguage.ProjectTooltip : sReportsV2.Cache.Resources.TextLanguage.Manage_Organizations__Teams_and_Users)">
+        <img alt="" class="pr-1" src="/css/img/icons/people_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.Manage_Organizations__Teams_and_Users
+    </div>
+    <div data-id="TrialDocuments" class="@(Model != null && Model.ClinicalTrial != null ? "so-tab" : "so-tab-disabled")" data-toggle="tooltip" title="@(Model == null || Model.ClinicalTrial == null ? sReportsV2.Cache.Resources.TextLanguage.ProjectTooltip : sReportsV2.Cache.Resources.TextLanguage.Manage_Documentation)">
+        <img alt="" class="pr-1" src="/css/img/icons/documents_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.Manage_Documentation
+    </div>
+</div>
+
+<div class="so-containers">
+    <div id="TrialData" class="so-tab-container element-background-grey pt-5">
+        @await Html.PartialAsync("ProjectData", Model)
+
+        <div id="trialDataDiv" hidden>
+            @await Html.PartialAsync("TrialData", Model != null ? Model.ClinicalTrial : null)
+        </div>
+        @if (!readOnly)
+        {
+            <div class="button-partial clinical-trial-btn-group user-btn-top-border">
+                <button class="submit-patient right-button" type="button" style="outline: none;" onclick="trySubmitClinicalTrial(event, '@id')">
+                    <span class="submit-patient-info">@(Model != null ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)</span>
+                </button>
+            </div>
+        }
+    </div>
+    <div id="TrialPersonnel" class="so-tab-container element-background-grey pt-5" style="display:none">
+        @await Html.PartialAsync("~/Views/ProjectManagement/ProjectPersonnel/ProjectPersonnel.cshtml")
+    </div>
+    <div id="TrialDocuments" class="so-tab-container element-background-grey pt-5" style="display:none">
+        @await Html.PartialAsync("~/Views/ProjectManagement/ProjectDocuments/ProjectDocuments.cshtml")
+    </div>
+</div>
+
+@if (Model == null || Model.ClinicalTrial == null)
+{
+    <script>
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip({
+                placement: 'bottom'
+            });
+        });
+    </script>
+}

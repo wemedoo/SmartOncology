@@ -1,0 +1,97 @@
+﻿@using System.Globalization
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DTOs.TaskEntry.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> types = ViewBag.TaskTypes as List<CodeDataOut>;
+    List<CodeDataOut> statuses = ViewBag.TaskStatuses as List<CodeDataOut>;
+    bool readOnly = ViewBag.ReadOnly;
+    Dictionary<string, bool> permissions = new Dictionary<string, bool>()
+    {
+        { PermissionNames.Update, userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Patients) },
+        { PermissionNames.View, userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Patients)} ,
+        { PermissionNames.Delete, userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.Patients) }
+    };
+}
+
+<div id="taskTableContent" class="table-responsive encounters-fix-head atoms-border">
+    <table id="taskTable" class="table table-striped">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="EncounterId" class="sort-arrow encounter-th" onclick="sortTaskTable('EncounterId')">@sReportsV2.Cache.Resources.TextLanguage.EncounterId.ToUpper()</th>
+                <th id="TaskType" class="sort-arrow encounter-th" onclick="sortTaskTable('TaskType')">@sReportsV2.Cache.Resources.TextLanguage.TaskType.ToUpper()</th>
+                <th id="TaskStatus" class="sort-arrow encounter-th" onclick="sortTaskTable('TaskStatus')">@sReportsV2.Cache.Resources.TextLanguage.TaskStatus.ToUpper()</th>
+                <th id="TaskEntityId" class="sort-arrow encounter-th" onclick="sortTaskTable('TaskEntityId')">@sReportsV2.Cache.Resources.TextLanguage.TaskEntity.ToUpper()</th>
+                <th id="TaskStartDateTime" class="sort-arrow encounter-th" onclick="sortTaskTable('TaskStartDateTime')">@sReportsV2.Cache.Resources.TextLanguage.TaskStartDate.ToUpper()</th>
+                <th style="border-bottom: unset;border-top: unset;"></th>
+            </tr>
+        </thead>
+        <tbody class="color-header">
+            @foreach (TaskDataOut entry in Model.Data)
+            {
+                <tr id="row-@entry.TaskId" class="table-content-row" onclick="clickedTaskRow(event, '@entry.TaskId')">
+                    <td id="encounterId-@entry.TaskId">@entry.EncounterId </td>
+                    <td id="taskType-@entry.TaskId">@entry.ConvertTaskTypeCDToDisplayName(types, activeLanguage)</td>
+                    <td id="taskStatus-@entry.TaskId">@entry.ConvertTaskStatusCDToDisplayName(statuses, activeLanguage)</td>
+                    <td id="taskEntity-@entry.TaskId">@(@entry.TaskDocument != null ? entry.TaskDocument.FormTitle : "")</td>
+                    <td id="taskStartDateTime-@entry.TaskId">@entry.TaskStartDateTime.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</td>
+                    <td>
+                        @{ RenderDropdown(permissions, entry, readOnly); }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+</div>
+
+@functions {
+    private void RenderDropdown(Dictionary<string, bool> permissions, TaskDataOut entry, bool readOnly)
+    {
+        bool hasCreateUpdatePerm = permissions[PermissionNames.Update];
+        bool hasViewPerm = permissions[PermissionNames.View];
+        bool hasDeletePerm = permissions[PermissionNames.Delete];
+
+        if (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm)
+        {
+
+            <div class="dropdown">
+                <a class="dropdown-button encounter-dropdown" href="#" id="dropdownMenuLink-@entry.TaskId">
+                    <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.TaskId">
+                    @if (hasViewPerm)
+                    {
+                        <a class="dropdown-item pointer hover view-a" onclick="showTaskModal(event, '@entry.TaskId', true, true)">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg"> @sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.Task
+                        </a>
+                    }
+                    @if (hasCreateUpdatePerm && !readOnly)
+                    {
+                        <a class="dropdown-item pointer hover view-a" onclick="showTaskModal(event, '@entry.TaskId', @readOnly.ToJsBoolean(), true)">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg"> @sReportsV2.Cache.Resources.TextLanguage.Edit @sReportsV2.Cache.Resources.TextLanguage.Task
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    }
+}
+
+<script>
+    window.onresize = function () {
+        setTableMaxHeight("taskTable", "taskTableContent");
+    }
+</script>

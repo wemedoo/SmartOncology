@@ -1,0 +1,68 @@
+﻿@using sReportsV2.DTOs.Common;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    var hasCreateUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Administration);
+    string activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
+}
+
+<div class="d-flex">
+
+    <div class="d-flex mb-2" style=" width: 65%;">
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label personnel-team-filter-label">@sReportsV2.Cache.Resources.TextLanguage.Member_Name.ToUpper()</div>
+            <div>
+                <select id="member-name-select2" class="filter-input" style="width: 100%"></select>
+            </div>
+        </div>
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label personnel-team-filter-label">@sReportsV2.Cache.Resources.TextLanguage.Relation.ToUpper() @sReportsV2.Cache.Resources.TextLanguage.Type.ToUpper()</div>
+            <select id="member-role-select2" class="filter-input arrow-select background-white">
+                <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                @foreach (CodeDataOut personnelTeamRelationType in ObjectExtension.FilterDataSource(ViewBag.PersonnelTeamRelationshipType, readOnlyMode: true))
+                {
+                    <option value="@personnelTeamRelationType.Id">
+                        @personnelTeamRelationType.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage)
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15 mr-2">
+            <div class="button-wrapper-filter">
+                <button class="personnel-team-button btn btn-filter-primary w-100 h-100 float-right" onclick="reloadSinglePersonnelTeamTable(event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))">Filter</button>
+            </div>
+        </div>
+
+    </div>
+
+    @if (hasCreateUpdatePerm)
+    {
+        <button type="button" class="btn btn-add-new float-right new-personnel-team-button" onclick="showAddMembersModal(@(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))">
+            <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new">@sReportsV2.Cache.Resources.TextLanguage.Add_Members</span>
+        </button>
+    }
+
+    <script>
+    $(document).ready(function () {
+
+        var placeholder = "-";
+
+        $("#member-name-select2").initSelect2(
+            getSelect2Object(
+                {
+                    placeholder: placeholder,
+                    width: '100%',
+                    url: `/PersonnelTeamRelation/GetNameAutocompleteData?personnelTeamId=${@(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0)}`
+                }
+            )
+        );
+    });
+
+    </script>
+</div>

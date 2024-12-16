@@ -1,0 +1,147 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.FormInstance;
+@using sReportsV2.Common.Constants;
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.CreateFormInstance;
+    FormInstanceFilterDataIn filterDataIn = ViewBag.FilterFormInstanceDataIn as FormInstanceFilterDataIn;
+    var userCookieData = ViewBag.UserCookieData;
+    var projectId = ViewBag.ProjectId;
+    var projectTitle = ViewBag.ProjectTitle;
+    bool showUserProjects = ViewBag.ShowUserProjects;
+}
+@if (!ViewBag.FilterFormInstanceDataIn.IsSimplifiedLayout)
+{
+    if (projectId != null)
+    {
+        if (ViewBag.ShowUserProjects)
+        {
+            @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) {
+            { "level1", sReportsV2.Cache.Resources.TextLanguage.Projects }, { "linkLevel1", "/ProjectManagement/GetAllUserProjects" },
+            { "level2", projectTitle }, { "linkLevel2", "/ProjectManagement/ProjectForms?projectId=" + projectId },
+            { "level3", ViewBag.FilterFormInstanceDataIn.Title != null ? ViewBag.FilterFormInstanceDataIn.Title : "" }, { "activeLevel", 3 } })
+        }
+        else
+        {
+            @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) {
+            { "level1", sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "linkLevel1", "/ProjectManagement/GetAll" },
+            { "level2", projectTitle }, { "linkLevel2", "/ProjectManagement/Edit?projectId=" + projectId },
+            { "level3", ViewBag.FilterFormInstanceDataIn.Title != null ? ViewBag.FilterFormInstanceDataIn.Title : "" }, { "activeLevel", 3 } })
+        }
+    }
+    else
+    {
+        @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) {
+        { "level1", sReportsV2.Cache.Resources.TextLanguage.DataCaptureEngine }, { "linkLevel1", "/FormInstance/GetAllFormDefinitions" },
+        { "level2", ViewBag.FilterFormInstanceDataIn.Title != null ? ViewBag.FilterFormInstanceDataIn.Title : "" }, { "activeLevel", 2 } })
+    }
+
+}
+else
+{
+    <script>
+        simplifiedApp = "/CRF/Edit"
+    </script>
+}
+<div class="d-none" id="thesaurusId">@ViewBag.FilterFormInstanceDataIn.ThesaurusId</div>
+<input type="hidden" id="showUserProjects" value="@(showUserProjects ? "true" : "false")" />
+<div class="table-container border-0">
+    <div class="header header-new">
+
+        @ViewBag.FilterFormInstanceDataIn.Title
+
+        @{
+            string current = Context.Request.Query["ThesaurusId"].ToString();
+            string language = ViewBag.Language;
+        }
+
+        <button class="btn btn-filter-primary float-right btns" onclick="showChartModal('@filterDataIn.FormId', event)">Chart</button>
+
+        @if (userCookieData.UserHasPermission(PermissionNames.Download, ModuleNames.Engine))
+        {
+            <div class="dropdown show float-right dropleft" style="margin-right:10px;">
+                <a class="dropdown-button" href="#" role="button" id="dropdownMenuLink-group" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button id="btns" class="btn btn-filter-primary btns" style="height:unset"><img alt="" src="/css/img/icons/dropdown.svg" /></button>
+                </a>
+                <div class="dropdown-menu-customize dropdown-menu dropdown-shadow" aria-labelledby="dropdownMenuLink-group">
+                    <a class="dropdown-item" href="#" onclick="createPdfFormInstance(event,'@ViewBag.FilterFormInstanceDataIn.FormId')"><i class="fas fa-plus mr-2"></i>Create new patient using PDF tool</a>
+                    <a class="dropdown-item" href="#" onclick="showUploadModal(event)"><i class="fas fa-arrow-up mr-2"></i>@sReportsV2.Cache.Resources.TextLanguage.UploadPdf</a>
+                    @if (filterDataIn == null || !filterDataIn.IsSimplifiedLayout)
+                    {
+                        <a class="dropdown-item" href="#" onclick="downloadJsons(event)"><i class="fas fa-arrow-right mr-2 size"></i>@sReportsV2.Cache.Resources.TextLanguage.Export_Patholink</a>
+                        <a class="dropdown-item" href="#" onclick="downloadTxt(event)"><i class="fas fa-arrow-right mr-2"></i>@sReportsV2.Cache.Resources.TextLanguage.ExportToTxt</a>
+                    }
+
+
+                </div>
+            </div>
+        }
+
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Engine))
+        {
+            <button class="btn btn-create float-right" style="margin-right:10px;" onclick="createFormInstance('@current', '@language', '@projectId', '@projectTitle', '@showUserProjects')"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+        }
+
+    </div>
+
+    <div class="d-flex">
+        <div class="d-flex main-filter mb-2">
+            <div class="advanced-filter-item margin-right-10 advanced-max-width">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Content
+                </div>
+                <input type="text" class="filter-input" id="ContentTemp" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')">
+            </div>
+
+            @*<div class="advanced-filter-item margin-right-10 advanced-max-width">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.User
+                    </div>
+                    <div id="dropdownSearch" class="position-relative dropdown-search">
+                        <div id="user-search">
+                            <input autocomplete="off" class="designer-form-input filter-input" id="user" name="User" type="text" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')" @ViewBag.Disabled />
+                        </div>
+                        <div id="userOptions" class="user-options" aria-labelledby="user-search">
+                        </div>
+                    </div>
+                    <div id="selected-users" class="clinical-domain-container">
+                    </div>
+                </div>
+
+                <div class="advanced-filter-item margin-right-10 advanced-max-width">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Patient
+                    </div>
+                    <div id="dropdownSearch" class="position-relative dropdown-search">
+                        <div id="patient-search">
+                            <input autocomplete="off" class="designer-form-input filter-input" id="patient" name="Patient" type="text" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')" @ViewBag.Disabled />
+                        </div>
+                        <div id="patientOptions" class="patient-options" aria-labelledby="patient-search">
+                        </div>
+                    </div>
+                    <div id="selected-patients" class="clinical-domain-container">
+                    </div>
+                </div>*@
+
+            <div class="border-0 margin-top-15" style="margin-right:10px;">
+                <div class="button-wrapper-filter button-filter">
+                    <button id="submit-filter-button" class="btn btn-filter-primary w-100 h-100 float-right" onclick="singleDocumentFilter()">  @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="filterElements" class="d-flex"></div>
+    @await Html.PartialAsync("ChartPartial")
+    <div id="tableContainer"></div>
+</div>
+
+<div id="temporalFormInstanceDiv" hidden>
+
+</div>
+
+@await Html.PartialAsync("~/Views/File/PdfUpload.cshtml")
+<script>
+    var filter = @Html.Raw(Json.Serialize(ViewBag.FilterFormInstanceDataIn));
+</script>
+@Html.Raw(ScriptHelper.RenderBundle("js/getAllByFormThesaurus-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderBundle("js/createFormInstanceAutomatically-bundle.min.js"))

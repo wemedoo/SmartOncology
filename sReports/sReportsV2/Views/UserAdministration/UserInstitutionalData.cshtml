@@ -1,0 +1,37 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@model sReportsV2.DTOs.Common.DataOut.UserDataOut
+
+@{ 
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    List<CodeDataOut> states = ViewBag.UserStates as List<CodeDataOut>;
+    int? archivedUserStateCD = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Archived))?.Id;
+}
+<div class="person-margin" style="min-height:40px;">
+    @if (ViewBag.UserAdministration && !readOnly)
+    {
+        <button class="btn btn-add-new float-right" type="button" onclick="openInstitutionModal(event)">
+            <i class="fas fa-plus-circle resize-circle"></i>
+            <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.AddNew</span>
+        </button>
+    }
+</div>
+    <div class="institutions" id="institutions">
+        @if (Model != null)
+        {
+            foreach (var organization in Model.Organizations.Where(x => x.StateCD != archivedUserStateCD))
+            {
+                @await Html.PartialAsync("OrganizationData", organization)
+            }
+        }
+
+        @if (Model == null || Model.Organizations == null || Model.Organizations.Count == 0)
+        {
+            <div class="no-result-content">
+                <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+                <br>
+                <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+            </div>
+        }
+    </div>
+

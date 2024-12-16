@@ -1,0 +1,135 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@model sReportsV2.DTOs.DTOs.CodeSetEntry.DataOut.CodeSetDataOut
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasUpdateCodeSetPerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.CodeSet);
+    var disabled = ViewBag.CodeSetDisabled != "" || !hasUpdateCodeSetPerm ? "disabled" : "";
+}
+<input id="codeThesaurusId" value="@Model.Thesaurus.Id" hidden />
+<input id="codeSetNumberForCode" value="@Model.CodeSetId" hidden />
+
+<form id="codeSetsForm">
+
+    <div class="advanced-filter-item advanced-max-width">
+        <div class="input-container position-relative input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.CodeSetName
+                @if (@disabled == "")
+                {
+                <img alt="" class="mr-1 margin-bottom-2" src="/css/img/icons/thesaurus_green.svg" onclick="goToCodeSetThesaurus()">
+                }
+            </div>
+            <input class="code-input background-white" type="text" name="thesaurusSearchInputCode" id="thesaurusSearchInputCode" value="@Model.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm" @disabled />
+            @if (@disabled == "")
+            {
+            <img alt="" class="search-button" id="codeSetName" onclick="editEntry(event, '@Model.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm', '@Model.CodeSetId', '@Model.Thesaurus.Id')" src="/css/img/icons/search_green.svg" />
+            }
+        </div>
+    </div>
+
+    <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width input-margin">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.CodeSetId
+        </div>
+        <input type="text" class="code-input" name="newCodeSetNumberForCode" id="newCodeSetNumberForCode" value="@Model.CodeSetId" disabled />
+    </div>
+
+    <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width input-margin">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.ActiveFrom
+        </div>
+        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+        {
+            InputAttributes = new Dictionary<object, object> {
+                { "class", "code-input" },
+                { "id", "newCodeSetActiveFromForCode" },
+                { "name", "newCodeSetActiveFromForCode" },
+                { "value", Model.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string)},
+                { "onChange", "changeValidFromOrTo()" },
+                { "maxlength", "10" },
+                { "data-maxlength", "10" },
+                { @disabled, "" }
+            },
+            InputBtnAttributes = new Dictionary<object, object> {
+                { "class", "date-img eoc-form-date-img" },
+                { "id", "startDateCalendar"},
+                { "onClick", "showDatePicker(event)"}
+            },
+        })
+    </div>
+
+    <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width input-margin">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.ActiveTo
+        </div>
+        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+   {
+       InputAttributes = new Dictionary<object, object> {
+                { "class", "code-input" },
+                { "id", "newCodeSetActiveToForCode" },
+                { "name", "newCodeSetActiveToForCode" },
+                { "value", Model.ActiveTo.ToDateZoned(ViewBag.DateFormat as string) },
+                { "onChange", "changeValidFromOrTo()" },
+                { "maxlength", "10" },
+                { "data-maxlength", "10" },
+                { @disabled, "" }
+            },
+       InputBtnAttributes = new Dictionary<object, object> {
+                { "class", "date-img eoc-form-date-img" },
+                { "id", "startDateCalendar"},
+                { "onClick", "showDatePicker(event)"}
+            },
+   })
+    </div>
+
+    <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width input-margin">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Applicable_In_Designer
+        </div>
+        <div class="position-relative margin-top-10">
+            <label class="form-radio-label margin-right-20">
+                <input type="radio" id="applicableInDesigner-yes" name="applicableInDesigner" value="true" @(Model.ApplicableInDesigner ? "checked": "") class="form-radio-field" @disabled>
+
+                <i class="form-radio-button user-radio"></i>
+                <span class="user-radio-span">
+                    @sReportsV2.Cache.Resources.TextLanguage.Yes
+                </span>
+            </label>
+            <label class="form-radio-label margin-right-20">
+                <input type="radio" id="applicableInDesigner-no" name="applicableInDesigner" value="false" @(!Model.ApplicableInDesigner ? "checked": "") class="form-radio-field" @disabled>
+
+                <i class="form-radio-button user-radio"></i>
+                <span class="user-radio-span">
+                    @sReportsV2.Cache.Resources.TextLanguage.No_
+                </span>
+            </label>
+        </div>
+    </div>
+
+    @if (@disabled == "")
+    {
+    <div class="filter-item advanced-filter-item advanced-max-width input-margin">
+        <div class="button-wrapper-filter button-filter" id="submitFilterButton" style="float:right">
+            <button class="btn btn-filter-primary w-100 h-100 float-right" type="submit" onclick="submitCodeSetForm(event, false, '@Model.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm')">
+                @sReportsV2.Cache.Resources.TextLanguage.Save
+            </button>
+        </div>
+    </div>
+    }
+</form>
+
+<script>
+    $(document).on('keypress', '.code-input', function (e) {
+        if (e.which === enter) {
+            e.preventDefault();
+            e.stopPropagation();
+            editEntry(e, $('#thesaurusSearchInputCode').val(), $('#codeSetNumberForCode').val(), $('#codeThesaurusId').val());
+        }
+    });
+
+    $(document).ready(function () {
+        if ('@disabled' == "")
+            validateCodeSetForm();
+    });
+</script>

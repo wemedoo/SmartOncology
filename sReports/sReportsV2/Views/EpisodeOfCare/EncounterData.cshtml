@@ -1,0 +1,98 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model sReportsV2.DTOs.EpisodeOfCare.EpisodeOfCareDataOut
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.EOC_Create;
+}
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    var hasAddEncounterPerm = userCookieData.UserHasPermission(PermissionNames.AddEncounter, ModuleNames.Patients);
+    var hasViewEncounterPerm = userCookieData.UserHasPermission(PermissionNames.ViewEncounter, ModuleNames.Patients);
+    bool canAddEncounter = !hasAddEncounterPerm || ViewBag.ReadOnly;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    var grouped = Model.Encounters.GroupBy(x => x.TypeId);
+    List<CodeDataOut> encounterTypes = ViewBag.EncounterTypes as List<CodeDataOut>;
+}
+
+<input type="hidden" name="formPartialIndicator" value="@ViewBag.Action" />
+<input type="hidden" id="pId" value="@Model.PatientId" />
+<input type="hidden" id="eocId" value="@Model.Id" />
+<p hidden id="eocTypesCount">@grouped.Count()</p>
+<input hidden value="@Model.Id" id="episodeOfCareId" />
+
+<input type="hidden" id="typeEOC" value="EOC" />
+
+
+<div class="flex eoc-document">
+
+    <div class="eoc-encounter-documents-container" data-patient="@Model.PatientId">
+
+        <div class="flex bottom-border overflow-hidden enctypescontainer" style="width: inherit" id="test">
+            <span class="left-arr-scr" onclick="scrollArrows('left-arrow', 'encounterTypesContainer')"></span>
+            <div id="encounterTypesContainer" class="encounters-title-container flex">
+
+                @if (hasViewEncounterPerm)
+                {
+                    @foreach (var obj in grouped)
+                    {
+                        int encounterTypeId = obj.ElementAt(0).TypeId.GetValueOrDefault();
+                        var encounterType = encounterTypes.Find(x => x.Id == encounterTypeId);
+                        string encounterTypeValue = encounterType != null ? encounterType.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : String.Empty;
+                        <p onclick="showEncounters(@encounterTypeId)"
+                           class="encounters-title single-encounter"
+                           id="@encounterTypeId"
+                           title="@encounterTypeValue">
+                            @encounterTypeValue
+                        </p>
+                        <input hidden id="enid-@encounterTypeId" value="@obj.ElementAt(0).Id" />
+                        <input hidden id="encounterTypeId" value="@encounterTypeId" />
+                    }
+                }
+                @if (!canAddEncounter)
+                {
+                    <div class="position-relative">
+                        <button class="btn btn-add-enc h-100 show-form-referrals-button btn-add-doc btn-add-eoc d-flex align-items-center justify-content-center"
+                                onclick="showEncounterModal(event, false)">
+                            <i class="fas fa-plus-circle plus-enc-button"></i>
+                            <span class="plus-enc-label">@sReportsV2.Cache.Resources.TextLanguage.Add</span>
+                        </button>
+                    </div>
+                }
+            </div>
+            <span class="right-arr-scr" onclick="scrollArrows('right-arrow', 'encounterTypesContainer')"></span>
+        </div>
+
+        <div class="flex">
+            <div class="encounters-title-container flex encounters document-container wrap" id="encountersContainer">
+
+            </div>
+        </div>
+
+        <div class="documentation-details-container flex">
+
+            <div class="forminstance-details">
+                <div id="formInstanceContainer" class="encounter-form-instance">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="custom-modal fade">
+    <div class="custom-modal-body">
+        <div class="close-custom-modal-button">
+        </div>
+        <div class="custom-modal-title">
+            <img alt="" src="/css/img/icons/adding_doc.svg" />
+            @sReportsV2.Cache.Resources.TextLanguage.Adding_documents
+        </div>
+        <div id="customModalMainContent" class="custom-modal-main-content">
+            @sReportsV2.Cache.Resources.TextLanguage.Test
+        </div>
+    </div>
+</div>

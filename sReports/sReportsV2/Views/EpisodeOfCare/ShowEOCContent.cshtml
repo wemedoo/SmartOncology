@@ -1,0 +1,53 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Constants;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    var hasViewEOCPerm = userCookieData.UserHasPermission(PermissionNames.ViewEpisodeOfCare, ModuleNames.Patients);
+    var hasViewEncounterPerm = userCookieData.UserHasPermission(PermissionNames.ViewEncounter, ModuleNames.Patients);
+    var hasAddEOCPerm = userCookieData.UserHasPermission(PermissionNames.AddEpisodeOfCare, ModuleNames.Patients) && !ViewBag.ReadOnly;
+}
+<div class="display-flex">
+    @if (hasViewEOCPerm || hasAddEOCPerm)
+    {
+        <div id="eocTab" class="alias-title code-active-tab eoc-title" onclick="showEpisodeOfCareContent()">
+            @sReportsV2.Cache.Resources.TextLanguage.Episodes_of_cares.ToUpper()
+        </div>
+    }
+    @if (hasViewEncounterPerm)
+    {
+        <div id="encounterTab" class="alias-title padding-left-20 code-tab eoc-title inactive-tab" onclick="showEncounterContent()">
+            @sReportsV2.Cache.Resources.TextLanguage.Encounters.ToUpper()
+        </div>
+    }
+
+    <div id="taskTab" class="alias-title padding-left-20 code-tab eoc-title inactive-tab" onclick="showTasksContent()">
+        @sReportsV2.Cache.Resources.TextLanguage.Tasks.ToUpper()
+    </div>
+</div>
+
+<div id="filterGroup">
+    @await Html.PartialAsync("~/Views/EpisodeOfCare/EpisodeOfCareFilterGroup.cshtml")
+</div>
+
+<div class="eoc-container" id="eocContainer">
+
+</div>
+
+<script>
+    $(document).ready(function () {
+        var hasViewEOCPerm = @hasViewEOCPerm.ToString().ToLower();
+        var hasViewEncounterPerm = @hasViewEncounterPerm.ToString().ToLower();
+        var hasAddEOCPerm = @hasAddEOCPerm.ToString().ToLower();
+
+        if (hasViewEOCPerm || hasAddEOCPerm) {
+            reloadEpisodeOfCares();
+        } else if (hasViewEncounterPerm) {
+            showEncounterContent();
+        } else {
+            showTasksContent();
+        }
+    });
+</script>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/episodeOfCare/task.js"), "", ""))

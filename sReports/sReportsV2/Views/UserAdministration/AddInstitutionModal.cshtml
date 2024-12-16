@@ -1,0 +1,53 @@
+﻿<div class="modal fade" id="institutionModal" tabindex="-1" role="dialog" aria-labelledby="institutionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-institution">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+
+                    <form id="institutionForm">
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/change_password.svg"> Add new institution
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Organization
+                            </div>
+                            <select class="organizations filter-input arrow-select patient-background" id="newOrganization" name="newOrganization" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Organization">
+                                <option selected value=""></option>
+                            </select>
+                        </div>
+                        <div class="button-partial">
+                            <button class="submit-button right-button margin-left-13" type="button" style="outline: none;" id="buttonSubmitPassword" onclick="addNewOrganizationData()" dismiss="modal">
+                                <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Confirm</span>
+                            </button>
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.organizations').initSelect2(
+            getSelect2Object(
+                {
+                    placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization_PartOfPlaceholder',
+                    url: `/Organization/GetAutocompleteData?organizationId=${$('#id').val()}`,
+                    modalId: 'institutionModal'
+                }
+            )
+        );
+    });
+</script>
+

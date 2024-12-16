@@ -1,0 +1,73 @@
+﻿@using sReportsV2.DTOs.Common;
+@using sReportsV2.DTOs.Form.DataOut;
+@{
+    string tableHeader = string.Format(ViewBag.IsOutsideUserList ? sReportsV2.Cache.Resources.TextLanguage.OutsideUserHeader : sReportsV2.Cache.Resources.TextLanguage.InsideUserHeader, @sReportsV2.Common.Constants.ResourceTypes.SoftwareName);
+}
+<div class="outside-users">
+    <div class="c-user-filter-title d-flex">
+        <img alt="" class="user-filter-icon" src="/css/img/icons/select_users.svg">
+        <div class="ml-2">@tableHeader</div>
+    </div>
+    <div style="width:100%;">
+        @foreach (var user in Model)
+        {
+            ConsensusUserDataOut consensusUser = new ConsensusUserDataOut(user);
+            <div class="outside-user" id="@consensusUser.Id">
+                <img alt="" src="/css/img/icons/profile_silver.svg">
+                @{ RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.FirstName, "firstName", consensusUser.FirstName, higlightDisplayValue: true); }
+                @{ RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.LastName, "lastName", consensusUser.LastName, higlightDisplayValue: true); }
+                @{ RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.Email, "email", consensusUser.Email, higlightDisplayValue: true); }
+                @{ RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.Institution, "institution", consensusUser.Institution); }
+                @{ RenderUserCell(string.Format("{0} {1}", sReportsV2.Cache.Resources.TextLanguage.Institution, sReportsV2.Cache.Resources.TextLanguage.Address), "institutionAddress", consensusUser.InstitutionAddress); }
+                @{ RenderAddressData(consensusUser.Address); }
+
+                @if (ViewBag.CanEditConsensusUsers)
+                {
+                    if (ViewBag.IsOutsideUserList)
+                    {
+                        <div class="outside-user-edit" onclick="editOutsideUser('@consensusUser.Id')">
+                            <img alt="" src="/css/img/icons/edit_pencil_02.svg">
+                            <div class="pl-2">@(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.View : @sReportsV2.Cache.Resources.TextLanguage.Edit) </div>
+                        </div>
+                        <img alt="" class="remove-outside-user" onclick="deleteOutsideUser('@consensusUser.Id')" src="/css/img/icons/Administration_remove.svg">
+                    }
+                    else
+                    {
+                        <img alt="" class="remove-outside-user" style="margin-left:140px;" onclick="deleteInsideUser('@consensusUser.Id')" src="/css/img/icons/Administration_remove.svg">
+                    }
+                }
+            </div>
+        }
+    </div>
+    @if (ViewBag.CanEditConsensusUsers && ViewBag.IsOutsideUserList)
+    {
+        <button class="btn btn-create float-right" onclick="openAddUserModal(event)">@sReportsV2.Cache.Resources.TextLanguage.AddNewUser</button>
+    }
+</div>
+
+@functions {
+    private void RenderAddressData(AddressDTO address)
+    {
+        RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.Country, "countryCD", address != null ? address.Country : string.Empty, value: address != null && address.CountryCD != null ? address.CountryCD.ToString() : string.Empty);
+        RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.City, "city", address != null ? address.City : string.Empty);
+        RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.Postal_code, "postalCode", address != null ? address.PostalCode : string.Empty);
+        RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.Street, "street", address != null ? address.Street : string.Empty);
+        RenderUserCell(sReportsV2.Cache.Resources.TextLanguage.StreetNumber, "streetNumber", address != null ? address.StreetNumber : string.Empty);
+    }
+
+    private void RenderUserCell(string elementTitle, string elementName, object displayValue, string value = "", bool higlightDisplayValue = false)
+    {
+        displayValue = displayValue == null ? "" : displayValue;
+        value = string.IsNullOrEmpty(value) ? displayValue.ToString() : value;
+        <div class="outside-user-item @(higlightDisplayValue ? "color-green-primary" : "")"
+             data-modal-id="@elementName" data-modal-value="@value"
+        @(ViewBag.IsOutsideUserList ? string.Format(@"data-modal-id=""{0}"" data-modal-value=""{1}""", elementName, value) : "")>
+            <div class="item-label">
+                @elementTitle
+            </div>
+            <div class="item-value" title="@displayValue">
+                @displayValue
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,88 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@model FieldTextAreaDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+}
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            await AddField(Html, Model, isChapterReadonly, fieldSetId);
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+@*
+    ---------------------------------------------------------------------------------------------------
+                                        Temporarily - Hotfix
+    ---------------------------------------------------------------------------------------------------
+*@
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldStringDataOut objectModel, bool isChapterReadonly, string fieldSetId, string additionalFieldClass = "", string additionalInputClass = "")
+    {
+        if (objectModel.HasValue())
+        {
+            for (int i = 0; i < objectModel.FieldInstanceValues.Count; i++)
+            {
+                await AddField(html, objectModel, isChapterReadonly, fieldSetId, i + 1, objectModel.FieldInstanceValues[i].FirstValue, objectModel.FieldInstanceValues[i].IsSpecialValue, additionalFieldClass, additionalInputClass);
+            }
+        }
+        else
+        {
+            await AddField(html, objectModel, isChapterReadonly, fieldSetId, 1, "", false, additionalFieldClass, additionalInputClass);
+        }
+    }
+
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isSpecialValue, string additionalFieldClass, string additionalInputClass, string customLabel = "")
+    {
+        <div class="field-group @additionalFieldClass">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @if (string.IsNullOrEmpty(customLabel))
+                {
+                    @html.Raw(objectModel.FullLabel)
+                }
+                else
+                {
+                    @customLabel
+                }
+            </div>
+            <div class="repetitive-field filter-input d-inline-block @additionalInputClass">
+                @{
+                    AddInput(html, objectModel, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue, isSpecialValue);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+            @if (!isSpecialValue)
+            {
+                @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+            }
+        </div>
+    }
+
+    private void AddInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isSpecialValue)
+    {
+        AddLongTextInput(html, objectModel, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue, isSpecialValue);
+    }
+
+    private void AddLongTextInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isSpecialValue)
+    {
+        <textarea class="form-element-field textarea-repetitive"
+                  rows="8"
+                  placeholder="@objectModel.DescriptionLabel"
+                  value="@(!isSpecialValue ? repetitiveValue : "")"
+        @Html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter))
+        @html.ReadOnly(objectModel.IsReadonly || isChapterReadonly || isSpecialValue)>@(!isSpecialValue ? repetitiveValue : "")</textarea>
+
+        if ((objectModel as FieldTextAreaDataOut).DataExtractionEnabled)
+        {
+            <div type="button" class="btn extract-data-btn float-right mt-2" onclick="saveFormInstanceAndExtractData(event, '@(objectModel.Id)', '@(objectModel.FieldInstanceValues[repetitiveCounter-1].FieldInstanceRepetitionId)')">
+                <img alt="" class="" src="/css/img/icons/extract_data.svg">
+                <span class="extract-data-span"> @sReportsV2.Cache.Resources.TextLanguage.Extract_Data </span>
+            </div>
+        }
+    }
+}

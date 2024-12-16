@@ -1,0 +1,21 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Consensus.DataOut;
+@using System.Linq;
+@model string
+
+@{ 
+    ConsensusDataOut consensus = ViewBag.ConsensusQuestionnaire.Consensus as ConsensusDataOut;
+}
+
+@if (consensus != null && consensus.GetActiveIteration().ExistsQuestionForItem(Model))
+{
+    <div class="question-preview" id="qp-@Model" data-id="@Model">
+        @await Html.PartialAsync("~/Views/Form/Consensus/Questionnaire/ConsensusQuestionPreview.cshtml", consensus.GetActiveIteration().GetQuestionForItem(Model))
+    </div>
+}
+else
+{
+    <div class="question-create" id="qc-@Model" data-id="@Model">
+        @await Html.PartialAsync("~/Views/Form/Consensus/Questionnaire/ConsensusCreateQuestion.cshtml", Model)
+    </div>
+}

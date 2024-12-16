@@ -1,0 +1,57 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+
+@{
+    bool isEdit = ViewBag.FormInstanceId != null;
+    bool isPatientModule = ViewBag.IsPatientModule != null;
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+@{
+    RenderFormInstanceActions(isEdit, isPatientModule, readOnly);
+    RenderDescriptionText();
+}
+
+@functions {
+    private void RenderDescriptionText()
+    {
+        if (Model.DocumentProperties != null && !string.IsNullOrEmpty(Model.DocumentProperties.Description))
+        {
+            <div class='form-description desc position-relative' style="display:none;">@Html.Raw(Model.DocumentProperties.Description)<i class="fas fa-times x-des"></i></div>
+        }
+    }
+
+    private void RenderFormInstanceActions(bool isEdit, bool isPatientModule, bool readOnly)
+    {
+        <div class="form-instance-header-view-mode patient-view-synopic-view @(!isPatientModule ? "padding-top-32" : "")">
+            <div id="showHiddenFieldsAction" onmouseover="changeImageSrc('show_hidden_fields')" onmouseout="changeImageSrc('show_hidden_fields', true)" class="form-instance-view-mode hidden-fields-actions" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.ShowHiddenFields">
+                <img alt="" id="showHiddenFieldsImage" src="/css/img/icons/show_hidden_fields.svg" />
+            </div>
+            <div id="hideHiddenFieldsAction" onmouseover="changeImageSrc('hide_hidden_fields')" onmouseout="changeImageSrc('hide_hidden_fields', true)" class="form-instance-view-mode hidden-fields-actions hide-hidden-fields-action d-none" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.HideHiddenFields">
+                <img alt="" id="hideHiddenFieldsImage" src="/css/img/icons/hide_hidden_fields.svg" />
+            </div>
+            @if (isEdit)
+            {
+                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="Form Instance @sReportsV2.Cache.Resources.TextLanguage.View" onmouseover="changeImageSrc('form_instance_view')" onmouseout="changeImageSrc('form_instance_view', true)" style="display: none" onclick="switchFormInstanceViewMode('@FormInstanceViewMode.RegularView', @isPatientModule.ToJsBoolean(), true, @readOnly.ToJsBoolean())">
+                    <img alt="" id="formInstanceView" src="/css/img/icons/form_instance_view.svg" />
+                </div>
+                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="Synoptic @sReportsV2.Cache.Resources.TextLanguage.View" onmouseover="changeImageSrc('synoptic_view')" onmouseout="changeImageSrc('synoptic_view', true)" onclick="switchFormInstanceViewMode('@FormInstanceViewMode.SynopticView', @isPatientModule.ToJsBoolean(), true, @readOnly.ToJsBoolean())">
+                    <img alt="" id="synopticViewImage" src="/css/img/icons/synoptic_view.svg" />
+                </div>
+                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.Version_History" onmouseover="changeImageSrc('audit_trail')" onmouseout="changeImageSrc('audit_trail', true)" onclick="showFormInstanceHistory('@(ViewBag.formInstanceId != null ? ViewBag.formInstanceId : "")')">
+                    <img alt="" id="auditTrailImage" src="/css/img/icons/audit_trail.svg" />
+                </div>
+                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.DownloadPdf Synoptic" onmouseover="changeImageSrc('download_synoptic')" onmouseout="changeImageSrc('download_synoptic', true)" onclick="downloadSynopticPdf('@Model.Title')" style="display: none">
+                    <img alt="" id="downloadSynoptic" src="/css/img/icons/download_synoptic.svg" />
+                </div>
+            }
+        </div>
+    }
+}
+
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>

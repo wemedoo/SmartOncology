@@ -1,0 +1,17 @@
+﻿@using sReportsV2.DTOs.Patient.DataIn;
+@using sReportsV2.DTOs.Patient.DataOut;
+@model  sReportsV2.DTOs.Pagination.PaginationDataOut<PatientTableDataOut, PatientFilterDataIn>
+
+<div class="visible-md">
+    <header class="header header-patient">
+        <div class="search-container-mobile">
+            <input name="patientSearchName" class="w-100 patientSearchName" type="text" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Search_patient_placeholder" />
+            <img alt="" class="search-i" id="searchPatientNameIcon" src="/css/img/icons/search_green.svg" onclick="searchTable(event)">
+            <img alt="" class="close-i" id="closePatientNameIcon" src="/css/img/icons/close_black.svg">
+        </div>
+    </header>
+    <div class="smartOncologyPatientEntries">
+        @await Html.PartialAsync("Patient/PatientEntriesTable", Model)
+    </div>
+    <div class="divider"></div>
+</div>

@@ -1,0 +1,89 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@model FieldFileDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+}
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  @Html.Disabled(Model.IsDisabled) >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            await AddField(Html, Model, isChapterReadonly, fieldSetId);
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldStringDataOut objectModel, bool isChapterReadonly, string fieldSetId)
+    {
+        if (objectModel.HasValue())
+        {
+            for (int i = 0; i < objectModel.FieldInstanceValues.Count; i++)
+            {
+                string value = !string.IsNullOrEmpty(objectModel.FieldInstanceValues[i].FirstValue) ? objectModel.FieldInstanceValues[i].FirstValue : "";
+                await AddField(html, objectModel, isChapterReadonly, fieldSetId, i + 1, value, objectModel.FieldInstanceValues[i].IsSpecialValue);
+            }
+        }
+        else
+        {
+            await AddField(html, objectModel, isChapterReadonly, fieldSetId, 1, "", false);
+        }
+    }
+
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isSpecialValue)
+    {
+        var fieldInstanceRepetitionInfo = objectModel.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
+        <div class="field-group">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @html.Raw(objectModel.FullLabel)
+            </div>
+            <div class="repetitive-field d-inline-block @(isSpecialValue ? "pe-none" : "")">
+                @{
+                    await AddInput(html, objectModel, fieldInstanceRepetitionInfo, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+            @if (!fieldInstanceRepetitionInfo.Item2)
+            {
+                @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+            }
+        </div>
+    }
+
+    private async Task AddInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, Tuple<string, bool> fieldInstanceRepetitionInfo, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue)
+    {
+        string fieldInstanceRepetitionId = fieldInstanceRepetitionInfo.Item1;
+        bool specialValue = fieldInstanceRepetitionInfo.Item2;
+        repetitiveValue = !specialValue ? repetitiveValue : "";
+        <div class="filter-input file-field w-100">
+            <input type="text"
+                   class="file-hid"
+                   id="field-@fieldInstanceRepetitionId"
+            @Html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter))
+                   value="@repetitiveValue"
+            @html.ReadOnly(objectModel.IsReadonly || isChapterReadonly || specialValue) />
+            <input type="file"
+                   class="form-element-field file d-none"
+                   data-id="field-@fieldInstanceRepetitionId"
+                   data-fileid="@fieldInstanceRepetitionId"
+            @html.Disabled(objectModel.IsReadonly || isChapterReadonly || specialValue) />
+            <div class="file-choose">
+                <div>@sReportsV2.Cache.Resources.TextLanguage.Browse_File</div>
+                <img alt="" src="/css/img/icons/browse.svg" class="ml-auto" style="width:20px;">
+            </div>
+        </div>
+        @await Html.PartialAsync(
+            "~/Views/Form/Fields/Custom/BinaryDisplayElement.cshtml",
+            Model,
+            new ViewDataDictionary(html.ViewData)
+            {
+                { "isReadonly", objectModel.IsReadonly },
+                { "isChapterReadonly", isChapterReadonly },
+                { "repetitiveValue", repetitiveValue },
+                { "specialValue", specialValue }
+            }
+        )
+    }
+}

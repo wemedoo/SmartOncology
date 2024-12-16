@@ -1,0 +1,382 @@
+[
+  {
+    "outputFileName": "js/jquery-bundle.min.js",
+    "inputFiles": [
+      "js/libs/jquery-3.7.1/jquery-3.7.1.js",
+      "js/libs/toastr-2.1.1/toastr.min.js",
+      "js/libs/jquery-ui-1.13.2/jquery-ui-1.13.2.js",
+      "js/libs/popper-1.16.1/umd/popper.min.js",
+      "js/libs/bootstrap-4.3.1/bootstrap.bundle.js",
+      "js/libs/jquery-validate-1.19.5/jquery.validate-vsdoc.js",
+      "js/libs/jquery-validate-1.19.5/jquery.validate.js",
+      "js/libs/jquery-validate-1.19.5/jquery.validate.min.js",
+      "js/libs/jquery-validate-unobtrusive-4.0.0/jquery.validate.unobtrusive.js",
+      "js/libs/jquery-validate-unobtrusive-4.0.0/jquery.validate.unobtrusive.min.js",
+      "js/libs/additional-methods-1.17.0/additional-methods.js",
+      "js/sReports/common/date-helper.js",
+      "js/sReports/common/select2-helper.js",
+      "js/sReports/commonModal/common-modal.js",
+      "js/sReports/common/initialFormCommon.js",
+      "js/sReports/common/sReports.js"
+    ]
+  },
+  {
+    "outputFileName": "css/styles.min.css",
+    "inputFiles": [
+      "css/libs/bootstrap-4.3.1/bootstrap.css",
+      "css/libs/toastr-2.1.1/toastr.min.css",
+      "css/libs/jquery-ui-1.13.2/themes/base/jquery-ui.css",
+      "css/form_style_1.css",
+      "css/main.css",
+      "css/PagedList.css",
+      "css/common.css",
+      "css/newMain.css",
+      "css/modules/designer.css",
+      "css/modules/patient.css",
+      "css/modules/encounter.css",
+      "css/modules/field-instance-history.css",
+      "css/modules/form-instance.css"
+    ]
+  },
+  {
+    "outputFileName": "js/editFromEOC-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/episodeOfCare/episodeOfCare.js",
+      "js/sReports/encounter/encounterCommon.js",
+      "js/sReports/common/scroll.js",
+      "js/sReports/episodeOfCare/task.js"
+    ]
+  },
+  {
+    "outputFileName": "js/patient-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/patient/patientTree.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/common/custom-modal.js",
+      "js/sReports/encounter/encounter.js",
+      "js/sReports/encounter/encounterCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/patientInfo-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/patient/patient.js",
+      "js/sReports/patient/patientContact.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/commonModal/telecomModal.js",
+      "js/sReports/commonModal/addressModal.js",
+      "js/sReports/commonModal/identifierModal.js"
+    ]
+  },
+  {
+    "outputFileName": "js/patientGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/patient/patientTable.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/commonAutocomplete/patientAutocomplete.js",
+      "js/sReports/encounter/encounter.js",
+      "js/sReports/encounter/encounterCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/encounterGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/encounter/encounterTable.js",
+      "js/sReports/encounter/encounter.js",
+      "js/sReports/encounter/encounterCommon.js",
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/organizationGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/organization/organizationTable.js",
+      "js/sReports/common/tableCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/organization-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/commonModal/identifierModal.js",
+      "js/sReports/commonAutocomplete/clinicalDomainAutocomplete.js",
+      "js/sReports/organization/organization.js",
+      "js/sReports/commonModal/telecomModal.js",
+      "js/sReports/personnelTeam/personnelTeam.js",
+      "js/sReports/personnelTeam/personnelTeamModal.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/user-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/commonModal/identifierModal.js",
+      "js/sReports/commonModal/addressModal.js",
+      "js/sReports/userAdministration/userAdministration.js",
+      "js/sReports/userLogin/changePasswordModal.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/userGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/userAdministration/userAdministrationTable.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/userLogin/changePasswordModal.js",
+      "js/sReports/userLogin/user.js"
+    ]
+  },
+  {
+    "outputFileName": "js/getAllByFormThesaurus-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/dataCapture/dataCaptureFormInstances.js",
+      "js/sReports/commonAutocomplete/userAutoComplete.js",
+      "js/sReports/commonAutocomplete/patientAutoComplete.js"
+    ]
+  },
+  {
+    "outputFileName": "js/createFormInstanceAutomatically-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/formInstance/formInstanceCommon.js",
+      "js/sReports/formInstance/formInstanceDisplayLogic.js",
+      "js/sReports/formInstance/formInstanceSubmission.js",
+      "js/sReports/dataCapture/formEngine.js"
+    ]
+  },
+  {
+    "outputFileName": "js/getAllFormDefinitions-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/dataCapture/dataCaptureFormDefinitions.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/formGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/designer/formDefinitionTable.js",
+      "js/sReports/designer/generateModal.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/formEngine-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/dataCapture/formEngine.js"
+    ]
+  },
+  {
+    "outputFileName": "js/thesaurusGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/thesaurus/thesaurusEntry.js",
+      "js/sReports/thesaurus/thesaurusTree.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/reviewThesaurus-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/thesaurus/thesaurusEntry.js",
+      "js/sReports/thesaurus/thesaurusTree.js",
+      "js/sReports/thesaurus/reviewTree.js"
+    ]
+  },
+  {
+    "outputFileName": "js/form-common-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/dynamicForm.js",
+      "js/libs/image-map-resizer-1.0.10/imageMapResizer.min.js"
+    ]
+  },
+  {
+    "outputFileName": "js/form-instance-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/formInstance/audio.js",
+      "js/sReports/formInstance/formInstanceCommon.js",
+      "js/sReports/formInstance/formInstanceSubmission.js",
+      "js/sReports/formInstance/fieldCalculativeLogic.js",
+      "js/sReports/formInstance/dependableFieldLogic.js",
+      "js/sReports/formInstance/repetitiveFieldLogic.js",
+      "js/sReports/formInstance/missingValueLogic.js",
+      "js/sReports/formInstance/lockUnlockLogic.js",
+      "js/sReports/formInstance/formInstanceDisplayLogic.js",
+      "js/sReports/formInstance/textDataExtraction.js"
+    ]
+  },
+  {
+    "outputFileName": "js/simulator-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/simulator/simulatorFormDistributionsTable.js"
+    ]
+  },
+  {
+    "outputFileName": "js/digitalGuideline-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/schema-json.js",
+      "js/sReports/digitalGuideline/digital-guideline.style.js",
+      "js/sReports/digitalGuideline/digital-guideline.js",
+      "js/sReports/digitalGuideline/json-editor.js"
+    ]
+  },
+  {
+    "outputFileName": "js/digitalGuidelineTable-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/digitalGuideline/digitalGuidelineTable.js",
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/roleAdministration-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/roleAdministration/roleAdministration.js",
+      "js/sReports/common/tableCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/dataCaptureChart-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/dataCaptureChart/chartDataCapture.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/dragAndDrop-bundle.min.js",
+    "inputFiles": [
+      "js/libs/image-map/jquery.imagemaps.js",
+      "js/jquery-nestable/jquery.nestable.js",
+      "js/jquery-nestable/jquery.nestable.customization.js",
+      "js/sReports/designer/designer.js",
+      "js/sReports/designer/validation.js",
+      "js/sReports/designer/designer-items/filter.thesaurus.js",
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/designer/designer-items/formOrgAutocomplete.js",
+      "js/sReports/designer/designer-items/formGeneralInfo.js",
+      "js/sReports/designer/designer-items/chapterGeneralInfo.js",
+      "js/sReports/designer/designer-items/pageGeneralInfo.js",
+      "js/libs/jquery-line/jquery.line.js",
+      "js/sReports/designer/designer-items/dependencyConfiguration.js",
+      "js/sReports/designer/designer-items/fieldsetGeneralInfo.js",
+      "js/sReports/designer/designer-items/fields/fieldGeneralInfo.js",
+      "js/sReports/designer/designer-items/fields/calculativeField.js",
+      "js/sReports/designer/designer-items/fields/customFieldButton.js",
+      "js/sReports/designer/designer-items/fields/numberField.js",
+      "js/sReports/designer/designer-items/fields/regexField.js",
+      "js/sReports/designer/designer-items/fields/textField.js",
+      "js/sReports/designer/designer-items/fields/codedField.js",
+      "js/sReports/designer/designer-items/fields/dateField.js",
+      "js/sReports/designer/designer-items/fields/datetimeField.js",
+      "js/sReports/designer/designer-items/fields/paragraphField.js",
+      "js/sReports/designer/designer-items/fields/audioField.js",
+      "js/sReports/designer/designer-items/fields/linkField.js",
+      "js/sReports/designer/designer-items/fields/longTextField.js",
+      "js/sReports/designer/designer-items/fieldValue.js",
+      "js/sReports/designer/formJson.js",
+      "js/sReports/common/schema-json.js",
+      "js/sReports/designer/consensus.js",
+      "js/sReports/designer/consensusInstance.js",
+      "js/sReports/designer/comments.js",
+      "js/sReports/commonAutocomplete/clinicalDomainAutocomplete.js",
+      "js/sReports/designer/tagUserAutocomplete.js",
+      "js/sReports/designer/copyPasteElements.js"
+    ]
+  },
+  {
+    "outputFileName": "js/codeGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/code/codeTable.js",
+      "js/sReports/code/codeThesaurusModal.js",
+      "js/sReports/code/code.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/code/codeAssociation.js",
+      "js/sReports/codeSet/codeSetValidation.js"
+    ]
+  },
+  {
+    "outputFileName": "js/codeEdit-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/code/codeThesaurusModal.js",
+      "js/sReports/code/code.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/code/aliasModal.js",
+      "js/sReports/code/aliasTable.js"
+    ]
+  },
+  {
+    "outputFileName": "js/codeSetGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/codeSet/codeSetTable.js",
+      "js/sReports/codeSet/codeSetImporter.js",
+      "js/sReports/code/codeThesaurusModal.js",
+      "js/sReports/code/codeThesaurusValidation.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/customHheaderFields-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/designer/customHeaderFields/customHeaderFields.js"
+    ]
+  },
+  {
+    "outputFileName": "js/projectManagementGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/projectManagement/projectManagementTable.js",
+      "js/sReports/common/tableCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/getAllUserProjects-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/projectManagement/userProjectTable.js",
+      "js/sReports/common/tableCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/projectManagementTabs-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/projectManagement/projectManagementTabs.js",
+      "js/sReports/projectManagement/projectManagementData.js",
+      "js/sReports/projectManagement/projectPersonnel.js",
+      "js/sReports/projectManagement/projectDocuments.js",
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/projectForms-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/projectManagement/projectForms.js",
+      "js/sReports/projectManagement/projectDocuments.js",
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/patientLists-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/patient/patientLists.js",
+      "js/sReports/patient/patientListPatientSelection.js",
+      "js/sReports/patient/patientListModalTabs.js",
+      "js/sReports/patient/patientListPersonnel.js"
+    ]
+  },
+  {
+    "outputFileName": "js/administrationApiGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/administrationApi/administrationApiTable.js",
+      "js/sReports/common/datetimepicker.js",
+      "js/sReports/common/tableCommon.js"
+    ]
+  }
+]

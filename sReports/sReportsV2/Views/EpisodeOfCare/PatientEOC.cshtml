@@ -1,0 +1,87 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+
+@model List<sReportsV2.DTOs.EpisodeOfCare.EpisodeOfCareDataOut>
+
+@{
+    List<CodeDataOut> episodeOfCaresTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
+    var userCookieData = ViewBag.UserCookieData;
+
+    string activeLanguage = userCookieData.ActiveLanguage as string;
+    bool readOnly = ViewBag.ReadOnly;
+
+    bool hasRemoveEOCPerm = userCookieData.UserHasPermission(PermissionNames.RemoveEpisodeOfCare, ModuleNames.Patients);
+    bool hasUpdateEOCPerm = userCookieData.UserHasPermission(PermissionNames.UpdateEpisodeOfCare, ModuleNames.Patients);
+    bool hasViewEOCPerm = userCookieData.UserHasPermission(PermissionNames.ViewEpisodeOfCare, ModuleNames.Patients);
+
+    bool modalIsReadOnly = readOnly || !hasUpdateEOCPerm;
+}
+
+@if (Model != null && Model.Count > 0 && hasViewEOCPerm)
+{
+    for (int i = 0; i < Model.Count; i++)
+    {
+        string viewEocEncounterAciton = hasUpdateEOCPerm 
+            ? string.Format("onclick=\"viewEOCEncounters('{0}', {1}, event)\"", readOnly.ToJsBoolean(), Model[i].Id) : "";
+        <div class="eoc pointer" id="@Model[i].Id" onload="test(event)">
+            <div class="flex">
+                <div class="flex" @Html.Raw(viewEocEncounterAciton) style="width:455px;">
+                    <img alt="" class="eoc-logo" src="/css/img/icons/eoc_icon.svg" />
+                    <div>
+                        <p class="eoc-tt" title="@Model[i].ConvertTypeCDToDisplayName(episodeOfCaresTypes, activeLanguage)">
+                            @sReportsV2.Cache.Resources.TextLanguage.Eoc.ToUpper(): @Model[i].ConvertTypeCDToDisplayName(episodeOfCaresTypes, activeLanguage)
+                        </p>
+                        <div class="flex">
+                            <p class="numofentries"> @sReportsV2.Cache.Resources.TextLanguage.Number_of_encounters: <em>@Model[i].NumOfEncounters</em></p>
+                            <p class="numofentries"> @sReportsV2.Cache.Resources.TextLanguage.Number_of_documents: <em>@Model[i].NumOfDocuments</em></p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (hasViewEOCPerm || hasUpdateEOCPerm || hasRemoveEOCPerm)
+                {
+                    <div class="dropdown show dots-dropdown dots-eoc">
+                        <a class="dropdown-button pointer" href="#" data-toggle="dropdown" role="button" id="" aria-haspopup="true" aria-expanded="false">
+                            <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                        </a>
+                        <div class="dropdown-menu dropmenu" id="eoc-@Model[i].Id">
+                            @if (hasViewEOCPerm || hasUpdateEOCPerm)
+                            {
+                                <a class="dropdown-item pointer hover view-a" onclick="viewEOCEncounters('true', @Model[i].Id, event)">
+                                    <img alt="" class="view-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View
+                                </a>
+                                <a class="dropdown-item pointer hover @(modalIsReadOnly ? "view-a" : "")" onclick="showAddEocModal(event, '@Model[i].Id')">
+                                    @if (modalIsReadOnly)
+                                    {
+                                        <img alt="" class="view-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.GeneralInfo
+                                    }
+                                    else
+                                    {
+                                        <img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit
+                                    }
+                                </a>
+                             }
+
+                            @if (!readOnly && hasRemoveEOCPerm)
+                            {
+                                <a class="dropdown-item pointer hover" onclick="removeEoc(event, @Model[i].Id)"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+    }
+}
+else
+{
+    <div class="no-eoc-content">
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    </div>
+}

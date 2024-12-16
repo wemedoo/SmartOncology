@@ -1,0 +1,74 @@
+﻿<div id="thesaurusWarning" class="sreports-warning @(Model.ThesaurusId != null ? "d-none" : "")">
+    <div class="warning-icon">
+        <img alt="" src="/css/img/icons/warning.svg" />
+    </div>
+    @sReportsV2.Cache.Resources.TextLanguage.ThesaurusNotSelectedWarning
+</div>
+
+<div class="thesarus-container">
+    <div class="thesaurus-active-value-container">
+        <div id="thesaurusLabelPlaceholder" class="edit-thesaurus-button find-thesaurus edit-thesaurus-entry @(Model != null && Model.ThesaurusId != 0 ? "hide" : "")">
+            <img alt="" class="thesaurs-find-icon" src="/css/img/icons/search_green.svg">
+            <span class="thesaurs-find-span">@sReportsV2.Cache.Resources.TextLanguage.Find_thesaurus</span>
+        </div>
+        <div class="flex">
+            <input hidden id="thesaurusId" value="@Model.ThesaurusId" />
+            <div id="thesaurusIdDiv" type="text" readonly class="active-value @(Model != null && Model.ThesaurusId != 0 ? "" : "hide")" @ViewBag.Disabled>
+                @Model.ThesaurusId
+            </div>
+            <button class="edit-thesaurus-button edit-thesaurus-entry @(Model != null && Model.ThesaurusId != 0 ? "" : "hide")">
+                <span>@sReportsV2.Cache.Resources.TextLanguage.Edit </span>
+            </button>
+        </div>
+    </div>
+
+    <div class="thesaurus-full-info-container">
+        @if (!ViewBag.ReadOnly) 
+        { 
+            <div class="search-container">
+                <div id="searchThesaurusTitle" class="flex padding-bottom-16">
+                    <div class="designer-form-section-title width-50">
+                        <img alt="" src="/css/img/icons/hide_thesaurus.svg" class="back-thesaurus-img" onclick="backToThesaurus(event)">
+                        <label class="find-thesaurus-label ">
+                            @sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry / @sReportsV2.Cache.Resources.TextLanguage.FindThesaurus
+                        </label>
+                    </div>
+                    <div class="input-container width-50 unset-padding">
+                        <input class="filter-input search-input" type="text" id="thesaurusSearchInput" @ViewBag.Disabled placeholder="@sReportsV2.Cache.Resources.TextLanguage.Search @sReportsV2.Cache.Resources.TextLanguage.Thesaurus" />
+                        <img alt="" id="applySearchButton" class="search-thesaurus-img" src="/css/img/icons/search_green.svg" />
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="thesaurus-table-container" id="tableContainer">
+                        <div class="single-table thesaurus-search-table">
+                            <table class="table table-striped table-sreports search-thesaurus-table">
+                                <thead>
+                                    <tr>
+                                        <th>04.0MT ID</th>
+                                        <th>@sReportsV2.Cache.Resources.TextLanguage.Preferred_term</th>
+                                        <th>@sReportsV2.Cache.Resources.TextLanguage.Definition</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="review-container" id="reviewContainer"></div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    var preventPushStateWhenReload = true;
+    $(document).ready(function () {
+        let thesaurusId = $('#thesaurusId').val();
+        loadThesaurusData(thesaurusId);
+
+        if ($(".item-title").val()) {
+            $("#thesaurusSearchInput").val($(".item-title").val());
+            $('#applySearchButton').click();
+        }
+    })
+</script>

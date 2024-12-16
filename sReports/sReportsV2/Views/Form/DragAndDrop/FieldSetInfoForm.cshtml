@@ -1,0 +1,175 @@
+﻿@using sReportsV2.DTOs.Form.DataOut
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Cache.Resources
+
+@model FormFieldSetDataOut
+
+<form class="designer-item-form" id="fieldsetGeneralInfoForm">
+    <input type="hidden" id="elementId" value="@(string.IsNullOrWhiteSpace(Model.Id) ? GuidExtension.NewGuidStringWithoutDashes() : Model.Id)" />
+    <div class="designer-form-section">
+        <div class="designer-form-section-title thesaurus-title">
+            @sReportsV2.Cache.Resources.TextLanguage.FieldsetGeneral 
+        </div>
+        <div class="flex">
+            <div class="designer-form-input-group half-width short-bottom-margin width-100">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.FieldsetLabel
+                </div>
+                <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @ViewBag.Disabled/>
+            </div><!--
+            --><div class="designer-form-input-group half-width">
+                   <div class="label filter-label">
+                       @sReportsV2.Cache.Resources.TextLanguage.Repetitive
+                   </div>
+                <select class="designer-form-input arrow-select patient-background" id="isRepetitive" name="isRepetitive" @ViewBag.Disabled>
+                    <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                    <option value="true" @(Model != null && Model.IsRepetitive ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Yes</option>
+                    <option value="false" @(Model == null || !Model.IsRepetitive ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.No_</option>
+                </select>
+            </div><!--
+            --><div class="designer-form-input-group half-width no-margin-right">
+                   <div class="label filter-label">
+                       @sReportsV2.Cache.Resources.TextLanguage.NumberOfRepetitionOnPdf
+                   </div>
+                <input required class="designer-form-input" id="numberOfRepetitions" name="numberOfRepetitions" type="number" value="@(Model != null ? Model.NumberOfRepetitions : 1)" @ViewBag.Disabled/>
+            </div>
+        </div><!--
+        --><div class="chechbox-container inside-section">
+                <div class="checkbox-group">
+                    <label class="form-checkbox-label">
+                        <span>@sReportsV2.Cache.Resources.TextLanguage.Bolded?</span>
+                        <input name="isBold" value="isBold" @(Model.IsBold ? "checked" : string.Empty) id="isBold" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled/>
+                        <i class="form-checkbox-button table-checkbox"></i>
+                    </label>
+                </div>
+            </div><!--
+        --><div class="designer-form-input-group half-width ">
+               <div class="label filter-label">
+                   @sReportsV2.Cache.Resources.TextLanguage.Fieldset_Description
+               </div>
+            <textarea class="designer-form-input" id="description" name="description" value="@(Model != null ? Model.Description : "")" rows="5" @ViewBag.Disabled>@(Model != null ? Model.Description : "")</textarea>
+        </div>
+    </div>
+    <div class="designer-form-section thesaurus-section">
+        <div class="designer-form-section-title thesaurus-title">
+            @sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry
+        </div>
+        @await Html.PartialAsync("~/Views/Form/DragAndDrop/ThesaurusFilterModal.cshtml")
+    </div>
+    <div class="designer-form-section">
+        <div class="designer-form-section-title">
+            @sReportsV2.Cache.Resources.TextLanguage.LayoutSettings
+        </div>
+        <div class="designer-form-input-group half-width" style="display: flex;">
+            <div class="layout-style">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.LayoutStyle
+                </div>
+                <select class="designer-form-input arrow-select patient-background" id="layoutType" @ViewBag.Disabled @(!Model.IsMatrixFieldSet() && !string.IsNullOrEmpty(Model.Id) ? "disabled" : "")>
+                    <option value="@LayoutType.Vertical" @(!Model.IsMatrixFieldSet() ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Vertical</option>
+                    <option value="@LayoutType.Matrix" @(Model.IsMatrixFieldSet() ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Matrix</option>
+                </select>
+            </div><!--
+            --><div class="layout-maxitems">
+                   <div class="label filter-label">
+                       @sReportsV2.Cache.Resources.TextLanguage.MaxItems
+                   </div>
+                <input class="designer-form-input" id="layoutMaxItems" name="layoutMaxItems" type="number" value="@(Model != null && Model.LayoutStyle != null ? Model.LayoutStyle.MaxItems : "")" @ViewBag.Disabled/>
+            </div>
+        </div>
+
+        <div id="matrixLayoutDiv">
+            <div class="flex">
+                <div class="option-label">@sReportsV2.Cache.Resources.TextLanguage.Option @sReportsV2.Cache.Resources.TextLanguage.Label</div>
+                <div class="option-label">@sReportsV2.Cache.Resources.TextLanguage.Option @sReportsV2.Cache.Resources.TextLanguage.Value</div>
+            </div>
+
+            <div id="communicationTable" class="">
+                <div id="tableBody">
+                    @if (Model != null && Model.Options != null)
+                    {
+                        foreach (var entry in Model.Options)
+                        {
+                            <div class="advanced-filter-item margin-bottom-8 option-group">
+                                <input class="filter-input fs-item-title margin-right-8 option-input optionLabel" type="text" data-id="@entry.Id" data-label="@entry.Label" data-value="@entry.Value" value="@entry.Label" disabled>
+                                <input class="filter-input fs-item-title margin-right-8 option-input" type="text" data-value="@entry.Value" value="@entry.Value" disabled>
+                                <span class="remove-option" id="removeButtonId">
+                                    <img alt="" class="remove-option-btn" onclick="removeOption(this)" src="/css/img/icons/close_black.svg">
+                                </span>
+                            </div>
+                        }
+                    }
+                    <div class="advanced-filter-item margin-bottom-16 option-group">
+                        <input class="filter-input fs-item-title margin-right-8 option-input" id="optionLabel" name="optionLabel" type="text" placeholder="@sReportsV2.Cache.Resources.TextLanguage.EnterOptionLabel">
+                        <input class="filter-input fs-item-title margin-right-23 option-input" id="optionValue" name="optionValue" type="text" placeholder="@sReportsV2.Cache.Resources.TextLanguage.EnterOptionValue">
+                    </div>
+                </div>
+            </div>
+
+            <div class="position-relative">
+                <button class="btn btn-add-option d-flex align-items-center"
+                        onclick="createNewOption(event)">
+                    <img alt="" class="add-option-btn" src="/css/img/icons/add_new.svg">
+                    <span class="plus-option">@sReportsV2.Cache.Resources.TextLanguage.Add @sReportsV2.Cache.Resources.TextLanguage.Option.ToLower()</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+    <div class="designer-form-section">
+        <div class="designer-form-section-title">
+            @sReportsV2.Cache.Resources.TextLanguage.Appendix
+        </div>
+        <div class="designer-form-input-group half-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Title
+            </div>
+            <input class="designer-form-input" id="helpTitle" name="helpTitle" type="text" value="@(Model != null && Model.Help != null ? Model.Help.Title : "")" @ViewBag.Disabled/>
+
+        </div>
+        <div class="designer-form-input-group half-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Content
+            </div>
+            <textarea class="designer-form-input" id="helpContent" name="helpContent" value="@(Model != null && Model.Help != null ? Model.Help.Content : "")" @ViewBag.Disabled>@(Model != null && Model.Help != null? Model.Help.Content : "")</textarea>
+        </div>
+    </div>
+    <div class="button-container">
+        <div class="cancel-button cancel-modal-action">
+            @sReportsV2.Cache.Resources.TextLanguage.Back
+        </div>
+        @if (!ViewBag.ReadOnly)
+        {
+            <div class="submit-button" id="submit-fieldset-info">@sReportsV2.Cache.Resources.TextLanguage.UpdateData</div>
+        }
+    </div>
+</form>
+<script>
+    $(document).ready(function () {
+        $('#helpContent').ckeditor();
+        initializeFieldSetValidator();
+
+        let fieldSetId = getOpenedElementId();
+        if ($("#nestable").find(`[data-id='${fieldSetId}']`).children('.dd-handle').hasClass('nestable-error')) {
+            $('#fieldsetGeneralInfoForm').valid();
+        }
+
+        $('#layoutType').change(function () {
+            handleLayoutTypeChange($(this).val());
+        });
+
+        handleLayoutTypeChange($('#layoutType').val());
+    });
+
+    function handleLayoutTypeChange(value) {
+        if (value === 'Matrix') {
+            $('#matrixLayoutDiv').show();
+            $('#layoutMaxItems').closest('.layout-maxitems').show();
+        } else {
+            $('#matrixLayoutDiv').hide();
+            $('#layoutMaxItems').closest('.layout-maxitems').hide();
+        }
+    }
+</script>
+

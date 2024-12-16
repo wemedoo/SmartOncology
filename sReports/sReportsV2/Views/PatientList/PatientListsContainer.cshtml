@@ -1,0 +1,35 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DTOs.PatientList;
+@using sReportsV2.Common.Constants;
+
+<div class="d-flex scroll-list-container" style="width: inherit" id="">
+    <span class="scroll-list-arrow scroll-list-arrow-left" style="display:none" onclick="scrollArrowsByPixels('left-arrow', 'scrollList', 150)"></span>
+    <div id="scrollList" class="d-flex scroll-list">
+
+    </div>
+    <span class="scroll-list-arrow scroll-list-arrow-right" style="display:none" onclick="scrollArrowsByPixels('right-arrow', 'scrollList', 150)"></span>
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/patientLists-bundle.min.js"))
+
+<script>
+    function patientListRemovedSuccess() {
+        toastr.success('@sReportsV2.Cache.Resources.TextLanguage.patientListRemovedSuccess');
+    }
+
+    function patientListCreatedSuccess() {
+        toastr.success('@sReportsV2.Cache.Resources.TextLanguage.patientListCreatedSuccess');
+    }
+
+    function patientListEditedSuccess() {
+        toastr.success('@sReportsV2.Cache.Resources.TextLanguage.patientListEditedSuccess');
+    }
+
+    function selectAttendingDoctorMsg() {
+        return '@sReportsV2.Cache.Resources.TextLanguage.selectAttendingDoctorMsg';
+    }
+
+    function selectPersonnelTeamMsg() {
+        return '@sReportsV2.Cache.Resources.TextLanguage.selectPersonnelTeamMsg';
+    }
+</script>

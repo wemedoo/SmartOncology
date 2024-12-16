@@ -1,0 +1,123 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+
+@model sReportsV2.DTOs.Field.DataOut.FieldDataOut
+@{
+    bool showResetAndNeSection = ((bool?)ViewBag.ShowResetAndNeSection).GetValueOrDefault(true);
+
+    Tuple<bool, bool, int> repetitiveInfo = Model.GetRepetitiveInfo();
+    bool thesaurusHasValue = Model.ThesaurusId != 0;
+    bool isNotDisabled = !(Model.IsDisabled);
+
+    bool shouldDisplayRepetitiveIcon = repetitiveInfo.Item2;
+    bool shouldDisplayDescriptionIcon = !string.IsNullOrWhiteSpace(Model.Description);
+    bool shouldDisplayHelpIcon = Model.Help != null;
+    bool shouldDisplayThesaurusIcon = ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus);
+
+    bool shouldDisplayFirstRow = HtmlExtension.AnyConditionIsMet(
+        shouldDisplayDescriptionIcon,
+        shouldDisplayHelpIcon,
+        shouldDisplayThesaurusIcon,
+        shouldDisplayRepetitiveIcon
+        );
+
+    int repetitiveCounter = ((int?)ViewBag.RepetitiveCounter).GetValueOrDefault(1);
+    var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
+    string fieldInstanceRepetitionId = fieldInstanceRepetitionInfo.Item1;
+    bool specialValue = fieldInstanceRepetitionInfo.Item2;
+    bool isMatrixFieldSet = ((bool?)ViewData["isMatrixFieldSet"]).GetValueOrDefault(false); // Access the boolean value here
+    bool formInstanceMode = ViewBag.FormInstanceMode ?? false;
+}
+
+<div class="btns-group d-inline-block @(showResetAndNeSection ? "show-reset-and-ne-section" : "")">
+    @if (shouldDisplayFirstRow)
+    {
+        <div class="basic-actions @(isMatrixFieldSet ? "matrix-actions" : "")">
+            <div class="hover-icon always-click-action margin-right-12 @shouldDisplayDescriptionIcon.GetVisibilityClass()">
+                @if (!isMatrixFieldSet)
+                {
+                    <img alt="" title="Instruction" class="definition" src="/css/img/icons/fieldset_info.svg" onclick="showHideDescription(event)">
+                }
+                else
+                {
+                    <div class="hover-instruction-icon always-click-action @shouldDisplayDescriptionIcon.GetVisibilityClass()">
+                        <img alt="" title="Instruction" class="definition" src="/css/img/icons/fieldset_info.svg">
+                        <div class="tooltip-instruction flex"> 
+                            <img alt="" title="Instruction" class="mr-1 definition position-absolute" src="/css/img/icons/fieldset_info.svg">
+                            <span class="tooltip-desc">@Model.Description </span>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="hover-icon always-click-action margin-right-12 @shouldDisplayHelpIcon.GetVisibilityClass()">
+                <img alt="" title="@sReportsV2.Cache.Resources.TextLanguage.Information" class="info" src="/css/img/icons/definition_green.svg" onclick="showHelpModal(@Newtonsoft.Json.JsonConvert.SerializeObject(Model.Help, Newtonsoft.Json.Formatting.Indented))">
+            </div>
+            <div class="hover-icon always-click-action margin-right-12 @shouldDisplayThesaurusIcon.GetVisibilityClass()">
+                <img alt="" title="@sReportsV2.Cache.Resources.TextLanguage.Thesaurus" class="" src="/css/img/icons/@(thesaurusHasValue ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToThesaurus('@(thesaurusHasValue ? Model.ThesaurusId.ToString() : "")')">
+            </div>
+            <div class="hover-icon always-click-action margin-right-12 visible">
+                <img alt="" title="@sReportsV2.Cache.Resources.TextLanguage.History_of_changes" class="@(!formInstanceMode ? "pe-none": "")" src="/css/img/icons/field_info_green.svg" onclick="showFormInstanceHistory('@ViewBag.FormInstanceId', '@fieldInstanceRepetitionId')">
+            </div>
+
+            @if (isNotDisabled)
+            {
+                <div class="hover-icon margin-right-12 @shouldDisplayRepetitiveIcon.GetVisibilityClass()">
+                    <img alt="" title="@sReportsV2.Cache.Resources.TextLanguage.Add_New @sReportsV2.Cache.Resources.TextLanguage.Repetitive @sReportsV2.Cache.Resources.TextLanguage.Field" class="repeat button-plus-repetitive" src="/css/img/icons/repeat_green.svg">
+                </div>
+                <div class="hover-icon" style="display:@(Model.FieldInstanceValues != null && Model.FieldInstanceValues.Count > 1 ? "" : "none")">
+                    <img alt="" title="@sReportsV2.Cache.Resources.TextLanguage.Remove" class="remove remove-repetitive" src="/css/img/icons/delete.svg">
+                </div>
+            }
+        </div>
+    }
+    @{
+        RenderResetAndNeSection(showResetAndNeSection, isNotDisabled, repetitiveCounter, fieldInstanceRepetitionId, specialValue, isMatrixFieldSet);
+    }
+</div>
+
+@functions {
+    private void RenderResetAndNeSection(bool showResetAndNeSection, bool isNotDisabled, int repetitiveCounter, string fieldInstanceRepetitionId, bool specialValue, bool isMatrixFieldSet)
+    {
+        if (showResetAndNeSection && Model.AcceptsSpecialValue)
+        {
+            string fieldSetId = ViewBag.FieldSetId;
+            string repetitiveValue = ViewBag.RepetitiveValue;
+            bool isVisible = Model != null && !Model.AllowSaveWithoutValue.HasValue;
+            <div class="@(isMatrixFieldSet ? "reset-section" : "reset-and-ne-section")">
+                @if (!isVisible)
+                {
+                    <label title="@sReportsV2.Cache.Resources.TextLanguage.NE_Meaning" class="form-radio-label ne-btn mr-1 @(isMatrixFieldSet ? "padding-bottom-16" : "")">
+                        <input type="radio"
+                               spec-value
+                        @Html.Raw(Model.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter))
+                               class="form-radio-field ne-radio"
+                        @(specialValue ? "checked" : string.Empty)
+                               data-isspecialvalue=@specialValue
+                               disabled
+                               value="@repetitiveValue"
+                        @(isVisible ? "hidden" : "")>
+                        <i class="form-radio-button" @(isVisible ? "hidden" : "")></i>
+                        <span class="missing-value-label @(Model.IsDisabled ? "pe-none" : "")" onclick="showMissingValuesModal(event, '@Model.Id', true)">@(isVisible ? "" : "Missing value")</span>
+                    </label>
+                }
+
+                <label class="ne-btn mr-1 position-relative @isNotDisabled.GetVisibilityClass()">
+                    @if (isMatrixFieldSet)
+                    {
+                        <img alt="" class="reset-icon" src="/css/img/icons/reset.svg">
+                    }
+                    <span class="@(isMatrixFieldSet ? "form-radio-label ne-btn reset-label mr-1" : "ne-label")">
+                        <a href="javascript:"
+                           onclick="resetValue(event)"
+                           title="@sReportsV2.Cache.Resources.TextLanguage.Reset @sReportsV2.Cache.Resources.TextLanguage.Answer"
+                           data-field-name="@fieldInstanceRepetitionId"
+                           class="ne-link @(isMatrixFieldSet ? "margin-left-8" : "")">
+                            @sReportsV2.Cache.Resources.TextLanguage.Reset
+                        </a>
+                    </span>
+                </label>
+            </div>
+        }
+    }
+}

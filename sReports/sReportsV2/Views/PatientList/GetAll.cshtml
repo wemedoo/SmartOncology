@@ -1,0 +1,91 @@
+﻿@using sReportsV2.DTOs.DTOs.PatientList;
+@using sReportsV2.DTOs.Pagination;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DTOs.PatientList.DataIn;
+
+@model PaginationDataOut<PatientListDTO, PatientListFilterDataIn>
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewPatientListPermission = userCookieData.UserHasPermission(PermissionNames.ViewPatientList, ModuleNames.Patients);
+    bool hasUpdatePatientListPermission = userCookieData.UserHasPermission(PermissionNames.UpdatePatientList, ModuleNames.Patients);
+    bool hasDeletePatientListPermission = userCookieData.UserHasPermission(PermissionNames.DeletePatientList, ModuleNames.Patients);
+}
+
+@if (hasViewPatientListPermission && Model != null && Model.Data != null && Model.Data.Count > 0)
+{
+    if (Model.DataIn.Page == 1)
+    {
+        string defaultPatientListName = sReportsV2.Cache.Resources.TextLanguage.All_Patients + " (" + sReportsV2.Cache.Resources.TextLanguage.Default + ")";
+        RenderListItem(new PatientListDTO() { PatientListId = 0, PatientListName = defaultPatientListName }, false, false, hasDropDown: false);
+    }
+    foreach (PatientListDTO patientList in Model.Data)
+    {
+        RenderListItem(patientList, hasUpdatePatientListPermission, hasDeletePatientListPermission);
+    }
+    if (hasViewPatientListPermission && Model.Count > Model.DataIn.Page * Model.DataIn.PageSize)
+    {
+        RenderShowMoreListItem(Model.DataIn.Page + 1, Model.DataIn.PageSize);
+    }
+
+}
+
+
+@functions {
+    private void RenderListItem(PatientListDTO patientList, bool hasUpdatePatientListPermission, bool hasDeletePatientListPermission, bool hasDropDown = true)
+    {
+        string id = "scroll-list-item-" + (patientList.PatientListId == 0 ? "default" : patientList.PatientListId.ToString());
+
+        <div class="scroll-list-item d-flex px-2 @(patientList.PatientListId == Model.DataIn.PatientListId ? "selected" : "")" data-patientlistid="@patientList.PatientListId.ToString()" data-patientselection="@patientList.ArePatientsSelected">
+            <div class="scroll-list-item-title px-3" id="@id" data-toggle="tooltip" title="@patientList.PatientListName" data-title="@patientList.PatientListName">@patientList.PatientListName</div>
+            <div class="scroll-list-item-dropdown-container" data-id="@id">
+                @if (hasDropDown && (hasUpdatePatientListPermission || hasDeletePatientListPermission))
+                {
+                    RenderDropdownMenu(patientList.PatientListId, id, hasUpdatePatientListPermission, hasDeletePatientListPermission);
+                }
+            </div>
+            <div class="item-spacer" data-id="@id" style="display:none"></div>
+        </div>
+    }
+
+    private void RenderShowMoreListItem(int pageNumber, int pageSize)
+    {
+        <div class="load-more-scroll-list-items d-flex px-2" onclick="loadMorePatientLists(event, '@pageNumber', '@pageSize')">
+            <div class="scroll-list-item-title px-3" title="@sReportsV2.Cache.Resources.TextLanguage.Load_more">@sReportsV2.Cache.Resources.TextLanguage.Load_more</div>
+        </div>
+    }
+
+    private void RenderDropdownMenu(int id, string dataId, bool hasUpdatePatientListPermission, bool hasDeletePatientListPermission)
+    {
+        if (hasUpdatePatientListPermission || hasDeletePatientListPermission)
+        {
+            <div class="dropdown" data-id="@dataId">
+                <a class="dropdown-button" href="#" role="button" id="dropdownMenuLink-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-offset="10,20">
+                    <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                </a>
+                <div class="dropdown-menu" x-placement="bottom-start">
+                    @if (hasUpdatePatientListPermission)
+                    {
+                        <a class="dropdown-item scroll-list-dropdown-item" href="#" onclick="showPatientListModal(event, 'Edit','@id')">
+                            <div class="icon-container">
+                                <img alt="" src="/css/img/icons/edit_pencil_04.svg" />
+                            </div>
+                            <span class="ml-2">@sReportsV2.Cache.Resources.TextLanguage.Edit</span>
+                        </a>
+                    }
+                    @if (hasDeletePatientListPermission)
+                    {
+                        <a class="dropdown-item scroll-list-dropdown-item" href="#" onclick="showDeleteModal(event, '@id', 'deleteScrollListItem', null, null)">
+                            <div class="icon-container">
+                                <img alt="" src="/css/img/icons/delete_gray_02.svg" />
+                            </div>
+                            <span class="ml-2">@sReportsV2.Cache.Resources.TextLanguage.Delete</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+}

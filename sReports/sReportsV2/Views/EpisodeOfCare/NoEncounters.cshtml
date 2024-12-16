@@ -1,0 +1,25 @@
+﻿@{
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+<div class="no-result-content">
+    <img alt="" src="/css/img/icons/no_encounters.svg">
+    <div class="no-document-text">@sReportsV2.Cache.Resources.TextLanguage.NoAddedEncounters</div>
+    <div class="button-filter add-btn-div btn-encounter">
+        @if (!readOnly)
+        {
+            <button class="btn btn-add-enc h-100 add-enc" onclick="showEncounterModal(event, false)">
+                <i class="fas fa-plus-circle"></i>
+                @sReportsV2.Cache.Resources.TextLanguage.AddEncounter
+            </button>
+        }
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        var container = $("#encounterDocumentationContainer");
+        if (container.length > 0) {
+            container.empty();
+        }
+    });
+</script>

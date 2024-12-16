@@ -1,0 +1,17 @@
+﻿@using sReportsV2.Common.Extensions
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.DTOs.Form.DataOut
+@using sReportsV2.DTOs.User.DTO
+@model FormCommentDataOut
+@{
+    UserCookieData userCookieData = ViewBag.UserCookieData as UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> commentStates = ViewBag.CommentStates as List<CodeDataOut>;
+}
+
+<div class="com-status @Model.ConvertCommentStateCDToDisplayName(commentStates, activeLanguage)">
+    <div>
+        <img alt="">
+        @sReportsV2.Cache.Resources.TextLanguage.Status: <b>@Model.ConvertCommentStateCDToDisplayName(commentStates, activeLanguage)</b> by <b>@Model.User.FirstName.Substring(0, 1).ToUpper()@Model.User.LastName.Substring(0, 1).ToUpper()</b> on @Model.EntryDatetime.ToTimeZoned(ViewBag.DateFormat as string)
+    </div>
+</div>

@@ -1,0 +1,37 @@
+﻿@using sReportsV2.Common.Constants
+@model sReportsV2.DTOs.Form.DataOut.FormDataOut
+
+@{
+    bool isPatientModule = ViewBag.IsPatientModule != null;
+}
+
+@if (!isPatientModule)
+{
+    <div class="form-instance-header">
+        <input hidden value="@ViewBag.ProjectId" id="formInstanceProjectId">
+        <div class="title">@Model.Title</div>
+        @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
+        {
+            <img alt="" class="mr-1 form-title-thesaurus" src="/css/img/icons/@(Model.ThesaurusId != null ? "thesaurus_green.svg" : "thesaurus_grey.svg")" onclick="goToThesaurus('@Model.ThesaurusId')">
+        }
+    </div>
+    <div class="display-flex forminstance-background">
+        @{
+            await RenderFormInstancePartial();
+        }
+    </div>
+}
+else
+{
+    await RenderFormInstancePartial();
+}
+
+@functions {
+    private async Task RenderFormInstancePartial()
+    {
+        <div id="formInstanceContentContainer" class="form-instance-content">
+            @await Html.PartialAsync("~/Views/FormInstance/FormInstanceContent.cshtml", Model)
+        </div>
+        @await Html.PartialAsync("~/Views/FormInstance/FormInstanceHeader.cshtml")
+    }
+}

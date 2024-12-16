@@ -1,0 +1,45 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form;
+@using sReportsV2.DTOs.Form.DataOut;
+
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<FormDataOut, FormFilterDataIn>
+<div class="table-container border-0 element-background-grey">
+    <div class="header header-new" style="background-color:#f9f9f9">
+        @sReportsV2.Cache.Resources.TextLanguage.Form_definitions
+    </div>
+    <div class="d-flex">
+        <div class="d-flex main-filter mb-2">
+            <div class="advanced-filter-item margin-right-10 advanced-max-width">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Search
+                </div>
+                <input type="text" class="filter-input implicit-submit" id="title" onkeydown="pressButtonOnEnterKey(event, 'simulator-filter-button')">
+            </div>
+
+            <div class="border-0 margin-top-15" style="margin-right:10px;">
+                <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                    <button type="submit" id="simulator-filter-button" class="btn btn-filter-primary w-100 h-100 float-right" onclick="filter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div id="formsTableContainer">
+
+    </div>
+</div>
+@await Html.PartialAsync("GenerateDocumentsModal")
+<script>
+    var formsCurrentPage = 1;
+    $(document).ready(function () {
+        let tableConfig = {
+            "url": "/FormDistribution/ReloadForms",
+            "container": "formsTableContainer",
+            "pageNumIdentifier": "formsCurrentPage",
+        }
+        tableConfigs.push(tableConfig);
+        reloadSecondaryTable("/FormDistribution/ReloadForms", "formsTableContainer", "formsCurrentPage")
+    })
+</script>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/simulator/simulatorFormsTable.js"), "", ""))

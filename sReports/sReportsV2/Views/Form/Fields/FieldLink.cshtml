@@ -1,0 +1,46 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Field.DataOut;
+
+@model FieldLinkDataOut
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            AddField(Html, Model);
+        }
+    </div>
+</fieldset>
+
+@functions {
+    private void AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel)
+    {
+        string fieldInstanceRepetitionId = Model.GetFieldInstanceRepetitionInfo(0).Item1;
+
+        <div class="field-group">
+            <div for="@fieldInstanceRepetitionId" class="filter-label form-label-size d-inline-block">
+                @html.Raw(objectModel.FullLabel)
+            </div>
+            <div class="repetitive-field filter-input d-inline-block">
+                @{
+                    AddInput(Model);
+                }
+            </div>
+        </div>
+    }
+
+    private void AddInput(FieldLinkDataOut objectModel)
+    {
+        AddLinkInput(objectModel);
+    }
+
+    private void AddLinkInput(FieldLinkDataOut objectModel)
+    {
+        string fieldInstanceRepetitionId = Model.GetFieldInstanceRepetitionInfo(0).Item1;
+
+        <a id="@fieldInstanceRepetitionId" href="@(objectModel != null && objectModel.Link != null ? objectModel.Link : "")" target="_blank" rel="noopener">
+            @(objectModel != null && objectModel.Link != null ? objectModel.Link : "")
+        </a>
+    }
+}
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/designer/designer-items/fields/linkField.js"), "", ""))

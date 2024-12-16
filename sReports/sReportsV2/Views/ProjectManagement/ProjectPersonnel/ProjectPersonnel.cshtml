@@ -1,0 +1,30 @@
+﻿@using sReportsV2.Common.Constants;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasAddPersonnelPerm = userCookieData.UserHasPermission(PermissionNames.AddPersonnel, ModuleNames.ProjectManagement);
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+}
+
+<input id="isReadOnly" value="@(readOnly ? "true" : "false")" hidden>
+
+<div>
+    <div class="input-group-title d-flex mb-4">
+        <div class="mr-auto"> @sReportsV2.Cache.Resources.TextLanguage.Organizations__Teams_and_Users </div>
+
+        @if (hasAddPersonnelPerm && !readOnly)
+        {
+            <div class="btn-group float-right">
+                <button id="AddPersonnelBtn" type="button" class="btn btn-create" onclick="showAddTrialPersonnelModal()">
+                    <img alt="" class="pr-1" src="/css/img/icons/add_person_white.svg"> @sReportsV2.Cache.Resources.TextLanguage.Add_Personnel
+                </button>
+            </div>
+        }
+
+    </div>
+    @await Html.PartialAsync("~/Views/ProjectManagement/ProjectPersonnel/ProjectPersonnelFilterGroup.cshtml")
+    <div id="TrialPersonnelTable"  class="personnel-trial-border">
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Views/ProjectManagement/ProjectPersonnel/AddProjectPersonnelModal.cshtml")

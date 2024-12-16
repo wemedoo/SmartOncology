@@ -1,0 +1,115 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+
+@model FieldCalculativeDataOut
+
+@{
+    string fieldSetId = ViewBag.FieldSetId;
+}
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content calculative @Model.ShowHiddenFieldsClass"  >
+    @{
+        await AddField(Html, Model, fieldSetId, additionalInputClass: "calculative-background"); 
+    }
+    <div style="display:none" class="form-element-description field-desc">
+        @Html.Raw(Model.Description)
+    </div>
+</fieldset>
+
+<script>
+    $(document).ready(function () {
+        let identifiersAndVariablesDictionary = [];
+        @if (Model.IdentifiersAndVariables != null) {
+            foreach(string fieldId in Model.IdentifiersAndVariables.Keys)
+            {
+                <text>
+                    identifiersAndVariablesDictionary['@fieldId'] = '@Model.IdentifiersAndVariables[fieldId]'
+                </text>
+            }
+
+            foreach (string fieldId in Model.IdentifiersAndVariables.Keys)
+            {
+                <text>
+                    $(document).on('change', '[data-fieldid="@fieldId"]', function (event) {
+                        if (($(this).is('input') || $(this).is('select')) && !isSpecialValue($(this))) {
+                            try {
+                                let fieldSetInstanceRepetitionId = $(this).attr("data-fieldsetinstancerepetitionid");
+                                calculateFormula({
+                                    'formulaElement': '@Model.Id',
+                                    'formula': '@Html.Raw(Model.Formula)',
+                                    'identifiersAndVariables': identifiersAndVariablesDictionary,
+                                    'fieldSetInstanceRepetitionId': fieldSetInstanceRepetitionId,
+                                    'formulaType': @((int)Model.FormulaType),
+                                    'granularityType': @(Model.GranularityType != null ? ((int)Model.GranularityType) : 0)
+                                });
+                            } catch(err){
+                                console.log(err);
+                            }
+                        }
+                    })
+                </text>
+            }
+        }
+
+    })
+</script>
+
+@*
+    ---------------------------------------------------------------------------------------------------
+                                        Temporarily - Hotfix
+    ---------------------------------------------------------------------------------------------------
+*@
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldStringDataOut objectModel, string fieldSetId, string additionalFieldClass = "", string additionalInputClass = "")
+    {
+        if (objectModel.HasValue())
+        {
+            for (int i = 0; i < objectModel.FieldInstanceValues.Count; i++)
+            {
+                await AddField(html, objectModel, fieldSetId, i + 1, objectModel.FieldInstanceValues[i].FirstValue, additionalFieldClass, additionalInputClass);
+            }
+        }
+        else
+        {
+            await AddField(html, objectModel, fieldSetId, 1, "", additionalFieldClass, additionalInputClass);
+        }
+    }
+
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, string fieldSetId, int repetitiveCounter, string repetitiveValue, string additionalFieldClass, string additionalInputClass, string customLabel = "")
+    {
+        <div class="field-group @additionalFieldClass">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @if (string.IsNullOrEmpty(customLabel))
+                {
+                    @html.Raw(objectModel.FullLabel)
+                }
+                else
+                {
+                    @customLabel
+                }
+            </div>
+            <div class="repetitive-field filter-input d-inline-block @additionalInputClass">
+                @{
+                    AddInput(objectModel, fieldSetId, repetitiveCounter, repetitiveValue);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData){ { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+        </div>
+    }
+
+    private void AddInput(FieldDataOut objectModel, string fieldSetId, int repetitiveCounter, string repetitiveValue)
+    {
+        AddCalculativeInput(objectModel, fieldSetId, repetitiveCounter, repetitiveValue);
+    }
+
+    private void AddCalculativeInput(FieldDataOut objectModel, string fieldSetId, int repetitiveCounter, string repetitiveValue)
+    {
+        <input type="text" 
+               class="form-element-field field-calculative" 
+               readonly 
+               placeholder="@objectModel.DescriptionLabel" 
+               value="@repetitiveValue" 
+               @Html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter))
+            />
+    }
+}

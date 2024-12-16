@@ -1,0 +1,288 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@model sReportsV2.DTOs.Organization.OrganizationDataOut
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    List<CodeDataOut> clinicalDomains = ViewBag.ClinicalDomains as List<CodeDataOut>;
+    string activeLanguage = userCookieData.ActiveLanguage;
+}
+
+<input type="hidden" class="form-control" id="id" value="@(Model != null ? Model.Id.ToString() : "" )" />
+<input class="form-control" id="rowVersion" name="RowVersion" type="hidden" value="@(Model != null ? Model.RowVersion: "")" />
+<div class="organization-margin">
+
+    <form method="post" id="idOrganization" class="formOrganization organization-space" onsubmit="return false" novalidate>
+        <div class="organization-title">@sReportsV2.Cache.Resources.TextLanguage.Organization</div>
+        <div class="margin-reset display-container">
+
+            <div class="organization-space-part margin-right-15">
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Name @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" id="name" name="Name" type="text" value="@(Model != null && Model.Name != null ? Model.Name : "")" @ViewBag.Disabled />
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organizatin_Alias @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" type="text" id="alias" name="alias" value="@(Model != null && Model.Alias != null ? Model.Alias : "")" @ViewBag.Disabled />
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.TimeZone @{ RenderRequiredIndicator(); }
+                    </div>
+                    <select class="filter-input arrow-select patient-background" id="timezone" name="timezone" required>
+                        <option value=""></option>
+                        @foreach (var timeZoneInfo in ViewBag.TimeZoneList)
+                        {
+                            TimeSpan offset = timeZoneInfo.BaseUtcOffset;
+                            string offsetSign = (offset < TimeSpan.Zero) ? "-" : "+";
+                            string offsetHoursMinutes = offset.ToString("hh\\:mm");
+                            <option value="@timeZoneInfo.Id" data-timezone="@timeZoneInfo.DisplayName" data-offset="@offsetSign@offsetHoursMinutes" selected="@(Model != null && Model.TimeZone == timeZoneInfo.DisplayName)">
+                                @timeZoneInfo.DisplayName
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_PartOf
+                    </div>
+                    <select class="organizations filter-input arrow-select patient-background" id="parentId" name="parentId" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Organization_PartOfPlaceholder" @ViewBag.Disabled>
+                        @if (Model != null && Model.Parent != null)
+                        {
+                            <option value=""></option>
+                            <option selected value="@Model.Parent.Id">@Model.Parent.Name</option>
+                        }
+                        else
+                        {
+                            <option selected value=""></option>
+                        }
+                    </select>
+                </div>
+                @{
+                    RenderLogoInput();
+                }
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.PrimaryColor
+                    </div>
+                    <div class="color-input-wrapper">
+                        <input class="color-field wrapped" id="primaryColor" name="PrimaryColor" type="color" value="@(Model != null && Model.PrimaryColor != null ? Model.PrimaryColor : "#1c94a3")" @ViewBag.Disabled />
+                        <div class="color-input arrow-select patient-background wrapped" id="primaryColorInput" name="PrimaryColorInput">
+                            <div class="color-class" id="colorPrimary"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="advanced-filter-item input-margin secondary-color">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.SecondaryColor
+                    </div>
+                    <div class="color-input-wrapper">
+                        <input class="color-field wrapped" id="secondaryColor" name="SecondaryColor" type="color" value="@(Model != null && Model.SecondaryColor != null ? Model.SecondaryColor : "000000")" @ViewBag.Disabled />
+                        <div class="color-input arrow-select patient-background wrapped" id="secondaryColorInput" name="SecondaryColorInput">
+                            <div class="color-class-secondary" id="colorSecondary"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label organization-item">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Types
+                    </div>
+                    <div class="form-row form-checkbox-inline organization-types-items">
+                        <div class="form-margin col-md-6" id="checkBoxGroup">
+                            @{
+                                int length = ViewBag.OrganizationTypes.Count;
+                                int half = length / 2;
+                            }
+                            @for (int i = 0; i < half; i++)
+                            {
+                                <label class="form-checkbox-label reset-margin" id="checkBoxGroup">
+                                    <input value="@ViewBag.OrganizationTypes[i].Thesaurus.Id" class="form-checkbox-field organization-type" type="checkbox" id="@ViewBag.OrganizationTypes[i].Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)" checked="@(Model?.Type?.Contains(ViewBag.OrganizationTypes[i].Thesaurus.Id.ToString()) ?? false)" @ViewBag.Disabled />
+                                    <i class="form-checkbox-button custom-checkbox"></i>
+                                    <span class="organization-types">
+                                        @ViewBag.OrganizationTypes[i].Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </span>
+                                </label>
+                                <br />
+                            }
+                        </div>
+                        <div class="form-margin col-md-6" id="checkBoxGroup">
+                            @for (int i = half; i < length; i++)
+                            {
+                                <label class="form-checkbox-label reset-margin" id="checkBoxGroup">
+                                    <input value="@ViewBag.OrganizationTypes[i].Thesaurus.Id" class="form-checkbox-field organization-type" type="checkbox" id="@ViewBag.OrganizationTypes[i].Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)" checked="@(Model?.Type?.Contains(ViewBag.OrganizationTypes[i].Thesaurus.Id.ToString()) ?? false)" @ViewBag.Disabled />
+                                    <i class="form-checkbox-button custom-checkbox"></i>
+                                    <span class="organization-types">
+                                        @ViewBag.OrganizationTypes[i].Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </span>
+                                </label>
+                                <br />
+                            }
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            @if (Model != null && Model.Address != null)
+            {
+                <input type="hidden" id="addressId" value="@Model.Address.Id" />
+            }
+
+            <div class="organization-space-part margin-left-15">
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_City @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" type="text" id="city" name="City" value="@(Model != null && Model.Address != null ? Model.Address.City : "")" @ViewBag.Disabled />
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_State @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" type="text" id="state" name="state" value="@(Model != null && Model.Address != null ? Model.Address.State : "")" @ViewBag.Disabled />
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_PostalCode @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" type="text" id="postalCode" name="PostalCode" value="@(Model != null && Model.Address != null ? Model.Address.PostalCode : "")" @ViewBag.Disabled />
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.OrganizationStreet @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" type="text" id="street" name="Street" value="@(Model != null && Model.Address != null ? Model.Address.Street : "")" @ViewBag.Disabled />
+                </div>
+                <div class="advanced-filter-item input-margin country-select-input">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Country @{ RenderRequiredIndicator(); }
+                    </div>
+                    <select class="filter-input arrow-select" id="countryCD" name="countryCD" @ViewBag.Disabled required>
+                        <option value=""></option>
+                    </select>
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Email @{ RenderRequiredIndicator(); }
+                    </div>
+                    <input required class="filter-input" type="email" id="email" name="email" value="@(Model != null && Model.Email != null ? Model.Email : "")" @ViewBag.Disabled />
+                </div>
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Clinical_Domain
+                    </div>
+
+                    <div id="dropdownSearch" class="position-relative dropdown-search">
+                        <div id="search">
+                            <input autocomplete="off" class="designer-form-input filter-input" id="clinicalDomain" name="ClinicalDomain" type="text" @ViewBag.Disabled />
+                        </div>
+                        <div id="clinicalOptions" class="clinical-domain-options" aria-labelledby="search">
+                        </div>
+                    </div>
+
+                    <div id="clinicals" class="clinical-domain-container">
+                        @if (Model != null && Model.ClinicalDomains != null)
+                        {
+                            foreach (var item in Model.ClinicalDomains)
+                            {
+                                <div class="clinical" data-value="@item.Id" data-id="@item.OrganizationClinicalDomainId">
+                                    @item.ConvertClinicalDomainCDToDisplayName(clinicalDomains, activeLanguage)
+                                    @if (!ViewBag.ReadOnly)
+                                    {
+                                        <i class="fas fa-times clinical-remove"></i>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="advanced-filter-item input-margin">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Impressum
+                    </div>
+                    <textarea class="filter-input organization-impressum-textbox" maxlength="600" id="impressum" name="impressum" @ViewBag.Disabled>@(Model != null && Model.Impressum != null ? Model.Impressum : "")</textarea>
+                    <p class="char-limit-text"></p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="organization-line"></div>
+        <div class="button-partial">
+            @if (!ViewBag.ReadOnly)
+            {
+                <button class="submit-patient right-button" type="button" onclick="clickedSubmit()" style="outline: none;">
+                    <span class="submit-patient-info">@(Model != null ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)</span>
+                </button>
+            }
+            <i class="angle-left fas fa-angle-left"></i>
+            <div class="text-underline right-button" type="button" onclick="cancelOrganization()">
+                <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Back</span>
+            </div>
+        </div>
+    </form>
+</div>
+
+@functions {
+    private void RenderLogoInput()
+    {
+        string logoUrl = Model != null && Model.LogoUrl != null ? Model.LogoUrl.ToString() : "";
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.LogoUrl
+            </div>
+            <div class="filter-input file-field">
+                <input type="file"
+                       class="form-element-field file d-none"
+                       data-id="logoUrl"
+                       id="uploadLogo"
+                       name="uploadLogo" />
+                <input type="hidden"
+                       id="logoUrl"
+                       name="LogoUrl"
+                       value="@logoUrl" />
+                <div class="d-flex">
+                    <span>@sReportsV2.Cache.Resources.TextLanguage.UploadFile</span>
+                    @if (ViewBag.Readonly)
+                    {
+                        <img alt="" src="/css/img/icons/thesaurus_green.svg" class="ml-2 cursor-pointer" style="width:20px;">
+                    }
+                    else
+                    {
+                        <img alt="" src="/css/img/icons/browse.svg" class="ml-2 cursor-pointer upload-logo-btn" style="width:20px;">
+                    }
+                    <span class="file-name-display ml-2">@logoUrl.GetFileNameFromUri()</span>
+                    <span id="logo-action-btns" class="ml-auto @(string.IsNullOrEmpty(logoUrl) ? "d-none" : "")">
+                        <a type="button" onclick="getOrganizationLogo(event)">
+                            <i class="fas fa-arrow-down file-check"></i>
+                            <span class="get-logo">@sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.File</span>
+                        </a>
+                        @if (!ViewBag.Readonly)
+                        {
+                            <img alt="" src="/css/img/icons/Administration_remove.svg" class="ml-3 cursor-pointer" onclick="removeLogo()" title="@sReportsV2.Cache.Resources.TextLanguage.Remove_selected">
+                        }
+                    </span>
+                </div>
+            </div>
+            <label id="logoUrlError" class="error"></label>
+        </div>
+    }
+
+    private void RenderRequiredIndicator()
+    {
+        <div class="label-required">*</div>
+    }
+}

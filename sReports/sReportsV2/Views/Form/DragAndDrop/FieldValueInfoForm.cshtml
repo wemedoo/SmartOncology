@@ -1,0 +1,60 @@
+﻿@{
+    ViewBag.Title = "FormGeneralInfo";
+}
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@model FormFieldValueDataOut
+<form class="designer-item-form" id="fieldValueGeneralInfoForm">
+    <input type="hidden" id="elementId" value="@(string.IsNullOrWhiteSpace(Model.Id) ? GuidExtension.NewGuidStringWithoutDashes() : Model.Id)" />
+
+    <div class="designer-form-section">
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Label
+            </div>
+            <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @ViewBag.Disabled @(Model.IsMatrix ? "disabled" : "")/>
+        </div><!--
+        --><div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Value
+            </div>
+            <input required class="designer-form-input" id="value" name="value" type="text" value="@(Model != null ? Model.Value : "")" @ViewBag.Disabled/>
+        </div><!--
+        --><div class="designer-form-input-group no-margin-right">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.NumericValue
+            </div>
+            <input class="designer-form-input" id="numericValue" name="numericValue" type="number" value="@(Model != null && Model.NumericValue != null ? Model.NumericValue.ToString() : "")" @ViewBag.Disabled/>
+        </div>
+    </div>
+    <div class="designer-form-section thesaurus-section">
+        <div class="designer-form-section-title thesaurus-title">
+            @sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry
+        </div>
+        @await Html.PartialAsync("~/Views/Form/DragAndDrop/ThesaurusFilterModal.cshtml")
+    </div>
+    <input id="description" name="description" value="" type="hidden" />
+</form>
+<div class="button-container">
+    <div class="cancel-button cancel-modal-action">
+        @sReportsV2.Cache.Resources.TextLanguage.Back
+    </div>
+    @if (!ViewBag.ReadOnly)
+    {
+        <div class="submit-button" id="submit-fieldvalue-info">@sReportsV2.Cache.Resources.TextLanguage.UpdateData</div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#fieldValueGeneralInfoForm').validate({//#formGeneralInfoForm
+            ignore: []
+        });
+
+        let fieldValueId = getOpenedElementId();
+        if ($("#nestable").find(`[data-id='${fieldValueId}']`).children('.dd-handle').hasClass('nestable-error')) {
+            $('#fieldValueGeneralInfoForm').valid();
+        }
+    });
+</script>

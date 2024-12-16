@@ -1,0 +1,476 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+
+<div class="cf nestable-lists">
+    <input type="hidden" id="defaultLink" value="@ViewBag.DefaultLink" />
+    <div class="dd" id="predefinedItemsContainer">
+        <ol class="dd-list dd-scrollable-container form-preview-container predefined-items-container">
+            <li class="dd-item dd-nodrag">
+                <div class="drag-and-drop-title">
+                    <div class="dd-nohandle predefined-items-title">
+                        @sReportsV2.Cache.Resources.TextLanguage.Drag_and_Drop
+                    </div>
+                </div>
+                <ol class="dd-list">
+                    <li class="drag-and-drop-element dd-item" data-itemtype="chapter" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-title="Chapter title">
+                        <div class="dd-handle custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", sReportsV2.Cache.Resources.TextLanguage.Chapter, @sReportsV2.Cache.Resources.TextLanguage.Title), "chapter-predefined-item-placeholder"); }
+                            <div class="form-accordion d-none">
+                                <div class="form-accordion-header">
+                                    @{
+                                        RenderDragItemIconSection("chapter-drag-item-icon");
+                                    }
+                                    <img alt="" class="nestable-accordion-header-icon" src="/css/img/icons/chapter_white.svg">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Chapter
+                                    @{ RenderIconsSection(); }
+                                </div>
+                            </div>
+                        </div>
+                        @{ RenderDragHereContainer("drag-container dd-list ol-page d-none", @sReportsV2.Cache.Resources.TextLanguage.Drag_a_Page_here, "page"); }
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="page" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-title="Page title">
+                        <div class="dd-handle custom-dd-handle page-custom-dd-handle">
+                            @{ RenderDragTitleSection(@sReportsV2.Cache.Resources.TextLanguage.Page, "page-predefined-item-placeholder"); }
+                            <div class="nestable-page d-none">
+                                <div class="page-header">
+                                    @{ RenderDragItemIconSection("page-drag-item-icon"); }
+                                    @{ RenderIconsSection("page-icon-container", "d-none", "d-none"); }
+                                    @sReportsV2.Cache.Resources.TextLanguage.Page @sReportsV2.Cache.Resources.TextLanguage.Title
+                                </div>
+                            </div>
+                        </div>
+                        @{ RenderDragHereContainer("drag-container dd-list ol-fieldset d-none", @sReportsV2.Cache.Resources.TextLanguage.Drag_a_Fieldset_here, "fieldset"); }
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="fieldset" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Fieldset title">
+                        <div class="dd-handle custom-dd-handle fieldset-custom-dd-handle">
+                            @{ RenderDragTitleSection(@sReportsV2.Cache.Resources.TextLanguage.FieldSet, "fieldset-predefined-item-placeholder"); }
+                            <div class="d-none">
+                                <div class="d-flex field-set-content">
+                                    <div class="field-set-title d-flex">
+                                        @{ RenderDragItemIconSection("fieldset-drag-item-icon"); }
+                                        @{ RenderIconsSection(); }
+                                        <img alt="" class="field-set-img" src="/css/img/icons/field_set.svg">
+                                        <span>@sReportsV2.Cache.Resources.TextLanguage.FieldSet @sReportsV2.Cache.Resources.TextLanguage.Label</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @{ RenderDragHereContainer("drag-container dd-list ol-field d-none", @sReportsV2.Cache.Resources.TextLanguage.Drag_a_Field_here, "field"); }
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Text" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Text field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                                    @{
+                                        RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Text, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder text-field-predefined-item-placeholder");
+                                    }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.FieldText @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <input type="text" class="form-element-field" placeholder="" readonly />
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldTextDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Paragraph" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Paragraph, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder text-field-predefined-item-placeholder"); }
+                                                        @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <div class="paragraph-font" name="paragraph" type="text" value="Paragraph">
+                                        Paragraph
+                                    </div>
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldParagraphDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Link" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Link, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder text-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <a href="@ViewBag.DefaultLink" target="_blank">
+                                        @ViewBag.DefaultLink
+                                    </a>
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldLinkDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Audio" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Audio field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Audio, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder text-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Audio @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <input type="text" class="form-element-field" placeholder="" readonly />
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldAudioDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Calculative" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Calculative field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Calculative, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder calculative-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Calculative @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <input type="text" class="form-element-field" placeholder="" readonly />
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldCalculativeDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+
+                    <!--Start date field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Date" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Date field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Date, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder date-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Date @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                                    {
+                                        InputAttributes = new Dictionary<object, object> {
+                                            { "class", "form-element-field" },
+                                            { "readonly", null}
+                                        },
+                                        InputBtnAttributes = new Dictionary<object, object> {
+                                            { "class", "date-img dynamic-form" }
+                                        },
+                                    })
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldDateDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End date field-->
+                    <!--Start datetime field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Datetime" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Datetime field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.DateTime, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder datetime-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.DateTime @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <div class="row date-time-row datetime-picker-container">
+                                        <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                                            {
+                                                InputAttributes = new Dictionary<object, object> {
+                                                    { "class", "date-helper d-inline-block border-0 date-width" },
+                                                    { "readonly", null }
+                                                }
+                                            })
+                                            <input type="datetime-local" class="date-time-local date-time-local-hidden form-element-field" />
+                                            <div class="img-wrapper">
+                                                <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg">
+                                            </div>
+                                        </div>
+                                        <div class="time-wrapper w-35 input-border">
+                                            <input type="text"
+                                                   placeholder="@DateConstants.TimeFormatDisplay"
+                                                   class="time-part time-helper d-inline-block border-0"
+                                                   readonly>
+                                            <div class="clock-wrapper">
+                                                <i class="fas fa-clock"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldDatetimeDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End datetime field-->
+                    <!--Start email field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Email" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Email field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Email, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder email-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Email @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <input type="email" class="form-element-field email" placeholder="example@gmail.com" readonly />
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldEmailDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End email field-->
+                    <!--Start file field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.File" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="File field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.File, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder file-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="repetitive-values d-inline-block form-input-size">
+                                    <div class="filter-label form-label-size d-inline-block">
+                                        @sReportsV2.Cache.Resources.TextLanguage.File @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                    </div>
+                                    <div class="repetitive-field d-inline-block pe-none">
+                                        <div class="filter-input  file-field w-100">
+                                            <input type="file" class="form-element-field file" placeholder="" />
+                                            <input type="hidden" />
+                                            <div class="file-choose">
+                                                <div>@sReportsV2.Cache.Resources.TextLanguage.Browse_File</div>
+                                                <img alt="" src="/css/img/icons/browse.svg" class="ml-auto" style="width:20px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldFileDataOut())
+                                </div>
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End file field-->
+                    <!--Start textarea field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.LongText" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Long Text field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Long_Text, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder longtext-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Long_Text @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <textarea class="form-element-field textarea-repetitive" placeholder="" readonly></textarea>
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldTextAreaDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End textarea field-->
+                    <!--Start number field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Number" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Number field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Number, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder number-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Number @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <input type="number" class="form-element-field" placeholder="" readonly />
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldNumericDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End number field-->
+                    <!--Start regex field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Regex" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Regex field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Regex, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder regex-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Regex @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <input type="text" class="form-element-field" placeholder="" readonly />
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldRegexDataOut())
+                            </fieldset>
+
+                        </div>
+                    </li>
+                    <!--End regex field-->
+                    <!--Start select field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Select" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Select field label">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Select, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder select-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="field-group">
+                                    <div class="filter-label form-label-size d-inline-block">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Select @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                    </div>
+                                    <div class="repetitive-field filter-input d-inline-block arrow-select">
+                                        <select class="form-element-field" disabled>
+                                            <option value="" class="form-select-placeholder" data-itemtype="fieldvalue"></option>
+                                        </select>
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldSelectDataOut())
+                                </div>
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End select field-->
+                    <!--Start coded field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Coded" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Coded field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Coded, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder select-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="field-group">
+                                    <div class="filter-label form-label-size d-inline-block">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Coded @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                    </div>
+                                    <div class="repetitive-field filter-input d-inline-block arrow-select">
+                                        <select class="form-element-field" disabled>
+                                            <option value="" class="form-select-placeholder" data-itemtype="fieldvalue"></option>
+                                        </select>
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldCodedDataOut())
+                                </div>
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End coded field-->
+                    <!--Start radio field-->
+                    <li class="drag-and-drop-element dd-item padding-right-10 margin-bottom-15" data-itemtype="field" data-type="@FieldTypes.Radio" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Radio field title">
+                        <div class="dd-handle custom-dd-handle radio-custom-dd-handle add-new-element">
+                            @{
+                                RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Radio, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder radio-field-predefined-item-placeholder");
+                            }
+                            <div class="form-checkbox-legend nestable-checkbox-label filter-label d-none" title="">
+                                @{ RenderDragItemIconSection("radio-drag-item-icon"); }
+                                @{ RenderIconsSection(); }
+                                @sReportsV2.Cache.Resources.TextLanguage.Radio @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                            </div>
+                        </div>
+                        @{ RenderDragHereContainer("dd-list ol-fieldvalue d-none", @sReportsV2.Cache.Resources.TextLanguage.Drag_a_radio_option_here, "fieldvalue", "radio"); }
+                        <div class="d-none">
+                            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldRadioDataOut())
+                        </div>
+                    </li>
+                    <!--End radio field-->
+                    <!--Start checkbox field-->
+                    <li class="drag-and-drop-element dd-item padding-right-10 margin-bottom-15" data-itemtype="field" data-type="@FieldTypes.Checkbox" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Checkbox field title">
+                        <div class="dd-handle custom-dd-handle checkbox-custom-dd-handle add-new-element">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Checkbox, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder checkbox-field-predefined-item-placeholder"); }
+                            <div class="form-checkbox-legend nestable-checkbox-label  filter-label d-none" title="">
+                                @{ RenderDragItemIconSection("checkbox-drag-item-icon"); }
+                                @{ RenderIconsSection(renderOverlayContainer: false); }
+                                @sReportsV2.Cache.Resources.TextLanguage.Checkbox @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                            </div>
+                        </div>
+                        @{ RenderDragHereContainer("dd-list pl-0 ol-fieldvalue d-none", @sReportsV2.Cache.Resources.TextLanguage.Drag_a_checkbox_option_here, "fieldvalue", "checkbox"); }
+                        <div class="d-none">
+                            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldCheckboxDataOut())
+                        </div>
+                    </li>
+                    <!--End checkbox field-->
+                    <!--Start radio option-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="fieldvalue" data-valuetype="radio" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Radio option title">
+                        <div class="dd-handle custom-dd-handle radio-value-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Radio, @sReportsV2.Cache.Resources.TextLanguage.Option), "field-predefined-item-placeholder radio-field-predefined-item-placeholder field-type"); }
+                            <div class="form-radio-label d-none">
+                                @{ RenderDragItemIconSection("radio-drag-item-icon"); }
+                                @{ RenderIconsSection(); }
+                                <input type="radio" class="form-radio-field">
+                                <i class="form-radio-button"></i>
+                                <span class="radio-break-word radio-text comment-target-item">@sReportsV2.Cache.Resources.TextLanguage.Radio_Option_Title</span>
+                            </div>
+                        </div>
+                    </li>
+                    <!--End radio option-->
+                    <!--Start checkbox option-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="fieldvalue" data-valuetype="checkbox" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Checkbox option title">
+                        <div class="dd-handle custom-dd-handle checkbox-value-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Checkbox, @sReportsV2.Cache.Resources.TextLanguage.Option), "field-predefined-item-placeholder checkbox-field-predefined-item-placeholder field-type"); }
+                            <div class="form-checkbox-label d-none">
+                                @{ RenderDragItemIconSection("checkbox-drag-item-icon"); }
+                                @{ RenderIconsSection(); }
+                                <input class="form-checkbox-field" type="checkbox" />
+                                <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                                <span class="radio-break-word checkbox-text comment-target-item">@sReportsV2.Cache.Resources.TextLanguage.Checkbox_Option_Title</span>
+                            </div>
+                        </div>
+                    </li>
+                    <!--End checkbox option-->
+                </ol>
+            </li>
+        </ol>
+    </div>
+</div>
+<script>
+    $(document).ready(function (e) {
+        $('#predefinedItemsContainer').nestable({
+            group: 1,
+            maxDepth: 7
+        });
+
+    });
+</script>
+
+@functions {
+    private void RenderDragTitleSection(string title, string additionalSectionClass = "")
+    {
+        <div class="predefined-item-placeholder @additionalSectionClass">
+            <div class="predefined-item-placeholder-title">
+                @title
+            </div>
+        </div>
+    }
+
+    private void RenderDragItemIconSection(string additionalSectionClass = "")
+    {
+        <div class="drag-item-icon @additionalSectionClass">
+            <i class="fas fa-arrows-alt"></i>
+        </div>
+    }
+
+    private void RenderIconsSection(string additionalSectionClass = "", string additionalEditBtnClass = "", string additionalRemoveBtnClass = "", bool renderOverlayContainer = true)
+    {
+        <div class="icon-container @additionalSectionClass">
+            @if (renderOverlayContainer)
+            {
+                <div class="overlay"></div>
+            }
+            <div class="edit-button @additionalEditBtnClass">
+                <img alt="" src="/css/img/icons/edit_pencil_03.svg">
+            </div>
+            <div class="remove-button @additionalRemoveBtnClass">
+                <img alt="" src="/css/img/icons/remove_simulator.svg">
+            </div>
+        </div>
+    }
+
+    private void RenderDragHereContainer(string cssClass, string title, string itemType, string valueType = "")
+    {
+        <ol class="@cssClass">
+            <li class="drag-and-drop-element dd-item dd-item-placeholder" data-itemtype="@itemType" @Html.Raw(string.IsNullOrEmpty(valueType) ? "" : string.Format("data-valuetype=\"{0}\"", valueType))>
+                @title
+            </li>
+        </ol>
+    }
+}

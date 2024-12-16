@@ -1,0 +1,11 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@model IEnumerable<FormStatusDataOut>
+
+<div class="administrative-container workflow-hide row" id="administrative-container-form">
+    <span class="arrow-scroll-left-form d-none arrow-scroll"></span>
+    <span class="arrow-scroll-right-form d-none arrow-scroll"></span>
+    <div class="workflow-container" id="idWorkflow">
+        @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/FormAdministrativeDataWorkflow.cshtml", Model)
+    </div>
+</div>
+

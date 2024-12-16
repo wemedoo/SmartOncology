@@ -1,0 +1,789 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\</OutputPath>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisRuleSet>..\sReportsV2.Domain\sReportsV2.Domain.ruleset</CodeAnalysisRuleSet>
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>React</TypeScriptJSXEmit>
+    <TypeScriptModuleKind />
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+  </PropertyGroup>
+  <PropertyGroup>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\</OutputPath>
+    <CodeAnalysisRuleSet>sReportsV2.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Antlr4 Remove="Common\EmailHelper\**" />
+    <Antlr4 Remove="wwwroot\js\libs\cytoscape-3.15.2\**" />
+    <Antlr4 Remove="Views\Base\**" />
+    <Antlr4 Remove="Views\ClinicalTrials\**" />
+    <Antlr4 Remove="Views\Fhir\**" />
+    <Antlr4 Remove="Views\FormConsensus\**" />
+    <Antlr4 Remove="Views\FormDragAndDrop\**" />
+    <Antlr4 Remove="Views\FormInstanceCommon\**" />
+    <Antlr4 Remove="Views\ImportData\**" />
+    <Antlr4 Remove="Views\Patholink\**" />
+    <Antlr4 Remove="Views\SimplifiedPage\**" />
+    <Antlr4 Remove="Views\ThesaurusMerge\**" />
+    <Compile Remove="Common\EmailHelper\**" />
+    <Compile Remove="UploadedFiles\**" />
+    <Compile Remove="wwwroot\js\libs\cytoscape-3.15.2\**" />
+    <Compile Remove="Views\Base\**" />
+    <Compile Remove="Views\ClinicalTrials\**" />
+    <Compile Remove="Views\Fhir\**" />
+    <Compile Remove="Views\FormConsensus\**" />
+    <Compile Remove="Views\FormDragAndDrop\**" />
+    <Compile Remove="Views\FormInstanceCommon\**" />
+    <Compile Remove="Views\ImportData\**" />
+    <Compile Remove="Views\Patholink\**" />
+    <Compile Remove="Views\SimplifiedPage\**" />
+    <Compile Remove="Views\ThesaurusMerge\**" />
+    <EmbeddedResource Remove="Common\EmailHelper\**" />
+    <EmbeddedResource Remove="UploadedFiles\**" />
+    <EmbeddedResource Remove="wwwroot\js\libs\cytoscape-3.15.2\**" />
+    <EmbeddedResource Remove="Views\Base\**" />
+    <EmbeddedResource Remove="Views\ClinicalTrials\**" />
+    <EmbeddedResource Remove="Views\Fhir\**" />
+    <EmbeddedResource Remove="Views\FormConsensus\**" />
+    <EmbeddedResource Remove="Views\FormDragAndDrop\**" />
+    <EmbeddedResource Remove="Views\FormInstanceCommon\**" />
+    <EmbeddedResource Remove="Views\ImportData\**" />
+    <EmbeddedResource Remove="Views\Patholink\**" />
+    <EmbeddedResource Remove="Views\SimplifiedPage\**" />
+    <EmbeddedResource Remove="Views\ThesaurusMerge\**" />
+    <None Remove="Common\EmailHelper\**" />
+    <None Remove="UploadedFiles\**" />
+    <None Remove="wwwroot\js\libs\cytoscape-3.15.2\**" />
+    <None Remove="Views\Base\**" />
+    <None Remove="Views\ClinicalTrials\**" />
+    <None Remove="Views\Fhir\**" />
+    <None Remove="Views\FormConsensus\**" />
+    <None Remove="Views\FormDragAndDrop\**" />
+    <None Remove="Views\FormInstanceCommon\**" />
+    <None Remove="Views\ImportData\**" />
+    <None Remove="Views\Patholink\**" />
+    <None Remove="Views\SimplifiedPage\**" />
+    <None Remove="Views\ThesaurusMerge\**" />
+    <Page Remove="Common\EmailHelper\**" />
+    <Page Remove="wwwroot\js\libs\cytoscape-3.15.2\**" />
+    <Page Remove="Views\Base\**" />
+    <Page Remove="Views\ClinicalTrials\**" />
+    <Page Remove="Views\Fhir\**" />
+    <Page Remove="Views\FormConsensus\**" />
+    <Page Remove="Views\FormDragAndDrop\**" />
+    <Page Remove="Views\FormInstanceCommon\**" />
+    <Page Remove="Views\ImportData\**" />
+    <Page Remove="Views\Patholink\**" />
+    <Page Remove="Views\SimplifiedPage\**" />
+    <Page Remove="Views\ThesaurusMerge\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Views\FormInstance\FormInstanceMatrixFieldSet.cshtml" />
+    <None Remove="wwwroot\js\sReports\designer\comments.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="App_Data\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.GlobalThesaurusProd.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.oopus-velocious.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.oopus.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.Release.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.sReports.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.sReportsVM.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\AppResource\SynopticCover.svg" />
+    <Content Include="App_Data\AppResource\footerLogo.png" />
+    <Content Include="App_Start\bundleconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\FormInstance\FormInstanceMatrixFieldSet.cshtml" />
+    <Content Include="App_Data\SwissHospitals.csv" />
+    <Content Include="App_Data\countriesData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\serviceTypes.csv" />
+    <Content Include="App_Data\countries-50m.json" />
+    <Content Include="App_Data\Chemotherapy_Compendium.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\sReports Vocabulary and FHIR Resources.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\ThesaurusMetaData_SmartOncology.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\Chem_Onc_Additional_Data.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\Chem_Onc_Drug_Dosing_Times.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\Chemotherapy Compendium Import - 25.11.2021.xlsx" />
+    <Content Include="App_Data\Chemotherapy Compendium Import - 26.11.2021.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\AppResource\NunitoSans-Regular.ttf" />
+    <Content Include="App_Data\CountryCodes.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\Table_Column_Description.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="App_Data\AppResource\Roboto-Regular.ttf" />
+    <Content Include="App_Data\DataRequest_With_Data.json" />
+    <Content Include="App_Data\DocumentOntology.csv" />
+    <Content Include="App_Data\DocumentOntology.owl" />
+    <Content Include="App_Data\exported.csv" />
+    <Content Include="App_Data\exported.xlsx" />
+    <Content Include="mongocrypt.dll" />
+    <Content Include="App_Data\json.json" />
+    <Content Include="App_Data\json - Copy.json" />
+    <Content Include="App_Data\demo1.json" />
+    <Content Include="App_Data\ServiceTypeValues.json" />
+    <None Update="compilerconfig.json.defaults">
+      <DependentUpon>compilerconfig.json</DependentUpon>
+    </None>
+    <Content Include="libman.json" />
+    <Content Include="libmongocrypt.so" />
+    <Content Include="libmongocrypt.dylib" />
+    <Content Include="Views\Web.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Form\Fields\FieldText.cshtml" />
+    <Content Include="Views\Form\Fields\FieldRadio.cshtml" />
+    <Content Include="Views\Form\Fields\FieldEmail.cshtml" />
+    <Content Include="Views\Form\Fields\FieldNumber.cshtml" />
+    <Content Include="Views\Form\Fields\FieldDate.cshtml" />
+    <Content Include="Views\Form\Fields\FieldCheckbox.cshtml" />
+    <Content Include="Views\Form\Fields\FieldTextarea.cshtml" />
+    <Content Include="Views\Form\Fields\FieldSelect.cshtml" />
+    <Content Include="Views\Form\Fields\FieldDateTime.cshtml" />
+    <Content Include="Views\Form\GetAll.cshtml" />
+    <Content Include="Views\FormInstance\GetAllByFormThesaurus.cshtml" />
+    <Content Include="Views\FormInstance\GetAllFormDefinitions.cshtml" />
+    <Content Include="Views\Shared\Breadcrumb.cshtml" />
+    <Content Include="Views\User\Login.cshtml" />
+    <Content Include="Views\ThesaurusEntry\GetAll.cshtml" />
+    <Content Include="Views\ThesaurusEntry\Edit.cshtml" />
+    <Content Include="Views\Form\FormsTable.cshtml" />
+    <Content Include="Views\Shared\Pagination.cshtml" />
+    <Content Include="Views\FormInstance\FormsTable.cshtml" />
+    <Content Include="Views\FormInstance\FormInstancesByFormThesaurusTable.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusEntryTable.cshtml" />
+    <Content Include="Views\ThesaurusEntry\CodingSystemPartial.cshtml" />
+    <Content Include="Views\ThesaurusEntry\TranslationsPartial.cshtml" />
+    <Content Include="Views\Umls\ConceptsRows.cshtml" />
+    <Content Include="Views\Umls\AtomsList.cshtml" />
+    <Content Include="Views\Umls\DefinitionsList.cshtml" />
+    <Content Include="Views\Umls\ConceptsTable.cshtml" />
+    <Content Include="Views\Form\Thesaurus\FormThesaurusTree.cshtml" />
+    <Content Include="Views\Form\Thesaurus\DocumentProperties.cshtml" />
+    <Content Include="Views\ThesaurusEntry\AdministrativeData.cshtml" />
+    <Content Include="Views\Patient\Edit.cshtml" />
+    <Content Include="Views\Patient\GetAll.cshtml" />
+    <Content Include="Views\Patient\PatientEntryTable.cshtml" />
+    <Content Include="Views\Organization\OrganizationEntryTable.cshtml" />
+    <Content Include="Views\Organization\GetAll.cshtml" />
+    <Content Include="Views\Organization\Organization.cshtml" />
+    <Content Include="Views\Shared\IdentifierModal.cshtml" />
+    <Content Include="Views\EpisodeOfCare\PatientInfo.cshtml" />
+    <Content Include="Views\Shared\TelecomModal.cshtml" />
+    <Content Include="Views\Organization\OrganizationHierarchy.cshtml" />
+    <Content Include="Views\File\PdfUpload.cshtml" />
+    <Content Include="Views\Form\GenerateLanguageModal.cshtml" />
+    <Content Include="Views\Blob\Create.cshtml" />
+    <Content Include="Views\Form\Fields\FieldFile.cshtml" />
+    <Content Include="Views\Organization\GetUsersByOrganizationCount.cshtml" />
+    <Content Include="Views\ThesaurusEntry\CodeModal.cshtml" />
+    <Content Include="Views\ThesaurusEntry\CodesTable.cshtml" />
+    <Content Include="Views\FormDistribution\Edit.cshtml" />
+    <Content Include="Views\FormDistribution\GetAll.cshtml" />
+    <Content Include="Views\FormDistribution\ReloadTable.cshtml" />
+    <Content Include="Views\FormDistribution\ReloadForms.cshtml" />
+    <Content Include="Views\FormDistribution\GetAllForms.cshtml" />
+    <Content Include="sReportsV2.ruleset" />
+    <Content Include="Views\DiagnosticReport\ReferrableFields.cshtml" />
+    <Content Include="Views\Form\Fields\FieldCalculative.cshtml" />
+    <Content Include="Views\Form\Fields\FieldRegex.cshtml" />
+    <Content Include="Views\Shared\_Crf_Layout.cshtml" />
+    <Content Include="Views\CRF\Create.cshtml" />
+    <Content Include="Views\FormDistribution\RenderInputsForDependentVariable.cshtml" />
+    <Content Include="Views\FormDistribution\RenderInputs.cshtml" />
+    <Content Include="Views\CRF\Instructions.cshtml" />
+    <Content Include="Views\Shared\SimpleTree.cshtml" />
+    <Content Include="Views\DFD\Create.cshtml" />
+    <Content Include="Views\Shared\_Dfd_Layout.cshtml" />
+    <Content Include="Views\DFD\ReloadFormByPatient.cshtml" />
+    <Content Include="Views\DFD\InfoMesasge.cshtml" />
+    <Content Include="Views\ThesaurusEntry\InsertNewThesaurusFromForm.cshtml" />
+    <Content Include="Views\Patient\PatientEdit.cshtml" />
+    <Content Include="Views\DiagnosticReport\ModalListForms.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ReviewTree.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusMergeModal.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusReviewList.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusInfo.cshtml" />
+    <Content Include="Views\Patient\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\Patient\GeneralInfo.cshtml" />
+    <Content Include="Views\Patient\PatientAddressAndTelecom.cshtml" />
+    <Content Include="Views\Patient\PatientContactForm.cshtml" />
+    <Content Include="Views\Patient\PatientFilterGroup.cshtml" />
+    <Content Include="Views\Form\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\Form\FormFilterGroup.cshtml" />
+    <Content Include="Views\ThesaurusEntry\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusFilterGroup.cshtml" />
+    <Content Include="Views\Shared\IdentifierTable.cshtml" />
+    <Content Include="Views\Shared\TelecomTable.cshtml" />
+    <Content Include="Views\Organization\OrganizationFilterGroup.cshtml" />
+    <Content Include="Views\Organization\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusMore.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusMoreContent.cshtml" />
+    <Content Include="Views\Form\Fields\Custom\FieldCustomButton.cshtml" />
+    <Content Include="Views\Encounter\SuggestedForms.cshtml" />
+    <Content Include="Views\Encounter\ListReferralsAndForms.cshtml" />
+    <Content Include="Views\Encounter\ListForms.cshtml" />
+    <Content Include="Views\CSVExport\Index.cshtml" />
+    <Content Include="Views\CSVExport\LoadCSV.cshtml" />
+    <Content Include="Views\User\ForgotPassword.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\Create.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormGeneralInfo.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\ThesaurusFilterModal.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ReloadSearchTable.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusProperties.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormGeneralInfoDocumentProperties.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\ChapterInfoForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormEpisodeOfCareInfo.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FieldSetInfoForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FieldInfoGeneralForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\CalculativeFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\CheckboxFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\DateFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\DatetimeFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\EmailFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\FileFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\LongTextFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\NumberFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\RadioFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\RegexFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\SelectFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\TextFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FieldValueInfoForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\CustomFieldButtonForm.cshtml" />
+    <Content Include="Views\Form\GetCalculativeTree.cshtml" />
+    <Content Include="Views\FormDistribution\GenerateDocumentsModal.cshtml" />
+    <Content Include="Views\FormDistribution\SimulatorFormTree.cshtml" />
+    <Content Include="Views\Form\Thesaurus\FormThesaurusAppearanceTree.cshtml" />
+    <Content Include="Views\Form\Common\FieldButtonGroup.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\PageInfoForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\ImageMapGenerator.cshtml" />
+    <Content Include="Views\Form\Thesaurus\FormThesaurusAppearanceTreePartial.cshtml" />
+    <Content Include="Views\Form\Thesaurus\FormThesaurusTreePartial.cshtml" />
+    <Content Include="Views\ThesaurusEntry\SimilarTermModal.cshtml" />
+    <Content Include="Views\DigitalGuideline\Index.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\FormAdministrativeData.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\ClinicalDomainValues.cshtml" />
+    <Content Include="Views\UserAdministration\ChangePasswordModal.cshtml" />
+    <Content Include="Views\UserAdministration\User.cshtml" />
+    <Content Include="Views\UserAdministration\UserEntryTable.cshtml" />
+    <Content Include="Views\UserAdministration\GetAll.cshtml" />
+    <Content Include="Views\DigitalGuideline\PreviewNode.cshtml" />
+    <Content Include="Views\DigitalGuideline\GetAll.cshtml" />
+    <Content Include="Views\DigitalGuideline\DigitalGuidelineTable.cshtml" />
+    <Content Include="Views\DigitalGuideline\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\DigitalGuideline\GuidelineFilterGroup.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\ListDigitalGuidelines.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\GuidelineInstanceTable.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\DragAndDropFormPartial.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableRadioField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableCheckboxField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormJson.cshtml" />
+    <Content Include="Views\DigitalGuideline\DigitalGuidelineGraph.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormTreeContainer.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\GuidelineInstance.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\DigitalGuidelineInstanceGraph.cshtml" />
+    <Content Include="Views\Encounter\PatientTreeEncounterItems.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormTreeNestable.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\PredefinedFormElements.cshtml" />
+    <Content Include="Views\UserAdministration\UserPersonalData.cshtml" />
+    <Content Include="Views\UserAdministration\UserInstitutionalData.cshtml" />
+    <Content Include="Views\UserAdministration\OrganizationData.cshtml" />
+    <Content Include="Views\UserAdministration\AddInstitutionModal.cshtml" />
+    <Content Include="Views\Error\AccessDenied.cshtml" />
+    <Content Include="Views\User\ChooseActiveOrganization.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableTextField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableEmailField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableNumberField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableFileField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableTextAreaField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableDateField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableDatetimeField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableSelectField.cshtml" />
+    <Content Include="Views\Shared\SessionBreakModal.cshtml" />
+    <Content Include="Views\ThesaurusEntry\ThesaurusPreview.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormCommentSection.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormAllComments.cshtml" />
+    <Content Include="Views\Form\Comments\CommentStatusPartial.cshtml" />
+    <Content Include="Views\Form\Consensus\ConsensusPartial.cshtml" />
+    <Content Include="Views\Form\Consensus\Questionnaire\ConsensusFormTree.cshtml" />
+    <Content Include="Views\Form\Consensus\Questionnaire\ConsensusDecision.cshtml" />
+    <Content Include="Views\Form\Consensus\Questionnaire\ConsensusCreateQuestion.cshtml" />
+    <Content Include="Views\Form\Consensus\Questionnaire\ConsensusQuestionPreview.cshtml" />
+    <Content Include="Views\Form\Consensus\Questionnaire\CreateOrPreviewQuestion.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\ConsensusUserFilter.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\MapFilterPartial.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\OrganizationFilter.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\OrganizationHierarchy.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\ConsensusUsers.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\ConsensusOrganizationUserInfo.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\AddOutsideUserModal.cshtml" />
+    <Content Include="Views\Form\Consensus\Instance\CreateConsensusInstance.cshtml" />
+    <Content Include="Views\Form\Consensus\Tracker\ConsensusTrackerPartial.cshtml" />
+    <Content Include="Views\User\LoginGlobal.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Login\RegistrationPartial.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Login\LoginPartial.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Home\Home.cshtml" />
+    <Content Include="Views\Shared\_GT_Layout.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Shared\Footer.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Search\Browse.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Search\GlobalThesaurusTable.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Search\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Preview\ThesaurusPreview.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Preview\TranslationsPreview.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Preview\TranslationsTitle.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Preview\CodesTable.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Preview\VocabularyModal.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\Create.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\TranslationsPreview.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\TranslationsTitle.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\CodesModal.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableCalculativeField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableRegexField.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\ContributeToTranslation.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\ContributeToTranslationForm.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Create\ContributeToTranslationSubmitModal.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\GeneralInfo\Technology.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\GeneralInfo\Contact.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\GeneralInfo\TermsAndConditions.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\UserValues.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CommentInputText.cshtml" />
+    <Content Include="Views\Form\Consensus\Instance\ConsensusUserQuestionnaire.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\FormAdministrativeDataWorkflow.cshtml" />
+    <Content Include="Views\FormDistribution\AddRelationModal.cshtml" />
+    <Content Include="Views\Form\Consensus\Instance\ShowUserQuestionnaire.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\ListGuidelineDocuments.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\GetConditions.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\FilterGuidelineDocuments.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\FilterDigitalGuidelines.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\PreviewInstanceNode.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableCustomButton.cshtml" />
+    <Content Include="Views\Form\Consensus\Questionnaire\ConsensusQuestionnairePartial.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\ConsensusUsersPartial.cshtml" />
+    <Content Include="Views\RoleAdministration\GetAll.cshtml" />
+    <Content Include="Views\RoleAdministration\RoleEntryTable.cshtml" />
+    <Content Include="Views\RoleAdministration\Edit.cshtml" />
+    <Content Include="Views\UserAdministration\UserRolesForm.cshtml" />
+    <Content Include="Views\UserAdministration\UserRolesDisplay.cshtml" />
+    <Content Include="Views\SmartOncology\HistorySheet.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Shared\ThesaurusTree.cshtml" />
+    <Content Include="Views\Form\Fields\Custom\FormFieldDescription.cshtml" />
+    <Content Include="Views\DigitalGuideline\EvidencePropertiesCategory.cshtml" />
+    <Content Include="Views\DigitalGuideline\EvidencePropertiesPublications.cshtml" />
+    <Content Include="Views\DigitalGuidelineInstance\PreviewInstanceDecisionNode.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\BasicPatientDataOncology.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\ViewPatientData.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\EditPatientData.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\PatientEntriesTable.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\ClinicalTrialValues.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\ProgressNote.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\AddAllergyModal.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\ViewPatientData.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\ProgressNotePatientHeader.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\ViewSchemaData.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\ProgressNotePatientHeaderMobile.cshtml" />
+    <Content Include="Views\SmartOncology\ProgressNote\ViewPatientDataMobile.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\BasicPatientDataOncologyHeader.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\BasicPatientDataOncologyHeaderMobile.cshtml" />
+    <Content Include="Views\Form\Consensus\Instance\QuestionnaireSaveModal.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Administration\UserList.cshtml" />
+    <Content Include="Views\ThesaurusGlobal\Shared\ConnectionOntologyModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditSchema.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditNameModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditIndicationsModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditMedication.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditMedicationDoseModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditPreviewBasicProperties.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditGeneralProperties.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditReferenceModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\GetAll.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\SchemaDefinitionFilterGroup.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\SchemaDefinitionEntryTable.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\PreviewSchema.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\PreviewSchemaApprovedBy.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\PreviewSchemaMedications.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditMedicationDoseTimes.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaDefinition\EditMedicationDoseContent.cshtml" />
+    <Content Include="Views\SmartOncology\Patient\OncologyDiseasesHistory.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\SchemaInstanceFilterGroup.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\SchemaInstanceEntryTable.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\EditDelayDoseModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\ViewHistoryOfDayDoseContent.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\ViewHistoryOfDayDoseModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\EditMedicationModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\ViewMedicationReplacementModal.cshtml" />
+    <Content Include="Views\SmartOncology\SchemaInstance\ViewMedicationReplacementContent.cshtml" />
+    <Content Include="Views\ThesaurusEntry\CodeRow.cshtml" />
+    <Content Include="Views\User\GetByName.cshtml" />
+    <Content Include="Views\Shared\Header.cshtml" />
+    <Content Include="Views\Shared\Sidebar.cshtml" />
+    <Content Include="Views\Shared\Navbar.cshtml" />
+    <Content Include="Views\Patient\GetByName.cshtml" />
+    <Content Include="Views\FormInstance\FormInstanceHeader.cshtml" />
+    <Content Include="Views\FormInstance\SynopticView.cshtml" />
+    <Content Include="Views\FormInstance\LockUnlockDocumentModal.cshtml" />
+    <Content Include="Views\FormInstance\LockUnlockDocumentModalForm.cshtml" />
+    <Content Include="Views\FormInstance\AdministrativeData.cshtml" />
+    <Content Include="Views\FormInstance\ChartPartial.cshtml" />
+    <Content Include="Views\FormInstance\ChartFiltersPartial.cshtml" />
+    <Content Include="Views\Patient\PatientAutocomplete.cshtml" />
+    <Content Include="Views\Shared\AddressTable.cshtml" />
+    <Content Include="Views\Shared\AddressModal.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\ImageMapPreview.cshtml" />
+    <Content Include="Views\Shared\DateInput.cshtml" />
+    <Content Include="Views\Patient\PatientContacts.cshtml" />
+    <Content Include="Views\Code\GetAll.cshtml" />
+    <Content Include="Views\Code\CodeEntryTable.cshtml" />
+    <Content Include="Views\Code\CodeFilterGroup.cshtml" />
+    <Content Include="Views\CodeSet\GetAll.cshtml" />
+    <Content Include="Views\CodeSet\CodeSetEntryTable.cshtml" />
+    <Content Include="Views\CodeSet\CodeSetFilterGroup.cshtml" />
+    <Content Include="Views\CodeSet\ThesaurusModal.cshtml" />
+    <Content Include="Views\Code\CodeSetsGroup.cshtml" />
+    <Content Include="Views\Code\Edit.cshtml" />
+    <Content Include="Views\Organization\OrganizationIdentifierTable.cshtml" />
+    <Content Include="Views\Organization\OrganizationTabs.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamFilters.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamTable.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamModal.cshtml" />
+    <Content Include="Views\PersonnelTeam\ListPersonnelTeamMembers.cshtml" />
+    <Content Include="Views\PersonnelTeam\EditPersonnelTeam.cshtml" />
+    <Content Include="Views\PersonnelTeam\AddPersonnelTeam.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\AddMembers.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\EditMember.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\DeleteMember.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\NewMemberForm.cshtml" />
+    <Content Include="Views\PersonnelTeam\Common\PersonnelTeamPagination.cshtml" />
+    <Content Include="Views\PersonnelTeam\DeletePersonnelTeam.cshtml" />
+    <Content Include="Views\Code\AliasEntryTable.cshtml" />
+    <Content Include="Views\Code\AliasModal.cshtml" />
+    <Content Include="Views\Error\NotFound.cshtml" />
+    <Content Include="Views\Organization\OrganizationGeneralInfo.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\SinglePersonnelTeam.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\SinglePersonnelTeamFilters.cshtml" />
+    <Content Include="Views\PersonnelTeam\PersonnelTeamRelation\SinglePersonnelTeamTable.cshtml" />
+    <Content Include="Views\Shared\SmaragdLogo.cshtml" />
+    <Content Include="Views\Code\CodeAssociations.cshtml" />
+    <Content Include="Views\Code\NominatorCodeAssociationTable.cshtml" />
+    <Content Include="Views\Code\NomineeCodeAssociationTable.cshtml" />
+    <Content Include="Views\Code\CodeAssociationTable.cshtml" />
+    <Content Include="Views\Organization\OrganizationTelecoms.cshtml" />
+    <Content Include="Views\EpisodeOfCare\EditFromEOC.cshtml" />
+    <Content Include="Views\EpisodeOfCare\AddEocModal.cshtml" />
+    <Content Include="Views\EpisodeOfCare\PatientEOC.cshtml" />
+    <Content Include="Views\EpisodeOfCare\EpisodeOfCareFilterGroup.cshtml" />
+    <Content Include="Views\EpisodeOfCare\PatientInfoForm.cshtml" />
+    <Content Include="Views\Encounter\EocEncounter.cshtml" />
+    <Content Include="Views\Encounter\EncounterDocumentations.cshtml" />
+    <Content Include="Views\Encounter\EncounterModal.cshtml" />
+    <Content Include="Views\Patient\PatientInfo.cshtml" />
+    <Content Include="Views\EpisodeOfCare\EncounterData.cshtml" />
+    <Content Include="Views\CodeSet\CsvUpload.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\CodedFieldForm.cshtml" />
+    <Content Include="Views\Form\Fields\FieldCoded.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableCodedField.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FormGeneralInfoTabs.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomHeaderFields.cshtml" />
+    <Content Include="Views\Encounter\GetAll.cshtml" />
+    <Content Include="Views\Encounter\EncounterFilterGroup.cshtml" />
+    <Content Include="Views\Encounter\EncounterEntryTable.cshtml" />
+    <Content Include="Views\Encounter\EncounterInfoModal.cshtml" />
+    <Content Include="Views\EpisodeOfCare\ShowEOCContent.cshtml" />
+    <Content Include="Views\UserAdministration\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\UserAdministration\PersonnelFilterGroup.cshtml" />
+    <Content Include="Views\Code\NomineeAutocomplete.cshtml" />
+    <Content Include="Views\FieldInstanceHistory\FormInstanceHistory.cshtml" />
+    <Content Include="Views\FieldInstanceHistory\FormInstanceHistoryModal.cshtml" />
+    <Content Include="Views\FormInstance\FormInstanceContent.cshtml" />
+    <Content Include="Views\FormInstance\FormInstance.cshtml" />
+    <Content Include="Views\FormInstance\FormInstancePartial.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\ParagraphFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableParagraphField.cshtml" />
+    <Content Include="Views\Form\Fields\FieldParagraph.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\LinkFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableLinkField.cshtml" />
+    <Content Include="Views\Form\Fields\FieldLink.cshtml" />
+    <Content Include="Views\Form\Consensus\Users\ConsensusUsersList.cshtml" />
+    <Content Include="Views\Shared\DeleteModal.cshtml" />
+    <Content Include="Views\Task\TaskModal.cshtml" />
+    <Content Include="Views\Task\PatientTasks.cshtml" />
+    <Content Include="Views\Task\TaskEntryTable.cshtml" />
+    <Content Include="Views\Task\TaskFilterGroup.cshtml" />
+    <Content Include="Views\UserAdministration\UserBasicInfo.cshtml" />
+    <Content Include="Views\Organization\OrganizationCommunicationEntity.cshtml" />
+    <Content Include="Views\Organization\OrganizationCommunicationModal.cshtml" />
+    <Content Include="Views\Shared\SidebarForDataCaptureMode.cshtml" />
+    <Content Include="Views\Shared\HeaderForDataCaptureMode.cshtml" />
+    <Content Include="Views\FieldInstanceHistory\FormInstanceHistoryFilters.cshtml" />
+    <Content Include="Views\Encounter\EncountersForSelectedPatient.cshtml" />
+    <Content Include="Views\ProjectManagement\GetAll.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectFilterGroup.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectTable.cshtml" />
+    <Content Include="Views\ProjectManagement\Project.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectManagementTabs.cshtml" />
+    <Content Include="Views\ProjectManagement\TrialData.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectPersonnel\ProjectPersonnel.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectDocuments\ProjectDocuments.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectPersonnel\ProjectPersonnelTable.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectPersonnel\ProjectPersonnelFilterGroup.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectPersonnel\AddProjectPersonnelModal.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectDocuments\ProjectDocumentsFilterGroup.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectDocuments\ProjectDocumentsTable.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectDocuments\AddProjectDocumentsModal.cshtml" />
+    <Content Include="Views\Patient\PatientClinicalTrials.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectData.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\Helpers\CopyPasteHelper.cshtml" />
+    <Content Include="Views\Encounter\EncounterDoctors.cshtml" />
+    <Content Include="Views\Patient\PatientContactRow.cshtml" />
+    <Content Include="Views\ProjectManagement\GetAllUserProjects.cshtml" />
+    <Content Include="Views\ProjectManagement\ProjectForms.cshtml" />
+    <Content Include="Views\Organization\OrganizationValues.cshtml" />
+    <Content Include="Views\FormInstance\MissingValuesModal.cshtml" />
+    <Content Include="Views\Form\Common\CodesForMissingData.cshtml" />
+    <Content Include="Views\Form\Common\Obligatory.cshtml" />
+    <Content Include="Views\Form\Common\ObligatoryWithMissingValues.cshtml" />
+    <Content Include="Views\PatientList\PatientListsContainer.cshtml" />
+    <Content Include="Views\PatientList\PatientListModal.cshtml" />
+    <Content Include="Views\PatientList\GetAll.cshtml" />
+    <Content Include="Views\PatientList\PatientList.cshtml" />
+    <Content Include="Views\PatientList\Personnel\PatientListPersonnelTable.cshtml" />
+    <Content Include="Views\PatientList\Personnel\PatientListPersonnelTab.cshtml" />
+    <Content Include="Views\PatientList\Personnel\PatientListPersonnelFilterGroup.cshtml" />
+    <Content Include="Views\PatientList\PatientListFormTab.cshtml" />
+    <Content Include="Views\Home\TestAudioBasic.cshtml" />
+    <Content Include="Views\Patient\PatientBasicInfo.cshtml" />
+    <Content Include="Views\EpisodeOfCare\NoDocumentIsSelected.cshtml" />
+    <Content Include="Views\EpisodeOfCare\NoEncounters.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\CustomFields\AudioFieldForm.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\NestableFields\NestableAudioField.cshtml" />
+    <Content Include="Views\Form\Fields\FieldAudio.cshtml" />
+    <Content Include="Views\Encounter\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\Patient\EditPatientEncounters.cshtml" />
+    <Content Include="Views\Organization\OrganizationCommunicationEntityFilter.cshtml" />
+    <Content Include="Views\Organization\OrganizationCommunicationEntityTable.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\FieldInfoTabs.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\Dependency\FieldInfoDependencyConfiguration.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\Dependency\DependencyChooseVariableContainer.cshtml" />
+    <Content Include="Views\Form\DragAndDrop\Dependency\DependentOnFieldInfo.cshtml" />
+    <Content Include="Views\FormInstance\FormInstanceFieldSet.cshtml" />
+    <Content Include="Views\Shared\SelectOption.cshtml" />
+    <Content Include="Views\Form\Fields\Custom\BinaryDisplayElement.cshtml" />
+    <Content Include="Views\AdministrationApi\GetAll.cshtml" />
+    <Content Include="Views\AdministrationApi\AdministrationApiFilterGroup.cshtml" />
+    <Content Include="Views\AdministrationApi\AdvancedFilterModal.cshtml" />
+    <Content Include="Views\AdministrationApi\AdministrationApiEntryTable.cshtml" />
+    <Content Include="Views\AdministrationApi\AdministrationApiContent.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="wwwroot\js\libs\popper-1.16.1\index.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CSVExport\CSVExport.csproj" />
+    <ProjectReference Include="..\DocumentGenerator\DocumentGenerator.csproj" />
+    <ProjectReference Include="..\ExcelImporter\ExcelImporter.csproj" />
+    <ProjectReference Include="..\Generator\Generator.csproj" />
+    <ProjectReference Include="..\sReportsV2.BusinessLayer\sReportsV2.BusinessLayer.csproj" />
+    <ProjectReference Include="..\sReportsV2.Cache\sReportsV2.Cache.csproj" />
+    <ProjectReference Include="..\sReportsV2.Common\sReportsV2.Common.csproj" />
+    <ProjectReference Include="..\sReportsV2.DAL.Sql\sReportsV2.DAL.Sql.csproj" />
+    <ProjectReference Include="..\sReportsV2.Domain.Sql\sReportsV2.Domain.Sql.csproj" />
+    <ProjectReference Include="..\sReportsV2.Domain\sReportsV2.DAL.MongoDb.csproj" />
+    <ProjectReference Include="..\sReportsV2.DTOs\sReportsV2.DTOs.csproj" />
+    <ProjectReference Include="..\sReportsV2.Initializer\sReportsV2.Initializer.csproj" />
+    <ProjectReference Include="..\sReportsV2.UMLS\sReportsV2.UMLS.csproj" />
+    <ProjectReference Include="..\UmlsClient\UmlsClient.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="5.0.0" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Azure.Core" Version="1.42.0" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.1" />
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.2.0" />
+    <PackageReference Include="bootstrap" Version="5.3.3" />
+    <PackageReference Include="BundlerMinifier.Core" Version="3.2.449" />
+    <PackageReference Include="Common.Logging" Version="3.4.1" />
+    <PackageReference Include="Common.Logging.Core" Version="3.4.1" />
+    <PackageReference Include="DnsClient" Version="1.6.1" />
+    <PackageReference Include="Hl7.Fhir.ElementModel" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.R4" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.Serialization" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.Specification.R4" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.Support" Version="1.9.0" />
+    <PackageReference Include="Hl7.Fhir.Support.Poco" Version="1.9.0" />
+    <PackageReference Include="Hl7.FhirPath" Version="1.9.0" />
+    <PackageReference Include="jQuery" Version="3.7.1" />
+    <PackageReference Include="jQuery.UI.Combined" Version="1.13.2" />
+    <PackageReference Include="jQuery.Validation" Version="1.19.5" />
+    <PackageReference Include="jQuery.Validation.AdditionalMethods" Version="1.17.0" />
+    <PackageReference Include="JsonSubTypes" Version="1.8.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="8.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="16.9.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VersionCheckAnalyzer" Version="2.9.6" />
+    <PackageReference Include="Microsoft.CodeQuality.Analyzers" Version="2.9.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Graph" Version="3.25.0" />
+    <PackageReference Include="Microsoft.Graph.Core" Version="1.24.0" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.61.3" />
+    <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="7.1.2" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.4.1" />
+    <PackageReference Include="Microsoft.jQuery.Unobtrusive.Validation" Version="4.0.0" />
+    <PackageReference Include="Microsoft.NetCore.Analyzers" Version="2.9.6" />
+    <PackageReference Include="Microsoft.NetFramework.Analyzers" Version="2.9.6" />
+    <PackageReference Include="Microsoft.VisualStudio.SlowCheetah" Version="3.2.26" />
+    <PackageReference Include="Modernizr" Version="2.6.2" />
+    <PackageReference Include="MongoDB.Bson" Version="2.19.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.19.0" />
+    <PackageReference Include="MongoDB.Libmongocrypt" Version="1.7.0" />
+    <PackageReference Include="popper.js" Version="1.16.1" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.9" />
+    <PackageReference Include="Respond" Version="1.4.2" />
+    <PackageReference Include="RestSharp" Version="112.0.0" />
+    <PackageReference Include="SendGrid" Version="9.14.0" />
+    <PackageReference Include="Serilog" Version="4.0.1" />
+    <PackageReference Include="Serilog.Settings.AppSettings" Version="3.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="SharpCompress" Version="0.30.1" />
+    <PackageReference Include="Snappier" Version="1.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
+    <PackageReference Include="TimeZoneConverter" Version="3.5.0" />
+    <PackageReference Include="toastr" Version="2.1.1" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.6.2" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.CodeDom" Version="8.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
+    <PackageReference Include="System.Memory.Data" Version="8.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="System.Security.AccessControl" Version="6.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.1" />
+    <PackageReference Include="System.Security.Permissions" Version="8.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="wwwroot\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Dev|AnyCPU'">
+    <OutputPath>bin\</OutputPath>
+    <CodeAnalysisRuleSet>sReportsV2.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>55524</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:55524/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Target Name="BeforeBuild">
+  </Target>
+  <PropertyGroup>
+    <AutoParameterizationWebConfigConnectionStrings>false</AutoParameterizationWebConfigConnectionStrings>
+  </PropertyGroup>
+</Project>

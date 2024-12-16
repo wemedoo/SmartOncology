@@ -1,0 +1,50 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DTOs.Consensus.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@model FormDataOut
+@{
+    ConsensusQuestionnaireDataOut questionnaire = ViewBag.ConsensusQuestionnaire as ConsensusQuestionnaireDataOut;
+    bool canChange = questionnaire.CanChange;
+}
+<div class="consensus-body single-questionnaire">
+    <input type="hidden" id="formId" value="@Model.Id">
+    <input type="hidden" id="consensusInstanceId" value="@questionnaire.ConsensusInstanceId">
+    <input type="hidden" id="iterationId" value="@questionnaire.IterationId">
+    <input type="hidden" id="userId" value="@questionnaire.UserId">
+    <input type="hidden" id="isOutsideUser" value="@questionnaire.IsOutsideUser.ToJsBoolean()">
+    <input type="hidden" id="viewType" value="@questionnaire.ViewType">
+    <input type="hidden" id="showQuestionnaireType" value="@ResourceTypes.ConsensusInstance">
+    <div class="consensus-visible">
+        <div class="consensus-tabs-container">
+            <div class="consensus-tab expand-button active-item" onclick="setActiveTab('consensusQuestionnaire', this) ">
+                @sReportsV2.Cache.Resources.TextLanguage.Consensus_Questionnaire
+            </div>
+            <div class="consensus-tab expand-button" onclick="@(canChange ? "showQuestionnaireSaveModal()": "setActiveTab('consensusFormPreview', this)")" id="consensusFormPreviewTab">
+                @sReportsV2.Cache.Resources.TextLanguage.Form_Preview
+            </div>
+        </div>
+        <div id="consensusContainer">
+            @await Html.PartialAsync("~/Views/Form/Consensus/Questionnaire/ConsensusQuestionnairePartial.cshtml", Model)
+        </div>
+    </div>
+    @if (canChange)
+    {
+        <div class="button-wrapper-filter filter-button mt-2">
+            <button class="btn btn-filter-primary w-100 h-100 mb-2"
+                    id="questionnaireSaveButton" type="button"
+                    data-userid="@questionnaire.UserId"
+                    data-consensusid="@questionnaire.Consensus.Id"
+                    data-isoutsideuser="@questionnaire.IsOutsideUser.ToString()"
+                    onclick="saveConsensusInstance(event)">
+                @sReportsV2.Cache.Resources.TextLanguage.Submit
+            </button>
+        </div>
+        @await Html.PartialAsync("~/Views/Form/Consensus/Instance/QuestionnaireSaveModal.cshtml")
+    }
+
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/designer/consensus.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/designer/consensusInstance.js"), "", ""))
+</div>

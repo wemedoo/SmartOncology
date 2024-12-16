@@ -1,0 +1,37 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form;
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Constants;
+
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<FormDataOut, FormFilterDataIn>
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Designer;
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Designer }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Form_definitions
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Designer))
+        {
+            <button class="btn btn-create float-right" onclick="redirectToCreate()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+        }
+    </div>
+
+    @await Html.PartialAsync("FormFilterGroup")
+
+    <div id="tableContainer">
+
+    </div>
+
+</div>
+@await Html.PartialAsync("AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/formGetAll-bundle.min.js"))

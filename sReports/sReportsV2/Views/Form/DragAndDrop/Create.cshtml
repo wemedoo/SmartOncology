@@ -1,0 +1,65 @@
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Form_create;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ConsensusDataOut consensus = ViewBag.Consensus as ConsensusDataOut;
+    bool isEditingForbiddenDuringCF = consensus != null && consensus.GetActiveIteration().IsEditingForbiddenDuringCF();
+    bool readOnly = ViewBag.ReadOnly || isEditingForbiddenDuringCF;
+    ViewBag.ReadOnly = readOnly;
+}
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Extensions;
+@model FormDataOut
+
+@ScriptHelper.RenderStylesheet(Url.Content("/css/nestable.min.css"))
+
+<div class="designer-main-content position-relative">
+    <canvas id="designerCanvas">
+    </canvas>
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Designer }, { "linkLevel1", "/Form/GetAll" }, { "level2", Model != null && Model.Title != null ? Model.Title : @sReportsV2.Cache.Resources.TextLanguage.Form_create }, { "activeLevel", 2 } })
+    @if (isEditingForbiddenDuringCF)
+    {
+        <div class="consensus-hidden designer-cf-in-progress">
+            <img alt="" src="/css/img/icons/cf_warning.svg" />
+            <span class="cf-warning-message">@sReportsV2.Cache.Resources.TextLanguage.CF_Process_In_Progress</span>
+        </div>
+    }
+
+    <div class="dd-main-container" id="formTreeContainer">
+        @await Html.PartialAsync("~/Views/Form/DragAndDrop/FormTreeContainer.cshtml", Model)
+    </div>
+    <div id="consensusPartialContainer">
+        @*@if (Model != null)
+            {
+                @await Html.PartialAsync("~/Views/Form/Consensus/ConsensusPartial.cshtml", Model)
+            }*@
+    </div>
+</div>
+
+
+
+
+<div class="designer-form-modal fade" id="designerFormModal">
+    <div class="designer-form-modal-body">
+        <div class="close-designer-form-modal-button">
+
+        </div>
+        <div class="designer-form-modal-title">
+            <img alt="" src="/css/img/icons/editing.svg" />
+            <span class="designer-form-title-text"></span>
+        </div>
+        <div id="designerFormModalMainContent" class="designer-form-modal-main-content">
+            @sReportsV2.Cache.Resources.TextLanguage.Test
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/dragAndDrop-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderBundle("js/form-common-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderScript("https://cdn.tiny.cloud/1/vx3ljr86fkwhagchor89xd6fitmgvd5vziwkkvx6jt1uzuhs/tinymce/5/tinymce.min.js", "", ""))
+<script src="~/js/libs/ckeditor-4.14.0/ckeditor.js"></script>
+<script src="~/js/libs/ckeditor-4.14.0/adapters/jquery.js"></script>
+
+<script>
+    var readOnly = @readOnly.ToJsBoolean();
+</script>

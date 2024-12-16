@@ -1,0 +1,53 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Enums.DocumentPropertiesEnums;
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Name
+            </div>
+            <input type="text" class="filter-input" id="organizationName" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Name : "")">
+        </div>
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Clinical_Domain
+            </div>
+            <select class="filter-input arrow-select" id="organizationClinicalDomain">
+                <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.ClinicalDomains, readOnlyMode: true))
+                {
+                    <option id="@option.Id" @(ViewBag.FilterData.ClinicalDomainCD == option.Id? "selected" : "")>@option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)</option>
+                }
+            </select>
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Type
+            </div>
+            <select class="filter-input arrow-select" id="organizationType">
+                <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.OrganizationTypes, readOnlyMode: true))
+                {
+                    <option value="@option.Thesaurus.Id.ToString()" @(ViewBag.FilterData.Type == option.Thesaurus.Id.ToString() ? "selected" : "")>@option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)</option>
+                }
+            </select>
+        </div>
+        <div class="advanced-filter-item filter-item border-0 margin-top-15  margin-right-10">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="mainFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+            </div>
+        </div>
+        <div id="advancedId" class="advanced-filter-item filter-item border-0 margin-top-15" style="margin-right:unset;">
+            <div class="button-wrapper-filter" id="submitFilterButton">
+                <button class="btn w-100 h-100 float-right font-size-14 btn-advanced-link" onclick="advancedFilterModal(event)"><img alt="" class="display-none" src="/css/img/icons/advanced_filter.svg"> @sReportsV2.Cache.Resources.TextLanguage.Advanced_filter</button>
+            </div>
+        </div>
+    </div>
+   
+</div>
+
+<div id="filterElements" class="d-flex">
+
+</div>

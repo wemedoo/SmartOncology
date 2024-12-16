@@ -1,0 +1,73 @@
+﻿@using sReportsV2.DTOs.DTOs.PatientList;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+
+@model PatientListDTO
+
+@{
+    bool readOnly = ViewBag.ReadOnlyMode ?? false;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasAddPatientListUsersPermission = userCookieData.UserHasPermission(PermissionNames.AddPatientListUsers, ModuleNames.Patients);
+    bool hasViewPersonnelTablePermission = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration);
+}
+
+<div>
+
+    <div class="d-flex advanced-filter-header title-div">
+        @if (Model != null && Model.PatientListId > 0)
+        {
+            <img alt="" class="scroll-list-modal-icon" src="/css/img/icons/edit_pencil_04.svg" /> <p class="title-p">@sReportsV2.Cache.Resources.TextLanguage.Customize_List</p>
+        }
+        else
+        {
+            <img alt="" class="scroll-list-modal-icon" src="/css/img/icons/synoptic-icon.svg" /> <p class="title-p">@sReportsV2.Cache.Resources.TextLanguage.Add_New_List</p>
+        }
+    </div>
+
+    <div class="d-flex mt-3 mb-4">
+
+        @if (hasViewPersonnelTablePermission)
+        {
+            <div class="scroll-list-container mt-auto align-bottom @(Model != null && Model.PatientListPersonnelRelations != null && Model.PatientListPersonnelRelations.Count > 0 ? "" : "d-none")" style="width: inherit" id="">
+                <div id="scrollList" class="d-flex scroll-list-width-100">
+
+                    <div class="scroll-list-tab d-flex px-2 selected" id="first-patientlist-modal-tab" data-id="patientlist-form-tab">
+                        <div class="scroll-list-item-title px-3" title="@sReportsV2.Cache.Resources.TextLanguage.Customize_List">@sReportsV2.Cache.Resources.TextLanguage.Customize_List</div>
+                    </div>
+                    <div class="scroll-list-tab d-flex px-2" id="second-patientlist-modal-tab" data-id="patientlist-personnel-tab">
+                        <div class="scroll-list-item-title no-max-width-limit px-3" title="@sReportsV2.Cache.Resources.TextLanguage.Assign_List_to_Personnel">@sReportsV2.Cache.Resources.TextLanguage.Assign_List_to_Personnel (<span id="personnelHeaderCounter">@Model.PatientListPersonnelRelations.Count</span>)</div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (hasAddPatientListUsersPermission && !readOnly && Model != null && Model.PatientListId != 0)
+        {
+            <div class="btn-group float-right ml-auto mr-3 align-bottom mb-1 @(Model != null && Model.PatientListPersonnelRelations != null && Model.PatientListPersonnelRelations.Count > 0 ? "d-none" : "")" id="personnel-add-btn-group" title="@sReportsV2.Cache.Resources.TextLanguage.Add_Personnel">
+                <button id="AddPersonnelBtn" type="button" class="btn btn-create" onclick="showPersonnelToSelect()">
+                    <img alt="" class="pr-1" src="/css/img/icons/add_person_white.svg"> @sReportsV2.Cache.Resources.TextLanguage.Add_Personnel
+                </button>
+            </div>
+
+            <div class="d-none ml-auto" id="personnel-save-btn-group" style="max-height: 2rem; ">
+                <button id="identifier-modal-button2" class="submit-button right-button margin-left-13 py-auto px-4 h-100 p-0" type="button" style="outline: none;" onclick="addPersonnelToPatientList(event)" dismiss="modal">
+                    <span class="submit-patient-info"> @sReportsV2.Cache.Resources.TextLanguage.Save_Personnel</span>
+                </button>
+
+                <div class="button-wrapper-filter float-right" id="" onclick="closePersonnelSelection()">
+                    <a class="btn advanced-cancel">
+                        @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                    </a>
+                </div>
+            </div>
+        }
+
+    </div>
+
+
+    @await Html.PartialAsync("~/Views/PatientList/PatientListFormTab.cshtml", Model)
+
+    @await Html.PartialAsync("~/Views/PatientList/Personnel/PatientListPersonnelTab.cshtml")
+
+</div>

@@ -1,0 +1,18 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@model DependentOnFieldInfoDataOut
+
+<div data-field-id="@Model.FieldId"
+     data-field-value-id="@Model.FieldValueId"
+     data-field-type="@Model.FieldType"
+     class="field-variable-item"
+     >
+    <div class="variable-cell"><input data-no-color-change="true" value="@Model.Variable" type="text" name="dependencyVariable" class="form-control filter-input" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Type ..." @ViewBag.Disabled /></div>
+    <div class="field-cell" title=""></div>
+    <div class="actions-cell">
+        <img alt="" src="/css/img/icons/display_field_variable.svg" class="display-variable-field" title="@sReportsV2.Cache.Resources.TextLanguage.View">
+        @if (!ViewBag.ReadOnly)
+        {
+            <img alt="" src="/css/img/icons/remove_field_variable.png" class="remove-variable-field" title="@sReportsV2.Cache.Resources.TextLanguage.Remove">
+        }
+    </div>
+</div>

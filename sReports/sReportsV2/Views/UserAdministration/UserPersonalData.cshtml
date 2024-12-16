@@ -1,0 +1,309 @@
+﻿@using Newtonsoft.Json
+@using System.Globalization
+@using sReportsV2.DTOs.DTOs.User.DTO;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+@model sReportsV2.DTOs.Common.DataOut.UserDataOut
+
+@{
+    string disabled = ViewBag.Disabled != null ? ViewBag.Disabled : string.Empty;
+    bool readOnly = ViewBag.ReadOnly;
+    string activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
+    bool passwordDisabled = Model != null && Model.Email == null;
+    var userRoles = Model != null && Model.PersonnelPossitions.Count > 0 ? Model.PersonnelPossitions.ToList() : new List<int>();
+    var userAcademicPositions = Model != null && Model.AcademicPositions.Count > 0 ? Model.AcademicPositions.ToList() : new List<UserAcademicPositionDTO>();
+    string academicPositionsJson = JsonConvert.SerializeObject(ViewBag.AcademicPositions);
+    string inactiveAcademicPositionsJson = JsonConvert.SerializeObject(ViewBag.InactiveAcademicPositions);
+    string selectedPositionIdsJson = JsonConvert.SerializeObject(userAcademicPositions);
+    int userAcademicPositionsCount = userAcademicPositions.Count;
+    string rolesJson = JsonConvert.SerializeObject(ViewBag.Roles);
+    string inactiveRolesJson = JsonConvert.SerializeObject(ViewBag.InactiveRoles);
+    string selectedRolesIdsJson = JsonConvert.SerializeObject(userRoles.Select(position => position));
+    int userRolesCount = userRoles.Count;
+}
+
+<input type="hidden" id="medicalDoctorCodeId" value="@ViewBag.MedicalDoctorCodeId" />
+<div class="d-flex">
+    <div class="user-input-group">
+        <div class="organization-title">
+            @sReportsV2.Cache.Resources.TextLanguage.Personal_Data
+            @if (Model != null && ViewBag.UserCookieData.Id == Model.Id && !readOnly)
+            {
+                <button type="button" class="btn btn-add-new ml-2" onclick="showChangePasswordModal(event, @Model.Id)">
+                    <i class="fas fa-edit resize-circle"></i> <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.ChangePassword</span>
+                </button>
+            }
+        </div>
+        @if (Model == null)
+        {
+            <div id="registrationTypeId" class="advanced-filter-item input-margin">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.RegistrationType
+                </div>
+                <select class="filter-input arrow-select bg-white" id="registrationType">
+                    @foreach (var registrationType in Enum.GetValues(typeof(RegistrationType)))
+                    {
+                        <option value="@registrationType">@registrationType</option>
+                    }
+                </select>
+            </div>
+        }
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Title
+            </div>
+            <select class="filter-input arrow-select bg-white" id="prefix" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.UserPrefix)">
+                <option value=""></option>
+                @{
+                    var userPrefixs = ViewBag.UserPrefixes as List<CodeDataOut>;
+                    var filteredUserPrefixes = ObjectExtension.FilterDataSource(userPrefixs);
+                    bool selectedUserPrefixesExists = false;
+                    foreach (var userPrefix in filteredUserPrefixes)
+                    {
+                        bool isSelected = Model != null && userPrefix.Id == Model.PrefixId;
+                        selectedUserPrefixesExists |= isSelected;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(userPrefix, false, isSelected))
+                    }
+                    if (Model != null && Model.PrefixId != null && !selectedUserPrefixesExists)
+                    {
+                        ViewBag.SelectedId = Model.PrefixId;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(userPrefixs.Find(x => x.Id == Model.PrefixId), true, true))
+                    }
+                }
+            </select>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.AcademicPosition
+            </div>
+            <select id="academicPosition" class="sreports-select2-multiple" name="newAcademicPositionSelect2" multiple="multiple" data-codesetid="@((int)CodeSetList.AcademicPosition)" @ViewBag.Disabled>
+            </select>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.FirstName <div class="label-required">*</div>
+            </div>
+            <input required class="filter-input" type="text" id="firstName" name="FirstName" value="@(Model != null && Model.FirstName != null ? Model.FirstName : "")" @ViewBag.Disabled />
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.MiddleName
+            </div>
+            <input class="filter-input" type="text" id="middleName" name="MiddleName" value="@(Model != null && Model.MiddleName != null ? Model.MiddleName : "")" placeholder='@sReportsV2.Cache.Resources.TextLanguage.Optional' @ViewBag.Disabled />
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.LastName <div class="label-required">*</div>
+            </div>
+            <input required class="filter-input" type="text" id="lastName" name="LastName" value="@(Model != null && Model.LastName != null ? Model.LastName : "")" @ViewBag.Disabled />
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Date_of_birth
+            </div>
+            <div class="position-relative datetime-picker-container">
+                @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                {
+                    InputAttributes = new Dictionary<object, object> {
+                        { "class", "filter-input" },
+                        { "id", "dayOfBirth" },
+                        { "name", "dayOfBirth" },
+                        { "value", Model != null && Model.DayOfBirth != null ? Model.DayOfBirth.ToTimeZonedDateTime(ViewBag.UserCookieData.TimeZoneOffset as string).Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                        { disabled, null }
+                    },
+                    InputBtnAttributes = new Dictionary<object, object> {
+                        { "class", "date-img dynamic-form" },
+                        { @Html.DateTimeDisabled(readOnly), null }
+                    },
+                })
+            </div>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.BusinessEmail
+                @if (!passwordDisabled)
+                {
+                    <div id="emailRequired" class="label-required">*</div>
+                }
+            </div>
+            <div class="position-relative">
+                <input required class="filter-input email" type="text" id="email" name="Email" value="@(Model != null && Model.Email != null ? Model.Email : "")" @ViewBag.Disabled @(passwordDisabled ? "disabled" : "") />
+                <i id="emailValid" class="fas username-validate-icon"></i>
+            </div>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.PersonalEmail
+            </div>
+            <div class="position-relative">
+                <input class="filter-input email" type="text" id="personalEmail" name="PersonalEmail" value="@(Model != null && Model.PersonalEmail != null ? Model.PersonalEmail : "")" @ViewBag.Disabled />
+            </div>
+        </div>
+    </div>
+    <div class="user-input-group">
+        <div class="organization-title">
+            @sReportsV2.Cache.Resources.TextLanguage.SystemProfile
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.PersonnelType <div class="label-required">*</div>
+            </div>
+            <select required class="filter-input arrow-select bg-white" id="personnelType" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.PersonnelType)">
+                <option value=""></option>
+                @{
+                    var personnelTypes = ViewBag.PersonnelTypes as List<CodeDataOut>;
+                    var filteredPersonnelTypes = ObjectExtension.FilterDataSource(personnelTypes);
+                    bool selectedPersonnelTypesExists = false;
+                    foreach (var personnelType in filteredPersonnelTypes)
+                    {
+                        bool isSelected = Model != null && personnelType.Id == Model.PersonelTypeId;
+                        selectedPersonnelTypesExists |= isSelected;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(personnelType, false, isSelected))
+                    }
+                    if (Model != null && Model.PersonelTypeId != null && !selectedPersonnelTypesExists)
+                    {
+                        ViewBag.SelectedId = Model.PersonelTypeId;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(personnelTypes.Find(x => x.Id == Model.PersonelTypeId), true, true))
+                    }
+                }
+            </select>
+        </div>
+        <div class="advanced-filter-item input-margin @(Model == null ? "d-none": "")" id="systemIdInput">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.SystemId
+            </div>
+            <div class="position-relative">
+                <input class="filter-input" type="text" id="systemId" value="@(Model != null ? Model.Id.ToString() : "")" readonly placeholder='@sReportsV2.Cache.Resources.TextLanguage.Optional' @ViewBag.Disabled />
+            </div>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Username <div class="label-required">*</div>
+            </div>
+            <div class="position-relative">
+                <input required class="filter-input" @Html.ReadOnly(Model != null && !string.IsNullOrWhiteSpace(Model.Username)) type="text" id="username" name="Username" value="@(Model != null && Model.Username != null ? Model.Username : "")" @ViewBag.Disabled />
+                <i id="usernameValid" class="fas username-validate-icon"></i>
+            </div>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.OccupationCategory <div class="label-required">*</div>
+            </div>
+            <select required class="filter-input arrow-select bg-white" id="occupationCategory" name="occupationCategory" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.OccupationCategory)">
+                <option value=""></option>
+                @{
+                    var occupationCategories = ViewBag.OccupationCategories as List<CodeDataOut>;
+                    var filteredOccupationCategories = ObjectExtension.FilterDataSource(occupationCategories);
+                    bool selectedOccupationCategoriesExists = false;
+                    foreach (var occupationCategory in filteredOccupationCategories)
+                    {
+                        bool isSelected = Model != null && Model.PersonnelOccupation != null && occupationCategory.Id == Model.PersonnelOccupation.OccupationCategoryCD;
+                        selectedOccupationCategoriesExists |= isSelected;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(occupationCategory, false, isSelected))
+                    }
+                    if (Model != null && Model.PersonnelOccupation != null && Model.PersonnelOccupation.OccupationCategoryCD != null && !selectedOccupationCategoriesExists)
+                    {
+                        ViewBag.SelectedId = Model.PersonnelOccupation.OccupationCategoryCD;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(occupationCategories.Find(x => x.Id == Model.PersonnelOccupation.OccupationCategoryCD), true, true))
+                    }
+                }
+            </select>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.OccupationSubCategory <div class="label-required">*</div>
+            </div>
+            <select required class="filter-input arrow-select bg-white" id="occupationSubCategory" name="occupationSubCategory" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.OccupationSubCategory)">
+                <option value=""></option>
+                @{
+                    var occupationSubCategories = ViewBag.OccupationSubCategories as List<CodeDataOut>;
+                    var filteredOccupationSubCategories = ObjectExtension.FilterDataSource(occupationSubCategories);
+                    bool selectedOccupationSubCategoriesExists = false;
+                    foreach (var occupationSubCategory in filteredOccupationSubCategories)
+                    {
+                        bool isSelected = Model != null && Model.PersonnelOccupation != null && occupationSubCategory.Id == Model.PersonnelOccupation.OccupationSubCategoryCD;
+                        selectedOccupationSubCategoriesExists |= isSelected;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(occupationSubCategory, false, isSelected))
+                    }
+                    if (Model != null && Model.PersonnelOccupation != null && Model.PersonnelOccupation.OccupationSubCategoryCD != null && !selectedOccupationSubCategoriesExists)
+                    {
+                        ViewBag.SelectedId = Model.PersonnelOccupation.OccupationSubCategoryCD;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(occupationSubCategories.Find(x => x.Id == Model.PersonnelOccupation.OccupationSubCategoryCD), true, true))
+                    }
+                }
+            </select>
+        </div>
+        <div class="advanced-filter-item input-margin">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Occupation <div class="label-required">*</div>
+            </div>
+            <select required class="filter-input arrow-select bg-white" id="occupation" name="occupation" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.Occupation)">
+                <option value=""></option>
+                @{
+                    var occupationEnumCategories = ViewBag.Occupations as List<CodeDataOut>;
+                    var filteredOccupationEnumCategories = ObjectExtension.FilterDataSource(occupationEnumCategories);
+                    bool selectedOccupationEnumCategoriesExists = false;
+                    foreach (var occupationEnumCategory in filteredOccupationEnumCategories)
+                    {
+                        bool isSelected = Model != null && Model.PersonnelOccupation != null && occupationEnumCategory.Id == Model.PersonnelOccupation.OccupationCD;
+                        selectedOccupationEnumCategoriesExists |= isSelected;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(occupationEnumCategory, false, isSelected))
+                    }
+                    if (Model != null && Model.PersonnelOccupation != null && Model.PersonnelOccupation.OccupationCD != null && !selectedOccupationEnumCategoriesExists)
+                    {
+                        ViewBag.SelectedId = Model.PersonnelOccupation.OccupationCD;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(occupationEnumCategories.Find(x => x.Id == Model.PersonnelOccupation.OccupationCD), true, true))
+                    }
+                }
+            </select>
+        </div>
+        <div id="seniorityDiv" class="advanced-filter-item input-margin" hidden>
+            <div class="label filter-label" id="seniorityLabel">
+                @sReportsV2.Cache.Resources.TextLanguage.Seniority
+            </div>
+            <select class="filter-input arrow-select bg-white" id="personnelSeniority" name="personnelSeniority" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.PersonnelSeniority)">
+                <option value=""></option>
+                @{
+                    var personnelSeniorities = ViewBag.PersonnelSeniorities as List<CodeDataOut>;
+                    var filteredPersonnelSeniorities = ObjectExtension.FilterDataSource(personnelSeniorities);
+                    bool selectedSenioritiesExists = false;
+                    foreach (var personnelSeniorityEnum in filteredPersonnelSeniorities)
+                    {
+                        bool isSelected = Model != null && Model.PersonnelOccupation != null && personnelSeniorityEnum.Id == Model.PersonnelOccupation.PersonnelSeniorityCD;
+                        selectedSenioritiesExists |= isSelected;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(personnelSeniorityEnum, false, isSelected))
+                    }
+                    if (Model != null && Model.PersonnelOccupation != null && Model.PersonnelOccupation.PersonnelSeniorityCD != null && !selectedSenioritiesExists)
+                    {
+                        ViewBag.SelectedId = Model.PersonnelOccupation.PersonnelSeniorityCD;
+                        @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(personnelSeniorities.Find(x => x.Id == Model.PersonnelOccupation.PersonnelSeniorityCD), true, true))
+                    }
+                }
+            </select>
+        </div>
+        @await Html.PartialAsync("UserRolesForm", Model)
+        @if (!ViewBag.UserAdministration)
+        {
+            @await Html.PartialAsync("UserRolesDisplay", Model)
+        }
+    </div>
+
+</div>
+
+<div class="margin-bottom-35">
+    @await Html.PartialAsync("AddressTable", Model != null ? Model.Addresses : new List<sReportsV2.DTOs.Common.AddressDTO>(), new ViewDataDictionary(ViewData) { { "activeAddressContainer", "personnelAddresses" }, { "customTableTitle", sReportsV2.Cache.Resources.TextLanguage.UserAddressData } })
+</div>
+<div class="modal fade" id="userInfoModal" role="dialog"></div>
+
+<script>
+    var academicPositions = @Html.Raw(academicPositionsJson);
+    var inactiveAcademicPositions = @Html.Raw(inactiveAcademicPositionsJson);
+    var selectedPositionIds = @Html.Raw(selectedPositionIdsJson);
+    var userAcademicPositionsCount = @userAcademicPositionsCount;
+    var roles = @Html.Raw(rolesJson);
+    var inactiveRoles = @Html.Raw(inactiveRolesJson);
+    var selectedRolesIds = @Html.Raw(selectedRolesIdsJson);
+    var userRolesCount = @userRolesCount;
+    var activeLanguage = '@activeLanguage';
+</script>

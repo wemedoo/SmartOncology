@@ -1,0 +1,140 @@
+﻿@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model sReportsV2.DTOs.DTOs.Organization.DataOut.OrganizationCommunicationEntityDataOut
+
+@{
+    var readOnly = ViewBag.IsReadOnly;
+    string modalTitle = Model.OrgCommunicationEntityId == 0 ? @sReportsV2.Cache.Resources.TextLanguage.NewCommunicationSystemEntity
+        : readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewCommunicationSystemEntity : @sReportsV2.Cache.Resources.TextLanguage.EditCommunicationSystemEntity;
+    string disabled = readOnly ? "disabled" : "";
+}
+
+<input type="hidden" id="orgCommunicationEntityId" value="@(Model != null ? Model.OrgCommunicationEntityId : 0)" />
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-content-password">
+        <div class="float-right filter-close-btn">
+            <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+        </div>
+        <div class="modal-body">
+            <div class="form-group col-md-12">
+
+                <form id="newOrgCommunicationForm">
+                    <div class="d-flex advanced-filter-header">
+                        @modalTitle
+                    </div>
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.DisplayName
+                        </div>
+                        <input required class="filter-input" type="text" id="displayName" name="displayName" value="@(Model.DisplayName != null ? Model.DisplayName : "")" @disabled />
+                    </div>
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.OrganizationCommunicationEntity
+                        </div>
+                        <select class="filter-input arrow-select" id="orgCommunicationEntity" name="orgCommunicationEntity" @disabled data-codesetid="@((int)CodeSetList.OrganizationCommunicationEntity)">
+                            <option value=""></option>
+                            @{
+                                var orgCommunicationEntitys = ViewBag.OrgCommunicationEntities as List<CodeDataOut>;
+                                var filteredOrgCommunicationEntities = ObjectExtension.FilterDataSource(orgCommunicationEntitys);
+                                bool selectedOrgCommunicationEntitiesExists = false;
+                                foreach (var orgCommunicationEntity in filteredOrgCommunicationEntities)
+                                {
+                                    bool isSelected = Model != null && orgCommunicationEntity.Id == Model.OrgCommunicationEntityCD;
+                                    selectedOrgCommunicationEntitiesExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(orgCommunicationEntity, false, isSelected))
+                                }
+                                if (Model != null && Model.OrgCommunicationEntityCD != null && !selectedOrgCommunicationEntitiesExists)
+                                {
+                                    ViewBag.SelectedId = Model.OrgCommunicationEntityCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(orgCommunicationEntitys.Find(x => x.Id == Model.OrgCommunicationEntityCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.PrimaryCommunicationSystem
+                        </div>
+                        <select required class="filter-input arrow-select" id="primaryCommunicationSystem" name="primaryCommunicationSystem" @disabled data-codesetid="@((int)CodeSetList.CommunicationSystem)">
+                            <option value=""></option>
+                            @{
+                                var primaryCommunicationSystems = ViewBag.PrimaryCommunicationSystems as List<CodeDataOut>;
+                                var filteredPrimaryCommunicationSystems = ObjectExtension.FilterDataSource(primaryCommunicationSystems);
+                                bool selectedPrimaryCommunicationSystemsExists = false;
+                                foreach (var primaryCommunicationSystem in filteredPrimaryCommunicationSystems)
+                                {
+                                    bool isSelected = Model != null && primaryCommunicationSystem.Id == Model.PrimaryCommunicationSystemCD;
+                                    selectedPrimaryCommunicationSystemsExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(primaryCommunicationSystem, false, isSelected))
+                                }
+                                if (Model != null && Model.PrimaryCommunicationSystemCD != null && !selectedPrimaryCommunicationSystemsExists)
+                                {
+                                    ViewBag.SelectedId = Model.PrimaryCommunicationSystemCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(primaryCommunicationSystems.Find(x => x.Id == Model.PrimaryCommunicationSystemCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.ActiveFrom
+                        </div>
+                        <input required class="filter-input" type="hidden" id="newActiveFromDefault">
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                   {
+                       InputAttributes = new Dictionary<object, object> {
+                                    { "class", "filter-input" },
+                                    { "id", "activeFromDefault" },
+                                    { "value", Model != null && Model.ActiveFrom != default(DateTimeOffset) ? Model.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string) : "" },
+                                    { @disabled, null}
+                                },
+                       InputBtnAttributes = new Dictionary<object, object> {
+                                    { "class", "date-img" },
+                                    { "onClick", "showDatePicker(event)"}
+                                },
+                   })
+                    </div>
+
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.ActiveTo
+                        </div>
+                        <input required class="filter-input" type="hidden" id="newActiveToDefault">
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                        {
+                            InputAttributes = new Dictionary<object, object> {
+                                { "class", "filter-input" },
+                                { "id", "activeToDefault" },
+                                { "value", Model != null && Model.ActiveTo != default(DateTimeOffset) ? Model.ActiveTo.ToDateZoned(ViewBag.DateFormat as string) : "" },
+                                { @disabled, null}
+                            },
+                            InputBtnAttributes = new Dictionary<object, object> {
+                                { "class", "date-img" },
+                                { "onClick", "showDatePicker(event)"}
+                            },
+                        })
+                    </div>
+
+                    @if (!readOnly)
+                    {
+                        <div class="button-partial">
+                            <button id="identifier-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="addNewOrgCommunication(event)" dismiss="modal">
+                                <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                            </button>
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

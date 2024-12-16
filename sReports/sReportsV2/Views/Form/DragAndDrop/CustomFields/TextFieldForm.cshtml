@@ -1,0 +1,21 @@
+﻿
+@using sReportsV2.DTOs.Field.DataOut
+@model FieldTextDataOut
+
+@await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+<div class="designer-form-section">
+
+    <div class="designer-form-input-group two-margins">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Min_Length
+        </div>
+        <input class="designer-form-input" id="minLength" name="minLength" type="text" value="@(Model != null && Model.MinLength != null ? Model.MinLength.ToString() : "")" @ViewBag.Disabled/>
+    </div>
+    <!--
+  --><div class="designer-form-input-group  two-margins">
+         <div class="label filter-label">
+             @sReportsV2.Cache.Resources.TextLanguage.Max_Length
+         </div>
+    <input class="designer-form-input" id="maxLength" name="maxLength" type="text" value="@(Model != null && Model.MaxLength != null ? Model.MaxLength.ToString() : "")" @ViewBag.Disabled/>
+    </div>
+</div>

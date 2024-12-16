@@ -1,0 +1,140 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.DTOs.ThesaurusEntry.DTO
+
+@{
+    ThesaurusEntryTranslationDTO translation = null;
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> states = ViewBag.ThesaurusStates as List<CodeDataOut>;
+}
+
+    <div class="translations-language-background">
+        <div class="advanced-filter-item input-margin margin-bottom-0 translations-language display-container">
+            <div class="atoms margin-right-20">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.SelectLanguage
+                </div>
+                <select class="filter-input arrow-select patient-background" id="selectedLanguage" style="-webkit-appearance: none;" @ViewBag.Disabled>
+                    @foreach (var language in ViewBag.Languages)
+                    {
+                        if (language.Value == ViewBag.UserCookieData.ActiveLanguage)
+                        {
+                            <option value="@language.Value" selected>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(language.Label)</option>
+                        }
+                        else
+                        {
+                            <option value="@language.Value">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(language.Label)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="atoms">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.State_
+                </div>
+                <select class="filter-input arrow-select patient-background" id="thesaurusState" name="thesaurusState" style="-webkit-appearance: none;" required @ViewBag.Disabled>
+                @foreach (var option in ObjectExtension.FilterDataSource(states, readOnlyMode: true).Take(4))
+                {
+                    <option value="@option.Id" @(Model != null && Model.StateCD != null && Model.StateCD == option.Id ? "selected" : "")>
+                        @option.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage)
+                    </option>
+                }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="translations-language padding-bottom-10">
+
+        <div class="tab-content" id="myTabContent">
+            @foreach (sReportsV2.DTOs.EnumDTO language in ViewBag.Languages)
+            {
+                translation = Model != null ? Model.GetTranslation(language.Value) : null;
+                <div class="tab-pane fade @(language.Value == ViewBag.UserCookieData.ActiveLanguage ? "show active" : "")" id="@language.Value" role="tabpanel" aria-labelledby="@language.Value-tab">
+
+                    <div style="display: flex">
+                        <div class="advanced-filter-item input-margin padding-right-10">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Preferred_term
+                            </div>
+                            <input class="filter-input" name="preferredTerm-@(language.Value)" id="preferredTerm-@(language.Value)" type="text" value="@(Model != null ? translation.PreferredTerm : "")" required placeholder="@sReportsV2.Cache.Resources.TextLanguage.Preferred" @ViewBag.Disabled/>
+                        </div>
+                        <div class="advanced-filter-item input-margin padding-left-10">
+                            <div class="label filter-label">
+                                O4.0MT ID
+                            </div>
+                            <input class="filter-input" readonly name="O40MTID" data-type="O40MTID" disabled value="@(Model != null ? Model.Id.ToString() : "")" style="background-color: white" />
+                        </div>
+                    </div>
+
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Definition
+                        </div>
+                        @if (language.Value == ViewBag.UserCookieData.ActiveLanguage as string)
+                        {
+                            <textarea type="text" rows="10" name="definition-@(language.Value)" id="definition-@(language.Value)" class="filter-input definition-max-height" value="@(Model != null ? translation.Definition : "")" required @ViewBag.Disabled>@(Model != null ? translation.Definition : "")</textarea>
+                        }
+                        else
+                        {
+                            <textarea type="text" rows="10" name="definition-@(language.Value)" id="definition-@(language.Value)" class="filter-input definition-max-height" value="@(Model != null ? translation.Definition : "")" @ViewBag.Disabled>@(Model != null ? translation.Definition : "")</textarea>
+                        }
+                    </div>
+
+                    <div class="tag-container synonym-container synonyms-width mb-2">
+                        <div class="advanced-filter-item input-margin margin-bottom-0 padding-right-10">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Synonyms
+                            </div>
+                            <i class="fas fa-plus-circle plus-button-synonym" data-language="@(language.Value)" data-tag="synonym"></i>
+                            <input type="text" class="filter-input tag-input" data-language="@(language.Value)" data-tag="synonym" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Type_synonym" @ViewBag.Disabled/>
+                            <div class="tag-values synonym-values" id="synonym-values-@(language.Value)">
+                                @if (Model != null && translation != null && translation.Synonyms != null)
+                                {
+                                    foreach (string s in translation.Synonyms)
+                                    {
+                                        <div id="tag-@s.ReplaceNonAlphaCharactersWithDash()-synonym-@language.Value" class="tags-element synonyms-element">
+                                            <span class="single-tag-value" data-info="tag-value-synonym-@language.Value">@s</span>
+                                            @if (!ViewBag.ReadOnly)
+                                            {
+                                                <img alt="" src="/css/img/icons/Administration_remove.svg" class="ml-2 tag-value tag-value-synonym" data-id="@s.ReplaceNonAlphaCharactersWithDash()" data-action="remove-tag" data-tag="synonym" data-language="@(language.Value)">
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <div class="advanced-filter-item input-margin margin-bottom-0 padding-left-10">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Abbreviation
+                            </div>
+                            <input type="text" class="filter-input tag-input" data-language="@(language.Value)" data-tag="abbreviation" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Type_abbreaviation" @ViewBag.Disabled/>
+                            <i class="fas fa-plus-circle plus-button-synonym" data-language="@(language.Value)" data-tag="abbreviation"></i>
+                            <div class="tag-values abbreviation-values" id="abbreviation-values-@(language.Value)">
+                                @if (Model != null && translation != null && translation.Abbreviations != null)
+                                {
+                                    foreach (string s in translation.Abbreviations)
+                                    {
+                                <div id="tag-@s.ReplaceNonAlphaCharactersWithDash()-abbreviation-@language.Value" class="tags-element synonyms-element">
+                                    <span class="single-tag-value" data-info="tag-value-abbreviation-@language.Value">@s</span>
+                                    @if (!ViewBag.ReadOnly)
+                                    {
+                                        <img alt="" src="/css/img/icons/Administration_remove.svg" class="ml-2 tag-value tag-value-synonym" data-id="@s.ReplaceNonAlphaCharactersWithDash()" data-action="remove-tag" data-tag="abbreviation" data-language="@(language.Value)">
+                                    }
+                                </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                   
+                    </div>
+
+                
+
+                </div>
+            }
+        </div>
+
+    </div>

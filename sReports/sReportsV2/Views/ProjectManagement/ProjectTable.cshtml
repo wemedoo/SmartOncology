@@ -1,0 +1,94 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.DTOs.DTOs.ProjectManagement.DataOut;
+@using sReportsV2.Common.Extensions;
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    bool hasUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.ProjectManagement);
+    bool hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ProjectManagement);
+    bool hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.ProjectManagement);
+    List<CodeDataOut> projectTypes = ViewBag.ProjectTypes as List<CodeDataOut>;
+    bool showUserProjects = ViewBag.ShowUserProjects;
+}
+
+<div class="table-responsive">
+    <table class="table table-striped table-border">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="ProjectName" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ProjectName')">@sReportsV2.Cache.Resources.TextLanguage.ProjectName.ToUpper()</th>
+                <th id="ProjectType" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ProjectType')">@sReportsV2.Cache.Resources.TextLanguage.ProjectType.ToUpper()</th>
+                <th id="ProjectStartDateTime" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ProjectStartDateTime')">@sReportsV2.Cache.Resources.TextLanguage.ProjectStartDateTime.ToUpper()</th>
+                <th id="ProjectEndDateTime" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ProjectEndDateTime')">@sReportsV2.Cache.Resources.TextLanguage.ProjectEndDateTime.ToUpper()</th>
+                <th style="border-bottom: unset;border-top: unset;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (ProjectDataOut entry in Model.Data)
+            {
+                <tr id="row-@entry.ProjectId" class="table-content-row row-patient-preview row-shown">
+                    <td class="trial-row-title" onclick="@(showUserProjects ? "viewProjectForms" : "editEntity")(event, '@entry.ProjectId')">
+                        @entry.ProjectName
+                    </td>
+                    <td class="trial-row-status" onclick="@(showUserProjects ? "viewProjectForms" : "editEntity")(event, '@entry.ProjectId')">
+                        @entry.GetProjectType(activeLanguage, projectTypes)
+                    </td>
+                    <td class="trial-row-sponsorname" onclick="@(showUserProjects ? "viewProjectForms" : "editEntity")(event, '@entry.ProjectId')">
+                        @(entry.ProjectStartDateTime != null ? entry.ProjectStartDateTime.ToTimeZoned(ViewBag.DateFormat as string) : "")
+                    </td>
+                    <td class="trial-row-sponsorname" onclick="@(showUserProjects ? "viewProjectForms" : "editEntity")(event, '@entry.ProjectId')">
+                        @(entry.ProjectEndDateTime != null ? entry.ProjectEndDateTime.ToTimeZoned(ViewBag.DateFormat as string) : "")
+                    </td>
+                    @if (!showUserProjects)
+                    {
+                        <td>
+                            @if (hasUpdatePerm || hasDeletePerm || hasViewPerm)
+                            {
+                                var projectId = entry.ProjectId;
+                                <div class="dropdown show">
+                                    <a class="dropdown-button" href="#" data-toggle="dropdown" role="button" id="dropdownMenuLink-@projectId" aria-haspopup="true" aria-expanded="false">
+                                        <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@projectId">
+                                        @if (hasUpdatePerm)
+                                        {
+                                            <a class="dropdown-item" href="#" onclick="editEntity(event,'@projectId')"><img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit</a>
+                                        }
+                                        @if (hasViewPerm)
+                                        {
+                                            <a class="dropdown-item" href="#" onclick="viewEntity(event,'@projectId')"><img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View</a>
+                                        }
+                                        @if (hasDeletePerm)
+                                        {
+                                            <a class="dropdown-item" href="#" onclick="removeProject(event, '@projectId')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</a>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </td>
+                    }
+                    else 
+                    {
+                        <td onclick="viewProjectForms(event, '@entry.ProjectId')" style="text-align: center;">
+                            <img alt="" class="folder-img" src="/css/img/icons/folder.png">
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Data.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+    @if (Model.Data.Count > 0)
+    {
+        <div class="pager-container">
+            @await Html.PartialAsync("Pagination")
+        </div>
+    }
+</div>

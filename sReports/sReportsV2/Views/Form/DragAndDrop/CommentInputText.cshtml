@@ -1,0 +1,14 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@{ 
+    var commentId = ViewBag.CommentId;
+    List<CodeDataOut> commentStates = ViewBag.CommentStates as List<CodeDataOut>;
+    int? createdCommentStateCD = commentStates?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Created))?.Id;
+}
+<div id="dropdownSearch" class="position-relative dropdown-search comment-input-div">
+    <div class="search-user">
+        <div contenteditable="true" class="designer-form-input filter-input comment-text" data-text="Comment" id="commentText_@commentId" data-id="@commentId" data-commentstate="@createdCommentStateCD"><div><br /></div></div>
+    </div>
+    <div id="userOptions" class="clinical-domain-options user-options" data-id="@commentId">
+    </div>
+</div>

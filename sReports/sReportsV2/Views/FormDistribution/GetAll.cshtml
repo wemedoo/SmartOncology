@@ -1,0 +1,13 @@
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.Form.DataOut.FormDataOut
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Simulator;
+}
+<div class="element-background-grey">
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Simulator }, { "activeLevel", 1 } })
+    <div class="">
+        @await Html.PartialAsync("~/Views/FormDistribution/GetAllForms.cshtml")
+    </div>
+</div>
+@Html.Raw(ScriptHelper.RenderBundle("js/simulator-bundle.min.js"))

@@ -1,0 +1,49 @@
+﻿@using sReportsV2.Common.Extensions;
+
+<div class="d-flex alias-filter-group alias-border">
+    <div class="d-flex main-filter">
+
+        <div class="filter-item code advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.CodeValue
+            </div>
+            <input type="text" class="filter-input" id="id">
+        </div>
+        <div class="filter-item code advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.CodeValueDisplay
+            </div>
+            <input type="text" class="filter-input" id="codeDisplay">
+        </div>
+        <div class="filter-item code advanced-filter-item margin-right-10 active-inative-filter-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Activity
+            </div>
+            <div class="filter-input radio display-flex">
+                <label class="form-checkbox-label margin-reset">
+                    <input class="form-checkbox-field" type="checkbox" id="showActive" />
+                    <i class="form-checkbox-button custom-checkbox"></i>
+                    <span class="organization-types ml-2">
+                        @sReportsV2.Cache.Resources.TextLanguage.Active
+                    </span>
+                </label>
+                <label class="form-checkbox-label reset-margin">
+                    <input class="form-checkbox-field" type="checkbox" id="showInactive" />
+                    <i class="form-checkbox-button custom-checkbox"></i>
+                    <span class="organization-types ml-2">
+                        @sReportsV2.Cache.Resources.TextLanguage.Inactive
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Apply </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="filterElements" class="d-flex margin-left-20">
+
+</div>

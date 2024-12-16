@@ -1,0 +1,33 @@
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@model FormDataOut
+
+@{
+    Layout = null;    
+}
+<!DOCTYPE html>
+<html>
+<head>
+    @ScriptHelper.RenderHeadMetadata(true)
+    <title>Consensus - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/bootstrap-4.3.1/bootstrap.min.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/login.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/nestable.min.css"))
+    @Html.Raw(ScriptHelper.RenderBundle("css/styles.min.css"))
+    @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
+</head>
+<body>
+    <div class="mb-2">
+        @await Html.PartialAsync("~/Views/Form/Consensus/Instance/ConsensusUserQuestionnaire.cshtml", Model)
+        @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/bootstrap-4.3.1/bootstrap.min.js"), "", ""));
+    </div>
+</body>
+</html>
+
+
+
+
+
+

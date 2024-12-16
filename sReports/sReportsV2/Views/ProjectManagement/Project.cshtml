@@ -1,0 +1,19 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DTOs.ProjectManagement.DataOut;
+@model ProjectDataOut
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement;
+}
+
+<div class="element-background-white">
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "linkLevel1", "/ProjectManagement/GetAll" }, { "level2", Model != null ? Model.ProjectName : sReportsV2.Cache.Resources.TextLanguage.CreateProject }, { "activeLevel", 2 } })
+
+    <div class="header header-new">
+        @(Model != null ? Model.ProjectName : sReportsV2.Cache.Resources.TextLanguage.CreateProject)
+    </div>
+
+    @await Html.PartialAsync("ProjectManagementTabs", Model)
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/projectManagementTabs-bundle.min.js"))

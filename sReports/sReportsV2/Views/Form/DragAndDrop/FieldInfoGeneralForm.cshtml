@@ -1,0 +1,221 @@
+﻿
+@using sReportsV2.DTOs.Field.DataOut
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.DTOs.Form.DataOut
+
+
+@model FieldDataOut
+
+@{
+    Tuple<bool, bool, int> repetitiveInfo = Model.GetRepetitiveInfo();
+    bool possibleRepetitiveField = repetitiveInfo.Item1;
+    bool isRepetitive = repetitiveInfo.Item2;
+    int numberOfRepetitions = repetitiveInfo.Item3;
+    FormFieldSetDataOut fieldSet = ViewBag.FieldSet as FormFieldSetDataOut;
+    var optionsList = fieldSet != null && fieldSet.Options != null && fieldSet.Options.Any()
+    ? fieldSet.Options
+    : new List<FormFieldValueDataOut>();
+    var jsonOptions = System.Text.Json.JsonSerializer.Serialize(optionsList);
+}
+
+<input type="hidden" id="elementId" value="@(string.IsNullOrWhiteSpace(Model.Id) ? GuidExtension.NewGuidStringWithoutDashes() : Model.Id)" />
+<input type="hidden" id="maxItems" value="@(fieldSet != null && fieldSet.LayoutStyle != null && !string.IsNullOrEmpty(fieldSet.LayoutStyle.MaxItems) ? int.Parse(fieldSet.LayoutStyle.MaxItems) : 0)" />
+<input type="hidden" id="layoutType" value="@(fieldSet != null && fieldSet.LayoutStyle != null && fieldSet.LayoutStyle.LayoutType != null ? fieldSet.LayoutStyle.LayoutType.ToString() : "")" />
+<input type="hidden" id="fieldSetOptions" value='@jsonOptions' />
+<input type="hidden" id="isUpdateField" value="@(!string.IsNullOrWhiteSpace(Model.Id) && Model.ThesaurusId != 0 ? "true" : "false")" />
+
+<div class="designer-form-section">
+    <div>
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Field_Type
+            </div>
+            <select required class="designer-form-input select-arrow" id="type" name="type" @ViewBag.Disabled>
+                <option value="">Select an option</option>
+                @if (fieldSet != null && fieldSet.LayoutStyle != null && fieldSet.LayoutStyle.LayoutType == sReportsV2.Common.Enums.LayoutType.Matrix)
+                {
+                    <option value="@FieldTypes.Radio" @(Model != null && Model.Type == FieldTypes.Radio ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Radio</option>
+                    <option value="@FieldTypes.Checkbox" @(Model != null && Model.Type == FieldTypes.Checkbox ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Checkbox</option>
+                }
+                else
+                {
+                    <option value="@FieldTypes.Calculative" @(Model != null && Model.Type == FieldTypes.Calculative ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Calculative</option>
+                    <option value="@FieldTypes.Checkbox" @(Model != null && Model.Type == FieldTypes.Checkbox ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Checkbox</option>
+                    <option value="@FieldTypes.Date" @(Model != null && Model.Type == FieldTypes.Date ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Date</option>
+                    <option value="@FieldTypes.Datetime" @(Model != null && Model.Type == FieldTypes.Datetime ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.DateTime</option>
+                    <option value="@FieldTypes.Email" @(Model != null && Model.Type == FieldTypes.Email ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Email</option>
+                    <option value="@FieldTypes.LongText" @(Model != null && Model.Type == FieldTypes.LongText ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Long_Text</option>
+                    <option value="@FieldTypes.Number" @(Model != null && Model.Type == FieldTypes.Number ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Number</option>
+                    <option value="@FieldTypes.Radio" @(Model != null && Model.Type == FieldTypes.Radio ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Radio</option>
+                    <option value="@FieldTypes.Regex" @(Model != null && Model.Type == FieldTypes.Regex ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Regex</option>
+                    <option value="@FieldTypes.Select" @(Model != null && Model.Type == FieldTypes.Select ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Select</option>
+                    <option value="@FieldTypes.Text" @(Model != null && Model.Type == FieldTypes.Text ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Text</option>
+                    <option value="@FieldTypes.File" @(Model != null && Model.Type == FieldTypes.File ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.File</option>
+                    <option value="@FieldTypes.CustomButton" @(Model != null && Model.Type == FieldTypes.CustomButton ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Custom_Button</option>
+                    <option value="@FieldTypes.Coded" @(Model != null && Model.Type == FieldTypes.Coded ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Coded</option>
+                    <option value="@FieldTypes.Paragraph" @(Model != null && Model.Type == FieldTypes.Paragraph ? "selected" : "")> @sReportsV2.Cache.Resources.TextLanguage.Paragraph</option>
+                    <option value="@FieldTypes.Link" @(Model != null && Model.Type == FieldTypes.Link ? "selected" : "")> @sReportsV2.Cache.Resources.TextLanguage.Link</option>
+                    <option value="@FieldTypes.Audio" @(Model != null && Model.Type == FieldTypes.Audio ? "selected" : "")> @sReportsV2.Cache.Resources.TextLanguage.Audio</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div id="commonFields">
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Field_Label
+            </div>
+            <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @ViewBag.Disabled />
+        </div><!--      
+        --><div class="designer-form-input-group two-margins">
+        </div><!--  
+        --><div id="repetitiveDiv" class="designer-form-input-group repetitive-field-group short" @Html.Raw((possibleRepetitiveField ? "" : "style='display: none'"))>
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Repetitive
+                </div>
+            <select class="designer-form-input" id="isRepetitive" name="isRepetitive" @ViewBag.Disabled>
+                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                <option value="true" @(Model != null && possibleRepetitiveField && isRepetitive ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Yes</option>
+                <option value="false" @(Model == null || !possibleRepetitiveField || !isRepetitive ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.No_</option>
+            </select>
+        </div><!--
+        --><div id="numberOfRepetitionDiv"class="designer-form-input-group repetitive-field-group medium-short no-margin-right" @Html.Raw((possibleRepetitiveField ? "" : "style='display: none'"))>
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.NumberOfRepetitionOnPdf
+                </div>
+            <input required class="designer-form-input" id="numberOfRepetitions" name="numberOfRepetitions" type="number" value="@(Model != null && possibleRepetitiveField ? numberOfRepetitions : 1)" @ViewBag.Disabled />
+        </div><!--
+        --><div class="designer-form-input-group two-margins">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Field_Description
+                </div>
+            <textarea class="designer-form-input" id="description" name="description" value="@(Model != null ? Model.Description : "")" rows="5" @ViewBag.Disabled>@(Model != null ? Model.Description : "")</textarea>
+        </div><!--
+        --><div class="designer-form-input-group checkbox-group-container two-margins" id="checkboxGroup">
+            <div class="checkbox-group">
+                <label class="form-checkbox-label">
+                    <span>@sReportsV2.Cache.Resources.TextLanguage.Bolded?</span>
+                    <input name="isBold" value="isBold" @(Model.IsBold ? "checked" : string.Empty) id="isBold" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled />
+                    <i class="form-checkbox-button table-checkbox"></i>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label class="form-checkbox-label">
+                    <span>@sReportsV2.Cache.Resources.TextLanguage.Is_hidden_on_pdf?</span>
+                    <input name="isHiddenOnPdf" value="isHiddenOnPdf" @(Model.IsHiddenOnPdf ? "checked" : string.Empty) id="isHiddenOnPdf" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled />
+                    <i class="form-checkbox-button table-checkbox"></i>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label class="form-checkbox-label">
+                    <span>@sReportsV2.Cache.Resources.TextLanguage.Visible?</span>
+                    <input name="isVisible" value="isVisible" @(Model.IsVisible ? "checked" : string.Empty) id="isVisible" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled />
+                    <i class="form-checkbox-button table-checkbox"></i>
+                </label>
+            </div>
+            <div class="checkbox-group">
+                <label class="form-checkbox-label">
+                    <span>@sReportsV2.Cache.Resources.TextLanguage.Readonly?</span>
+                    <input name="isReadonly" value="isRequired" @(Model.IsReadonly ? "checked" : string.Empty) id="isReadonly" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled />
+                    <i class="form-checkbox-button table-checkbox"></i>
+                </label>
+            </div>
+        </div><!--
+        --><div class="designer-form-input-group two-margins no-margin-right" id="unitDiv">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Unit
+                </div>
+            <input class="designer-form-input" id="unit" name="unit" type="text" value="@(Model != null ? Model.Unit : "")" @ViewBag.Disabled />
+        </div>
+    </div>
+</div>
+<div id="thesaurusArea" class="designer-form-section thesaurus-section">
+    <div class="designer-form-section-title thesaurus-title">
+        @sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry
+    </div>
+    @await Html.PartialAsync("~/Views/Form/DragAndDrop/ThesaurusFilterModal.cshtml")
+</div>
+
+<div id="customFields">
+    @if (Model.Type != null)
+    {
+        switch (Model.Type)
+        {
+            case FieldTypes.Calculative:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/CalculativeFieldForm.cshtml")
+                break;
+            case FieldTypes.Checkbox:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/CheckboxFieldForm.cshtml")
+                break;
+            case FieldTypes.Date:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/DateFieldForm.cshtml")
+                break;
+            case FieldTypes.Datetime:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/DatetimeFieldForm.cshtml")
+                break;
+            case FieldTypes.Email:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/EmailFieldForm.cshtml")
+                break;
+            case FieldTypes.File:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/FileFieldForm.cshtml")
+                break;
+            case FieldTypes.LongText:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/LongTextFieldForm.cshtml")
+                break;
+            case FieldTypes.Number:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/NumberFieldForm.cshtml")
+                break;
+            case FieldTypes.Radio:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/RadioFieldForm.cshtml", Model as FieldRadioDataOut)
+                break;
+            case FieldTypes.Regex:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/RegexFieldForm.cshtml")
+                break;
+            case FieldTypes.Select:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/SelectFieldForm.cshtml")
+                break;
+            case FieldTypes.Text:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/TextFieldForm.cshtml", Model as FieldTextDataOut)
+                break;
+            case FieldTypes.CustomButton:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/CustomFieldButtonForm.cshtml", Model as FieldTextDataOut)
+                break;
+            case FieldTypes.Coded:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/CodedFieldForm.cshtml", Model as FieldCodedDataOut)
+                break;
+            case FieldTypes.Paragraph:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/ParagraphFieldForm.cshtml", Model as FieldParagraphDataOut)
+                break;
+            case FieldTypes.Link:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/LinkFieldForm.cshtml", Model as FieldLinkDataOut)
+                break;
+            case FieldTypes.Audio:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/AudioFieldForm.cshtml", Model as FieldAudioDataOut)
+                break;
+            default:
+                throw new ArgumentException("Invalid template");
+        }
+    }
+</div>
+<div id="appendixNotes" class="designer-form-section">
+    <div class="designer-form-section-title">
+        @sReportsV2.Cache.Resources.TextLanguage.Appendix
+    </div>
+    <div>
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Title
+            </div>
+            <input class="designer-form-input" id="helpTitle" name="helpTitle" type="text" value="@(Model != null && Model.Help != null ? Model.Help.Title : "")" @ViewBag.Disabled />
+
+        </div>
+    </div>
+    <div class="designer-form-input-group half-width">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Content
+        </div>
+        <textarea class="designer-form-input" id="helpContent" name="helpContent" value="@(Model != null && Model.Help != null ? Model.Help.Content : "")" @ViewBag.Disabled>@(Model != null && Model.Help != null? Model.Help.Content : "")</textarea>
+    </div>
+</div>

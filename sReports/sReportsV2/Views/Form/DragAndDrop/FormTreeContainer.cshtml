@@ -1,0 +1,33 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Constants;
+@model FormDataOut
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool readOnly = ViewBag.ReadOnly;
+}
+<div class="nestable-main-container comments-hidden consensus-hidden">
+    <div class="nestable-tree-menu">
+        <div class="expand-button" type="button" data-action="expand-all" onclick="expandTree()">@sReportsV2.Cache.Resources.TextLanguage.Expand_All</div>
+        <!--
+        -->
+        <div class="expand-button" type="button" data-action="collapse-all" onclick="collapseTree()">@sReportsV2.Cache.Resources.TextLanguage.Collapse_All</div>
+        <!--
+        -->
+        @if (userCookieData.UserHasPermission(PermissionNames.ShowJson, ModuleNames.Designer))
+        {
+            <div class="expand-button" onclick="showFormJson()">@sReportsV2.Cache.Resources.TextLanguage.Show_Json</div>
+        }
+    </div>
+    <div id="formTreeNestable">
+        @await Html.PartialAsync("~/Views/Form/DragAndDrop/FormTreeNestable.cshtml", Model)
+    </div>
+</div>
+<div id="formPreviewContainer" class="form-container">
+    @await Html.PartialAsync("~/Views/Form/DragAndDrop/DragAndDropFormPartial.cshtml", Model)
+</div>
+@if (!readOnly)
+{
+    <div id="nestableFormElements" class="dd-predefined-elements sticky consensus-hidden">
+    </div>
+}
+<div id="commentSection"></div>

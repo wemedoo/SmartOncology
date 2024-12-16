@@ -1,0 +1,29 @@
+
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement;
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.ProjectManagement);
+}
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Projects
+        @if (hasCreatePerm)
+        {
+            <button class="btn btn-create float-right mr-2" onclick="createTrial()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create </button>
+        }
+    </div>
+    @await Html.PartialAsync("ProjectFilterGroup")
+    <div id="trialManagementTableContainer">
+    </div>
+</div>
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/projectManagementGetAll-bundle.min.js"))

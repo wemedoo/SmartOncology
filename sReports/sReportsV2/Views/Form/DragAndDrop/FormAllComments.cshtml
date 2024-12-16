@@ -1,0 +1,107 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.DTOs.Form.DataOut
+@using sReportsV2.Common.Extensions
+
+@model List<sReportsV2.DTOs.Form.DataOut.FormCommentDataOut>
+
+@{
+    ViewBag.Title = "FormCommentSection";
+    List<CodeDataOut> commentStates = ViewBag.CommentStates as List<CodeDataOut>;
+    int? createdCommentStateCD = commentStates?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Created))?.Id;
+}
+<h2>@sReportsV2.Cache.Resources.TextLanguage.Comments</h2>
+
+<div id="newComment"></div>
+@foreach (var comment in Model.Where(x => string.IsNullOrEmpty(x.CommentRef)).ToList()){
+
+
+    <div class="comment-group">
+        <div class="comment-section" id="@comment.Id" data-field-id="@comment.ItemRef">
+            <div class="comment-header">
+                <div class="comm-user-icon">
+                    <div class="initial-user">@ViewBag.UserCookieData.FirstName.Substring(0, 1).ToUpper()</div>
+                </div>
+                <div class="comment-user-information">
+
+
+                    <label class="commented-color">@comment.User.FirstName @comment.User.LastName @sReportsV2.Cache.Resources.TextLanguage.Commented</label>
+                    <label class="create-date-comment">@comment.EntryDatetime.ToTimeZoned(ViewBag.DateFormat as string)</label>
+                </div>
+            </div>
+            <p class="comment-content @(ViewBag.TaggedCommentId != null && ViewBag.TaggedCommentId == comment.Id ? "comment-highlighted": "")">@Html.Raw(@comment.Value)</p>
+            <div class="button comment-status-button d-flex">
+                @if (comment.CommentStateCD == createdCommentStateCD)
+                {
+                    if (ViewBag.CanChangeCommentStatus)
+                    {
+                        <div class="comment-statuses">
+                            @foreach (var option in ObjectExtension.FilterDataSource(commentStates, readOnlyMode: true))
+                            {
+                                if (option.Id != createdCommentStateCD)
+                                {
+                                    <a class="commstatus" onclick="sendCommentStatus('@comment.Id','@option.Id')">
+                                        @option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </a>
+                                }
+                            }
+                        </div>
+                    }
+                    if (ViewBag.CanAddComment)
+                    {
+                        <div class="ml-auto">
+                            <button type="button" class="replay-button" onclick="replayComment('@comment.Id')">@sReportsV2.Cache.Resources.TextLanguage.Reply</button>
+                        </div>
+                    }
+                }
+            </div>
+            @foreach (var reply in Model.Where(x => !string.IsNullOrWhiteSpace(x.CommentRef) && x.CommentRef == comment.Id).OrderBy(x => x.Id))
+            {
+                <div class="horizontal-comment-line"></div>
+
+                <div class="comment-header">
+                    <div class="comm-user-icon">
+                        <div class="initial-user-replay">@reply.User.FirstName.Substring(0, 1).ToUpper()</div>
+                    </div>
+                    <div class="comment-user-information">
+
+
+                        <label class="comment-replay-color">@reply.User.FirstName @reply.User.LastName @sReportsV2.Cache.Resources.TextLanguage.Responded</label>
+                        <label class="create-date-comment">@reply.EntryDatetime.ToTimeZoned(ViewBag.DateFormat as string)</label>
+                    </div>
+                </div>
+                <p class="comment-content @(ViewBag.TaggedCommentId != null && ViewBag.TaggedCommentId == reply.Id ? "comment-highlighted": "")">@Html.Raw(reply.Value)</p>
+            }
+            <div class="comment-status-container">
+                @if (comment.CommentStateCD != createdCommentStateCD)
+                {
+                    <div class="horizontal-comment-line"></div>
+
+                    @await Html.PartialAsync("~/Views/Form/Comments/CommentStatusPartial.cshtml", comment)
+
+                }
+            </div>
+            <div class="replay-container">
+                <div class="horizontal-comment-line" style="margin-bottom: 15px;"></div>
+                <form class="w-100" method="post" id="idCommentReplay_@comment.Id" onsubmit="return submitCommentForm(this, event)" novalidate data-id="@comment.Id">
+                    @await Html.PartialAsync("~/Views/Form/DragAndDrop/CommentInputText.cshtml", new ViewDataDictionary(ViewData) { { "commentId", comment.Id } })
+                    <input type="hidden" id="idItemRefReplay_@comment.Id" value="@comment.ItemRef">
+                    <div class="replay-btns">
+                        <a class="cancel-replay-button" onclick="cancelReplay('@comment.Id')">@sReportsV2.Cache.Resources.TextLanguage.Cancel</a>
+                        <button type="submit" class="replay-button-confirm">@sReportsV2.Cache.Resources.TextLanguage.Reply</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+}
+
+
+
+

@@ -1,0 +1,13 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@model List<FormDataOut>
+
+
+@foreach (FormDataOut formDataOut in Model)
+{
+    <div class="quick-access-div flex" id="@formDataOut.Id">
+        <p class="quick-access-title">@formDataOut.Title</p>
+        <img alt="" class="quick-access-pinned-icon" src="/css/img/icons/pinned_red.svg" onclick="removeSuggestedForm(event, '@formDataOut.Id')"/>
+    </div>
+}
+
+

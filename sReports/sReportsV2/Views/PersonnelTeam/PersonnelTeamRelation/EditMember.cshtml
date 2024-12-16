@@ -1,0 +1,31 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
+@model PersonnelTeamRelationDataOut
+
+<div class="form-group col-md-12">
+
+    <div class="d-flex advanced-filter-header" style="font-size: 15px">
+        @sReportsV2.Cache.Resources.TextLanguage.Edit_Member
+    </div>
+
+    <div id="personnel-team-members-container">
+
+        <div id="personnel-team-members-list" class="personnel-team-members-list">
+            @await Html.PartialAsync("~/Views/PersonnelTeam/ListPersonnelTeamMembers.cshtml", new List<PersonnelTeamRelationDataOut>() { Model })
+        </div>
+
+    </div>
+
+    <div class="button-members">
+        <button class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="editMember(event, @Model.PersonnelTeamRelationId, @Model.PersonnelTeamId)" dismiss="modal">
+           @sReportsV2.Cache.Resources.TextLanguage.Save
+        </button>
+        <div class="button-wrapper-filter float-right" id="close">
+            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+            </a>
+        </div>
+    </div>
+
+
+</div>

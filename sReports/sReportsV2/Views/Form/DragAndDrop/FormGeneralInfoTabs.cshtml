@@ -1,0 +1,62 @@
+
+@{
+    ViewBag.Title = "FormGeneralInfo";
+}
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@model FormDataOut
+
+<div class="width-100">
+    <div class="organization-tabs">
+        <div data-id="DesignerGeneralInfo" class="organization-tab active form-info-tab">
+            @sReportsV2.Cache.Resources.TextLanguage.Form_General_Info
+        </div>
+        <div data-id="CustomFieldHeaders" class="@(Model == null ? "organization-tab-disabled" : "organization-tab") form-info-tab">
+            @sReportsV2.Cache.Resources.TextLanguage.Custom_Header <span class="unsaved-custom-headers-star" style="display:none">*</span>
+        </div>
+    </div>
+</div>
+
+<div id="top-identifier-line" class="identifier-line" style=" margin-bottom: 14px;"></div>
+
+<div id="DesignerGeneralInfo" class="form-info-cont">
+    @await Html.PartialAsync("~/Views/Form/DragAndDrop/FormGeneralInfo.cshtml", Model)
+</div>
+
+<div id="CustomFieldHeaders" class="form-info-cont" style="display:none">
+    @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomHeaderFields.cshtml", Model)
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/customHheaderFields-bundle.min.js"))
+
+<script>
+    $(document).ready(function () {
+        $('#formGeneralInfoForm').validate({//#formGeneralInfoForm
+            ignore: ":hidden:not(.validate)"
+        });
+
+        let formId = getOpenedElementId();
+        if ($("#nestable").find(`[data-id='${formId}']`).children('.dd-nohandle').hasClass('nestable-error')) {
+            $('#formGeneralInfoForm').valid();
+        }
+
+        $('.form-info-tab').on('click', function (e) {
+            if ($('#formGeneralInfoForm').valid()) {
+                $('.form-info-tab').removeClass('active');
+
+                $(this).addClass('active');
+                $('.form-info-cont').hide();
+                let containerId = $(this).attr("data-id");
+                $(`#${containerId}`).show();
+
+                checkSelectedHeaderUnsavedChanges();
+            } else {
+                toastr.error("Please fill out the General Informations correctly Before proceeding");
+            }
+        });
+
+    });
+</script>

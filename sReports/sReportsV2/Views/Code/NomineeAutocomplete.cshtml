@@ -1,0 +1,10 @@
+﻿@using sReportsV2.DTOs.DTOs.CodeSetEntry.DataOut;
+@model List<CodeSetDataOut>
+
+@foreach (CodeSetDataOut codeSet in Model)
+{
+    string preferredTerm = codeSet.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm;
+    <div class="option" data-value="@codeSet.CodeSetId" onclick="filterCodeSetName(event, '@codeSet.CodeSetId', '@preferredTerm')">
+        @preferredTerm
+    </div>
+}

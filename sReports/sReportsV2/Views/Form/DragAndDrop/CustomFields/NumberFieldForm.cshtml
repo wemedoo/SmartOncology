@@ -1,0 +1,27 @@
+﻿
+
+@using sReportsV2.DTOs.Field.DataOut
+@model FieldNumericDataOut
+
+    @await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+    <div class="designer-form-section">
+
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Min_Value
+            </div>
+            <input class="designer-form-input" id="min" name="min" type="text" value="@(Model != null && Model.Min != null ? Model.Min.ToString() : "")" @ViewBag.Disabled/>
+        </div><!--
+    --><div class="designer-form-input-group  two-margins">
+           <div class="label filter-label">
+               @sReportsV2.Cache.Resources.TextLanguage.Max_Value
+           </div>
+            <input class="designer-form-input" id="max" name="max" type="text" value="@(Model != null && Model.Max != null ? Model.Max.ToString() : "")" @ViewBag.Disabled/>
+        </div><!--
+    --><div class="designer-form-input-group  two-margins no-margin-right">
+           <div class="label filter-label">
+               @sReportsV2.Cache.Resources.TextLanguage.Step
+           </div>
+            <input class="designer-form-input" id="step" name="step" type="text" value="@(Model != null && Model.Step != null ? Model.Step.ToString() : "")" @ViewBag.Disabled/>
+        </div>
+    </div>

@@ -1,0 +1,30 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Organization;
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Organization }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Organizations
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Administration))
+        {
+            <button class="btn btn-create float-right" onclick="createOrganizationEntry()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+        }
+    </div>
+    @await Html.PartialAsync("OrganizationFilterGroup")
+    <div id="tableContainer">
+
+    </div>
+</div>
+@await Html.PartialAsync("AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/organizationGetAll-bundle.min.js"))

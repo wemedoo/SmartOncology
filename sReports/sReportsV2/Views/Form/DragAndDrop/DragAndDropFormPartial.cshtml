@@ -1,0 +1,333 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@inject sReportsV2.Controllers.FormCommonController Controller
+@model FormDataOut
+
+@{
+    var controller = Controller;
+    var userCookieData = ViewBag.UserCookieData;
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    bool canAddComment = ((bool?)ViewBag.CanAddComment).GetValueOrDefault();
+}
+<div class="position-relative">
+    <div class="cf nestable-lists">
+        <div class="dd" id="nestableFormPartial">
+            <ol class="dd-list dd-scrollable-container form-preview-container">
+                <li class="dd-item dd-nodrag"
+                    data-id="@(Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder)"
+                    data-itemtype="form"
+                    data-activeversion='@(Model != null ? Model.GetActiveVersionJsonString() : null)'
+                    @(Html.Raw(Model != null ? Model.GetDataAttr() : FormDataOut.GetInitialDataAttributes()))>
+                    <div class="form-preview-title-container">
+                        <div class="dd-nohandle form-preview-title"
+                             title="@(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)"
+                             data-toggle="tooltip"
+                             data-placement="left">
+                            <div class="form-preview-title-text">
+                                @(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)
+                            </div>
+                            <div class="item-settings-button consensus-hidden">
+                                @{ RenderEditButton(); }
+                            </div>
+                        </div>
+
+                        <div class="btn-container">
+                            @if (userCookieData.UserHasPermission(PermissionNames.ChangeState, ModuleNames.Designer) && Model != null)
+                            {
+                                <div id="formStateDropdown" class="dropdown dropdown-select menu-state-status consensus-hidden comments-hidden mr-2">
+                                    <div class="btn interactive-design-action-btns" type="button" id="dropdownMenuChangeState" data-toggle="dropdown" aria-expanded="true" title="@sReportsV2.Cache.Resources.TextLanguage.Change_State">
+                                        <i class="fa fa-exchange" aria-hidden="true"></i>
+                                        <span>@sReportsV2.Cache.Resources.TextLanguage.Change_State</span>
+                                    </div>
+                                    <ul class="dropdown-menu dropdown-menu-right menu-state" aria-labelledby="dropdownMenuChangeState">
+                                        @foreach (var status in ViewBag.States)
+                                        {
+                                            <li role="presentation">
+                                                <a role="menuitem" tabindex="-1" class="dropdown-item form-definition-state state-option @(Model.State == status ? "active" : string.Empty)" data-value="@status">
+                                                    <i class="fas fa-square" style="color:@Model.GetStateColor(status)"></i>
+                                                    @sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(status.ToString())
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                            @if (!readOnly)
+                            {
+                                <div id="copy-designer-items" class="interactive-design-action-btns btn consensus-hidden comments-hidden mr-2" title="@sReportsV2.Cache.Resources.TextLanguage.Copy_Selected_Elements">
+                                    <i class="fa fa-files-o" aria-hidden="true"></i>
+                                    <span>@sReportsV2.Cache.Resources.TextLanguage.Copy</span>
+                                </div>
+
+                                <div id="paste-designer-items" class="interactive-design-action-btns btn consensus-hidden comments-hidden mr-2" title="@sReportsV2.Cache.Resources.TextLanguage.Paste_Selected_Elements">
+                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                    <span>@sReportsV2.Cache.Resources.TextLanguage.Paste</span>
+                                </div>
+                            }
+                            @if (Model != null && !string.IsNullOrWhiteSpace(Model.Id) && Model.Id != FormDataOut.DefaultIdPlaceholder)
+                            {
+
+                                if (userCookieData.UserHasPermission(PermissionNames.FindConsensus, ModuleNames.Designer))
+                                {
+                                    <div id="consensusBtn" class="interactive-design-action-btns btn consensus-button comments-hidden" title="@sReportsV2.Cache.Resources.TextLanguage.Find_Consensus">
+                                        <img alt="" class="consensus-icon">
+                                        <span>
+                                            @sReportsV2.Cache.Resources.TextLanguage.Find_Consensus
+                                        </span>
+                                    </div>
+                                }
+                                if (userCookieData.UserHasPermission(PermissionNames.ViewComments, ModuleNames.Designer))
+                                {
+                                    <div id="comments-btn" class="interactive-design-action-btns btn comment-button comment-button-disable consensus-hidden mr-2" data-value="@Model.Id" title="@sReportsV2.Cache.Resources.TextLanguage.Comments">
+                                        <img alt="" class="comment-icon comment-icon-green">
+                                        <span>
+                                            @sReportsV2.Cache.Resources.TextLanguage.Comments
+                                        </span>
+                                    </div>
+                                }
+                                @if (userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Designer) && Model != null && Model.WorkflowHistory != null)
+                                {
+                                    <div id="formAdministrativeButton" class="interactive-design-action-btns btn comments-hidden consensus-hidden" title="@sReportsV2.Cache.Resources.TextLanguage.Administative_data">
+                                         <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        <span>@sReportsV2.Cache.Resources.TextLanguage.Administative_data</span>
+                                    </div>
+                                }
+                            }
+                            @if (!readOnly)
+                            {
+                                <div class="drag-icon-container comments-hidden consensus-hidden" id="dd-btn" title="@sReportsV2.Cache.Resources.TextLanguage.Drag_and_Drop">
+                                    <img alt="" src="/css/img/icons/drag_and_drop_1.svg">
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+                    <ol class="dd-list consensus-hidden">
+                        @if (Model != null && Model.Chapters.Count > 0)
+                        {
+                            foreach (var c in Model.Chapters)
+                            {
+                                <li class="drag-and-drop-element dd-item selectable-item selectable-chapter" @Html.Raw(c.GetDataAttr()) data-itemtype="chapter">
+                                    <div class="dd-handle custom-dd-handle">
+                                        <div class="form-accordion">
+                                            <div class="form-accordion-header">
+                                                <div class="drag-item-icon chapter-drag-item-icon">
+                                                    <i class="fas fa-arrows-alt"></i>
+                                                </div>
+                                                <img alt="" class="nestable-accordion-header-icon" src="/css/img/icons/chapter_white.svg">
+                                                <span class="comment-target-item" id="@c.Id">  @c.Title </span>
+                                                <div class="icon-container">
+                                                    <div class="overlay"></div>
+                                                    @{ RenderCommentButton(c.Id, canAddComment); }
+                                                    @{ RenderEditButton(); }
+                                                    @{ RenderRemoveButton(readOnly); }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ol class="drag-container dd-list ol-page">
+                                        @foreach (var p in c.Pages)
+                                        {
+                                            <li class="drag-and-drop-element dd-item selectable-item selectable-page" @Html.Raw(@p.GetDataAttr()) data-itemtype="page">
+                                                <div class="dd-handle custom-dd-handle page-custom-dd-handle">
+                                                    <div class="nestable-page">
+                                                        <div class="page-header">
+                                                            <div class="drag-item-icon page-drag-item-icon">
+                                                                <i class="fas fa-arrows-alt"></i>
+                                                            </div>
+
+
+                                                            <div class="icon-container page-icon-container">
+                                                                <div class="overlay"></div>
+                                                                @{
+                                                                    RenderCommentButton(p.Id, canAddComment);
+                                                                }
+                                                                @{
+                                                                    RenderEditButton();
+                                                                }
+                                                                @{
+                                                                    RenderRemoveButton(readOnly);
+                                                                }
+                                                            </div>
+
+                                                            <span class="comment-target-item" id="@p.Id"> @p.Title </span>
+                                                        </div>
+
+                                                        <div class="row @(p.ImageMap != null ? "image-map" : "")">
+                                                            @await Html.PartialAsync("~/Views/Form/DragAndDrop/ImageMapPreview.cshtml", p)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <ol class="drag-container dd-list ol-fieldset">
+                                                    @foreach (var ListFs in p.ListOfFieldSets)
+                                                    {
+                                                        <li class="drag-and-drop-element dd-item selectable-item selectable-fieldset" @Html.Raw(ListFs[0].GetDataAttr()) data-itemtype="fieldset">
+                                                            <div class="dd-handle custom-dd-handle fieldset-custom-dd-handle">
+
+                                                                @foreach (FormFieldSetDataOut fs in ListFs)
+                                                                {
+                                                                    <div class="d-flex field-set-content">
+                                                                        <div class="field-set-title d-flex">
+                                                                            <div class="drag-item-icon fieldset-drag-item-icon">
+                                                                                <i class="fas fa-arrows-alt"></i>
+                                                                            </div>
+                                                                            <div class="icon-container">
+                                                                                <div class="overlay"></div>
+                                                                                @{
+                                                                                    RenderCommentButton(fs.Id, canAddComment);
+                                                                                }
+                                                                                @{
+                                                                                    RenderEditButton();
+                                                                                }
+                                                                                @{
+                                                                                    RenderRemoveButton(readOnly);
+                                                                                }
+                                                                            </div>
+                                                                            <img alt="" class="field-set-img" src="/css/img/icons/field_set.svg">
+                                                                            <span class="comment-target-item" id="@fs.Id">
+                                                                                @if (fs.IsBold)
+                                                                                {
+                                                                                    <b>@(string.IsNullOrEmpty(fs.Label) ? "Not defined" : fs.Label)</b>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    @(string.IsNullOrEmpty(fs.Label) ? "Not defined" : fs.Label)
+                                                                                }
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            <ol class="drag-container dd-list ol-field">
+                                                                @foreach (var field in ListFs[0].Fields)
+                                                                {
+                                                                    field.IsDisabled = readOnly;
+                                                                    if (field is FieldRadioDataOut || field is FieldCheckboxDataOut)
+                                                                    {
+                                                                        @Html.Raw(controller.RenderPartialViewToString(field.NestableView, field, false, ListFs[0].Id, false, ListFs[0].LayoutStyle))
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <li class="drag-and-drop-element dd-item selectable-item selectable-field" @Html.Raw(field.GetDataAttr()) data-itemtype="field">
+                                                                            <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                                                                                <div class="drag-item-icon field-drag-item-icon">
+                                                                                    <i class="fas fa-arrows-alt"></i>
+                                                                                </div>
+                                                                                <div class="icon-container">
+                                                                                    <div class="overlay"></div>
+                                                                                    @{
+                                                                                        RenderCommentButton(field.Id, canAddComment);
+                                                                                    }
+                                                                                    @{
+                                                                                        RenderEditButton();
+                                                                                    }
+                                                                                    @{
+                                                                                        RenderRemoveButton(readOnly);
+                                                                                    }
+                                                                                </div>
+                                                                                @Html.Raw(controller.RenderPartialViewToString(field.NestableView, field, false, ListFs[0].Id, false))
+                                                                            </div>
+                                                                        </li>
+                                                                    }
+                                                                }
+                                                                @{
+                                                                    RenderDragItem(readOnly, "field", ListFs[0].Fields.Count == 0 ? "block" : "none");
+                                                                }
+                                                            </ol>
+                                                        </li>
+                                                    }
+                                                    @{
+                                                        RenderDragItem(readOnly, "fieldset", p.ListOfFieldSets.Count == 0 ? "block" : "none");
+                                                    }
+                                                </ol>
+                                            </li>
+                                        }
+                                        @{
+                                            RenderDragItem(readOnly, "page", c.Pages.Count == 0 ? "block" : "none");
+                                        }
+                                    </ol>
+                                </li>
+                            }
+                        }
+                        @{
+                            RenderDragItem(readOnly, "chapter", Model == null || Model.Chapters.Count == 0 ? "block" : "none");
+                        }
+                    </ol>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>
+@if (!readOnly)
+{
+    <div class="submit-button-container">
+        <button type="button" id="submit-full-form-definition" class="sreports-primary-button comments-hidden consensus-hidden">@sReportsV2.Cache.Resources.TextLanguage.Submit</button>
+    </div>
+}
+
+<script>
+    $(document).ready(function (e) {
+
+        @if (!readOnly)
+        {
+            <text>
+            $('#nestableFormPartial').nestable({
+                group: 1,
+                maxDepth: 7
+            });
+            </text>
+        }
+
+        var activeTab = "@ViewBag.ActiveTab";
+        var taggedCommentId = "@ViewBag.TaggedCommentId";
+        if (activeTab === "comments") {
+            renderViewWhenCommentsTabIsActive(taggedCommentId);
+        }
+        if (activeTab === "consensus") {
+            renderViewWhenConsensusTabIsActive();
+        }
+    });
+</script>
+
+@await Html.PartialAsync("~/Views/Form/DragAndDrop/Helpers/CopyPasteHelper.cshtml")
+
+@functions {
+    private void RenderRemoveButton(bool readOnly)
+    {
+        if (!readOnly)
+        {
+            <div class="remove-button">
+                <img alt="" src="/css/img/icons/remove_simulator.svg" />
+            </div>
+        }
+    }
+
+    private void RenderEditButton()
+    {
+        <div class="edit-button">
+            <img alt="" src="/css/img/icons/edit_pencil_03.svg" />
+        </div>
+    }
+
+    private void RenderCommentButton(string formItemId, bool canAddComment)
+    {
+        if (canAddComment)
+        {
+            <a class="add-comment-link comment-block-hide" onclick="addComment('@formItemId')">
+                <img alt="" class="add-comment-icon" src="/css/img/icons/add_comment_1.svg">
+            </a>
+        }
+    }
+
+    private void RenderDragItem(bool readOnly, string itemType, string displayProp)
+    {
+        if (!readOnly)
+        {
+            <li class="drag-and-drop-element dd-item dd-item-placeholder" data-itemtype="@itemType" style="display:@displayProp">
+                Drag a @itemType here
+            </li>
+        }
+    }
+}

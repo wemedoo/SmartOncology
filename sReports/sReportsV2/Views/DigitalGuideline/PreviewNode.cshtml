@@ -1,0 +1,58 @@
+﻿@using sReportsV2.DTOs.DigitalGuideline.DataOut
+@using sReportsV2.DTOs.DigitalGuideline.DTO;
+@using sReportsV2.Common.Constants;
+@model GuidelineElementDataDataOut
+
+<div class="single-node-preview">
+    <div class="title">
+        @Model.Title
+    </div>
+    <div class="node-preview-section">
+        <div class="section-title">Thesarus data</div>
+        <div class="section-items">
+            <div class="section-items-row">
+                <div class="section-items-cell key-cell">Preferred term</div>
+                <div class="section-items-cell no-left-border key-cell">O4MtId</div>
+            </div>
+
+            <div class="section-items-row">
+                <div class="section-items-cell no-top-border">
+                    @if (Model.Thesaurus != null)
+                    {
+                        @(Model.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage))
+                    }
+                    else
+                    {
+                        <div>Not defined</div>
+                    }
+                </div>
+                <div class="section-items-cell no-left-border no-top-border">
+                    @if (Model.Thesaurus != null)
+                    {
+                        @(Model.Thesaurus.Id)
+                        if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
+                        {
+                            <div class="thesaurus-link">
+                                <img alt="" title="Thesaurus" class="mr-1" src="/css/img/icons/thesaurus_green.svg" onclick="goToThesaurus('@Model.Thesaurus.Id')">
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div>Not defined</div>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    @if (Model.EvidenceProperties != null && Model.EvidenceProperties.Publications != null && Model.EvidenceProperties.Publications.Count > 0)
+    {
+        @await Html.PartialAsync("EvidencePropertiesPublications", Model)
+    }
+    @if (Model.EvidenceProperties != null && Model.EvidenceProperties.EvidenceCategory != null)
+    {
+        @await Html.PartialAsync("EvidencePropertiesCategory", Model)
+    }
+</div>

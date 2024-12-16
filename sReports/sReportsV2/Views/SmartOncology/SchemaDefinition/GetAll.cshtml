@@ -1,0 +1,32 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Browse_Schemas;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.ClinicalOncology);
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Browse_Schemas }, { "activeLevel", 1 } })
+
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Browse_Schemas
+        @if (hasCreatePerm)
+        {
+            <button class="btn btn-create float-right" onclick="newEntity()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+        }
+    </div>
+
+    @await Html.PartialAsync("SchemaDefinition/SchemaDefinitionFilterGroup")
+
+    <div id="tableContainer">
+    </div>
+</div>
+@await Html.PartialAsync("SchemaDefinition/AdvancedFilterModal")
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/tableCommon.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/schemaDefinitionAll.js"), "", ""))

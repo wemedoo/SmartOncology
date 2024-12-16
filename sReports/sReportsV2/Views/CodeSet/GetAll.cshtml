@@ -1,0 +1,54 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = "Code Set Management";
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Code_Set_Management }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.SO_Code_Set_System_Management
+
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.CodeSet))
+        {
+            <div class="dropdown show float-right dropleft" style="margin-right:10px;">
+                <a class="dropdown-button" href="#" role="button" id="dropdownMenuLink-group" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button id="btns" class="btn btn-filter-primary btns" style="height:unset"><img alt="" src="/css/img/icons/dropdown.svg" /></button>
+                </a>
+                <div class="dropdown-menu-customize dropdown-menu dropdown-shadow" aria-labelledby="dropdownMenuLink-group">
+                    @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.CodeSet))
+                    {
+                        <div>
+                            <a class="dropdown-item" href="#" onclick="showUploadModal(event)">
+                                <i class="fas fa-arrow-up mr-2"></i>
+                                @sReportsV2.Cache.Resources.TextLanguage.Upload @sReportsV2.Cache.Resources.TextLanguage.Csv
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.CodeSet))
+        {
+            <button class="btn btn-create float-right mr-2" onclick="thesaurusFilterModal()">
+                <i class="fas fa-plus-circle"></i>
+                @sReportsV2.Cache.Resources.TextLanguage.AddNew @sReportsV2.Cache.Resources.TextLanguage.Codeset
+            </button>
+        }
+    </div>
+    @await Html.PartialAsync("CodeSetFilterGroup")
+    <div id="tableContainer">
+
+    </div>
+</div>
+
+@await Html.PartialAsync("ThesaurusModal")
+@await Html.PartialAsync("CsvUpload")
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/codeSetGetAll-bundle.min.js"))

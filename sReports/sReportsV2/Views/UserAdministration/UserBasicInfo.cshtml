@@ -1,0 +1,185 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@model sReportsV2.DTOs.Common.DataOut.UserDataOut
+
+@{
+    var modalTitle = sReportsV2.Cache.Resources.TextLanguage.User_information;
+    var language = ViewBag.UserCookieData.ActiveLanguage;
+    var personnelTypes = ViewBag.PersonnelTypes as List<CodeDataOut>;
+    var prefixes = ViewBag.UserPrefixes as List<CodeDataOut>;
+    var academicPositions = ViewBag.AcademicPositions as List<CodeDataOut>;
+    var roles = ObjectExtension.FilterDataSource(ViewBag.PersonnelPositions, readOnlyMode: true) as List<CodeDataOut>;
+    var academicPositionIds = Model.AcademicPositions.Select(x => x.AcademicPositionId).ToArray();
+    var positions = academicPositions.Where(x => academicPositionIds.Contains(x.Id)).Select(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(language)).ToArray();
+    var commaSeparatedPositions = string.Join(", ", positions);
+    var rolesIds = Model.PersonnelPossitions.Select(x => x).ToArray();
+    var allRoles = roles.Where(x => rolesIds.Contains(x.Id)).Select(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(language)).ToArray();
+    var commaSeparatedRoles = string.Join(", ", allRoles);
+    var personnelType = personnelTypes.Exists(x => x.Id == Model.PersonelTypeId) ?
+        personnelTypes.Find(x => x.Id == Model.PersonelTypeId)?.Thesaurus.GetPreferredTermByTranslationOrDefault(language) : "";
+    var prefix = prefixes.Exists(x => x.Id == Model.PrefixId) ?
+        prefixes.Find(x => x.Id == Model.PrefixId)?.Thesaurus.GetPreferredTermByTranslationOrDefault(language) : "";
+}
+
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-content-advanced height-auto width-622">
+        <div class="modal-body overh user-view-modal">
+            <div class="float-right close-user-info-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <form id="userBasicInfoForm">
+                <div class="d-flex advanced-filter-header user-title-div">
+                    <p class="title-p">@modalTitle</p>
+                </div>
+                <input type="hidden" id="userId" value="@Model.Id">
+
+                <div class="display-flex">
+                    @{
+                        RenderCellName(sReportsV2.Cache.Resources.TextLanguage.Username, "username-icon", "border-right-0 border-bottom-0");
+                    }
+                    <div class="column data-name user-view border-bottom-0 position-relative">
+                        <span class="user-cell-value padding-right-20">
+                            @(!string.IsNullOrEmpty(Model.Username) ? Model.Username : "-")
+                        </span>
+                        <i class="far fa-copy copy-icon copy-icon-position" onclick="copyValue(this)"></i>
+                    </div>
+                </div>
+
+                <div class="display-flex">
+                    @{
+                        RenderCellName(sReportsV2.Cache.Resources.TextLanguage.Password, "password-icon", "border-right-0");
+                    }
+                    <div class="column data-name user-view position-relative">
+                        <span id="userPassword" class="user-cell-value padding-right-20"></span>
+                        <i class="far fa-copy copy-icon copy-icon-position" onclick="copyValue(this)"></i>
+                    </div>
+                </div>
+
+                <div class="margin-top-40">
+                    <div class="user-personal-data">
+                        <span class="user-personal-data-title">@sReportsV2.Cache.Resources.TextLanguage.PersonalAndGeneralData</span>
+                    </div>
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.Prefixes, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(prefix, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.AcademicPosition, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(commaSeparatedPositions, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.FirstName, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(Model.FirstName, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.MiddleName, "", "border-right-0 border-bottom-0 ");
+                        }
+                        @{
+                            RenderCellValue(Model.MiddleName, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.Roles, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(commaSeparatedRoles, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.LastName, "", "border-right-0 border-bottom-0 ");
+                        }
+                        @{
+                            RenderCellValue(Model.LastName, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.BusinessEmail, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(Model.Email, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.PersonalEmail, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(Model.PersonalEmail, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.SystemId, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(Model.Id.ToString(), "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.Username, "", "border-right-0 border-bottom-0");
+                        }
+                        @{
+                            RenderCellValue(Model.Username, "border-bottom-0", "font-weight-400");
+                        }
+                    </div>
+
+                    <div class="display-flex">
+                        @{
+                            RenderCellName(sReportsV2.Cache.Resources.TextLanguage.PersonnelType, "", "border-right-0");
+                        }
+                        @{
+                            RenderCellValue(personnelType, "", "font-weight-400");
+                        }
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private void RenderCellName(string name, string icon, string classes)
+    {
+        <div class="column data-name user-view @classes">
+            @if (icon != "")
+            {
+                <i class="tab-icon @icon"></i>
+            }
+            <span class="user-cell-name">@name</span>
+        </div>
+    }
+
+    private void RenderCellValue(string value, string classes, string spanClasses = null)
+    {
+        <div class="column data-name user-view @classes">
+            <span class="user-cell-value @spanClasses">@(!string.IsNullOrEmpty(value) ? value : "-")</span>
+        </div>
+    }
+}

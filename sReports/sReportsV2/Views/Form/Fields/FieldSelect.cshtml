@@ -1,0 +1,59 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@model FieldSelectDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+    var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(0);
+}
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-select-field form-element form-select field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="field-group">
+        <div for="@Model.Id" class="filter-label form-label-size d-inline-block">
+            @Html.Raw(Model.FullLabel)
+        </div>
+        <div class="repetitive-field filter-input d-inline-block arrow-select arrow-form-instance">
+            @{
+                AddSelect(fieldSetId, isChapterReadonly, fieldInstanceRepetitionInfo);
+            }
+        </div>
+        @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model, new ViewDataDictionary(ViewData) { { "repetitiveValue", Model.GetValue() } })
+        @if (!fieldInstanceRepetitionInfo.Item2)
+        {
+            @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+@functions {
+    private void  AddSelect(string fieldSetId, bool isChapterReadonly, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        string fieldInstanceRepetitionId = fieldInstanceRepetitionInfo.Item1;
+        bool isSpecialValue = fieldInstanceRepetitionInfo.Item2;
+        bool disabled = Model.IsInputDisabled(isChapterReadonly, isSpecialValue);
+        string value = Model.GetValue();
+        <div class="d-flex">
+            <select id="@(fieldInstanceRepetitionId)"
+                    class="form-element-field select-input-field"
+                    data-no-color-change="true"
+                    @Html.Raw(Model.GetFieldInstanceDataAttrs(fieldSetId, 1))
+                    value="@Model.GetValue()"
+                    @Html.Disabled(disabled)>
+                <option value="" class="form-select-placeholder"></option>
+                @foreach (FormFieldValueDataOut ffv in Model.Values)
+                {
+                    <option value="@ffv.Id"
+                            title="@ffv.Label"
+                            @(Model.IsOptionChosen(ffv.Id) ? "selected" : string.Empty)
+                            @Html.Raw(ffv.GetDataAttr())
+                            data-valuetype="option"
+                            data-itemtype="fieldvalue">
+                        @ffv.GetShortValue()
+                    </option>
+                }
+            </select>
+            <img alt="" id="reloadImg-@Model.Id" class="margin-left-16" src="/css/img/icons/@(!string.IsNullOrEmpty(value) ? "thesaurus_green.svg" : "thesaurus_grey.svg")" onclick="goToThesaurus(getActiveOptionDataThesaurusId(this))">
+        </div>
+    }
+}

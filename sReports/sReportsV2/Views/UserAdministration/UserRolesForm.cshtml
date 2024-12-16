@@ -1,0 +1,14 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+
+@model sReportsV2.DTOs.Common.DataOut.UserDataOut
+
+<div class="advanced-filter-item input-margin">
+    <div class="label filter-label">
+        @sReportsV2.Cache.Resources.TextLanguage.Roles
+        <div class="label-required">*</div>
+    </div>
+    <select required id="roles" class="sreports-select2-multiple" name="roles" multiple="multiple" data-codesetid="@((int)CodeSetList.Role)" @ViewBag.Disabled>
+    </select>
+</div>

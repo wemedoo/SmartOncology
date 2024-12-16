@@ -1,0 +1,15 @@
+﻿@using sReportsV2.DTOs.Field.DataOut
+@model FieldDateDataOut
+
+@await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+<div class="date-prevent-default">
+    <div class="designer-form-input-group checkbox-group-container two-margins">
+        <div class="checkbox-group">
+            <label class="form-checkbox-label">
+                <span>@sReportsV2.Cache.Resources.TextLanguage.Prevent_Future_Dates?</span>
+                <input name="preventFutureDates" value="preventFutureDates" @(Model.PreventFutureDates ? "checked" : string.Empty) id="preventFutureDates" class="form-checkbox-field" type="checkbox" @ViewBag.Disabled />
+                <i class="form-checkbox-button table-checkbox"></i>
+            </label>
+        </div>
+    </div>
+</div>

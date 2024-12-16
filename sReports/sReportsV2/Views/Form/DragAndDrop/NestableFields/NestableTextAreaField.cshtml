@@ -1,0 +1,27 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@model FieldTextAreaDataOut
+
+<fieldset class="form-input">
+
+    <div for="@Model.Id" class="filter-label form-label-size d-inline-block">
+        <span class="comment-target-item" id="@Model.Id"> @Html.Raw(Model.FullLabel) </span>
+    </div>
+    <div class="repetitive-field filter-input d-inline-block">
+        <textarea class="form-element-field textarea-repetitive" placeholder="@Model.DescriptionLabel" readonly></textarea>
+        @if (Model.DataExtractionEnabled)
+        {
+            <div disabled class="btn extract-data-btn float-right mt-2">
+                <img alt="" class="" src="/css/img/icons/extract_data.svg">
+                <span class="extract-data-span"> @sReportsV2.Cache.Resources.TextLanguage.Extract_Data </span>
+            </div>
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model)
+</fieldset>
+<a class="add-comment-link comment-block-hide" onclick="addComment('@Model.Id')">
+
+    <img alt="" class="add-comment-icon" src="/css/img/icons/add_comment_1.svg">
+</a>
+
+
+

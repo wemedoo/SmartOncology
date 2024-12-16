@@ -1,0 +1,58 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Enums;
+
+<div class="advanced-filter-item add-personnel-team-member">
+    <form class="add-personnel-team-member-form">
+
+        <div class="mr-2 width-100">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Member_Name
+            </div>
+            <select required class="new-team-member-name-select2 filter-input arrow-select" name="newTeamMemberNameSelect2" style="width: 100%">
+                <option value=""></option>
+            </select>
+        </div>
+        <div class="mr-2 width-100">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Relation @sReportsV2.Cache.Resources.TextLanguage.Type
+            </div>
+            <select required class="filter-input arrow-select new-team-member-role-select2" name="newTeamMemberRoleSelect2" data-codesetid="@((int)CodeSetList.PersonnelTeamRelationshipType)">
+                <option value="" disabled selected></option>
+                @foreach (var personnelTeamRelationType in ObjectExtension.FilterDataSource(ViewBag.PersonnelTeamRelationshipType))
+                {
+                    <option value="@personnelTeamRelationType.Id">
+                        @personnelTeamRelationType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                    </option>
+                }
+            </select>
+        </div>
+        <div style="width:50%">
+            <button type="button" class="add-member btn btn-add-new float-right" onclick="addPersonnelTeamMember(this, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0 ))">
+                <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new">Add Member</span>
+            </button>
+            <img alt="" class="remove-member" src="/css/img/icons/close_gray.svg" onclick="removeTeamMember(this)" hidden>
+        </div>
+
+    </form>
+
+    <script>
+        $(document).ready(function () {
+
+            var placeholder = "-";
+
+            $(".new-team-member-name-select2").initSelect2(
+                getSelect2Object(
+                    {
+                        placeholder: placeholder,
+                        width: '100%',
+                        allowClear: false,
+                        url: `/User/GetAutocompleteData?organizationId=${$('#id').val()}`
+                    }
+                )
+            );
+
+        });
+
+    </script>
+
+</div>

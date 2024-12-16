@@ -1,0 +1,80 @@
+@using sReportsV2.Common.Helpers
+
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content modal-content-upload" style="height:100% !important">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+
+            <form id="csvUploadForm" enctype="multipart/form-data">
+
+                <div class="modal-body upload-modal-body">
+                    <div class="d-flex advanced-filter-header documents-header upload-header">
+                        <img alt="" class="mr-3 h25px" src="/css/img/icons/csv_upload.svg"> @sReportsV2.Cache.Resources.TextLanguage.Upload @sReportsV2.Cache.Resources.TextLanguage.Csv.ToUpper()
+                    </div>
+
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label" style="color: rgb(0, 0, 0);">
+                            @sReportsV2.Cache.Resources.TextLanguage.Codeset @sReportsV2.Cache.Resources.TextLanguage.Name
+                        </div>
+                        <input required class="filter-input" type="text" id="codesetName" name="codesetName">
+                    </div>
+
+                    <div class="label filter-label" style="color: rgb(0, 0, 0);">
+                        @sReportsV2.Cache.Resources.TextLanguage.File
+                    </div>
+                    <div class="codeset-csv-upload fileUpload input.upload position-relative">
+                        <input id="uploadFile" class="f-input" placeholder="@sReportsV2.Cache.Resources.TextLanguage.NoContent" />
+                        <input id="file" name="file" type="file" class="upload upload-input" accept=".csv, text/csv, application/vnd.ms-excel" />
+                        <img alt="" src="/css/img/icons/browse.svg" class="upload-plus-btn">
+
+                    </div>
+
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Applicable_In_Designer
+                        </div>
+                        <div class="position-relative margin-top-10">
+                            <label class="form-radio-label margin-right-20">
+                                <input type="radio" id="applicableInDesignerCsv-yes" name="applicableInDesignerCsv" value="true" class="form-radio-field">
+
+                                <i class="form-radio-button user-radio"></i>
+                                <span class="user-radio-span">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Yes
+                                </span>
+                            </label>
+                            <label class="form-radio-label margin-right-20">
+                                <input type="radio" id="applicableInDesignerCsv-no" name="applicableInDesignerCsv" value="false" class="form-radio-field">
+
+                                <i class="form-radio-button user-radio"></i>
+                                <span class="user-radio-span">
+                                    @sReportsV2.Cache.Resources.TextLanguage.No_
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex position-relative margin-top-20 margin-bottom-20 h100px">
+                    <div class="button-wrapper-filter filter-button float-right d-flex unset-width" style="right:50px;">
+                        <a class="btn advanced-cancel mr-2" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                        <button id="uploadSubmit" disabled class="btn btn-filter-primary w-100 h-100" type="submit">@sReportsV2.Cache.Resources.TextLanguage.UploadFile</button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/commonModal/uploadModal.js"), "", ""))
+
+<script>
+
+    function codesetCreatedSuccess() {
+        toastr.success("@sReportsV2.Cache.Resources.TextLanguage.Csv_Imported_Successfully");
+    }
+
+</script>

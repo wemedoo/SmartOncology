@@ -1,0 +1,44 @@
+﻿@using Microsoft.AspNetCore.Html
+@using sReportsV2.DTOs.Field.DataOut
+@model FieldParagraphDataOut
+
+<div class="designer-form-section">
+    <div class="designer-form-input-group two-margins" style="width:100%">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Paragraph
+        </div>
+        <textarea required class="designer-form-input" id="paragraph" name="paragraph" type="text">
+            @(new HtmlString(Model != null && Model.Paragraph != null ? Model.Paragraph : ""))
+        </textarea>
+    </div>
+</div>
+
+<script>
+    function initTinyMCE() {
+        tinymce.remove(); // Destroy existing TinyMCE instance
+
+        tinymce.init({
+            selector: '#paragraph',
+            height: 'calc(90vh - 437px)',
+            menubar: false,
+            plugins: 'advlist autolink lists link image charmap print preview anchor',
+            toolbar: 'undo redo | formatselect | bold italic underline | bullist numlist',
+            setup: function (editor) {
+                // Trigger the code on change event
+                editor.on('change', function () {
+                    var content = editor.getContent();
+                    document.getElementById('paragraph').value = content;
+                });
+                // Remove notifications div
+                editor.on('init', function () {
+                    var notificationsDiv = document.querySelector('.tox.tox-silver-sink.tox-tinymce-aux');
+                    if (notificationsDiv) {
+                        notificationsDiv.remove();
+                    }
+                });
+            }
+        });
+    }
+
+    initTinyMCE(); // Call the initialization function when the partial view is loaded or opened
+</script>

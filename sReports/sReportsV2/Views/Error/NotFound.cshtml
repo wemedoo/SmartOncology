@@ -1,0 +1,31 @@
+@using sReportsV2.Common.Helpers
+@{
+    Layout = "";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    @ScriptHelper.RenderHeadMetadata(true)
+    <title>Error - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/bootstrap-4.3.1/bootstrap.min.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/login.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/newMain.css"))
+
+</head>
+<body class="login-background">
+    <div class="container error-container">
+        <div>
+            404 - @sReportsV2.Cache.Resources.TextLanguage.NotFound
+        </div>
+        <div class="error-message">@string.Format(sReportsV2.Cache.Resources.TextLanguage.NotFoundMessage, ViewBag.ErrorMessage)</div>
+        <div class="back-to-home" onclick="backToHome()">@sReportsV2.Cache.Resources.TextLanguage.Back_To_Home_Page</div>
+    </div>
+
+    <script>
+        function backToHome() {
+            window.location.href = `/Home/Index`;
+        }
+    </script>
+</body>
+</html>

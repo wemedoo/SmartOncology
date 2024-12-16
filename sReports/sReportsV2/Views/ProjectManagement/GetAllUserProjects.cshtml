@@ -1,0 +1,23 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Projects;
+}
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Projects }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Projects
+    </div>
+    @await Html.PartialAsync("ProjectFilterGroup")
+    <div id="trialManagementTableContainer">
+    </div>
+</div>
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/getAllUserProjects-bundle.min.js"))
+

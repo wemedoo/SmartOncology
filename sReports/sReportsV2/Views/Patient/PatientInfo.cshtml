@@ -1,0 +1,30 @@
+﻿@model sReportsV2.DTOs.Patient.PatientDataOut
+
+@{
+    ViewData["Title"] = @sReportsV2.Cache.Resources.TextLanguage.Patient_Create;
+    ViewBag.Action = "/EpisodeOfCare/PatientInfo";
+}
+
+<input hidden id="patientId" value="@Model.Id" />
+<div class="patient-container">
+    <div class="hidden padding-top-12" style="width: max-content;">
+        <div class="show-btn" onclick="toggleVisibility()">
+            <div class="hide-border">
+                <img alt="" class="show-img" src="/css/img/icons/show-arrow.svg">
+            </div>
+        </div>
+    </div>
+    <div id="contentToToggle">
+        <div class="show-btn-position hide-on-large-screen">
+            <div class="hide-btn" onclick="hidePatientInfo()">
+                <div class="hide-border">
+                    <img alt="" class="show-img" src="/css/img/icons/hide-arrow.svg">
+                </div>
+            </div>
+        </div>
+        <div class="documentation-details-container flex">
+            <div class="encounter-documentation" id="encounterDocumentationContainer">
+            </div>
+        </div>
+    </div>
+</div>

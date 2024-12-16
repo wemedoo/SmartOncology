@@ -1,0 +1,66 @@
+﻿@model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
+
+<div class="thesaurus-properties unset-thesaurus-property">
+    <div class="flex padding-bottom-16">
+        <div class="designer-form-section-title unset-padding">
+            <img alt="" src="/css/img/icons/hide_thesaurus.svg" class="back-thesaurus-img" onclick="closeThesaurusPreview(event)">
+            <label class="find-thesaurus-label ">
+                @sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry / @sReportsV2.Cache.Resources.TextLanguage.FindThesaurus / @Model.Id
+            </label>
+        </div>
+        <div class="preview-thesaurus-button flex">
+            <label class="form-radio-label action-thesaurus-label flex">
+                <input type="radio" name="radioThesaurus" id="radioThesaurus" value="@Model.Id" data-preferredterm="@Model.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm" class="checkbox-radio form-radio-field" @(Model.Id == ViewBag.ActiveThesaurus ? "checked" : "") />
+                <i class="form-radio-button"></i>
+                <span class="select-preview-span">@sReportsV2.Cache.Resources.TextLanguage.Select</span>
+            </label>
+            <span class="close-preview" onclick="closeThesaurusPreview(event)">@sReportsV2.Cache.Resources.TextLanguage.Close</span>
+        </div>
+    </div>
+
+    <div class="property-thesaurus">
+        <div class="key">
+            @sReportsV2.Cache.Resources.TextLanguage.Preferred_term
+        </div>
+        <div class="value">
+            @(Model != null ? Model.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage) : "")
+        </div>
+    </div>
+    <div class="property-thesaurus">
+        <div class="key">
+            @sReportsV2.Cache.Resources.TextLanguage.Definition
+        </div>
+        <div class="value">
+            @(Model != null ? Model.GetDefinitionByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage) : "")
+        </div>
+    </div>
+    <div class="property-thesaurus">
+        <div class="key">
+            @sReportsV2.Cache.Resources.TextLanguage.Synonyms
+        </div>
+        <div class="value">
+            @if (Model != null)
+            {
+                foreach (string synonim in Model.GetSynonymsListByLanguage(ViewBag.UserCookieData.ActiveLanguage) ?? new List<string>())
+                {
+                    <div class="tag">@synonim</div>
+                }
+            }
+
+        </div>
+    </div>
+    <div class="property-thesaurus">
+        <div class="key">
+            @sReportsV2.Cache.Resources.TextLanguage.Abbreviations
+        </div>
+        <div class="value">
+            @if (Model != null)
+            {
+                foreach (string abbreviation in Model.GetAbbreviationListByLanguage(ViewBag.UserCookieData.ActiveLanguage) ?? new List<string>())
+                {
+                    <div class="tag">@abbreviation</div>
+                }
+            }
+        </div>
+    </div>
+</div>

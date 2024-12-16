@@ -1,0 +1,150 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+<form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
+    <div class="modal fade" id="advancedFilterModal" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modal-content-advanced">
+                <div class="float-right filter-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+
+                <div class="modal-body modal-body-advanced" id="advancedFilterModalContent">
+                    <div class="d-flex advanced-filter-header">
+                        <img alt="" class="mr-3" src="/css/img/icons/advanced_filter.svg"> @sReportsV2.Cache.Resources.TextLanguage.Advanced_filter
+                    </div>
+                    <div class="d-flex margin-top-10">
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Family
+                            </div>
+                            <input type="text" class="filter-input" id="family" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Family : "")">
+                        </div>
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Given
+                            </div>
+                            <input type="text" class="filter-input" id="given" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.Given : "")">
+                        </div>
+                    </div>
+                    <div class="d-flex margin-top-20">
+
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Identifier_type
+                            </div>
+                            <select class="filter-input arrow-select" id="identifierType">
+                                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectIdentifier</option>
+                                <option @(ViewBag.FilterData.IdentifierType == -1 ? "selected" : "") id="IdentifierType_-1" data-display="O4MtId" value="-1">@sReportsV2.Cache.Resources.TextLanguage.IdentifierType_PatientID</option>
+                                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.IdentifierTypes, readOnlyMode: true))
+                                {
+                                    var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
+                                    <option id="IdentifierType_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.IdentifierType == option.Id ? "selected" : "")>@optionName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">@sReportsV2.Cache.Resources.TextLanguage.Identifier_value</div>
+                            <input class="filter-input " id="identifierValue" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.IdentifierValue : "")" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex margin-top-20">
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.BirthDate
+                            </div>
+                            <input type="hidden" id="birthDateDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.BirthDate!= null ? ViewBag.FilterData.BirthDate.ToString("s") : "")">
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                    { "class", "filter-input" },
+                                    { "id", "birthDate" },
+                                    { "name", "birthDate" },
+                                    { "value", ViewBag.FilterData != null && ViewBag.FilterData.BirthDate != null ? ViewBag.FilterData.BirthDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                    { "class", "date-img" },
+                                    { @Html.DateDisabled(readOnly: false), null }
+                                },
+                            })
+                        </div>
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.City
+                            </div>
+                            <input type="text" class="filter-input" id="city" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.City : "")">
+                        </div>
+                    </div>
+                    <div class="d-flex margin-top-20">
+                        <div class="advanced-filter-select2-wrapper">
+                            <input type="hidden" id="countryName" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.CountryName : "")">
+                            <div class="advanced-filter-item filter-item country-select-input">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Country
+                                </div>
+                                <select class="filter-input arrow-select" id="countryCD">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="advanced-filter-select2-wrapper">
+                            <div class="filter-item advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Postal_code
+                                </div>
+                                <input type="text" class="filter-input" id="postalCode" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.PostalCode : "")">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex margin-top-20">
+                        <div class="advanced-filter-item filter-item w-50 padding-right-20">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.DateFirstCreated
+                            </div>
+                            <input type="hidden" id="entryDatetimeDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.EntryDatetime!= null ? ViewBag.FilterData.EntryDatetime.ToString("s") : "")">
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                    { "class", "filter-input" },
+                                    { "id", "entryDatetime" },
+                                    { "name", "entryDatetime" },
+                                    { "value", ViewBag.FilterData != null && ViewBag.FilterData.EntryDatetime != null ? ViewBag.FilterData.EntryDatetime.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                    { "class", "date-img right-29" },
+                                    { @Html.DateDisabled(readOnly: false), null }
+                                },
+                            })
+                        </div>
+                    </div>
+
+                    <div class="advanced-filter-line">
+
+                    </div>
+
+                    <div class="d-flex mt-3 position-relative margin-top-20">
+                        <div class="button-wrapper-filter filter-button float-right" id="submitFilterButton">
+                            <button class="btn btn-filter-primary w-100 h-100" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+                        </div>
+                        <div class="button-wrapper-filter cancel-filter-btn float-right" id="close">
+                            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                            </a>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    $(document).ready(function () {
+        initCodeSelect2(hasParamInUrl('CountryCD'), getParamFromUrl('CountryCD'), "countryCD", "country", "Country", 'advancedFilterModal');
+    });
+</script>

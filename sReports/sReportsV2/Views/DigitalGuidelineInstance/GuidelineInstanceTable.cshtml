@@ -1,0 +1,86 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.DigitalGuidelineInstance.DataOut
+@model List<GuidelineInstanceDataOut>
+
+<button type="button" class="btn btn-add-new float-right" onclick="addNewGuidelineInstance(event)">
+    <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.Start_New</span>
+</button>
+<div class="guideline-instance-content">
+    <div>
+        @if (Model != null && Model.Count > 0)
+        {
+            <input type="hidden" class="form-control" id="episodeOfCareId" value="@Model.FirstOrDefault()?.EpisodeOfCareId" />
+            foreach (GuidelineInstanceDataOut guideline in Model)
+            {
+                bool isLastElement = Model.IndexOf(guideline) == Model.Count - 1;
+                <div id="@guideline.Id" class="single-guideline-instance-container @(isLastElement ? "selected" : "")">
+                    <div class="digital-guidelines-item" onclick="loadGraph('@guideline.Id', '@guideline.DigitalGuidelineId')">
+                        @guideline.Title - @guideline.Period.Start.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)
+                        <a class="remove-guideline-instance" href="#" onclick="showDeleteModal(event, '@guideline.Id', 'removeGuidelineInstance')" aria-label="Remove guideline instance"></a>
+                        <i class="fas fa-chevron-up toggle-arrow hide"></i>
+                        <i class="fas fa-chevron-down toggle-arrow" ></i>
+                    </div>
+                    <div class="digitalInstanceCy padding-top-10 padding-bottom-10" id="digitalInstanceCy-@guideline.Id">
+
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    @if (Model.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+</div>
+
+<div class="digital-guideline-modal fade guideline-instance-modal">
+    <div class="custom-modal-body">
+        <div class="close-guideline-instance-modal-button">
+        </div>
+        <div class="custom-modal-title">
+            <img alt="" src="/css/img/icons/adding_doc.svg" />
+            @sReportsV2.Cache.Resources.TextLanguage.Adding_digital_guideline_instances
+        </div>
+        <div id="guidelineInstanceMainContent" class="custom-modal-main-content">
+            @sReportsV2.Cache.Resources.TextLanguage.Test
+        </div>
+    </div>
+</div>
+
+<div class="digital-guideline-modal fade guideline-document-modal">
+    <div class="custom-modal-body">
+        <div class="close-guideline-instance-modal-button">
+        </div>
+        <div class="custom-modal-title">
+            <img alt="" src="/css/img/icons/adding_doc.svg" />
+            @sReportsV2.Cache.Resources.TextLanguage.Adding_value_from_documents
+        </div>
+        <div id="guidelineDocumentMainContent" class="custom-modal-main-content">
+            @sReportsV2.Cache.Resources.TextLanguage.Test
+        </div>
+    </div>
+</div>
+
+<div class="digital-guideline-modal fade guideline-condition-modal">
+    <div class="custom-modal-body">
+        <div class="close-guideline-instance-modal-button">
+        </div>
+        <div id="guidelineConditionMainContent" class="custom-modal-main-content">
+            @sReportsV2.Cache.Resources.TextLanguage.Test
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        @if (Model.Count > 0) {
+            <text>
+                loadGraph('@Model.LastOrDefault().Id', '@Model.LastOrDefault().DigitalGuidelineId', null);
+            </text>
+        }
+    })
+</script>

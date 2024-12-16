@@ -1,0 +1,56 @@
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.Organization.OrganizationDataOut
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Organization_Create;
+    string selectedCountryId = Model != null && Model.Address != null && Model.Address.CountryCD.HasValue ? Model.Address.CountryCD.ToString() : "";
+}
+
+<div class="element-background-grey">
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Organization }, { "linkLevel1", "/Organization/GetAll" }, { "level2", Model != null ? Model.Name : @sReportsV2.Cache.Resources.TextLanguage.Organization_Create }, { "activeLevel", 2 } })
+    <div id="container_demo" class="form-row padding-top-9">
+        <div class="hieararchy-size">
+            <span class="organization-hierarchiy">@sReportsV2.Cache.Resources.TextLanguage.Organization_Hieararchy</span>
+            <div class="hierarchy-margin" id="organizationHierarchyContainer">
+
+            </div>
+        </div>
+
+        <div class="organization-general">
+            @await Html.PartialAsync("~/Views/Organization/OrganizationTabs.cshtml", Model != null ? Model : null)
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.organizations').initSelect2(
+            getSelect2Object(
+                {
+                    placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization_PartOfPlaceholder',
+                    url: `/Organization/GetAutocompleteData?organizationId=${$('#id').val()}`,
+                    customAjaxData: function (params) {
+                        return {
+                            Term: params.term,
+                            Page: params.page,
+                            ExcludeId: $('#id').val()
+                        };
+                    }
+                }
+            )
+        );
+        reloadHierarchy();
+        //setCountryAutocomplete();
+        var selectedCountryId = '@selectedCountryId';
+        initCodeSelect2(selectedCountryId, selectedCountryId, "countryCD", "country", "Country", "", "#idOrganization");
+    });
+
+
+</script>
+
+@await Html.PartialAsync("IdentifierModal")
+@await Html.PartialAsync("TelecomModal")
+@await Html.PartialAsync("~/Views/PersonnelTeam/PersonnelTeamModal.cshtml")
+
+@Html.Raw(ScriptHelper.RenderBundle("js/organization-bundle.min.js"))

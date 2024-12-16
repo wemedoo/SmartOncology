@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "FormGeneralInfo";
+}
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@model FormDataOut
+
+<div class="designer-form-input-group header-selection-container">
+
+    @if (!ViewBag.ReadOnly)
+    {
+        <div class="designer-item-form d-flex">
+            <div class="thesaurus-container custom-header-selection-container">
+                <div class="thesaurus-full-info-container d-block">
+                    <div class="search-container">
+                        <div class="input-container">
+                            <input class="form-control search-input" type="text" id="CustomHeadersSearchInput" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Select_Items" @ViewBag.Disabled />
+                            <img alt="" src="/css/img/icons/search_green.svg" />
+                        </div>
+                        <div class="d-flex">
+                            <div id="CustomHeadersTableContainer">
+                                <div class="custom-header-selection-table-border">
+                                    <table id="CustomHeaderSelectionTable" class="table table-striped table-sreports w-100 table-layout-fixed">
+                                        <thead>
+                                            <tr>
+                                                <th class="w-100">@sReportsV2.Cache.Resources.TextLanguage.Fields</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="d-block custom-header-selection-table-body">
+                                            @if (Model != null)
+                                            {
+                                                RenderDefaultHeaderForSelectTable();
+                                                RenderCustomHeaderFieldsForSelectTable();
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="selected-custom-headers-container">
+                <div class="d-flex w-100 mb-3 selected-custom-headers-label-container">
+                    <div class="pl-2 font-weight-600">@sReportsV2.Cache.Resources.TextLanguage.Selected</div>
+                    <div id="headerCounter" class="pl-2 selected-custom-headers-counter" ></div>
+                </div>
+
+                <div id="selectedFieldsContainer">
+                    @if (Model != null && Model.CustomHeaderFields != null && Model.CustomHeaderFields.Count > 0)
+                    {
+                        RenderSelectedFieldValues();
+                    }
+                </div>
+            </div>
+
+        </div>
+    }
+
+    <br />
+    <div class="preview-custom-headers-label-container">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" class="bi bi-table" viewBox="0 0 16 16">
+            <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z" />
+        </svg>
+        <span>@sReportsV2.Cache.Resources.TextLanguage.Preview</span>
+
+        @if (!ViewBag.ReadOnly)
+        {
+            <div class="float-right mr-2 cursor-pointer" style="width: 16px;" onclick="resetDefaultHeaders(@(Model != null ? Model.Id.EncloseStringInDoubleQuotes() : ""))" title="@sReportsV2.Cache.Resources.TextLanguage.Reset_Headers_to_Default">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="gray"><!--! Font Awesome Pro 6.3.0 by fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M109.7 160H160c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32V64C0 46.3 14.3 32 32 32s32 14.3 32 32v51.2L81.6 97.6c87.5-87.5 229.3-87.5 316.8 0s87.5 229.3 0 316.8s-229.3 87.5-316.8 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3s-163.8-62.5-226.3 0L109.7 160z" /></svg>
+            </div>
+        }
+    </div>
+
+    <div class="preview-custom-headers-outer-container">
+        <div class="preview-custom-headers-inner-container">
+            <div id="previewContainer" class="custom-header-preview-container d-flex">
+                @if (Model != null && Model.CustomHeaderFields != null && Model.CustomHeaderFields.Count > 0)
+                {
+                    RenderPreviewHeader();
+                }
+            </div>
+            <div class="w-100 fake-table-row"></div>
+            <div class="w-100 fake-table-row"></div>
+        </div>
+    </div>
+
+</div>
+
+<br />
+
+<div class="button-container">
+    <div class="cancel-button cancel-modal-action">
+        @sReportsV2.Cache.Resources.TextLanguage.Back
+    </div>
+    @if (!ViewBag.ReadOnly)
+    {
+        <div class="submit-button" id="submit-form-custom-headers" onclick="insertOrUpdateCustomHeaders('@(Model != null ? Model.Id : "")')">@sReportsV2.Cache.Resources.TextLanguage.UpdateData</div>
+    }
+</div>
+
+<!------------------------------>
+@functions {
+    private void RenderDefaultHeaderForSelectTable()
+    {
+        var modelDefaultHeaderCodes = Model.CustomHeaderFields.Select(x => x.DefaultHeaderCode);
+
+        foreach (CustomHeaderFieldDataOut defaultHeader in CustomHeaderFieldDataOut.GetDefaultHeaders())
+        {
+            if (!modelDefaultHeaderCodes.Contains(defaultHeader.DefaultHeaderCode))
+            {
+                <tr class="custom-header-selection-row"><td class="custom-header-selection-cell" data-defaultheadercode="@defaultHeader.DefaultHeaderCode" data-label="@defaultHeader.Label">@defaultHeader.Label (@sReportsV2.Cache.Resources.TextLanguage.Default)</td></tr>
+            }
+        }
+    }
+
+    private void RenderCustomHeaderFieldsForSelectTable()
+    {
+        var modelHeaderFieldIds = Model.CustomHeaderFields.Select(x => x.FieldId);
+
+        foreach (FieldDataOut field in Model.GetAllFields())
+        {
+            if (!modelHeaderFieldIds.Contains(field.Id))
+            {
+                <tr class="custom-header-selection-row"><td class="custom-header-selection-cell" data-id="@field.Id" data-label="@field.Label">@field.Label</td></tr>
+            }
+        }
+    }
+
+    private void RenderSelectedFieldValues()
+    {
+        foreach (sReportsV2.DTOs.DTOs.Form.DataOut.CustomHeaderFieldDataOut header in Model.CustomHeaderFields)
+        {
+            <div class="selected-header d-flex">
+                <input disabled class="selected-header-input form-control" data-id="@header.FieldId" data-defaultheadercode="@header.DefaultHeaderCode" data-label="@header.Label" data-customlabel="@header.CustomLabel" data-order="@header.Order" value="@header.GetCustomLabelOrLabel()" />
+                @if (header.DefaultHeaderCode == null)
+                {
+                    <div class="rename-header" title="@sReportsV2.Cache.Resources.TextLanguage.Rename_Header_Label"><img alt="" class="rename-header-image" src="/css/img/icons/rename_gray.svg"></div>
+                }
+                <div class="remove-header @(header.DefaultHeaderCode != null ? "remove-default-header" : "")" title="@sReportsV2.Cache.Resources.TextLanguage.Remove_Header"><img alt="" src="/css/img/icons/remove_simulator.svg"></div>
+            </div>
+        }
+    }
+
+    private void RenderPreviewHeader()
+    {
+        foreach (CustomHeaderFieldDataOut header in Model.CustomHeaderFields)
+        {
+            <div data-id="@header.FieldId" data-label="@header.Label" data-defaultheadercode="@header.DefaultHeaderCode" data-customlabel="@header.CustomLabel" data-order="@header.Order" class="custom-header-preview-element" title="@sReportsV2.Cache.Resources.TextLanguage.Drag_and_Drop_to_change_the_order">
+                <span class="no-wrap">@header.GetCustomLabelOrLabel().ToUpper()</span>
+            </div>
+        }
+    }
+}

@@ -1,0 +1,48 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = sReportsV2.Cache.Resources.TextLanguage.Patients;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewPatientListPermission = userCookieData.UserHasPermission(PermissionNames.ViewPatientList, ModuleNames.Patients);
+    bool hasCreatePatientListPermission = userCookieData.UserHasPermission(PermissionNames.CreatePatientList, ModuleNames.Patients);
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Patient }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Patients
+        <div class="d-flex float-right">
+            @if (hasCreatePatientListPermission)
+            {
+                <button class="btn add-list-btn" id="addPatientListBtn" onclick="showPatientListModal(event, 'Create')"><i class="fas fa-plus-circle pr-2"></i><span>@sReportsV2.Cache.Resources.TextLanguage.Add_List</span></button>
+            }
+            @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Patients))
+            {
+                <button class="btn btn-create" onclick="createPatientEntry()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+            }
+        </div>
+    </div>
+
+    @if (hasViewPatientListPermission)
+    {
+        <div id="patientListOuterContainer" class="w-100 pb-4 pt-2 d-none">
+            @await Html.PartialAsync("~/Views/PatientList/PatientListsContainer.cshtml")
+        </div>
+    }
+
+    @await Html.PartialAsync("PatientFilterGroup")
+    <div id="tableContainer">
+
+    </div>
+</div>
+@await Html.PartialAsync("AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/patientGetAll-bundle.min.js"))
+
+@await Html.PartialAsync("~/Views/PatientList/PatientListModal.cshtml")

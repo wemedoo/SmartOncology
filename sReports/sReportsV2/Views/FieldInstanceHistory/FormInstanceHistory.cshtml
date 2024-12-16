@@ -1,0 +1,140 @@
+﻿@using sReportsV2.DTOs.DTOs.FieldInstanceHistory.DataOut;
+@using sReportsV2.DTOs.Common.DataOut;
+@using sReportsV2.DTOs.Pagination;
+@using sReportsV2.DTOs.DTOs.FieldInstanceHistory.FieldInstanceHistoryDataIn;
+@using sReportsV2.Common.Extensions;
+
+@model  PaginationDataOut<FieldInstanceHistoryDataOut, FieldInstanceHistoryFilterDataIn>
+
+@{ 
+    Dictionary<string, int> fieldSetCounters = new Dictionary<string, int>();
+}
+
+
+@if (Model != null && Model.Data != null && Model.Data.Count > 0)
+{
+    var fieldsByFieldSets = Model.Data.OrderBy(x => x.EntryDatetime).GroupBy(x => new { x.FieldSetInstanceRepetitionId });
+    foreach (var fieldsByFieldSet in fieldsByFieldSets)
+    {
+        string fieldSetLabel = fieldsByFieldSet.FirstOrDefault()?.FieldSetLabel;
+        string fieldSetCounter = GetFieldSetCounter(fieldSetCounters ,fieldsByFieldSet.FirstOrDefault()?.FieldSetId);
+        RenderFieldsetHeader(fieldSetLabel, fieldSetCounter);
+
+        <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white">
+            @foreach (var fieldInstanceHistoryGroup in fieldsByFieldSet.GroupBy(x => x.FieldInstanceRepetitionId))
+            {
+                var first = fieldInstanceHistoryGroup.FirstOrDefault();
+                <div class="field-history-accordion">
+                    <div class="card">
+                        <div class="field-history-card-header py-0">
+                            <h5 class="mb-0">
+                                <button class="btn field-history-label-btn w-100 text-left" data-toggle="collapse" data-target="#Id-@first.Id" aria-expanded="false" aria-controls="Id-@first.Id" data-fieldlabel="@first.FieldLabel">
+                                    @first.FieldLabel
+                                </button>
+                            </h5>
+                        </div>
+
+                        <div id="Id-@first.Id" class="collapse" aria-labelledby="H-@first.Id">
+                            <div class="card-body field-history-card-body">
+                                <div class="list-group list-group-flush border-bottom scrollarea">
+
+                                    @if (first != null)
+                                    {
+                                        RenderHistory(fieldInstanceHistoryGroup);
+                                    }
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <br />
+    }
+
+    <div class="pager-container">
+        @await Html.PartialAsync("Pagination")
+    </div>
+}
+else
+{
+    <div class="no-result-content">
+        <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+        <br>
+        <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+    </div>
+}
+
+<input type="hidden" id="filterByFieldInstanceRepetitionId" value="@Model.DataIn.FieldInstanceRepetitionId" />
+<input type="hidden" id="filterByFormInstanceId" value="@Model.DataIn.FormInstanceId" />
+<br />
+<br />
+
+@functions {
+    private void RenderFieldsetHeader(string fieldSetLabel, string fieldSetInstanceRepetition)
+    {
+        <div class="d-flex w-100 align-items-center justify-content-between field-history-fieldset-header">
+            <strong class="pl-4 mt-2 mb-2 pr-1">@sReportsV2.Cache.Resources.TextLanguage.FieldSet : @fieldSetLabel</strong>
+            <small class="pr-4 mt-1">@sReportsV2.Cache.Resources.TextLanguage.Repetition: @fieldSetInstanceRepetition</small>
+        </div>
+    }
+
+    private void RenderHistory(IEnumerable<FieldInstanceHistoryDataOut> fieldInstanceHistories)
+    {
+        foreach (FieldInstanceHistoryDataOut fieldInstanceHistory in fieldInstanceHistories.OrderBy(x => x.Revision))
+        {
+            <div class="list-group-item list-group-item-action py-3 lh-tight field-history-step-bg-color">
+                <div class="d-flex w-100 align-items-center justify-content-between">
+                    @if (fieldInstanceHistory.UserId > 0)
+                    {
+                        <div class="col-10 mb-1 medium">@sReportsV2.Cache.Resources.TextLanguage.User:  <strong class="mb-1">@fieldInstanceHistory.UserCompleteName</strong></div>
+                    }
+                    else
+                    {
+                        <strong class="mb-1">@sReportsV2.Cache.Resources.TextLanguage.User @fieldInstanceHistory.UserId</strong>
+                    }
+                    <small class="text-muted">@fieldInstanceHistory.EntryDatetime.ToTimeZoned(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string)</small>
+                </div>
+                <div class="col-10 mb-1 medium">@sReportsV2.Cache.Resources.TextLanguage.Revision:  <strong class="mb-1">@fieldInstanceHistory.Revision.ToString()</strong></div>
+                <div class="col-10 mb-1 medium">
+                    @if (fieldInstanceHistory.IsDeleted)
+                    {
+                        <strong class="mb-1">@sReportsV2.Cache.Resources.TextLanguage.Deleted</strong>
+                    }
+                    else
+                    {
+                        if (fieldInstanceHistory.HasValue())
+                        {
+                            RenderChangeValue(fieldInstanceHistory.GetChangeValue(ViewBag.MissingValues));
+                        }
+                        else
+                        {
+                            <span>@sReportsV2.Cache.Resources.TextLanguage.Value: <strong class="mb-1">@sReportsV2.Cache.Resources.TextLanguage.Empty</strong></span>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    private void RenderChangeValue(string valueLabel)
+    {
+        string colon = ":";
+
+        <span>@sReportsV2.Cache.Resources.TextLanguage.Value@colon</span>
+        <strong class="mb-1">@valueLabel</strong>
+    }
+
+    public string GetFieldSetCounter(Dictionary<string, int> fieldSetCounters, string fieldSetId)
+    {
+        int nextFieldSetCounter = 0;
+        if (fieldSetCounters.TryGetValue(fieldSetId, out nextFieldSetCounter))
+        {
+            nextFieldSetCounter = nextFieldSetCounter + 1;
+        }
+        fieldSetCounters[fieldSetId] = nextFieldSetCounter;
+
+        return nextFieldSetCounter.ToString();
+    }
+}

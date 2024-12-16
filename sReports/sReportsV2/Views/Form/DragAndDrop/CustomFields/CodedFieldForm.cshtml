@@ -1,0 +1,26 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Field.DataOut
+@model FieldCodedDataOut
+
+@await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+<div class="designer-form-section">
+    <div>
+        <div class="designer-form-input-group two-margins">
+            <div class="label filter-label color-black">
+                @sReportsV2.Cache.Resources.TextLanguage.Codeset
+            </div>
+            <select required="" class="designer-form-input select-arrow valid" id="codeset" name="codeset" aria-invalid="false">
+                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/designer/designer-items/fields/codedField.js"), "", ""))
+
+<script>
+    $(document).ready(function () {
+        var codesetSelected = '@(Model != null && Model.CodeSetId > 0 ? Model.CodeSetId : 0)';
+        getCodedFieldsCodesets(codesetSelected);
+    });
+</script>

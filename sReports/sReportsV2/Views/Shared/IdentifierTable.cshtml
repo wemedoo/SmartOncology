@@ -1,0 +1,56 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Common.DataOut;
+@model List<IdentifierDataOut>
+
+<div class="person-margin">
+    <span class="identifiers-info identifier-padd">@sReportsV2.Cache.Resources.TextLanguage.Identifiers</span>
+    @if (!ViewBag.ReadOnly)
+    {
+        <button type="button" class="btn btn-add-new float-right" onclick="showIdentifierModal(event, 'false')">
+            <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.AddNew</span>
+        </button>
+    }
+</div>
+
+<div class="identifier-line"></div>
+
+<div id="identifierContainer" class="@(Model == null || Model.Count == 0 ? "identifier-line-bottom" : "")">
+    <table class="codes-table">
+        <thead>
+            <tr>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.Identifier_name</span></th>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.Identifier_value</span></th>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.IdentifierUse</span></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody class="identifer-table text-table">
+            @if (Model != null)
+            {
+                foreach (IdentifierDataOut identifier in Model)
+                {
+                    string identifierType = identifier.System != null ? identifier.System.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string) : string.Empty;
+                    string identifierUse = identifier.Use != null ? identifier.Use.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string) : "";
+                    <tr class="tr edit-raw identifier-entry" data-value="@identifier.Id" data-version="@identifier.RowVersion">
+                        <td data-property="identifierTypeCD" data-value="@identifier.IdentifierTypeId" title="@identifierType" class="custom-td-first">
+                            @Html.RenderTableCell(@identifierType)
+                        </td>
+                        <td data-property="identifierValue" data-value="@identifier.Value" title="@identifier.Value" class="custom-td">
+                            @Html.RenderTableCell(identifier.Value)
+                        </td>
+                        <td data-property="identifierUseCD" data-value="@identifier.IdentifierUseId" title="@identifierUse" class="custom-td">
+                            @Html.RenderTableCell(@identifierUse)
+                        </td>
+                        <td class="custom-td-last position-relative identifier-actions-cell">
+                            @if (!ViewBag.ReadOnly)
+                            {
+                                <img alt="" src="/css/img/icons/editing.svg" class="identifier-entry" />
+                                <i class="remove-table-row-icon remove-identifier"></i>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

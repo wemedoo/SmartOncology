@@ -1,0 +1,34 @@
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs;
+@using sReportsV2.DTOs.Field.DataOut;
+
+
+<form id="chartForm" name="AdvancedFilterForm" onsubmit="return false">
+    <div class="modal fade height-auto" id="chartModal" role="dialog" aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="float-right filter-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+
+                <div class="d-flex advanced-filter-header margin-left-30">
+                    @sReportsV2.Cache.Resources.TextLanguage.Data_Capture_Chart
+                </div>
+
+                <div class="modal-body" id="chartModalContent">
+                    <div id="checkbox-fields-to-plot">
+                        @await Html.PartialAsync("~/Views/FormInstance/ChartFiltersPartial.cshtml")
+                    </div>
+
+                    <canvas id="data-capture-chart" class="data-capture-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js", "", ""))
+@Html.Raw(ScriptHelper.RenderScript("https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js", "", ""))
+@Html.Raw(ScriptHelper.RenderBundle("js/dataCaptureChart-bundle.min.js"))

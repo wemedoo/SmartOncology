@@ -1,0 +1,35 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.ThesaurusEntry.DataOut;
+@using sReportsV2.Common.Constants;
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Thesaurus;
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", sReportsV2.Cache.Resources.TextLanguage.Thesaurus }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Thesaurus
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Thesaurus))
+        {
+            <button class="btn btn-create float-right" onclick="createThesaurusEntry()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+            @Html.ActionLink(sReportsV2.Cache.Resources.TextLanguage.Start_Merge_Process, "MergeThesaurusOccurences", "ThesaurusEntry", new { }, new { target = "_blank", rel = "noreferrer", @class = "btn btn-filter-primary h-100 float-right mr-3 font-size-14px" })
+        }
+    </div>
+    @await Html.PartialAsync("ThesaurusFilterGroup")
+
+    <div id="tableContainer">
+
+    </div>
+</div>
+
+@await Html.PartialAsync("AdvancedFilterModal")
+@await Html.PartialAsync("ThesaurusMore")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/thesaurusGetAll-bundle.min.js"))

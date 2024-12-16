@@ -1,0 +1,37 @@
+﻿@using System.Globalization
+<div class="entity">
+    <div class="header-rounded">
+        @sReportsV2.Cache.Resources.TextLanguage.Patient
+    </div>
+    <div class="entity-data">
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.Name:</div>
+            <div class="property-value">@Model.Name</div>
+        </div>
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.FamilyName:</div>
+            <div class="property-value">@Model.FamilyName</div>
+        </div>
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.Gender:</div>
+            <div class="property-value"></div>
+        </div>
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.BirthDate:</div>
+            <div class="property-value">@(Model.BirthDate != null ? Model.BirthDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")</div>
+        </div>
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.City:</div>
+            <div class="property-value">@Model.Address.City</div>
+        </div>
+        <div class="property">
+            <button type="button" onclick="goToPatient('@Model.Id')" class="btn btn-primary" style="margin-top : 10px">
+                <i class="fas fa-arrow-alt-circle-left"></i>
+                @sReportsV2.Cache.Resources.TextLanguage.BactToPatient
+            </button>
+        </div>
+    </div>
+</div>
+
+
+

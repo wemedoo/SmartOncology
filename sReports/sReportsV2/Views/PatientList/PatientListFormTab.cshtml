@@ -1,0 +1,316 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.DTOs.PatientList;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model PatientListDTO
+
+@{
+
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreatePatientListPermission = userCookieData.UserHasPermission(PermissionNames.CreatePatientList, ModuleNames.Patients);
+    bool hasUpdatePatientListPermission = userCookieData.UserHasPermission(PermissionNames.UpdatePatientList, ModuleNames.Patients);
+    List<CodeDataOut> encounterStatuses = ViewBag.EncounterStatuses as List<CodeDataOut>;
+
+    string disabled = "disabled";
+    bool readOnly = true;
+
+    if (hasCreatePatientListPermission || hasUpdatePatientListPermission)
+    {
+        disabled = "";
+        readOnly = false;
+    }
+}
+
+<div id="patientlist-form-tab" class="scroll-list-tab-container">
+
+    <form id="patientListForm">
+
+        <div class="d-flex mt-3">
+            <input type="hidden" id="patientListId" value="@(Model != null ? Model.PatientListId.ToString() : "0")">
+
+            <div class="advanced-filter-item filter-item">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.List_Name
+                </div>
+                <input type="text" class="filter-input" name="listName" id="listName" required value="@(Model.PatientListName ?? "")" @disabled>
+                <label id="nonUniqueListName-error" class="error" for="listName" style="display:none">@sReportsV2.Cache.Resources.TextLanguage.Not_Unique_Name</label>
+            </div>
+        </div>
+
+        <div class="d-flex mt-3">
+            <div class="advanced-filter-item filter-item ">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.List @sReportsV2.Cache.Resources.TextLanguage.ActiveFrom
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                   {
+                        InputAttributes = new Dictionary<object, object> {
+                            { "class", "filter-input" },
+                            { "id", "activeFrom" },
+                            { "name", "activeFrom" },
+                            { "value", Model != null && Model.ActiveFrom.HasValue ? Model.ActiveFrom.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                        },
+                        InputBtnAttributes = new Dictionary<object, object> {
+                            { "class", "date-img eoc-form-date-img" },
+                            { "id", "activeFromCalendar"},
+                            { "name", "activeFromCalendar"},
+                            { "onClick", "showDatePicker(event)"},
+                            { @Html.DateDisabled(readOnly), null }
+                        },
+                   })
+            </div>
+            <div class="advanced-filter-item filter-item ">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.List @sReportsV2.Cache.Resources.TextLanguage.ActiveTo
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                   {
+                        InputAttributes = new Dictionary<object, object> {
+                                    { "class", "filter-input" },
+                                    { "id", "activeTo" },
+                                    { "name", "activeTo" },
+                                    { "value", Model != null && Model.ActiveTo.HasValue ? Model.ActiveTo.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                        },
+                        InputBtnAttributes = new Dictionary<object, object> {
+                                    { "class", "date-img eoc-form-date-img" },
+                                    { "id", "activeToCalendar" },
+                                    { "name", "activeToCalendar" },
+                                    { "onClick", "showDatePicker(event)"},
+                                    { @Html.DateDisabled(readOnly), null }
+                        },
+                   })
+            </div>
+        </div>
+
+        <div class="d-flex mt-3">
+            <div class="advanced-filter-item filter-item">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Add_Patients_by
+                </div>
+                <div class="position-relative margin-top-10">
+                    <label class="form-radio-label margin-right-20">
+                        <input type="radio"
+                               id="filterRadio"
+                               name="addPatientsBy"
+                               value="true"
+                               class="form-radio-field"
+                               data-container="PatientsFilteringContainer"
+                        @Html.Disabled(readOnly)
+                        @(Model != null && !Model.ArePatientsSelected ? "checked" : string.Empty)>
+
+                        <i class="form-radio-button user-radio"></i>
+                        <span class="user-radio-span">
+                            @sReportsV2.Cache.Resources.TextLanguage.Filtered_List
+                        </span>
+                    </label>
+                    <label class="form-radio-label margin-right-20">
+                        <input type="radio"
+                               id="customListRadio"
+                               name="addPatientsBy"
+                               value="false"
+                               class="form-radio-field"
+                               data-container="PatientSelectingContainer"
+                        @Html.Disabled(readOnly)
+                        @(Model != null && Model.ArePatientsSelected ? "checked" : string.Empty)>
+
+                        <i class="form-radio-button user-radio"></i>
+                        <span class="user-radio-span">
+                            @sReportsV2.Cache.Resources.TextLanguage.Custom_List
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="identifier-line my-3 mr-4"></div>
+
+        <div id="PatientsFilteringContainer" class="patientlist-form-tab @(Model.ArePatientsSelected ? "d-none" : "")">
+
+            <div class="d-flex mt-3">
+                <div class="advanced-filter-item filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Admission_Date @sReportsV2.Cache.Resources.TextLanguage.From
+                    </div>
+                    <div class="filter-date-time datetime-picker-container">
+                        <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                    { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
+                                    { "value",  Model != null && Model.AdmissionDateFrom != null ? Model.AdmissionDateFrom.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                    { "id", "periodStartDate"},
+                                    { "name", "periodStartDate"},
+                                    { @Html.DateDisabled(readOnly), null }
+                                }
+                            })
+                            <input id="periodStartDateTime" name="periodStartDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@(Model != null && Model.AdmissionDateFrom != null ? Model.AdmissionDateFrom.Value.ToString("s") : "")" />
+                            <div class="img-wrapper">
+                                <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
+                            </div>
+                        </div>
+                        <div class="time-wrapper w-35 input-border">
+                            <input type="text"
+                                   placeholder="@DateConstants.TimeFormatDisplay"
+                                   class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
+                                   value="@(Model != null && Model.AdmissionDateFrom != null ? Model.AdmissionDateFrom.Value.GetTimePart() : "")"
+                                   id="periodStartTime"
+                                   name="periodStartTime">
+                            <div class="clock-wrapper">
+                                <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="advanced-filter-item filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Discharge_Date @sReportsV2.Cache.Resources.TextLanguage.To_
+                    </div>
+                    <div class="filter-date-time datetime-picker-container">
+                        <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                       {
+                           InputAttributes = new Dictionary<object, object> {
+                                    { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
+                                    { "value", Model != null && Model.DischargeDateTo != null ? Model.DischargeDateTo.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                    { "id", "periodEndDate"},
+                                    { "name", "periodEndDate"},
+                                    { @Html.DateDisabled(readOnly), null }
+                                }
+                       })
+                            <input id="periodEndDateTime" name="periodEndDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@( Model != null && Model.DischargeDateTo != null ? Model.DischargeDateTo.Value.ToString("s") : "")" />
+                            <div class="img-wrapper">
+                                <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
+                            </div>
+                        </div>
+                        <div class="time-wrapper w-35 input-border">
+                            <input type="text"
+                                   placeholder="@DateConstants.TimeFormatDisplay"
+                                   class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
+                                   value="@(Model != null && Model.DischargeDateTo != null ? Model.DischargeDateTo.Value.GetTimePart() : "")"
+                                   id="periodEndTime"
+                                   name="periodEndTime">
+                            <div class="clock-wrapper">
+                                <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
+                            </div>
+                        </div>
+                    </div>
+                    <label id="admissionPeriod-error" class="error" for="periodEndDate" style="display:none">@sReportsV2.Cache.Resources.TextLanguage.Discharge_Error_Msg</label>
+                </div>
+            </div>
+
+
+            <div class="d-flex mt-3">
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.EpisodeOfCareType
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36" id="eocType" name="eocType" @disabled data-codesetid="@((int)CodeSetList.EpisodeOfCareType)">
+                        <option id="" value="">@sReportsV2.Cache.Resources.TextLanguage.Select_EoC_Type</option>
+                        @foreach (var episodeOfCareType in ObjectExtension.FilterDataSource(ViewBag.EpisodeOfCareTypes, readOnly))
+                        {
+                            <option value="@episodeOfCareType.Id" @(Model != null && episodeOfCareType.Id == Model.EpisodeOfCareTypeCD ? "selected" : "")>
+                                @episodeOfCareType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Personnel_Team
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36" id="personnelTeam" name="personnelTeam" @disabled>
+                        <option id="" value=""></option>
+                        @if (Model.PersonnelTeamId != null && !string.IsNullOrWhiteSpace(Model.PersonnelTeamName))
+                        {
+                            <option selected value="@Model.PersonnelTeamId">@Model.PersonnelTeamName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex mt-3">
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.EncounterType
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36" id="encounterType" name="encounterType" @disabled data-codesetid="@((int)CodeSetList.EncounterType)">
+                        <option id="" value="">@sReportsV2.Cache.Resources.TextLanguage.Select_Encounter_Type</option>
+                        @foreach (var encounterType in ObjectExtension.FilterDataSource(ViewBag.EncounterTypes, readOnly, Model != null ? Model.EncounterTypeCD : null))
+                        {
+                            <option value="@encounterType.Id" @(Model != null && encounterType.Id == Model.EncounterTypeCD ? "selected" : "")>
+                                @encounterType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.EncounterStatus
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36" id="encounterStatus" name="encounterStatus" @disabled data-codesetid="@((int)CodeSetList.EncounterStatus)">
+                        <option value="">@sReportsV2.Cache.Resources.TextLanguage.Select_Encounter_Status</option>
+                        @foreach (var statusOption in ObjectExtension.FilterDataSource(encounterStatuses, readOnly, Model != null ? Model.EncounterStatusCD : null))
+                        {
+                            <option value="@statusOption.Id" @(Model != null && statusOption.Id == Model.EncounterStatusCD ? "selected" : "")>
+                                @statusOption.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex mt-3">
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.AttendingDoctor
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36" id="attendingDoctor" name="attendingDoctor" @disabled>
+                        <option id="" value=""></option>
+                        @if (Model.AttendingDoctorId != null && !string.IsNullOrWhiteSpace(Model.AttendingDoctorName))
+                        {
+                            <option selected value="@Model.AttendingDoctorId">@Model.AttendingDoctorName</option>
+                        }
+                    </select>
+                </div>
+                <div class="advanced-filter-item patient-list-checkboxes">
+                    <div class="d-inline-block">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Exclude_Deceased_Patient
+                        </div>
+                        <label class="form-checkbox-label">
+                            <input class="form-checkbox-field" type="checkbox" data-label="@sReportsV2.Cache.Resources.TextLanguage.Exclude_Deceased_Patient" id="excludeDeceased" @(Model.ExcludeDeceasedPatient ? "checked" : "") />
+                            <i class="form-checkbox-button table-checkbox"></i>
+                            <span> @sReportsV2.Cache.Resources.TextLanguage.Yes</span>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="PatientSelectingContainer" class="patientlist-form-tab @(Model.ArePatientsSelected ? "" : "d-none")">
+            <div class="alert smart-onc-alert-info mr-4 text-center" role="alert">
+                <strong>@sReportsV2.Cache.Resources.TextLanguage.You_can_now_Select_Patients_From_Patient_Table</strong>
+            </div>
+        </div>
+
+        <div class="button-partial">
+            @if (!readOnly)
+            {
+                <button id="identifier-modal-button2" class="submit-button right-button margin-left-13 " type="button" style="outline: none;" onclick="submitPatientListForm('@(Model != null && Model.PatientListId > 0? "Edit" : "Create")')" dismiss="modal">
+                    <span class="submit-patient-info"> @(Model != null && Model.PatientListId > 0? sReportsV2.Cache.Resources.TextLanguage.Edit : sReportsV2.Cache.Resources.TextLanguage.Create) </span>
+                </button>
+            }
+            <div class="button-wrapper-filter float-right" id="close2">
+                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+
+</div>

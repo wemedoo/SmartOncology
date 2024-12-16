@@ -1,0 +1,12 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@model FieldAudioDataOut
+
+<fieldset class="form-input">
+    <div class="filter-label form-label-size d-inline-block">
+        <span class="comment-target-item" id="@Model.Id">  @Html.Raw(Model.FullLabel) </span>
+    </div>
+</fieldset>
+<a class="add-comment-link comment-block-hide" onclick="addComment('@Model.Id')">
+
+    <img alt="" class="add-comment-icon" src="/css/img/icons/add_comment_1.svg">
+</a>

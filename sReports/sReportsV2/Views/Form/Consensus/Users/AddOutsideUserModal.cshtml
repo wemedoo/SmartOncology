@@ -1,0 +1,106 @@
+﻿<div class="modal fade" id="addUserFormModal" tabindex="-1" role="dialog" aria-labelledby="addUserFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-advanced">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body modal-body-advanced">
+                <div class="form-group col-md-12">
+                    <form id="addUserForm" onsubmit="return submitOutsideUser(event)">
+                        <input type="hidden" id="userId" />
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/select_users.svg"> @sReportsV2.Cache.Resources.TextLanguage.OutsideUser
+                        </div>
+                        <div class="d-flex margin-top-20">
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.FirstName
+                                </div>
+                                <input type="text" class="filter-input designer-form-input" id="firstName" required @ViewBag.Disabled>
+                            </div>
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.LastName
+                                </div>
+                                <input type="text" class="filter-input designer-form-input" id="lastName" required @ViewBag.Disabled>
+                            </div>
+                        </div>
+                        <div class="d-flex margin-top-20">
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Email
+                                </div>
+                                <input type="email" class="filter-input" id="email" required @ViewBag.Disabled>
+                            </div>
+
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Institution
+                                </div>
+                                <input type="text" class="filter-input" id="institution" @ViewBag.Disabled>
+                            </div>
+                        </div>
+                        <div class="d-flex margin-top-20">
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Institution  @sReportsV2.Cache.Resources.TextLanguage.Address
+                                </div>
+                                <input type="text" class="filter-input" id="institutionAddress" @ViewBag.Disabled>
+                            </div>
+                            <div class="advanced-filter-item country-select-input">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Country
+                                </div>
+                                <select class="filter-input arrow-select" id="countryCD" name="countryCD" @ViewBag.Disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex margin-top-20">
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.City
+                                </div>
+                                <input type="text" class="filter-input" id="city" @ViewBag.Disabled>
+                            </div>
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Postal_code
+                                </div>
+                                <input type="text" class="filter-input" id="postalCode" @ViewBag.Disabled>
+                            </div>
+                        </div>
+                        <div class="d-flex margin-top-20">
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Street
+                                </div>
+                                <input type="text" class="filter-input" id="street" @ViewBag.Disabled>
+                            </div>
+                            <div class="advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.StreetNumber
+                                </div>
+                                <input type="number" class="filter-input" id="streetNumber" @ViewBag.Disabled>
+                            </div>
+                        </div>
+                        <div class="advanced-filter-line"></div>
+                        <div class="d-flex mt-3 position-relative margin-top-10">
+                            @if (!ViewBag.ReadOnly)
+                            {
+                                <div class="button-wrapper-filter filter-button" id="submitFilterButton">
+                                    <button class="btn btn-filter-primary w-100 h-100" type="submit"> @sReportsV2.Cache.Resources.TextLanguage.Save</button>
+                                </div>
+                            }
+                            <div class="button-wrapper-filter cancel-filter-btn float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

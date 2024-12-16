@@ -1,0 +1,59 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{ 
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Code;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewCodePerm = userCookieData.UserHasPermission(PermissionNames.ViewCode, ModuleNames.CodeSet);
+    bool hasViewAssociationPerm = userCookieData.UserHasPermission(PermissionNames.ViewAssociation, ModuleNames.CodeSet);
+    bool isReadOnly = ViewBag.ReadOnly;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", "Code Set Management" }, { "linkLevel1", "/CodeSet/GetAll" }, { "level2", @ViewBag.FilterData.CodeSetDisplay }, { "activeLevel", 2 } })
+
+<input id="codeSetId" value="@ViewBag.FilterData.CodeSetId" hidden />
+<input hidden id="codeSetDisplay" value="@ViewBag.FilterData.CodeSetDisplay">
+<input hidden id="viewAssociationPerm" value="@hasViewAssociationPerm">
+<input hidden id="isReadOnly" value=@Json.Serialize(isReadOnly) />
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.SO_Code_Set_System_Management
+        @if (userCookieData.UserHasPermission(PermissionNames.CreateCodeEntry, ModuleNames.CodeSet) && !isReadOnly)
+        {
+            <button class="btn btn-create float-right" onclick="createCodeEntry()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.AddNewCode</button>
+        }
+    </div>
+    <div class="d-flex">
+        <div class="code-set-size alias-main-content edit-alias-background">
+            <div class="label filter-label input-margin">@sReportsV2.Cache.Resources.TextLanguage.Code_set.ToUpper()</div>
+            <div id="codeSetsGroupId">
+
+            </div>
+        </div>
+        @if (hasViewCodePerm)
+        {
+            <div class="code-getall-size">
+                @await Html.PartialAsync("CodeFilterGroup")
+                <div id="tableContainer" class="padding-left-20">
+
+                </div>
+                <div class="line-partial">
+                    <div class="line-bottom"></div>
+                </div>
+                @if (hasViewAssociationPerm)
+                {
+                    @await Html.PartialAsync("CodeAssociations")
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Views/CodeSet/ThesaurusModal.cshtml")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/codeGetAll-bundle.min.js"))

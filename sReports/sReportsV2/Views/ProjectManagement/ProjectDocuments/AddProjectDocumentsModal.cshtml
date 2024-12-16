@@ -1,0 +1,43 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Common.DataOut;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.Common.Constants;
+
+
+<div class="modal fade" id="AddTrialDocumentsModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 650px">
+        <div class="modal-content h-100" id="addeoc-content">
+            <div class="modal-body modal-body-advanced overh">
+                <div class="float-right filter-eoc-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+
+                <div class="d-flex advanced-filter-header documents-header my-5">
+                    <img alt="" class="mr-3" src="/css/img/icons/adding_doc_green.svg"> @sReportsV2.Cache.Resources.TextLanguage.Add_Documentation_To_Trial
+                </div>
+                <div class="label documents-form-title"></div>
+                <div class="d-flex margin-top-10">
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Document_Title
+                        </div>
+                        <select class="filter-input arrow-select document-select2" id="DocumentTitleModal">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex min-height-50 my-4">
+                    <div class="button-wrapper-filter filter-button float-right d-flex unset-width">
+                        <a class="btn advanced-cancel mr-2" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                        <button id="AddDocumentsBtn" class="btn btn-create text-nowrap mr-4" onclick="addDocumentToProject()"> @sReportsV2.Cache.Resources.TextLanguage.Add_Document</button>
+                    </div>
+                </div>
+                                  
+            </div>
+        </div>
+    </div>
+</div>

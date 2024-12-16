@@ -1,0 +1,68 @@
+﻿
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Voice Recorder</title>
+</head>
+<body>
+    <button id="startRecord">Start Recording</button>
+    <button id="stopRecord" disabled>Stop Recording</button>
+    <audio id="audioPlayback" controls></audio>
+
+    <script src="script.js"></script>
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const startRecord = document.getElementById('startRecord');
+    const stopRecord = document.getElementById('stopRecord');
+    const audioPlayback = document.getElementById('audioPlayback');
+
+    // Request permission and start recording
+    startRecord.addEventListener('click', function() {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+
+                mediaRecorder.ondataavailable = function(event) {
+                    audioChunks.push(event.data);
+                };
+
+                stopRecord.disabled = false;
+                startRecord.disabled = true;
+            })
+            .catch(error => {
+                console.error("Error accessing the microphone", error);
+            });
+    });
+
+    // Stop recording and create audio playback
+    stopRecord.addEventListener('click', function() {
+        mediaRecorder.stop();
+
+        mediaRecorder.onstop = function() {
+            const audioBlob = new Blob(audioChunks, { 'type' : 'audio/mp4' });
+            audioChunks = [];
+
+            const audioUrl = URL.createObjectURL(audioBlob);
+            audioPlayback.src = audioUrl;
+
+            stopRecord.disabled = true;
+            startRecord.disabled = false;
+        };
+    });
+});
+
+</script>
+
+
+</html>
+
+
+

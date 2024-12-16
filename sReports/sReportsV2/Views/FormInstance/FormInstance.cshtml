@@ -1,0 +1,45 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@model FormDataOut
+@{
+    var action = ViewBag.formInstanceId != null ? "Edit" : "Create";
+    ViewBag.Action = "/FormInstance/" + action;
+    var filter = ViewBag.FilterFormInstanceDataIn;
+}
+
+<div class="form-instance-white element-background-grey-height-form-partial">
+    @if (filter.ProjectId != null)
+    {
+        if (ViewBag.ShowUserProjects)
+        {
+            @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) {
+            { "level1", sReportsV2.Cache.Resources.TextLanguage.Projects }, { "linkLevel1", "/ProjectManagement/GetAllUserProjects" },
+            { "level2", ViewBag.ProjectTitle }, { "linkLevel2", "/ProjectManagement/ProjectForms?projectId=" + filter.ProjectId },
+            { "level3", Model.Title }, { "linkLevel3", "/FormInstance/GetAllByUserProject?VersionId=" + Model.Version.Id +  "&FormId=" + Model.Id + "&ThesaurusId=" + Model.ThesaurusId + "&ProjectId=" + filter.ProjectId},
+            { "level4",  ViewBag.formInstanceId != null ? ViewBag.formInstanceId : @sReportsV2.Cache.Resources.TextLanguage.CreateNewInstance }, { "activeLevel", 4 } })
+        }
+        else
+        {
+            @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) {
+            { "level1", sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "linkLevel1", "/ProjectManagement/GetAll" },
+            { "level2", ViewBag.ProjectTitle }, { "linkLevel2", "/ProjectManagement/Edit?projectId=" + filter.ProjectId },
+            { "level3", Model.Title }, { "linkLevel3", "/FormInstance/GetAllByProject?VersionId=" + Model.Version.Id +  "&FormId=" + Model.Id + "&ThesaurusId=" + Model.ThesaurusId + "&ProjectId=" + filter.ProjectId},
+            { "level4",  ViewBag.formInstanceId != null ? ViewBag.formInstanceId : @sReportsV2.Cache.Resources.TextLanguage.CreateNewInstance }, { "activeLevel", 4 } })
+        }
+    }
+    else
+    {
+        @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData)
+        {
+            { "level1", @sReportsV2.Cache.Resources.TextLanguage.DataCaptureEngine }, { "linkLevel1", "/FormInstance/GetAllFormDefinitions" },
+            { "level2", Model.Title }, { "linkLevel2", "/FormInstance/GetAllByFormThesaurus?VersionId=" + Model.Version.Id + "&thesaurusId=" + Model.ThesaurusId },
+            { "level3", ViewBag.formInstanceId != null ? ViewBag.formInstanceId : @sReportsV2.Cache.Resources.TextLanguage.CreateNewInstance }, { "activeLevel", 3 }
+        })
+    }
+    @await Html.PartialAsync("FormInstancePartial")
+</div>
+
+<input type="hidden" id="showUserProjects" value="@(ViewBag.ShowUserProjects ? "true" : "false")" />
+<input type="hidden" id="projectId" value="@(ViewBag.ProjectId)" />
+
+@Html.Raw(ScriptHelper.RenderBundle("js/formEngine-bundle.min.js"))

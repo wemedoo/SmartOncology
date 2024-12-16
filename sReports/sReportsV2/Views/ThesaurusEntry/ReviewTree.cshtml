@@ -1,0 +1,58 @@
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut, sReportsV2.DTOs.Common.DataIn>
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.ReviewThesaurus;
+}
+<input type="hidden" id="O4MTId" value="@ViewBag.O4MTId" />
+<input type="hidden" id="targetO4MTId" value="" />
+<input type="hidden" id="id" value="@ViewBag.Id" />
+
+<div class="col-12">
+    <div class="row">
+        @*<div class="col-6">
+                <div class="accordion">
+                    <div class="header-accordion col-12" data-toggle="collapse" data-target="#currentThesaurusAccordion" aria-expanded="false" aria-controls="currentThesaurusAccordion">
+                        @sReportsV2.Cache.Resources.TextLanguage.Thesaurus
+                    </div>
+                    <div class="collapse show w-100 mb-3" id="currentThesaurusAccordion">
+                        <div id="cuurentThesaurus">
+                        </div>
+                    </div>
+
+                </div>
+            </div>*@
+
+        <div class="col-12">
+            <div class="header header-new" style="font-weight:unset; letter-spacing: 0.26px;background-color:#f9f9f9">
+                @ViewBag.PreferredTerm (@ViewBag.Id)
+            </div>
+            <div class=" pb-2">
+                <div class="filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.SimilarTerms
+                </div>
+                <div class="collapse show w-100 mb-3" id="reviewTreeAccordion">
+                    <div id="reviewList">
+                        @await Html.PartialAsync("ThesaurusReviewList", Model)
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+@*<div id="buttons" class="col-2">
+        <button type="button" onclick="openMergeModal(event)" class="btn btn-primary mb-2 w-100">@sReportsV2.Cache.Resources.TextLanguage.MergeThesauruses</button>
+        <button type="button" class="btn btn-primary w-100">@sReportsV2.Cache.Resources.TextLanguage.TakeBoth</button>
+    </div>*@
+
+
+@await Html.PartialAsync("ThesaurusMergeModal")
+@Html.Raw(ScriptHelper.RenderBundle("js/reviewThesaurus-bundle.min.js"))
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>

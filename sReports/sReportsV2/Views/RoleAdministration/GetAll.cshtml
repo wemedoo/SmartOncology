@@ -1,0 +1,20 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@{
+    ViewData["Title"] = @sReportsV2.Cache.Resources.TextLanguage.Role_Administration;
+}
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Roles }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    @*<div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.Roles
+        @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Administration))
+        {
+            <button class="btn btn-create float-right" onclick="createEntity()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create_New_Role</button>
+        }
+    </div>*@
+    <div id="tableContainer">
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/roleAdministration-bundle.min.js"))

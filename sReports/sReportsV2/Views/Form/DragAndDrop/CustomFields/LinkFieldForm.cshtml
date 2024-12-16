@@ -1,0 +1,12 @@
+﻿@using sReportsV2.DTOs.Field.DataOut
+@model FieldLinkDataOut
+
+<div class="designer-form-section">
+    <div class="designer-form-input-group two-margins">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Link
+        </div>
+        <input required class="designer-form-input" id="link" name="link" type="text" value="@(Model != null && Model.Link != null ? Model.Link : "")" @ViewBag.Disabled />
+    </div>
+</div>
+

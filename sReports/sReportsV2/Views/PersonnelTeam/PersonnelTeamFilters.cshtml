@@ -1,0 +1,65 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@model sReportsV2.DTOs.Organization.OrganizationDataOut
+
+<div class="d-flex">
+
+    <div class="d-flex mb-2" style=" width: 65%;">
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label personnel-team-filter-label">@sReportsV2.Cache.Resources.TextLanguage.Team_Name.ToUpper()</div>
+            <div>
+                <select id="team-name-select2" class="filter-input" style="width: 100%"></select>
+            </div>
+        </div>
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label personnel-team-filter-label">@sReportsV2.Cache.Resources.TextLanguage.Team_Type.ToUpper()</div>
+            <select id="team-type-select2" class="filter-input arrow-select background-white" style="width: 100%">
+                <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                @foreach (CodeDataOut teamType in ObjectExtension.FilterDataSource(ViewBag.TeamTypes, readOnlyMode: true))
+                {
+                    <option value="@teamType.Id">
+                        @teamType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter">
+                <button class="personnel-team-button btn btn-filter-primary w-100 h-100 float-right" onclick="reloadPersonnelTeamTable()">@sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+            </div>
+        </div>
+
+    </div>
+
+    @if (!ViewBag.ReadOnly)
+    {
+        <button type="button" class="btn btn-add-new float-right new-personnel-team-button" onclick="showPersonnelTeamModal(event)">
+            <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new">@sReportsV2.Cache.Resources.TextLanguage.Add_Team</span>
+        </button>
+    }
+
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        var placeholder = "-";
+        $("#team-name-select2").initSelect2(
+            getSelect2Object(
+                {
+                    placeholder: placeholder,
+                    width: '100%',
+                    minimumInputLength: 1,
+                    url: `/PersonnelTeam/GetNameAutocompleteData?organizationId=${@(Model != null ? Model.Id : 0)}`
+                }
+            )
+        );
+
+    });
+
+</script>

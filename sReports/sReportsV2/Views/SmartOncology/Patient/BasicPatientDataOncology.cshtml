@@ -1,0 +1,42 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Patient.DataIn;
+@using sReportsV2.DTOs.Patient.DataOut;
+@using sReportsV2.Common.Constants;
+
+@* @ScriptHelper.RenderStylesheet(Url.Content("/css/open-oncology/scss/style.css")) *@
+
+@model  sReportsV2.DTOs.Pagination.PaginationDataOut<PatientTableDataOut, PatientFilterDataIn>
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology_Patient_Management;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.ClinicalOncology);
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology_Patient_Management }, { "activeLevel", 1 } })
+
+<div class="smart-oncology-header">
+    <span>@sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology_Patient_Management</span>
+    @if (hasCreatePerm)
+    {
+        <button class="new-patient float-right" onclick="addNewPatient()">
+            @sReportsV2.Cache.Resources.TextLanguage.New_Patient
+        </button>
+    }
+</div>
+<div class="smart-oncology-container">
+    <div class="smart-oncology-search-container">
+        @await Html.PartialAsync("Patient/BasicPatientDataOncologyHeader", Model)
+        @await Html.PartialAsync("Patient/BasicPatientDataOncologyHeaderMobile", Model)
+        <div class="smart-oncology-patient-detail" id="smart-oncology-patient-detail">
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/smartOncologyPatient.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/clinicalTrialAutocomplete.js"), "", ""))
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(Model.DataIn));
+    setInitialViewData(defaultFilter.SelectedPatientId);
+</script>

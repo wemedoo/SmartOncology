@@ -1,0 +1,95 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@inject sReportsV2.Controllers.FormCommonController Controller
+@model FieldSelectableDataOut
+
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+    var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(0);
+}
+
+<tr @Html.Raw(Model.DependentAttributes) class="form-element form-radio form-radio-inline field-set-content radio-row @Model.ShowHiddenFieldsClass">
+    <td class="radio-row-label matrix-border-left">@Model.FullLabel</td>
+    @foreach (FormFieldValueDataOut ffv in Model.Values)
+    {
+        bool isRadioField = Model is FieldRadioDataOut;
+        <td class="radio-cell radio-cell-middle">
+            <label class="form-radio-label width-fit-content matrix-label" @Html.Raw(Model.Values.Count <= 5 ? "style= 'width: fit-content;'" : "")>
+                @if (isRadioField)
+                {
+                    AddRadio(Model as FieldRadioDataOut, Model.IsOptionChosen(ffv.Id), Model.IsReadonly || isChapterReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo);
+                    <i class="form-radio-button"></i>
+                }
+                else
+                {
+                    AddCheckBox(Model as FieldCheckboxDataOut, Model.IsOptionChosen(ffv.Id), Model.IsReadonly || isChapterReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo);
+                    <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                }
+            </label>
+            @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
+            {
+                <div class="w-1rem d-flex">
+                    <img alt="" title="Thesaurus" class="margin-bottom-5 hover-th-icon" src="/css/img/icons/@(ffv != null ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToThesaurus('@ffv.ThesaurusId')">
+                </div>
+            }
+        </td>
+    }
+    <td class="radio-row-label matrix-reset matrix-border-right">
+        <div class="dropdown dropdown-center">
+            <a class="dropdown-matrix" role="button" id="dropdownMenuButton-@fieldSetId" aria-haspopup="true" aria-expanded="false" data-display="static">
+                <img alt="" class="dots dots-center" src="/css/img/icons/dots_black.svg">
+            </a>
+            <div class="dropdown-menu patient-dropdown-menu dropdown-menu-right dropleft mr-3 mt-3 matrix-menu" aria-labelledby="dropdownMenuButton-@fieldSetId">
+                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", 
+                    Model, 
+                    new ViewDataDictionary(ViewData) 
+                    {
+                        { "repetitiveValue", Model.GetValue() },
+                        { "isMatrixFieldSet", true }
+                    })
+                @if (!fieldInstanceRepetitionInfo.Item2)
+                {
+                    @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+                }
+            </div>
+        </div>
+        <div style="display:none" class="form-element-description field-desc">
+            @Html.Raw(Model.Description)
+        </div>
+    </td>
+</tr>
+
+@functions {
+    private void AddRadio(FieldRadioDataOut radioField, bool isChecked, bool isReadonly, FormFieldValueDataOut ffv, string fieldSetId, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        <input type="radio"
+               id="@(fieldInstanceRepetitionInfo.Item1)-@ffv.Value.ReplaceNonAlphaCharactersWithDash().RemoveDiacritics()"
+               data-value="@ffv.Label"
+               data-numericvalue="@ffv.NumericValue"
+               value="@ffv.Id"
+               class="checkbox-radio form-radio-field"
+               onclick="return @((!isReadonly).ToString().ToLower())"
+        @Html.Raw(radioField.GetFieldInstanceDataAttrs(fieldSetId, 1))
+        @(isChecked ? "checked" : string.Empty)
+        @Html.Disabled(fieldInstanceRepetitionInfo.Item2)>
+    }
+}
+
+@functions {
+    private void AddCheckBox(FieldCheckboxDataOut checkboxField, bool isChecked, bool isReadonly, FormFieldValueDataOut ffv, string fieldSetId, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        <input value="@ffv.Id"
+               data-value="@ffv.Label"
+               id="@fieldInstanceRepetitionInfo.Item1-@ffv.Value.ReplaceNonAlphaCharactersWithDash().RemoveDiacritics()"
+        @(isChecked ? "checked" : "")
+               class="checkbox-radio form-checkbox-field"
+               type="checkbox"
+               data-numericvalue="@ffv.NumericValue"
+               onclick="return @((!isReadonly).ToString().ToLower())"
+        @Html.Raw(checkboxField.GetFieldInstanceDataAttrs(fieldSetId, 1))
+        @Html.Disabled(fieldInstanceRepetitionInfo.Item2) />
+    }
+}

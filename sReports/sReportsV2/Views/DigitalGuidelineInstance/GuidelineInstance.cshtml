@@ -1,0 +1,54 @@
+@using System.Globalization
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.EpisodeOfCare
+@model sReportsV2.DTOs.Patient.PatientDataOut
+@section Scripts
+{
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.15.2/cytoscape.min.js", "sha512-PqivlaNWoXvHYlvku80fbWO/yBiRmGhISj5uVdAodyqsGprDcVZy6aecJDVNE0fIIE/YeiOzp5yJTR5ZjFlR4Q==", "anonymous"))
+}
+
+@section Stylesheet
+{
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/digital-guideline.css"), "", "")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/newMain.css"), "", "")
+}
+@{
+    ViewBag.Title = "Digital guideline instance";
+    EpisodeOfCareDataOut eoc = Model.GetEpisodeOfCare(ViewBag.EocId);
+}
+
+<div id="patientGeneralInfoContainer" class="patient-general-info" data-patientid="@Model.Id" data-eocid="@eoc.Id">
+    <div class="patient-general-info-title">
+        @sReportsV2.Cache.Resources.TextLanguage.Patient
+    </div>
+    <div class="properties">
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.Name</div>
+            <div class="property-value">@Model.Name</div>
+        </div>
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.FamilyName</div>
+            <div class="property-value">@Model.FamilyName</div>
+        </div>
+        <div class="property">
+            <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.BirthDate</div>
+            <div class="property-value">@(Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "Not known")</div>
+        </div>
+        <div class="property no-border">
+            <button class="button-edit" id="@Model.Id" onclick="backToPatient('@Model.Id', '@eoc.Id')">
+                <i class="fas fa-pen"></i>
+                <span>
+                    @sReportsV2.Cache.Resources.TextLanguage.Back_to_patient_data
+                </span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<div id="guidelineTableContainer" class="padding-top-10">
+    @await Html.PartialAsync("GuidelineInstanceTable", eoc.ListGuidelines)
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/digitalGuidelineInstance/patient-digital-guideline.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/custom-modal.js"), "", ""))

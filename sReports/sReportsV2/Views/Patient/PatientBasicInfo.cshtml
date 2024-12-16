@@ -1,0 +1,89 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@model sReportsV2.DTOs.Patient.PatientDataOut
+
+@{
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    string cityNames = Model.CityNames;
+    List<CodeDataOut> genders = ViewBag.Genders as List<CodeDataOut>;
+    CodeDataOut genderEnum = genders.Find(g => g.Id == Model.GenderId);
+    string genderTranslated = genderEnum != null ? genderEnum.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
+    string birthDateRendered = Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : sReportsV2.Cache.Resources.TextLanguage.NotDefined;
+    string cityNamesRendered = string.IsNullOrWhiteSpace(cityNames) ? sReportsV2.Cache.Resources.TextLanguage.NotDefined : cityNames;
+    List<CodeDataOut> episodeOfCaresTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
+    var episodeOfCareFromUrl = Context.Request.Query["episodeOfCareId"].ToString();
+}
+
+<div class="patient-basic-info-div">
+    <div class="patient-basic-info">@sReportsV2.Cache.Resources.TextLanguage.FirstName.ToUpper()</div>
+    <div class="patient-basic-info-value" title="@Model.Name">@Model.Name</div>
+</div>
+
+<div class="patient-basic-info-div">
+    <div class="patient-basic-info">@sReportsV2.Cache.Resources.TextLanguage.LastName.ToUpper()</div>
+    <div class="patient-basic-info-value" title="@Model.FamilyName">@Model.FamilyName</div>
+</div>
+
+<div class="patient-basic-info-div">
+    <div class="patient-basic-info">@sReportsV2.Cache.Resources.TextLanguage.Gender.ToUpper()</div>
+    <div class="patient-basic-info-value" title="@genderTranslated">@genderTranslated</div>
+</div>
+
+<div class="patient-basic-info-div">
+    <div class="patient-basic-info">@sReportsV2.Cache.Resources.TextLanguage.BirthDate.ToUpper()</div>
+    <div class="patient-basic-info-value" title="@birthDateRendered">@birthDateRendered</div>
+</div>
+
+<div class="patient-basic-info-div">
+    <div class="patient-basic-info">@sReportsV2.Cache.Resources.TextLanguage.City.ToUpper()</div>
+    <div class="patient-basic-info-value" title="@cityNamesRendered">@cityNamesRendered</div>
+</div>
+
+<div class="patient-basic-info-div patient-basic-button-div">
+    <button class="patient-basic-button" onclick="getPatientInfo(event, '@Model.Id', @readOnly.ToJsBoolean(), '@ViewBag.ActiveEOC')">
+        <img alt="" src="/css/img/icons/edit_green_pen.svg">
+        <span>@(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.View : sReportsV2.Cache.Resources.TextLanguage.Edit) </span>
+    </button>
+</div>
+
+<div class="eoc-info-div" @(ViewBag.ShowEOCDropdown != null ? "" : "hidden")>
+    <div class="eoc-basic-info">@sReportsV2.Cache.Resources.TextLanguage.EpisodesOfCare.ToUpper()</div>
+    <select class="select2 select2-container select2-container--default select2-container--focus eoc-select arrow-select eoc-arrow-select bg-white" id="episodeOfCareSelect" @ViewBag.Disabled style="max-width: 400px;">
+        @foreach (var episodeOfCare in Model.EpisodeOfCares)
+        {
+            <option class="eoc-tt" title="@episodeOfCare.ConvertTypeCDToDisplayName(episodeOfCaresTypes, activeLanguage)" value="@episodeOfCare.Id" @(episodeOfCareFromUrl == episodeOfCare.Id.ToString() ? "selected" : "")>
+                @sReportsV2.Cache.Resources.TextLanguage.Eoc.ToUpper(): @episodeOfCare.ConvertTypeCDToDisplayName(episodeOfCaresTypes, activeLanguage)
+            </option>
+        }
+    </select>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#episodeOfCareSelect').change(function () {
+            var episodeOfCareId = $(this).val();
+            viewEpisodeOfCare(episodeOfCareId);
+            $("#activeEncounterType").val("0");
+
+            callServer({
+                url: '/EpisodeOfCare/GetActiveBreadcrumbValue',
+                method: 'GET',
+                data: { episodeOfCareId: episodeOfCareId },
+                success: function (data) {
+                    $('.breadcrumb-active').html("<a>" + data + "</a>");
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        });
+        $('#episodeOfCareSelect').select2({
+            templateResult: formatEpisodeOfCare,
+            templateSelection: formatEpisodeOfCare
+        });
+    });
+</script>

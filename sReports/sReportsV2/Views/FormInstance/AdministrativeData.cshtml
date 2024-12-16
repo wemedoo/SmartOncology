@@ -1,0 +1,155 @@
+﻿@using System.Globalization
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
+
+@model FormDataOut
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool readOnlyMode = ViewBag.ReadOnlyMode;
+    bool readOnlyAction = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    bool hasTrackedChange = false;
+    string disabled = ViewBag.Disabled != null ? ViewBag.Disabled : string.Empty;
+    if (ViewBag.FormInstanceWorkflowHistory != null)
+    {
+        hasTrackedChange = (ViewBag.FormInstanceWorkflowHistory as List<FormInstanceStatusDataOut>).Any();
+    }
+    bool canChangeFormInstanceState = userCookieData != null
+        && userCookieData.UserHasPermission(PermissionNames.ChangeFormInstanceState, ModuleNames.Engine);
+
+    bool canSignInstanceState = userCookieData != null && userCookieData.UserHasPermission(PermissionNames.SignFormInstance, ModuleNames.Engine);
+    bool canUnlockDocument = canChangeFormInstanceState && canSignInstanceState && !readOnlyAction && Model.IsFormInstanceLocked();
+    bool chapterIsActive = Model.ActiveChapterId == FormInstanceConstants.AdministrativeChapter;
+}
+
+@if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Engine))
+{
+    bool allowCollapsingChapters = ViewBag.CollapseChapters != null;
+    <div class="form-accordion hide-arrow" style="display:@(chapterIsActive || allowCollapsingChapters ? "block" : "none");" id="@Html.HtmlContainerId("administrativeChapter", isContainer: true)">
+        <div class="position-relative enc-form-instance-header display-flex @(allowCollapsingChapters ? "chapter-hover" : "chapter-non-collapse")"
+             data-toggle="collapse"
+             onclick="collapseChapter(this)"
+             data-link-id="#@Html.HtmlContainerId("administrativeChapter", isContainer: false)"
+             data-target="#administrativeChapter"
+             aria-expanded="false"
+             aria-controls="administrativeChapter">
+            @if (allowCollapsingChapters)
+            {
+                <img alt="" class="chapter-icon" src="@(!chapterIsActive ? "/css/img/icons/u_plus.svg" : "/css/img/icons/u_minus.svg")" />
+                <span class="chapter-title">@sReportsV2.Cache.Resources.TextLanguage.Administative_data.ToUpper()</span>
+            }
+            else
+            {
+                <div class="chapter-title padding-left-16">@sReportsV2.Cache.Resources.TextLanguage.Administative_data.ToUpper()</div>
+            }
+        </div>
+        <div class="collapse chapter @(chapterIsActive ? "show" : "")" id="administrativeChapter">
+            <div class="card">
+                <div class='card-body'>
+                    <div class="field-group">
+                        <label for="notes" class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.Note</label>
+                        <textarea @Html.ReadOnly(readOnlyMode) class="repetitive-field filter-input d-inline-block administrative-input" type="text" id="notes" name="Notes" value="@(Model != null && Model.Notes != null ? Model.Notes : "")">@(Model != null && Model.Notes != null ? Model.Notes : "")</textarea>
+                    </div>
+                    <div class="field-group">
+                        <div for="date" class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.Date</div>
+                        <div class="repetitive-field filter-input d-inline-block datetime-picker-container">
+                            @{ var date = Model != null && Model.Date != null ? Model.Date.Value : DateTime.Now; }
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                    { "class", "filter-input d-inline-block administrative-input date-field-input" },
+                                    { "id", "date" },
+                                    { "name", "Date" },
+                                    { "data-parent-field", ".datetime-picker-container" },
+                                    { "value", date.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) },
+                                    { disabled, null }
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                    { "class", "date-img dynamic-form" },
+                                    { @Html.DateTimeDisabled(readOnlyMode), null }
+                                },
+                            })
+                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label for="formState" class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.Document_State</label>
+                        <select 
+                                @Html.Disabled(readOnlyMode || !canChangeFormInstanceState)
+                                class=" repetitive-field filter-input w-75 d-inline-block arrow-select administrative-input" 
+                                id="formState" 
+                                name="FormState">
+                            @foreach (FormState state in Enum.GetValues(typeof(FormState)))
+                            {
+                                if (Model.FormState == state)
+                                {
+                                    <option value="@state" selected>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(state.ToString())</option>
+                                }
+                                else
+                                {
+                                    if (!state.IsLockOrUnlockAction())
+                                    {
+                                        <option value="@state" @(Model.FormState == null && FormState.OnGoing == state ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(state.ToString())</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    @if (Model.IsFormInstanceLockedOrUnlocked() && hasTrackedChange)
+                    {
+                        FormInstanceStatusDataOut formInstanceSignInfo = (ViewBag.FormInstanceWorkflowHistory as List<FormInstanceStatusDataOut>).First();
+                        <div class="field-group margin-top-15">
+                            <label class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.ChangedBy</label>
+                            <input type="text" readonly class="repetitive-field filter-input d-inline-block administrative-input" value="@formInstanceSignInfo.CreatedBy.Name">
+                        </div>
+                        <div class="field-group">
+                            <label class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.Organization</label>
+                            <input type="text" readonly class="repetitive-field filter-input d-inline-block administrative-input" value="@formInstanceSignInfo.CreatedByActiveOrganization">
+                        </div>
+                        <div class="field-group">
+                            <label class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.ChangedOn</label>
+                            <div class="repetitive-field filter-input d-inline-block datetime-picker-container">
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                    { "class", "filter-input d-inline-block administrative-input date-field-input" },
+                                    { "value", formInstanceSignInfo.CreatedOn.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) },
+                                    { "readonly", null },
+                                    { "id", "changedOnDisplay" },
+                                    { "name", "changedOnDisplay" },
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> { { "class", "date-img dynamic-form" } },
+                            })
+                            </div>
+                        </div>
+                        if (canUnlockDocument)
+                        {
+                            <div class="administrative-unlock-doc">
+                                <button type="button" class="float-right btn btn-create" title="@sReportsV2.Cache.Resources.TextLanguage.UnlockDocument" onclick="showLockUnlockDocumentModal(event, '@FormState.Unlocked')">
+                                    <img alt="" src="/css/img/icons/partial_unlock_white.svg" class="lock-unlock-form-instance-icon" />
+                                    @sReportsV2.Cache.Resources.TextLanguage.UnlockDocument
+                                </button>
+                            </div>
+                        }
+                    }
+                    @if (hasTrackedChange)
+                    {
+                        <div class="form-instance-changes">
+                            <div class="field-group">
+                                <label class="filter-label form-label-size d-inline-block">@sReportsV2.Cache.Resources.TextLanguage.Administative_data</label>
+                            </div>
+                            <div class="administrative-container-form-instance" id="administrative-container-form-instance">
+                                <span class="arrow-scroll-left-form d-none arrow-scroll"></span>
+                                <span class="arrow-scroll-right-form d-none arrow-scroll"></span>
+                                <div class="workflow-container" id="idWorkflow">
+                                    @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/FormAdministrativeDataWorkflow.cshtml", ViewBag.FormInstanceWorkflowHistory as List<FormInstanceStatusDataOut>)
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

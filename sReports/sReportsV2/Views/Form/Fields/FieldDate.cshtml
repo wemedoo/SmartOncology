@@ -1,0 +1,93 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@model FieldDateDataOut
+@{
+    string fieldSetId = ViewBag.FieldSetId;
+    bool preventFutureDates = Model.PreventFutureDates;
+}
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  @Html.Disabled(Model.IsDisabled) >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            await AddField(Html, Model, fieldSetId, preventFutureDates, additionalInputClass: "datetime-picker-container"); 
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+@*
+    ---------------------------------------------------------------------------------------------------
+                                        Temporarily - Hotfix
+    ---------------------------------------------------------------------------------------------------
+*@
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldStringDataOut objectModel, string fieldSetId, bool preventFutureDates, string additionalFieldClass = "", string additionalInputClass = "")
+    {
+        if (objectModel.HasValue())
+        {
+            for (int i = 0; i < objectModel.FieldInstanceValues.Count; i++)
+            {
+                await AddField(html, objectModel, fieldSetId, preventFutureDates, i + 1, objectModel.FieldInstanceValues[i].FirstValue, objectModel.IsRepetitive, additionalFieldClass, additionalInputClass);
+            }
+        }
+        else
+        {
+            await AddField(html, objectModel, fieldSetId, preventFutureDates, 1, "", objectModel.IsRepetitive, additionalFieldClass, additionalInputClass);
+        }
+    }
+
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, string fieldSetId, bool preventFutureDates, int repetitiveCounter, string repetitiveValue, bool isRepetitive, string additionalFieldClass, string additionalInputClass, string customLabel = "")
+    {
+        var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
+        <div class="field-group @additionalFieldClass">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @if (string.IsNullOrEmpty(customLabel))
+                {
+                    @html.Raw(objectModel.FullLabel)
+                }
+                else
+                {
+                    @customLabel
+                }
+            </div>
+            <div class="repetitive-field filter-input d-inline-block @additionalInputClass">
+                @{
+                    await AddInput(html, objectModel, fieldInstanceRepetitionInfo, fieldSetId, repetitiveCounter, repetitiveValue, isRepetitive, preventFutureDates);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+            @if (!fieldInstanceRepetitionInfo.Item2)
+            {
+                @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+            }
+        </div>
+    }
+
+    private async Task AddInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, Tuple<string, bool> fieldInstanceRepetitionInfo, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isRepetitive, bool preventFutureDates)
+    {
+        await AddDateInput(html, objectModel, fieldInstanceRepetitionInfo, fieldSetId, repetitiveCounter, repetitiveValue, isRepetitive, preventFutureDates);
+    }
+
+    private async Task AddDateInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, Tuple<string, bool> fieldInstanceRepetitionInfo, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isRepetitive, bool preventFutureDates)
+    {
+        string fieldInstanceRepetitionId = fieldInstanceRepetitionInfo.Item1;
+        bool isSpecialValue = fieldInstanceRepetitionInfo.Item2;
+        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+        {
+            InputAttributes = new Dictionary<object, object> {
+                        { "class", "field-date-input form-element-field " + (isRepetitive ? "text" : "") },
+                        { "id", string.Format("field-id-{0}", fieldInstanceRepetitionId)},
+                        { "data-parent-field", ".datetime-picker-container" },
+                        { "data-preventfuturedates", preventFutureDates },
+                        { "value", !isSpecialValue ? repetitiveValue.RenderDate() : "" },
+                        { @html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter)), null },
+                        { @html.Disabled(objectModel.IsDisabled || isSpecialValue), null },
+                    },
+            InputBtnAttributes = new Dictionary<object, object> {
+                        { "class", "field-date-btn date-img dynamic-form " + (isSpecialValue ? "pe-none" : "") },
+                        { @html.DateTimeDisabled(objectModel.IsDisabled), null }
+                    },
+        })
+    }
+}

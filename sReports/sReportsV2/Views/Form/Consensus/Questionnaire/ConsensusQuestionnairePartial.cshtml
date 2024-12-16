@@ -1,0 +1,36 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Extensions;
+@model FormDataOut
+@{
+    var questionnaire = ViewBag.ConsensusQuestionnaire as sReportsV2.DTOs.DTOs.Consensus.DataOut.ConsensusQuestionnaireDataOut;
+    var consensus = questionnaire.Consensus;
+    var iteration = consensus != null ? consensus.GetActiveIteration() : null;
+    var showQuestionnaireType = questionnaire.ShowQuestionnaireType;
+}
+<div class="consensus consensus-questionnaire" id="consensus">
+    <input type="hidden" id="canChange" value="@questionnaire.CanChange.ToJsBoolean()">
+    @if (iteration != null && showQuestionnaireType == null)
+    {
+        <div class="consensus-decision">
+            @await Html.PartialAsync("~/Views/Form/Consensus/Questionnaire/ConsensusDecision.cshtml", Model)
+        </div>
+    }
+    <div class="consensus-tree-container" id="consensusTree"></div>
+</div>
+@if (showQuestionnaireType != null)
+{
+    <script>
+        $(document).ready(function () {
+            loadConsensusInstanceTree();
+        })
+    </script>
+}
+else
+{
+    <script>
+        $(document).ready(function () {
+            loadConsensusTree();
+        });
+    </script>
+}
+

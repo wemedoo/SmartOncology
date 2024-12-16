@@ -1,0 +1,148 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@inject sReportsV2.Controllers.FormCommonController Controller
+@model FormFieldSetDataOut
+@{
+    var controller = Controller;
+    bool isLastFieldsetOnPage = ViewBag.IsLastFieldsetOnPage;
+    bool isLastFieldsetInRepetition = ViewBag.IsLastFieldsetInRepetition;
+    int fsNumsInRepetition = ViewBag.FsNumsInRepetition;
+    bool hiddenFieldsShown = ViewBag.HiddenFieldsShown ?? false;
+    Dictionary<string, bool> arguments = ViewBag.Arguments;
+    bool addFieldsetRepetition = ViewBag.AddFieldsetRepetition ?? false;
+    bool newDependenciesShouldBeHandled = Model.AllParentFieldInstanceDependencies.Count > 0;
+    bool isMatrixFieldSet = Model.IsMatrixFieldSet();
+    bool formInstanceMode = ViewBag.IsEngineModule || ViewBag.IsPatientModule;
+}
+
+<div class="field-set field-set-border @(isMatrixFieldSet ? "unset-border" : "") des-container @(isLastFieldsetOnPage ? "last-field-set-border" : "") @(Model.IsMatrixFieldSet() ? "unset-padding-bottom" : "")">
+    @{
+        RenderFieldsetHeader(Model, isLastFieldsetInRepetition, fsNumsInRepetition > 1, arguments);
+        RenderDescriptionContent(!string.IsNullOrEmpty(Model.Description), "fieldset", Model.Description);
+    }
+    <div style="padding-top: 8px;"></div>
+    @if (isMatrixFieldSet)
+    {
+        var firstField = Model.Fields.FirstOrDefault();
+        <div class="fieldsets">
+            @if (firstField is FieldSelectableDataOut selectableField)
+            {
+                <table class="radio-table">
+                    <thead class="radio-header-matrix">
+                        <tr>
+                            <th class="radio-header-cell width-0 matrix-border-left">@sReportsV2.Cache.Resources.TextLanguage.SelectionType</th>
+                            @foreach (var value in selectableField.Values)
+                            {
+                                <th class="radio-header-cell radio-cell-middle">@value.Label</th>
+                            }
+                            <th class="radio-header-cell width-0 matrix-border-right">@sReportsV2.Cache.Resources.TextLanguage.Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (FieldSelectableDataOut fieldSelectableDataOut in Model.Fields.OfType<FieldSelectableDataOut>())
+                        {
+                            @Html.Raw(controller.RenderPartialViewToString("~/Views/FormInstance/FormInstanceMatrixFieldSet.cshtml", fieldSelectableDataOut, arguments[FormInstanceConstants.IsChapterReadOnly], Model.Id, formInstanceMode: formInstanceMode))
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+    else
+    {
+        foreach (FieldDataOut field in Model.Fields)
+        {
+            field.IsDisabled = arguments[FormInstanceConstants.ReadOnlyOrLocked];
+            field.HiddenFieldsShown = hiddenFieldsShown;
+            @Html.Raw(controller.RenderPartialViewToString(field.PartialView, field, arguments[FormInstanceConstants.IsChapterReadOnly], Model.Id, formInstanceMode: formInstanceMode))
+        }
+    }
+</div>
+
+@functions {
+    private void RenderFieldsetHeader(FormFieldSetDataOut fs, bool isLastFieldsetInRepetition, bool hasAnyRepetitiveFieldset, Dictionary<string, bool> arguments)
+    {
+        <div class="d-flex justify-content-between field-set-content">
+            @if (!string.IsNullOrEmpty(fs.Label))
+            {
+                <h3 class="field-set-title d-flex">
+                    <span>@Html.Raw(fs.IsBold ? "<b>" + fs.Label + "</b>" : fs.Label)</span>
+                </h3>
+            }
+                @{
+                    RenderDescriptionAction("field-set-des", !string.IsNullOrWhiteSpace(fs.Description)); }
+                    <div class="fieldset-repetitive d-flex">
+                @{ RenderFieldsetNote(fs); }
+                @if (fs.IsRepetitive)
+                {
+                    <div class="" style="font-size:12px; margin-right:10px; display:@(isLastFieldsetInRepetition ? "block" : "none")">
+                        <button type="button"
+                                class="btn btn-add-new button-fieldset-repetitive @(arguments[FormInstanceConstants.ReadOnlyOrLocked] ? "pe-none" : "")"
+                                fieldset-id="@fs.Id">
+                            <i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.AddNew
+                        </button>
+                    </div>
+                }
+            </div>
+            @if (fs.IsRepetitive)
+            {
+                <div>
+                    <button type="button" class="btn remove-field-set float-right btn-remove" @Html.Raw(hasAnyRepetitiveFieldset ? "" : "style=\"display:none\"")>
+                        <img alt="" class="remove-repetitive-icon" src="/css/img/icons/remove_button.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove
+                    </button>
+                </div>
+            }
+        </div>
+    }
+
+    private void RenderDescriptionContent(bool isConditionSatisfied, string itemType, string description)
+    {
+        if (isConditionSatisfied)
+        {
+            <div class='@itemType-description desc position-relative' style="display:none;">@Html.Raw(description)<img alt="" src="/css/img/icons/Administration_remove.svg" class="x-des"></div>
+        }
+    }
+
+    private void RenderDescriptionAction(string containerCssClass, bool isConditionSatisfied)
+    {
+        if (isConditionSatisfied)
+        {
+            <div class="@containerCssClass">
+                <img alt="" src="/css/img/icons/fieldset_info.svg" />
+            </div>
+        }
+    }
+
+    private void RenderFieldsetNote(FormFieldSetDataOut fs)
+    {
+        if (fs.Help != null)
+        {
+            <a class="notes-btn" onclick="showHelpModal(@Newtonsoft.Json.JsonConvert.SerializeObject(fs.Help, Newtonsoft.Json.Formatting.Indented))">
+                <span class="field-set-note">
+                    <img alt="" class="notes-svg-size" src="/css/img/icons/notes_button.svg">@sReportsV2.Cache.Resources.TextLanguage.Note
+                </span>
+            </a>
+        }
+    }
+}
+
+<script>
+    @if (newDependenciesShouldBeHandled)
+    {
+        <text>updateParentDependencies(@Html.Raw(Model.AllParentFieldInstanceDependencies.JsonSerialize())); </text>
+    }
+
+    $(document).ready(function () {
+        @foreach (KeyValuePair<string, List<DependentOnInstanceInfoDataOut>> item in Model.ParentFieldInstanceDependencies)
+        {
+            string cssSelector = item.Value.FirstOrDefault()?.ParentFieldInstanceCssSelector;
+            <text>initParentDependencyHandling('@Html.Raw(cssSelector)', '@item.Key'); </text>
+        }
+        @if (addFieldsetRepetition)
+        {
+            <text>initDatePickerInNewFieldSetRepetition('@Model.FieldSetInstanceRepetitionId'); </text>
+        }
+    });
+</script>

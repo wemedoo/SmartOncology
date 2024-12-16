@@ -1,0 +1,64 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.Common.Constants;
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.CreateAssociation, ModuleNames.CodeSet);
+}
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Nominee_Code_Set_Name
+            </div>
+            <input type="text" class="filter-input" id="nominatorCodeSetDisplay" value="@Model.DataIn.CodeSetDisplay" disabled>
+        </div>
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.NomineeCodeSetNumber
+            </div>
+            <input type="text" class="filter-input" id="nominatorCodeSetId" value="@Model.DataIn.CodeSetId" disabled>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive table-border nominee-fix-head">
+    <table class="table table-striped" id="nominatorAssociationTable">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="Nominator_CodeId" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortNominatorTable('Nominator_CodeId')">@sReportsV2.Cache.Resources.TextLanguage.CodeValue.ToUpper()</th>
+                <th id="Nominator_PreferredTerm" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortNominatorTable('Nominator_PreferredTerm')">@sReportsV2.Cache.Resources.TextLanguage.CodeValueDisplay.ToUpper()</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (CodeDataOut entry in Model.Data)
+            {
+            <tr id="row_@entry.Id" class="table-content-row nominator-row"
+                @if (hasCreatePerm)
+                {
+                    <text>onclick="selectNominatorCode(this, '@entry.Id', '@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm')"</text>
+                }>
+                <td>@entry.Id</td>
+                <td>@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Data.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+</div>
+
+<div class="associations-content" id="associations">
+    <span class="umls-title">@sReportsV2.Cache.Resources.TextLanguage.Association</span>
+</div>
+<div class="display-flex">
+    <div id="nominatorTable" class="association-table">
+
+    </div>
+</div>

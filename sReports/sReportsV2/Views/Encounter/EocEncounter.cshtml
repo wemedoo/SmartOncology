@@ -1,0 +1,58 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+
+@model List<sReportsV2.DTOs.Encounter.EncounterDataOut>
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewEncounterPerm = userCookieData.UserHasPermission(PermissionNames.ViewEncounter, ModuleNames.Patients);
+    bool hasUpdateEncounterPerm = userCookieData.UserHasPermission(PermissionNames.UpdateEncounter, ModuleNames.Patients);
+    bool hasRemoveEncounterPerm = userCookieData.UserHasPermission(PermissionNames.RemoveEncounter, ModuleNames.Patients);
+    bool readOnly = ViewBag.ReadOnly;
+    bool dropdownIsReadOnly = readOnly || !hasUpdateEncounterPerm;
+}
+
+@if (Model != null && Model.Count > 0 && hasViewEncounterPerm)
+{
+    for (int i = 0; i < Model.Count; i++)
+    {
+        <div class="encounter-div flex" data-encounter-id="@Model[i].Id" id="encounter-@Model[i].Id">
+            <p id="@Model[i].Id" onClick="showDetails(@Model[i].Id)" class="encounter-p-title title-encounter">WEEK @GetWeekNumber(Model[i].Period.StartDate.DateTime) &nbsp; @Model[i].Period.StartDate.ToString("dd MM yyyy")</p>
+
+            <div class="dropdown show dots-dropdown ">
+                <a class="dropdown-button pointer" href="#" data-toggle="dropdown" role="button" id="" aria-haspopup="true" aria-expanded="false">
+                    <img alt="" class="dots rotate custom-rotate" src="/css/img/icons/3dots.png">
+                </a>
+                <div class="dropdown-menu dropmenu" id="eoc-@Model[i].Id">
+                    @if (dropdownIsReadOnly)
+                    {
+                        <a class="dropdown-item pointer hover" onclick="showEncounterModal(event, true, '@Model[i].Id', @dropdownIsReadOnly.ToJsBoolean())">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.GeneralInfo
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="dropdown-item pointer hover" onclick="showEncounterModal(event, true, '@Model[i].Id', @dropdownIsReadOnly.ToJsBoolean())">
+                            <img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit
+                        </a>
+                        <a class="dropdown-item pointer hover" onclick="showEncounterModal(event, true, '@Model[i].Id', true)"><img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View</a>
+                    }
+                    @if (!readOnly && hasRemoveEncounterPerm)
+                    {
+                        <a class="dropdown-item pointer hover" onclick="removeEncounter(event, @Model[i].Id)"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Delete</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@functions {
+    public int GetWeekNumber(DateTime date)
+    {
+        var calendar = System.Globalization.CultureInfo.CurrentCulture.Calendar;
+        int weekNumber = calendar.GetWeekOfYear(date, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+
+        return weekNumber;
+    }
+}

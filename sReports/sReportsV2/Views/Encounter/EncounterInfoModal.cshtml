@@ -1,0 +1,85 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+<div class="modal fade" id="encounterInfoModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-advanced eoc-content" id="addeoc-content">
+            <div class="modal-body modal-body-advanced overh">
+                <div class="float-right filter-eoc-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+                    <div class="d-flex advanced-filter-header title-div">
+                        <p class="title-p" id="" data-value="">Encounter informations</p>
+                    </div>
+                    <div class="margin-top-20 margin-bottom-17 encounter-info-container">
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.EncounterId:
+                            </div>
+                            <div id="encounterInfoEncounterId" class="encounter-table-text col-sm-6">
+
+                            </div>
+                        </div>
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.Name:
+                            </div>
+                            <div id="encounterInfoName" class="encounter-table-text col-sm-6">
+
+                            </div>
+                        </div>
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.FamilyName:
+                            </div>
+                            <div id="encounterInfoFamilyName" class="encounter-table-text col-sm-6">
+
+                            </div>
+                        </div>
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.Gender:
+                            </div>
+                            <div id="encounterInfoGender" class="encounter-table-text col-sm-6">
+                                
+                            </div>
+                        </div>
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.BirthDate:
+                            </div>
+                            <div id="encounterInfoBirthDate" class="encounter-table-text col-sm-6">
+
+                            </div>
+                        </div>
+
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.PatientId:
+                            </div>
+                            <div id="encounterInfoPatientId" class="encounter-table-text col-sm-6">
+                                
+                            </div>
+                        </div>
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.AdmitDatetime:
+                            </div>
+                            <div id="encounterInfoAdmissionDate" class="encounter-table-text col-sm-6">
+                                
+                            </div>
+                        </div>
+
+                        <div class="encounter-table-div row">
+                            <div class="label encounter-table-label col-sm-6">
+                                @sReportsV2.Cache.Resources.TextLanguage.DischargeDatetime:
+                            </div>
+                            <div id="encounterInfoDischargeDate" class="encounter-table-text col-sm-6">
+                                
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>

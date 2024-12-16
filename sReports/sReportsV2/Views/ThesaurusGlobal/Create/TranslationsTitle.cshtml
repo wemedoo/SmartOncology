@@ -1,0 +1,79 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> states = ViewBag.ThesaurusStates as List<CodeDataOut>;
+    var uncuratedState = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Uncurated));
+    int? uncuratedStateCD = uncuratedState.Id;
+    var uncuratedTerm = uncuratedState.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage);
+}
+
+<div class="translations-title">
+    <div class="thesaurus-preview-o40mtid">
+        <b>O4.0MT ID:</b> @(Model != null ? Model.Id : 0)
+    </div>
+    <div class="preview-users">
+        <div class="preview-user thesaurus-status">
+            <div class="img-container">
+                <div class="status-dot"></div>
+            </div>
+            <div class="preview-user-info">
+                <div class="pu-title">Last Curation Status:</div>
+                <div class="pu-value">
+
+                    <div class="dropdown show">
+                        <a class="dropdown-button" href="#" role="button" id="dropdownMenuState" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="pu-value" style="margin-right:17px;" id="state" data-value="@(Model != null ? Model.StateCD : uncuratedStateCD)">
+                                @(Model != null ? Model.ConvertStateCDToDisplayName(states, activeLanguage) : uncuratedTerm)
+                            </div>
+                            <div class="state-arrow"></div>
+                        </a>
+
+                        <div class="dropdown-menu ddm-thesaurus" id="menuState" aria-labelledby="dropdownMenuState">
+                            @foreach (var state in ObjectExtension.FilterDataSource(states, readOnlyMode: true).Skip(4))
+                            {
+                                <a class="dropdown-item thesaurus-state-dropdown @(Model != null && state.Id == Model.StateCD ? "active-item" : string.Empty)" onclick="changeState(event, '@state.Id', '@state.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage)')">
+                                    @state.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage)
+                                </a>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="preview-user">
+            <div class="img-container">
+                <img alt="" class="created-by" src="/css/img/icons/SwissOpenOncology/created_by.svg" />
+            </div>
+            <div class="preview-user-info">
+                <div class="pu-title">
+                    Created by:
+                </div>
+                <div class="pu-value">
+                    Nikola Cihoric MD
+                </div>
+            </div>
+        </div>
+        <div class="preview-user">
+            <div class="img-container">
+                <img alt="" class="verified-by" src="/css/img/icons/SwissOpenOncology/verified_by.svg" />
+            </div>
+            <div class="preview-user-info">
+                <div class="pu-title">
+                    Curated by:
+                </div>
+                <div class="pu-value">
+                    @(Model != null ? Model.GetUserWhoChangedThesaurus("Last") : "")
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

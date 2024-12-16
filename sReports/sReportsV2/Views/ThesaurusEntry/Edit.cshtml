@@ -1,0 +1,110 @@
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
+
+@{
+    bool isEdit = Model != null;
+    ViewBag.Title = isEdit ? @sReportsV2.Cache.Resources.TextLanguage.EditThesaurus : sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus;
+}
+
+<div>
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", sReportsV2.Cache.Resources.TextLanguage.Thesaurus }, { "linkLevel1", "/ThesaurusEntry/GetAll" }, { "level2", Model != null && Model.Id != 0 ? Model.Id.ToString() : @sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus }, { "activeLevel", 2 } })
+    <div class="col-12">
+        <div class="row margin-bottom-8">
+            <div class="thesaurus-id padding-bottom-5 @(isEdit ? "" : "margin-bottom-8")">@(isEdit ? Model.Id.ToString() : @sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus)</div>
+            @await Html.PartialAsync("AdministrativeData")
+        </div>
+    </div>
+</div>
+
+<div class="display-container thesaurus-content-modals thesaurus-elements user-border">
+
+    <div class="col-4">
+
+        <div class="advanced-filter-item search-term-margin">
+            <input class="filter-input" name="quickSearch" id="quickSearch" type="text" placeholder="@sReportsV2.Cache.Resources.TextLanguage.Quick_search" />
+            <img alt="" class="search-img search-pointer" src="/css/img/icons/search_green.svg" onclick="quickSearchTerm()">
+        </div>
+
+        <div class="thesaurus-properties">
+            <div class="eoc-main-content umls-content reset-padding umls-border" data-toggle="collapse" data-target="#collapseFoundIn" aria-expanded="false" aria-controls="collapseFoundIn" id="foundIn">
+                <img alt="" id="foundArrow" class="arrow-tree">
+                <span class="umls-found-in-title umls-title-padding">@sReportsV2.Cache.Resources.TextLanguage.FoundIn</span>
+                <span class="found-in-count-thesaurus" id="foundInTotal" style="display: none">@ViewBag.TotalAppeareance</span>
+            </div>
+            <div class="collapse tree-background" id="collapseFoundIn">
+                <div id="treeThesaurusContainer"></div>
+            </div>
+        </div>
+
+        <div class="thesaurus-document-properties">
+            <div class="eoc-main-content umls-content reset-padding document-border-bottom" data-toggle="collapse" data-target="#collapseDocumentProperties" aria-expanded="false" aria-controls="collapseDocumentProperties" id="documentProperties">
+                <img alt="" class="arrow-tree-inactive" id="documentArrow">
+                <span class="umls-found-in-title umls-title-padding">@sReportsV2.Cache.Resources.TextLanguage.DocumentProperties</span>
+            </div>
+            <div class="collapse" id="collapseDocumentProperties">
+                <div class="content document-all-border" id="documentPropertiesData">
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-8">
+
+        <form class="thesaurus-entry-form" onsubmit="return submitThesaurusEntryForm()" novalidate id="thesaurusEntryForm">
+            <input type="hidden" name="parentId" id="parentId" />
+            <input type="hidden" name="Id" value="@(isEdit ? Model.Id.ToString() : "")" id="Id" />
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="eoc-information margin-bottom-10">
+                    <div class="eoc-main-content umls-content-active" data-toggle="collapse" data-target="#collapseO4MTSpecificFields" aria-expanded="false" aria-controls="collapseO4MTSpecificFields" id="collapseO4MTSpecificField">
+                        <i class="administrative-state-arrow-up arrow-icon-umls" id="specificFieldsArrow"></i>
+                        <span class="umls-title">@sReportsV2.Cache.Resources.TextLanguage.MTSpecificFields</span>
+                    </div>
+                    <div class="collapse translations-style" id="collapseO4MTSpecificFields">
+                        @await Html.PartialAsync("TranslationsPartial")
+                    </div>
+                </div>
+
+                @await Html.PartialAsync("CodesTable")
+
+                <div class="row">
+                    <div class="button-partial col-12">
+                        @if (!ViewBag.ReadOnly)
+                        {
+                            <span class="btn-save-and-add-new">
+                                <button class="submit-button" onclick="saveAndCreateNew(event)">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>
+                                        @sReportsV2.Cache.Resources.TextLanguage.SaveAndCreateNewEntry
+                                    </span>
+                                </button>
+                            </span>
+                            <button class="submit-button right-button margin-left-17" form="thesaurusEntryForm" type="submit" style="outline: none;">
+                                <span class="submit-patient-info">@(isEdit ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)</span>
+                            </button>
+                        }
+                        <div class="text-underline right-button" type="button" onclick="backToList()">
+                            <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Cancel</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        @await Html.PartialAsync("CodingSystemPartial")
+    </div>
+
+</div>
+
+@await Html.PartialAsync("CodeModal")
+@*@await Html.PartialAsync("SimilarTermModal")*@
+
+@Html.Raw(ScriptHelper.RenderBundle("js/thesaurusGetAll-bundle.min.js"))
+
+<script>
+    var languages =  @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Languages as List<sReportsV2.DTOs.EnumDTO>, Newtonsoft.Json.Formatting.Indented));
+    var activeLanguage = '@(ViewBag.UserCookieData.ActiveLanguage as string)';
+</script>

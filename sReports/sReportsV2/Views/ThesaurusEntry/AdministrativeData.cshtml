@@ -1,0 +1,67 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.DTOs.ThesaurusEntry.DataOut;
+@model ThesaurusEntryDataOut
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> versionTypes = ViewBag.VersionTypes as List<CodeDataOut>;
+    List<CodeDataOut> states = ViewBag.ThesaurusStates as List<CodeDataOut>;
+}
+
+@if (Model != null && userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Thesaurus))
+{
+    <div class="margin-bottom-8">
+        <button class="eoc-main-content administrative-content administrative-button" id="administrativeButton">
+            <img alt="" style="padding-left: 6px;" src="/css/img/icons/administrative_data.svg" />
+            <span class="administrative-title">@sReportsV2.Cache.Resources.TextLanguage.Administative_data</span>
+            <i class="administrative-arrow" id="administrativeArrow"></i>
+        </button>
+        <div class="position-relative d-none" id="collapseAdministrativeData">
+            @if (Model.AdministrativeData != null)
+            {
+                <span class="arrow-scroll-left d-none arrow-scroll"></span>
+                <span class="arrow-scroll-right d-none arrow-scroll"></span>
+                <div class="margin-top-40 container-state" id="arrowRight">
+                    @foreach (VersionDataOut version in Model.AdministrativeData.VersionHistory.OrderByDescending(x => x.CreatedOn))
+                    {
+                        <div class="item-state administrative-border margin-right-41 margin-forms workflow-item">
+                            <div class="" id="misublog">
+                                <div id="misublog">
+                                    <div class="@version.GetStateColor(states, activeLanguage)">
+                                        <span class="administrative-state-style">@version.ConvertStateCDToDisplayName(states, activeLanguage)</span>
+                                    </div>
+                                </div>
+                                <div id="misublog" class="padding-top-3">
+                                    <div class="administrative-type">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Type.ToUpper()
+                                    </div>
+                                    <div class="administrative-type-style">
+                                        @version.ConvertTypeCDToDisplayName(versionTypes, activeLanguage)
+                                    </div>
+                                </div>
+                                <div id="misublog" class="padding-top-3">
+                                    <div class="administrative-line">
+                                    </div>
+                                </div>
+                                <div id="misublog" class="padding-top-3 administrative-width">
+                                    <div class="administrative-user ">
+                                        @version.User.Name
+                                    </div>
+                                    <div class="administrative-user ">
+                                        @version.CreatedOn.ToTimeZoned(ViewBag.DateFormat as string)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="triangle-line"></div>
+                            <div class="triangle-line-bottom"></div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+

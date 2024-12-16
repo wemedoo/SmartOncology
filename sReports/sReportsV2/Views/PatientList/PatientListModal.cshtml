@@ -1,0 +1,30 @@
+﻿@using sReportsV2.DTOs.DTOs.PatientList;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewPatientListPermission = userCookieData.UserHasPermission(PermissionNames.ViewPatientList, ModuleNames.Patients);
+    bool hasCreatePatientListPermission = userCookieData.UserHasPermission(PermissionNames.CreatePatientList, ModuleNames.Patients);
+    bool hasUpdatePatientListPermission = userCookieData.UserHasPermission(PermissionNames.UpdatePatientList, ModuleNames.Patients);
+}
+<div class="modal fade" id="patientListModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content height-auto" id="">
+            <div class="modal-body modal-body-advanced overh">
+                <div class="float-right filter-eoc-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+                @if (hasViewPatientListPermission || hasCreatePatientListPermission || hasUpdatePatientListPermission)
+                {
+                    <div id="patientListFormContainer">
+
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+

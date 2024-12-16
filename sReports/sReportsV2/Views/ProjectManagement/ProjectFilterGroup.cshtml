@@ -1,0 +1,37 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.ProjectName
+            </div>
+            <input type="text" class="filter-input" id="projectName">
+        </div>
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.ProjectType
+            </div>
+            <select class="filter-input arrow-select" id="projectType">
+                <option value=""></option>
+                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.ProjectTypes))
+                {
+                    <option id="@option.Id"> @option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)</option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="filterElements" class="d-flex filter-elements" data-container="TrialPersonnelTable">
+
+</div>

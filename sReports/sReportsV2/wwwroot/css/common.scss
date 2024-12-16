@@ -1,0 +1,31 @@
+﻿.smaragd-logo {
+    color: darkgreen;
+    font-weight: 600;
+
+    img {
+        width: 40px;
+    }
+
+    &.header-logo {
+        margin-left: 10px;
+        display: inline;
+
+        img {
+            margin-left: 5px;
+        }
+    }
+
+    &.in-login {
+        span {
+            font-size: 25px;
+        }
+
+        img {
+            margin-left: -3px;
+        }
+    }
+}
+
+.width-auto {
+    width: auto !important
+}

@@ -1,0 +1,44 @@
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
+@{
+    var thesaurusId = Model != null ? Model.Id : 0;
+    var backUrlToPreview = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}", thesaurusId) : "/";
+    var backUrlToCreate = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/Create?Id={0}", thesaurusId) : "/";
+    ViewBag.Title = "Submit new term";
+}
+<input type="hidden" id="id" value="@thesaurusId" />
+<div class="thesaurus-preview">
+    <div class="tp-title">
+        <b>@(Model != null ? Model.GetPreferredTermByTranslationOrDefault(Model.PreferredLanguage) : "")</b>
+        @if (thesaurusId > 0)
+        {
+            <div class="contribute-btn" onclick="contributeToTranslation(event, @thesaurusId, '@backUrlToCreate')">
+                <img alt="" src="/css/img/icons/SwissOpenOncology/translation.svg"> Contribute to translation
+            </div>
+        }
+    </div>
+    <div class="preview-content">
+        @await Html.PartialAsync("~/Views/ThesaurusGlobal/Shared/ThesaurusTree.cshtml", Model, new ViewDataDictionary(ViewData) { { "editable", thesaurusId > 0 } })
+
+        <div class="preview-translations">
+            @await Html.PartialAsync("~/Views/ThesaurusGlobal/Create/TranslationsPreview.cshtml", Model)
+
+            <div class="@(Model != null ? "buttons-container":"")">
+                <div class="codes-btns " style="height:80px;">
+                    <div class="button-wrapper-filter filter-button" id="submitFilterButton" style="right:0px;">
+                        <button class="btn btn-filter-primary w-100 h-100" onclick="submitThesaurus(event)">Save</button>
+                    </div>
+                    <div class="button-wrapper-filter cancel-filter-btn float-right" id="close" style="right: 90px;" onclick="goBack('@backUrlToPreview')">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/tableCommon.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/SwissOpenOncology/thesaurusPreview.js"), "", ""))

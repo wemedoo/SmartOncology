@@ -1,0 +1,23 @@
+﻿@using System.Web
+@using sReportsV2.Common.Extensions;
+@model sReportsV2.DTOs.DTOs.Field.DataOut.IBinaryFieldDataOut;
+
+@{
+    bool isReadOnly = ViewBag.IsReadonly;
+    bool isChapterReadonly = ViewBag.IsChapterReadonly;
+    bool specialValue = ViewBag.SpecialValue;
+    string repetitiveValue = specialValue ? "" : ViewBag.RepetitiveValue;
+    string displayFileName = @repetitiveValue.GetFileNameFromUri(Model.ExcludeGUIDPartFromName);
+    string displayFileNameDecoded = System.Net.WebUtility.UrlDecode(displayFileName);
+}
+
+<div class="file-name-div" style="display:@(string.IsNullOrEmpty(repetitiveValue) || specialValue ? "none" : "")">
+    <i class="fas fa-check file-check"></i>
+    <div class="file-name-text" onclick="downloadBinary(event, @Model.ExcludeGUIDPartFromName.ToJsBoolean(), '@Model.BinaryType')" data-guid-name="@repetitiveValue.GetResourceNameFromUri()" title="@displayFileNameDecoded">
+        @displayFileNameDecoded
+    </div>
+    @if (!(isReadOnly || isChapterReadonly))
+    {
+        <a class="remove-predefined ml-auto @Model.RemoveClass" onclick="removeBinary(event, '@Model.BinaryType')" aria-label="Remove binary type"></a>
+    }
+</div>

@@ -1,0 +1,94 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+@{
+    bool readOnly = ViewBag.ReadOnly;
+
+    var allIdentifierTypes = ViewBag.IdentifierTypes as List<CodeDataOut>;
+    var identifierTypes = allIdentifierTypes.Where(x => x.IsActive()).ToList();
+    var inactiveIdentifierTypes = allIdentifierTypes.Where(x => x.IsInactive()).ToList();
+    inactiveIdentifierTypes.ForEach(inactive => inactive.PreferredTerm = inactive.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage));
+
+    var allIdentifierUseTypes = ViewBag.IdentifierUseTypes as List<CodeDataOut>;
+    var identifierUseTypes = allIdentifierUseTypes.Where(x => x.IsActive()).ToList();
+    var inactiveIdentifierUseTypes = allIdentifierUseTypes.Where(x => x.IsInactive()).ToList();
+    inactiveIdentifierUseTypes.ForEach(inactive => inactive.PreferredTerm = inactive.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage));
+}
+<div class="modal fade" id="identifierModal" tabindex="-1" role="dialog" aria-labelledby="identifierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-password">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+
+                    <form id="identifierForm">
+                        <input type="hidden" id="identifierEntityId" name="identifierEntityId">
+                        <input type="hidden" id="identifierEntityVersion" name="identifierEntityVersion">
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/change_password.svg">
+                            <div id="identifierModalTitle"></div>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Identifier_name
+                            </div>
+                            <select required class="filter-input arrow-select" id="identifierTypeCD" name="identifierTypeCD" @ViewBag.Disabled>
+                                <option value=""></option>
+                                @foreach (var type in identifierTypes)
+                                {
+                                    <option value="@type.Id">
+                                        @type.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Value
+                            </div>
+                            <input required class="filter-input" type="text" id="identifierValue" name="identifierValue" onkeydown="pressButtonOnEnterKey(event, 'identifier-modal-button')" @ViewBag.Disabled />
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.IdentifierUse
+                            </div>
+                            <select class="filter-input arrow-select" id="identifierUseCD" name="identifierUseCD" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.IdentifierUseType)">
+                                <option value=""></option>
+                                @foreach (var type in identifierUseTypes)
+                                {
+                                    <option value="@type.Id">
+                                        @type.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="button-partial">
+                            @if (!readOnly)
+                            {
+                                <button id="identifier-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="addNewIdentifier(event)" dismiss="modal">
+                                    <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                                </button>
+                            }
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var identifierActiveEntity = '@this.ViewContext.RouteData.Values["controller"].ToString()';
+    var viewOrAddIdentifierModalTitle = '@(readOnly ? sReportsV2.Cache.Resources.TextLanguage.View + " " + sReportsV2.Cache.Resources.TextLanguage.Identifier : sReportsV2.Cache.Resources.TextLanguage.Identifier_add)';
+    var editIdentifierModalTitle = '@sReportsV2.Cache.Resources.TextLanguage.EditIdentifier';
+    var inactiveIdentifierTypes = @Html.Raw(Json.Serialize(inactiveIdentifierTypes));
+    var inactiveIdentifierUseTypes = @Html.Raw(Json.Serialize(inactiveIdentifierUseTypes));
+</script>

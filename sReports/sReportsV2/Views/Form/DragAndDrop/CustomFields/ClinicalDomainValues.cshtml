@@ -1,0 +1,10 @@
+﻿@using System.Web
+@using sReportsV2.DTOs.Form.DTO;
+@model List<ClinicalDomainDTO>
+
+@foreach (ClinicalDomainDTO clinical in Model)
+{
+    <div class="option" data-value="@clinical.Id" onclick="optionClicked(event, '@clinical.Id', '@System.Net.WebUtility.HtmlEncode(clinical.Translation)')">
+        @clinical.Translation
+    </div>
+}

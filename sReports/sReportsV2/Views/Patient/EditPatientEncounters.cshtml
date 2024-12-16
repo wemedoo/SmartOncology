@@ -1,0 +1,67 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.User.DTO;
+
+@model sReportsV2.DTOs.Patient.PatientDataOut
+
+@section Stylesheet
+{
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/digital-guideline.css"), "", "")
+}
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    ViewData["Title"] = string.Format("{0} {1}", readOnly ? sReportsV2.Cache.Resources.TextLanguage.View : sReportsV2.Cache.Resources.TextLanguage.Edit, sReportsV2.Cache.Resources.TextLanguage.Patients);
+    ViewBag.Action = "/Patient/Edit";
+}
+
+<input type="hidden" name="formPartialIndicator" value="@ViewBag.Action" />
+<input type="hidden" id="containerContentType" value="Patient" />
+<input hidden id="activeEOC" value="@ViewBag.ActiveEOC" />
+<input hidden id="activeEncounter" value="@ViewBag.ActiveEncounter" />
+<input hidden id="activeEncounterType" value="@ViewBag.ActiveEncounterType" />
+
+@{
+    var episodeOfCareId = ViewBag.ActiveEOC;
+    List<CodeDataOut> episodeOfCareTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
+    List<CodeDataOut> encounterTypes = ViewBag.EncounterTypes as List<CodeDataOut>;
+    UserCookieData userCookieData = ViewBag.UserCookieData as UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    string action = readOnly ? "View" : "Edit";
+    var level3Content = Model.ConvertEOCAndEncounterTypeCDToDisplayName(episodeOfCareId, episodeOfCareTypes, encounterTypes, activeLanguage, ViewBag.ActiveEncounter);
+
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData)
+    {
+        { "level1", @sReportsV2.Cache.Resources.TextLanguage.Patients },
+        { "linkLevel1", "/Patient/GetAll" },
+        { "level2", Model.GetPatientBasicInfo(Model.Name, Model.FamilyName, Model.BirthDate) },
+        { "linkLevel2", "/Patient/" + action + "?patientId=" + Model.Id } ,
+        { "level3", level3Content },
+        { "activeLevel", 3 }
+    })
+}
+
+<div id="editPatientContainer">
+    <div class="row patient-basic-content" id="patientBasicInfo">
+        @await Html.PartialAsync("~/Views/Patient/PatientBasicInfo.cshtml", Model)
+    </div>
+
+    <hr class="hr" />
+
+    <div class="flex">
+        <div id="patientContainer">
+            @await Html.PartialAsync("~/Views/Patient/PatientInfo.cshtml", Model)
+        </div>
+
+        <div class="eoc-info" id="eocInfo">
+            @await Html.PartialAsync("~/Views/EpisodeOfCare/EditFromEOC.cshtml", Model.EpisodeOfCares.Find(x => x.Id == ViewBag.ActiveEOC))
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/patient-bundle.min.js"))
+
+<script>
+    var readOnly = @readOnly.ToJsBoolean();
+</script>

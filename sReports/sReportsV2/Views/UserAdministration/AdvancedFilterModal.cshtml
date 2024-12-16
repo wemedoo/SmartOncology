@@ -1,0 +1,247 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+<form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
+    <div class="modal fade" id="advancedFilterModal" tabindex="-1" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modal-content-advanced" id="advancedPersonnelModalContent">
+                <div class="float-right filter-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+
+                <div class="modal-body modal-body-advanced" id="advancedFilterModalContent">
+                    <div class="d-flex advanced-filter-header">
+                        <img alt="" class="mr-3" src="/css/img/icons/advanced_filter.svg"> @sReportsV2.Cache.Resources.TextLanguage.Advanced_filter
+                    </div>
+                    <div class="d-flex margin-top-10">
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.FirstName
+                            </div>
+                            <input type="text" class="filter-input" id="given" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.Given : "")">
+                        </div>
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.LastName
+                            </div>
+                            <input type="text" class="filter-input" id="family" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Family : "")">
+                        </div>
+                    </div>
+                    <div class="d-flex margin-top-10">
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Username
+                            </div>
+                            <input type="text" class="filter-input" id="username" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Username : "")">
+                        </div>
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.BusinessEmail
+                            </div>
+                            <input type="text" class="filter-input" id="businessEmail" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.BusinessEmail : "")">
+                        </div>
+                    </div>
+                    <div class="d-flex margin-top-20">
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Identifier_type
+                            </div>
+                            <select class="filter-input arrow-select" id="identifierType">
+                                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectIdentifier</option>
+                                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.IdentifierTypes, readOnlyMode: true))
+                                {
+                                    var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
+                                    <option id="IdentifierType_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.IdentifierType == option.Id ? "selected" : "")>@optionName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">@sReportsV2.Cache.Resources.TextLanguage.Identifier_value</div>
+                            <input class="filter-input " id="identifierValue" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.IdentifierValue : "")" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex margin-top-20">
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.BirthDate
+                            </div>
+                            <input type="hidden" id="birthDateDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.BirthDate!= null ? ViewBag.FilterData.BirthDate.ToString("s") : "")">
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                { "class", "filter-input" },
+                                { "id", "birthDate" },
+                                { "name", "birthDate" },
+                                { "value", ViewBag.FilterData != null && ViewBag.FilterData.BirthDate != null ? ViewBag.FilterData.BirthDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                            },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                { "class", "date-img" },
+                                { @Html.DateDisabled(readOnly: false), null }
+                                },
+                            })
+                        </div>
+                        <div class="filter-item advanced-filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.PersonnelType
+                            </div>
+                            <select class="filter-input arrow-select" id="personnelTypeCD">
+                                <option value=""></option>
+                                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.PersonnelTypes, readOnlyMode: true))
+                                {
+                                    var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
+                                    <option id="PersonnelTypeId_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.PersonnelTypeCD == option.Id ? "selected" : "")>@optionName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex margin-top-20">
+                        <div class="advanced-filter-select2-wrapper">
+                            <div class="advanced-filter-item filter-item country-select-input">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Organization
+                                </div>
+                                <select class="filter-input arrow-select" id="organizationId">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="advanced-filter-select2-wrapper">
+                            <div class="filter-item advanced-filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Role
+                                </div>
+                                <select class="filter-input arrow-select" id="roleCD">
+                                    <option value=""></option>
+                                    @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.PersonnelPositions, readOnlyMode: true))
+                                    {
+                                        var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
+                                        <option id="RoleId_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.RoleCD == option.Id ? "selected" : "")>@optionName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex margin-top-10">
+                        <div class="advanced-filter-select2-wrapper">
+                            <input type="hidden" id="countryName" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.CountryName : "")">
+                            <div class="advanced-filter-item filter-item country-select-input">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Country
+                                </div>
+                                <select class="filter-input arrow-select" id="countryCD">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="advanced-filter-select2-wrapper">
+                            <div class="advanced-filter-item filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.City
+                                </div>
+                                <input type="text" class="filter-input" id="city">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex margin-top-10">
+                        <div class="filter-item advanced-filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Street
+                            </div>
+                            <input type="text" class="filter-input" id="street" >
+                        </div>
+
+                        <div class="filter-item advanced-filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Postal_code
+                            </div>
+                            <input type="text" class="filter-input" id="postalCode">
+                        </div>
+                    </div>
+
+                    <div class="advanced-filter-line">
+
+                    </div>
+                    <div class="d-flex mt-3 position-relative margin-top-20">
+                        <div class="button-wrapper-filter filter-button float-right" id="submitFilterButton">
+                            <button class="btn btn-filter-primary w-100 h-100" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+                        </div>
+                        <div class="button-wrapper-filter cancel-filter-btn float-right" id="close">
+                            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script>
+    $(document).ready(function () {
+        if (hasParamInUrl('OrganizationId')) {
+            let initDataSource = [];
+            let organizationId = getParamFromUrl('OrganizationId');
+            callServer({
+                type: 'GET',
+                url: `/Organization/GetById?organizationId=${organizationId}`,
+                success: function (data) {
+                    if (!jQuery.isEmptyObject(data)) {
+                        initDataSource.push(data);
+                    }
+                    $('#organizationId').initSelect2(
+                        getSelect2Object(
+                            {
+                                placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization',
+                                url: `/Organization/GetAutocompleteData?organizationId=${$('#id').val()}`,
+                                allowClear: false,
+                                initialDataSource: initDataSource,
+                                modalId: 'advancedFilterModal'
+                            }
+                        )
+                    );
+                    $('#OrganizationTempId').initSelect2(
+                        getSelect2Object(
+                            {
+                                placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization',
+                                url: `/Organization/GetAutocompleteData?organizationId=${$('#id').val()}`,
+                                allowClear: false,
+                                initialDataSource: initDataSource
+                            }
+                        )
+                    );
+                    if (initDataSource.length > 0) {
+                        $('#organizationId, #OrganizationTempId').val(initDataSource[0].id.toString()).trigger('change');
+                        reloadTable();
+                    }
+                },
+                error: function (xhr, textStatus, thrownError) {
+                    handleResponseError(xhr);
+                }
+            });
+        } else {
+            $('#organizationId').initSelect2(
+                getSelect2Object(
+                    {
+                        placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization',
+                        allowClear: false,
+                        url: `/Organization/GetAutocompleteData?organizationId=${$('#id').val()}`,
+                        modalId: 'advancedFilterModal'
+                    }
+                )
+            );
+            $('#OrganizationTempId').initSelect2(
+                getSelect2Object(
+                    {
+                        placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization',
+                        allowClear: false,
+                        url: `/Organization/GetAutocompleteData?organizationId=${$('#id').val()}`,
+                    }
+                )
+            );
+        }
+        initCodeSelect2(hasParamInUrl('CountryCD'), getParamFromUrl('CountryCD'), "countryCD", "country", "Country", 'advancedFilterModal');
+    });
+</script>

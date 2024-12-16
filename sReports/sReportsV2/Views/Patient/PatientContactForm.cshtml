@@ -1,0 +1,148 @@
+﻿@using System.Globalization
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+@model sReportsV2.DTOs.Common.DTO.ContactDTO
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    string contactAction = Model != null ? readOnly ? sReportsV2.Cache.Resources.TextLanguage.View : sReportsV2.Cache.Resources.TextLanguage.Edit : sReportsV2.Cache.Resources.TextLanguage.Create;
+}
+
+<div class="person-margin">
+    <span class="identifiers-info identifier-padd">@contactAction @sReportsV2.Cache.Resources.TextLanguage.Contact_Person</span>
+</div>
+<div>
+    <div class="margin-bottom-20">
+        <div class="person-margin identifier-padd">
+            <span class="person-info">@sReportsV2.Cache.Resources.TextLanguage.Person_Info</span>
+        </div>
+        <input type="hidden" id="contactId" value="@(Model != null ? Model.Id.ToString() : "0")">
+        <div class="form-row m-0 contact-section">
+            <div class="advanced-filter-item input-margin contact-personal-field">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Given
+                </div>
+                <input type="text" class="filter-input" id="contactName" name="contactName" value="@(Model != null && Model.NameGiven != null ? Model.NameGiven : "")" @ViewBag.Disabled>
+            </div>
+            <div class="advanced-filter-item input-margin contact-personal-field">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Family
+                </div>
+                <input type="text" class="filter-input" id="contactFamily" name="contactFamily" value="@(Model != null && Model.NameFamily != null ? Model.NameFamily : "")" @ViewBag.Disabled>
+            </div>
+            <div class="advanced-filter-item input-margin contact-personal-field">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Gender
+                </div>
+                <select class="filter-input arrow-select patient-background" id="contactGender" name="contactGender" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.Gender)">
+                    <option value=""></option>
+                    @{
+                        var genders = ViewBag.Genders as List<CodeDataOut>;
+                        var filteredGenders = ObjectExtension.FilterDataSource(genders);
+                        bool selectedGendersExists = false;
+                        foreach (var gender in filteredGenders)
+                        {
+                            bool isSelected = Model != null && gender.Id == Model.GenderId;
+                            selectedGendersExists |= isSelected;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(gender, false, isSelected))
+                        }
+                        if (Model != null && Model.GenderId != null && !selectedGendersExists)
+                        {
+                            ViewBag.SelectedId = Model.GenderId;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(genders.Find(x => x.Id == Model.GenderId), true, true))
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-row m-0 contact-section">
+            <div class="advanced-filter-item input-margin contact-personal-field">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.BirthDate
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                {
+                    InputAttributes = new Dictionary<object, object> {
+                        { "class", "filter-input" },
+                        { "id", "contactBirthDate" },
+                        { "name", "contactBirthDate" },
+                        { @ViewBag.Disabled, null },
+                        { "value", Model != null && Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                    },
+                    InputBtnAttributes = new Dictionary<object, object> {
+                        { "class", "date-img" },
+                        { @Html.DateDisabled(((bool?)ViewBag.ReadOnly)), null }
+                    },
+                })
+            </div>
+            <div class="advanced-filter-item input-margin contact-personal-field">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Relationship
+                </div>
+                <select class="filter-input arrow-select patient-background" id="contactRelationship" name="contactRelationship" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.ContactRelationship)">
+                    <option value=""></option>
+                    @{
+                        var contactRelationships = ViewBag.ContactRelationships as List<CodeDataOut>;
+                        var filteredContactRelationships = ObjectExtension.FilterDataSource(contactRelationships);
+                        bool selectedContactRelationshipsExists = false;
+                        foreach (var contactRelationship in filteredContactRelationships)
+                        {
+                            bool isSelected = Model != null && contactRelationship.Id == Model.ContactRelationshipId;
+                            selectedContactRelationshipsExists |= isSelected;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(contactRelationship, false, isSelected))
+                        }
+                        if (Model != null && Model.ContactRelationshipId != null && !selectedContactRelationshipsExists)
+                        {
+                            ViewBag.SelectedId = Model.ContactRelationshipId;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(contactRelationships.Find(x => x.Id == Model.ContactRelationshipId), true, true))
+                        }
+                    }
+                </select>
+            </div>
+            <div class="advanced-filter-item input-margin contact-personal-field">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Role
+                </div>
+                <select class="filter-input arrow-select patient-background" id="contactRole" name="contactRole" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.Role)">
+                    <option value=""></option>
+                    @{
+                        var contactRoles = ViewBag.ContactRoles as List<CodeDataOut>;
+                        var filteredContactRoles = ObjectExtension.FilterDataSource(contactRoles);
+                        bool selectedContactRolesExists = false;
+                        foreach (var contactRole in filteredContactRoles)
+                        {
+                            bool isSelected = Model != null && contactRole.Id == Model.ContactRoleId;
+                            selectedContactRolesExists |= isSelected;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(contactRole, false, isSelected))
+                        }
+                        if (Model != null && Model.ContactRoleId != null && !selectedContactRolesExists)
+                        {
+                            ViewBag.SelectedId = Model.ContactRoleId;
+                            @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(contactRoles.Find(x => x.Id == Model.ContactRoleId), true, true))
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="margin-bottom-35">
+        @await Html.PartialAsync("TelecomTable", Model != null ? Model.Telecoms : null, new ViewDataDictionary(ViewData) {
+        { "activeTelecomContainer", "telecomsForPatientContactTelecom" }
+        })
+    </div>
+    <div class="margin-bottom-35">
+        @await Html.PartialAsync("AddressTable", Model != null ? Model.Addresses : new List<sReportsV2.DTOs.Common.AddressDTO>(), new ViewDataDictionary(ViewData) { { "activeAddressContainer", "patientContactAddresses" } })
+    </div>
+    <div class="button-partial">
+        @if (!readOnly)
+        {
+            <button class="submit-patient right-button" type="button" style="outline: none;" onclick="submitPatientContact()">
+                <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save @sReportsV2.Cache.Resources.TextLanguage.Contact_Person</span>
+            </button>
+        }
+        <i class="angle-left fas fa-angle-left"></i>
+        <div class="text-underline right-button" type="button" onclick="resetPatientContactForm()">
+            <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Cancel</span>
+        </div>
+    </div>
+</div>

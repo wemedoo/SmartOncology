@@ -1,0 +1,56 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Cache.Extensions;
+@using sReportsV2.Common.Enums;
+@model FieldCalculativeDataOut
+
+@await Html.PartialAsync("~/Views/Form/Common/Obligatory.cshtml")
+<div class="designer-form-section">
+    <div class="designer-form-section-title">
+        @sReportsV2.Cache.Resources.TextLanguage.Formula_Settings
+    </div>
+    <div>
+        <div class="designer-form-input-group">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Formula_Type
+            </div>
+            <select class="designer-form-input" id="calculationFormulaType" name="calculationFormulaType" @ViewBag.Disabled required>
+                @foreach (CalculationFormulaType formulaType in Enum.GetValues(typeof(CalculationFormulaType)))
+                {
+                    <option value="@((int)formulaType)" @(Model != null && Model.FormulaType == formulaType ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetStringOrDefault(formulaType.ToString())</option>
+                }
+            </select>
+        </div>
+        <div class="designer-form-input-group @(Model != null && Model.FormulaType == CalculationFormulaType.Date ? "" : "d-none")" id="calculationGranularityTypeContainer">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Granularity_Type
+            </div>
+            <select class="designer-form-input" id="calculationGranularityType" name="calculationGranularityType" @ViewBag.Disabled>
+                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                @foreach (CalculationGranularityType granularityType in Enum.GetValues(typeof(CalculationGranularityType)))
+                {
+                    <option value="@((int)granularityType)" @(Model != null && Model.GranularityType == granularityType ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetStringOrDefault(granularityType.ToString())</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="designer-form-input-group half-width">
+        <div class="calculative-tree-container" id="calculativeTree"></div>
+
+    </div><!--
+    --><div class="designer-form-input-group half-width">
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Formula
+        </div>
+        <textarea required id="formula" name="formula" class="designer-form-input" value="@(Model != null ? Model.Formula : "") " rows="5" @ViewBag.Disabled>@(Model != null ? Model.Formula : "")</textarea>
+    </div>
+</div>
+
+<script>
+
+
+    $(document).ready(function () {
+        let identifierTypes = @Html.Raw(Json.Serialize(Model.IdentifiersAndVariables));
+        reloadCalculativeTree(identifierTypes);
+    })
+</script>

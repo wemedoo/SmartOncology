@@ -1,0 +1,25 @@
+﻿<div class="org-communication-filter flex">
+    <div class="flex margin-right-20">
+        <label class="form-checkbox-label margin-reset">
+            <input class="form-checkbox-field" type="checkbox" id="showOrgEntityActive" checked />
+            <i class="form-checkbox-button custom-checkbox"></i>
+            <span class="organization-types ml-2">
+                @sReportsV2.Cache.Resources.TextLanguage.Active
+            </span>
+        </label>
+        <label class="form-checkbox-label reset-margin">
+            <input class="form-checkbox-field" type="checkbox" id="showOrgEntityInactive" />
+            <i class="form-checkbox-button custom-checkbox"></i>
+            <span class="organization-types ml-2">
+                @sReportsV2.Cache.Resources.TextLanguage.Inactive
+            </span>
+        </label>
+    </div>
+    @if (!ViewBag.ReadOnly)
+    {
+        <button type="button" class="btn btn-add-new float-right margin-bottom-15" onclick="showOrganizationCommunicationModal(event, 0, false)">
+            <i class="fas fa-plus-circle resize-circle"></i>
+            <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.AddNew</span>
+        </button>
+    }
+</div>

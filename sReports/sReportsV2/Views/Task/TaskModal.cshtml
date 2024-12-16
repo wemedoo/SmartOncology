@@ -1,0 +1,243 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model sReportsV2.DTOs.DTOs.TaskEntry.DataOut.TaskDataOut
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    string modalTitle = Model.TaskId > 0 ? (readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewTask : @sReportsV2.Cache.Resources.TextLanguage.EditTask) : @sReportsV2.Cache.Resources.TextLanguage.NewTask;
+    string disabled = readOnly ? "disabled" : "";
+}
+
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-content-advanced height-auto" id="">
+        <div class="modal-body modal-body-advanced overh">
+            <div class="float-right filter-eoc-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <form id="newTaskForm">
+                <div class="d-flex advanced-filter-header title-div">
+                    <p class="title-p">@modalTitle</p>
+                </div>
+                <input type="hidden" id="taskId" value="@Model.TaskId">
+                <input type="hidden" id="reloadTaskTable">
+
+                <div class="d-flex margin-top-20">
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskType
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="taskType" name="TaskType" data-codesetid="@((int)CodeSetList.TaskType)" required @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var taskTypes = ViewBag.TaskTypes as List<CodeDataOut>;
+                                var filteredTaskTypes = ObjectExtension.FilterDataSource(taskTypes);
+                                bool selectedTaskTypesExists = false;
+                                foreach (var taskType in filteredTaskTypes)
+                                {
+                                    bool isSelected = Model != null && taskType.Id == Model.TaskTypeCD;
+                                    selectedTaskTypesExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskType, false, isSelected))
+                                }
+                                if (Model != null && Model.TaskTypeCD != 0 && !selectedTaskTypesExists)
+                                {
+                                    ViewBag.SelectedId = Model.TaskTypeCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskTypes.Find(x => x.Id == Model.TaskTypeCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskEntity
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="taskEntityId" name="TaskEntityId" data-codesetid="@((int)CodeSetList.TaskDocument)" required @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var taskDocuments = ViewBag.TaskDocuments as List<CodeDataOut>;
+                                var filteredTaskDocuments = ObjectExtension.FilterDataSource(taskDocuments);
+                                bool selectedTaskDocumentsExists = false;
+                                foreach (var taskDocument in filteredTaskDocuments)
+                                {
+                                    bool isSelected = Model != null && taskDocument.Id == Model.TaskDocumentCD;
+                                    selectedTaskDocumentsExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskDocument, false, isSelected))
+                                }
+                                if (Model != null && Model.TaskDocumentCD != null && !selectedTaskDocumentsExists)
+                                {
+                                    ViewBag.SelectedId = Model.TaskDocumentCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskDocuments.Find(x => x.Id == Model.TaskDocumentCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="filter-item advanced-filter-item margin-bottom-17 margin-top-20">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.TaskDescription
+                    </div>
+                    <input type="text" class="filter-input descinput" id="taskDescription" value="@(Model.TaskDescription != null ? Model.TaskDescription : "")" required @disabled>
+                </div>
+
+                <div class="d-flex margin-top-20">
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskStatus
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="taskStatus" name="TaskStatus" data-codesetid="@((int)CodeSetList.TaskStatus)" required @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var taskStatuses = ViewBag.TaskStatuses as List<CodeDataOut>;
+                                var filteredTaskStatuses = ObjectExtension.FilterDataSource(taskStatuses);
+                                bool selectedTaskStatusesExists = false;
+                                foreach (var taskStatus in filteredTaskStatuses)
+                                {
+                                    bool isSelected = Model != null && taskStatus.Id == Model.TaskStatusCD;
+                                    selectedTaskStatusesExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskStatus, false, isSelected))
+                                }
+                                if (Model != null && Model.TaskStatusCD != 0 && !selectedTaskStatusesExists)
+                                {
+                                    ViewBag.SelectedId = Model.TaskStatusCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskStatuses.Find(x => x.Id == Model.TaskStatusCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskPriority
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="taskPriority" name="TaskPriority" data-codesetid="@((int)CodeSetList.TaskPriority)" @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var taskPriorities = ViewBag.TaskPriorities as List<CodeDataOut>;
+                                var filteredTaskPriorities = ObjectExtension.FilterDataSource(taskPriorities);
+                                bool selectedTaskPrioritiesExists = false;
+                                foreach (var taskPriority in filteredTaskPriorities)
+                                {
+                                    bool isSelected = Model != null && taskPriority.Id == Model.TaskPriorityCD;
+                                    selectedTaskPrioritiesExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskPriority, false, isSelected))
+                                }
+                                if (Model != null && Model.TaskPriorityCD != null && !selectedTaskPrioritiesExists)
+                                {
+                                    ViewBag.SelectedId = Model.TaskPriorityCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskPriorities.Find(x => x.Id == Model.TaskPriorityCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex margin-top-20">
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskClass
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="taskClass" name="TaskClass" data-codesetid="@((int)CodeSetList.TaskClass)" @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var taskClasses = ViewBag.TaskClasses as List<CodeDataOut>;
+                                var filteredTaskClasses = ObjectExtension.FilterDataSource(taskClasses);
+                                bool selectedTaskClassesExists = false;
+                                foreach (var taskClass in filteredTaskClasses)
+                                {
+                                    bool isSelected = Model != null && taskClass.Id == Model.TaskClassCD;
+                                    selectedTaskClassesExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskClass, false, isSelected))
+                                }
+                                if (Model != null && Model.TaskClassCD != null && !selectedTaskClassesExists)
+                                {
+                                    ViewBag.SelectedId = Model.TaskClassCD;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(taskClasses.Find(x => x.Id == Model.TaskClassCD), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="advanced-filter-item filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.ScheduledDate
+                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                        {
+                                InputAttributes = new Dictionary<object, object> {
+                                            { "class", "filter-input" },
+                                            { "id", "scheduledDateTime" },
+                                            { "name", "ScheduledDateTime" },
+                                            { "value", Model != null && Model.ScheduledDateTime != null ? Model.ScheduledDateTime.Value.ToDateZoned(ViewBag.DateFormat  as string) : "" },
+                                            { @disabled, null},
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                            { "class", "date-img eoc-form-date-img" },
+                                            { "id", "endDateCalendar" },
+                                            { "onClick", readOnly ? "" : "showDatePicker(event)"}
+                                },
+                        })
+                    </div>
+                </div>
+
+                <div class="flex margin-bottom-17 margin-top-20">
+                    <div class="advanced-filter-item filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskStartDate
+                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                           {
+                               InputAttributes = new Dictionary<object, object> {
+                                        { "class", "filter-input" },
+                                        { "id", "taskStartDateTime" },
+                                        { "name", "taskStartDateTime" },
+                                        { "value", Model != null && Model.TaskStartDateTime != default(DateTimeOffset) ? Model.TaskStartDateTime.ToDateZoned(ViewBag.DateFormat as string) : "" },
+                                        { "required", null},
+                                        { @disabled, null},
+                                    },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                        { "class", "date-img eoc-form-date-img" },
+                                        { "id", "startDateCalendar"},
+                                        { "onClick", readOnly ? "" : "showDatePicker(event)"}
+                                    },
+                           })
+                    </div>
+                    <div class="advanced-filter-item filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.TaskEndDate
+                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                        {
+                                InputAttributes = new Dictionary<object, object> {
+                                            { "class", "filter-input" },
+                                            { "id", "taskEndDateTime" },
+                                            { "name", "taskEndDateTime" },
+                                            { "value", Model != null && Model.TaskEndDateTime != null ? Model.TaskEndDateTime.Value.ToDateZoned(ViewBag.DateFormat as string) : "" },
+                                            { @disabled, null},
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                            { "class", "date-img eoc-form-date-img" },
+                                            { "id", "endDateCalendar" },
+                                            { "onClick", readOnly ? "" : "showDatePicker(event)"}
+                                },
+                        })
+                    </div>
+                </div>
+
+                <div class="button-partial">
+                    @if (!readOnly)
+                    {
+                        <button id="identifier-modal-button" class="submit-button right-button margin-left-13 " type="button" style="outline: none;" onclick="submitTaskForm()" dismiss="modal">
+                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                        </button>
+                    }
+                    <div class="button-wrapper-filter float-right" id="close">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

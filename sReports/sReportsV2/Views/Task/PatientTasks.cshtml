@@ -1,0 +1,102 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@model sReportsV2.DTOs.Encounter.EncounterDataOut
+
+@{
+    List<CodeDataOut> taskTypes = ViewBag.TaskTypes as List<CodeDataOut>;
+    List<CodeDataOut> taskStatuses = ViewBag.TaskStatuses as List<CodeDataOut>;
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+<div class="patient-subtitle-div flex margin-top-32 margin-right-8">
+    <p class="patient-title">@sReportsV2.Cache.Resources.TextLanguage.PatientTasks.ToUpper()</p>
+    @if (!readOnly && Model != null && Model.Tasks.Count > 0)
+    {
+        <div class="add-button">
+            <button class="btn btn-add-enc btn-add-eoc d-flex show-form-referrals-button" onclick="showTaskModal(event)">
+                <i class="fas fa-plus-circle plus-enc-button"></i>
+                <span class="plus-enc-label">@sReportsV2.Cache.Resources.TextLanguage.Add</span>
+            </button>
+        </div>
+    }
+</div>
+
+<div class="patient-documents">
+    <div class="documents-container-expandable">
+        @if (Model != null)
+        {
+            if (Model.Tasks.Count == 0)
+            {
+                <div class="no-document-result no-task-border">
+                    <img alt="" class="margin-" src="/css/img/icons/no_doc_or_task.svg">
+                    <br>
+                    <div class="no-document-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoTaskAdded</div>
+                </div>
+                if (!readOnly)
+                {
+                    <div class="button-filter add-btn-div add-button btn-add-empty-task">
+                        <button class="btn btn-add-enc h-100 btn-add-doc" onclick="showTaskModal(event)">
+                            <i class="fas fa-plus-circle"></i>
+                            @sReportsV2.Cache.Resources.TextLanguage.Add
+                        </button>
+                    </div>
+                }
+            }
+            for (int i = 0; i < Model.Tasks.Count; i++)
+            {
+                var taskType = taskTypes.Find(x => x.Id == Model.Tasks[i].TaskTypeCD);
+                string taskTypeLabel = string.Empty;
+                if (taskType != null)
+                {
+                    taskTypeLabel = taskType.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage);
+                }
+                var taskStatus = taskStatuses.Find(x => x.Id == Model.Tasks[i].TaskStatusCD);
+                string taskStatusLabel = string.Empty;
+                if (taskStatus != null)
+                {
+                    taskStatusLabel = taskStatus.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage);
+                }
+                <div class="documents-div-expandable">
+                    <div class="document-header-expandable flex" id="id-@Model.Tasks[i].TaskId" data-toggle="collapse" aria-expanded="true">
+                        <div class="numberCircle number-circle-orange">
+                            @(Model.Tasks.Count - i)
+                        </div>
+                        <div>
+                            <p class="forminstance-title margin-bottom-unset" data-form-instance-title="@Model.Tasks[i].TaskTypeCD" id="task-@Model.Tasks[i].TaskId" title="@Model.Tasks[i].TaskTypeCD">
+                                @taskTypeLabel
+                            </p>
+                            <p class="forminstance-title margin-top-bottom-unset">@sReportsV2.Cache.Resources.TextLanguage.StartDate: @Model.Tasks[i].TaskStartDateTime.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</p>
+                            <p class="forminstance-title last-task-margin">@sReportsV2.Cache.Resources.TextLanguage.TaskStatus: @taskStatusLabel</p>
+                        </div>
+                        <div class="edit-view-icons-div flex">
+                            <img alt="" class="edit gray-pencil" id="edit-@Model.Tasks[i].TaskId" data-task-id="@Model.Tasks[i].TaskId"
+                                 onclick="showTaskModal(event, '@Model.Tasks[i].TaskId', @readOnly.ToJsBoolean())" />
+                            <img alt="" class="view gray-eye" id="eye-@Model.Tasks[i].TaskId" onclick="showExtended('@Model.Tasks[i].TaskId')" />
+                        </div>
+                    </div>
+
+                    <div class="extended-div hidden-element" id="details-@Model.Tasks[i].TaskId">
+                        <div class="row patient-info-div">
+                            <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.TaskType</p>
+                            <p class="col-5 left blue">@taskTypeLabel</p>
+                        </div>
+                        <div class="row patient-info-div">
+                            <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.TaskStatus</p>
+                            <p class="col-5 left blue">@taskStatusLabel</p>
+                        </div>
+                        <div class="row patient-info-div">
+                            <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.TaskDescription</p>
+                            <p class="col-5 left blue">@Model.Tasks[i].TaskDescription</p>
+                        </div>
+                        <div class="row patient-info-div">
+                            <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.StartDate</p>
+                            <p class="col-5 left blue">@Model.Tasks[i].TaskStartDateTime.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

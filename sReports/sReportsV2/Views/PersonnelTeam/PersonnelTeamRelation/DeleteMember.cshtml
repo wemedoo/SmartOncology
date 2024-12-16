@@ -1,0 +1,39 @@
+﻿
+@using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
+@using sReportsV2.Common.Constants;
+@model PersonnelTeamRelationDataOut
+
+
+<div class="form-group col-md-12">
+
+    <div class="d-flex advanced-filter-header">
+        @sReportsV2.Cache.Resources.TextLanguage.Remove_Member
+    </div>
+
+    <div id="personnel-team-members-container">
+
+        <div class="advanced-filter-item d-flex">
+            <div class="personnel-team-input-container mr-2">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Confirm_Remove "@Model.User.FirstName @Model.User.LastName" ?
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <br /><br />
+
+    <div class="button-partial">
+        <button class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="deleteMember(event, @Model.PersonnelTeamRelationId, @Model.PersonnelTeamId)" dismiss="modal">
+            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Remove</span>
+        </button>
+        <div class="button-wrapper-filter float-right" id="close">
+            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+            </a>
+        </div>
+    </div>
+
+
+</div>

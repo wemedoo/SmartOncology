@@ -1,0 +1,175 @@
+﻿@using System.Globalization
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+
+@model sReportsV2.DTOs.EpisodeOfCare.EpisodeOfCareDataOut
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    string title = readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewEOC : Model != null ? @sReportsV2.Cache.Resources.TextLanguage.EditEOC : @sReportsV2.Cache.Resources.TextLanguage.NewEoc;
+}
+
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-content-advanced eoc-content" id="addeoc-content">
+        <div class="modal-body modal-body-advanced overh">
+            <div class="float-right filter-eoc-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <form id="newEocForm">
+                <div class="d-flex advanced-filter-header title-div">
+                    <p class="title-p">@title</p>
+                </div>
+                <div class="d-flex margin-top-20 margin-bottom-17">
+                    <input type="hidden" id="editEocId" value="@(Model != null ? Model.Id.ToString() : "")">
+                    <div class="advanced-filter-item filter-item country-select-input">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.EpisodeOfCareType
+                        </div>
+                        <select class="filter-input arrow-select" id="type" name="Type" required @ViewBag.Disabled data-codesetid="@((int)CodeSetList.EpisodeOfCareType)">
+                            <option value="" disabled selected></option>
+                            @{
+                                var episodeOfCareTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
+                                var filteredEpisodeOfCareTypes = ObjectExtension.FilterDataSource(episodeOfCareTypes, readOnly);
+                                bool selectedTypesExists = false;
+                                foreach (var episodeOfCareType in filteredEpisodeOfCareTypes)
+                                {
+                                    bool isSelected = Model != null && episodeOfCareType.Id == Model.Type;
+                                    selectedTypesExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareType, false, isSelected))
+                                }
+                                if (Model != null && Model.Type != 0 && !selectedTypesExists)
+                                {
+                                    ViewBag.SelectedId = Model.Type;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareTypes.Find(x => x.Id == Model.Type), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="advanced-filter-item filter-item country-select-input">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Status
+                        </div>
+                        <select class="filter-input arrow-select" id="status" name="Status" required @ViewBag.Disabled data-codesetid="@((int)CodeSetList.EOCStatus)">
+                            <option value="" disabled selected></option>
+                            @{
+                                var episodeOfCareStatuses = ViewBag.EpisodeOfCareStatuses as List<CodeDataOut>;
+                                var filteredEpisodeOfCareStatuses = ObjectExtension.FilterDataSource(episodeOfCareStatuses, readOnly);
+                                bool selectedStatusExists = false;
+                                foreach (var episodeOfCareStatus in filteredEpisodeOfCareStatuses)
+                                {
+                                    bool isSelected = Model != null && episodeOfCareStatus.Id == Model.Status;
+                                    selectedStatusExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareStatus, false, isSelected))
+                                }
+                                if (Model != null && Model.Status != 0 && !selectedStatusExists)
+                                {
+                                    ViewBag.SelectedId = Model.Status;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareStatuses.Find(x => x.Id == Model.Status), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="flex margin-bottom-17">
+                    <div class="advanced-filter-item filter-item ">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.EOC_PeriodStartDate
+                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                                { "class", "filter-input" },
+                                                { "id", "periodStartDate" },
+                                                { "name", "periodStartDate" },
+                                                { @ViewBag.Disabled, null},
+                                                { "value", Model != null && Model.Period.StartDate != null ? Model.Period.StartDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                                { "required", null}
+                                            },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                                { "class", "date-img eoc-form-date-img" },
+                                                { "id", "startDateCalendar"},
+                                                { "onClick", "showDatePicker(event)"}
+                                            },
+                            })
+                    </div>
+                    <div class="advanced-filter-item filter-item ">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.EOC_PeriodEndDate
+                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                                { "class", "filter-input" },
+                                                { "id", "periodEndDate" },
+                                                { "name", "periodEndDate" },
+                                                { @ViewBag.Disabled, null},
+                                                { "value", Model != null && Model.Period.EndDate != null ? Model.Period.EndDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                    },
+                                InputBtnAttributes = new Dictionary<object, object> {
+                                                { "class", "date-img eoc-form-date-img" },
+                                                { "id", "endDateCalendar" },
+                                                { "onClick", "showDatePicker(event)"}
+                                    },
+                            })
+                    </div>
+                </div>
+
+                <div class="d-flex margin-top-20 margin-bottom-17">
+                    <div class="advanced-filter-item filter-item country-select-input">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.CareTeam
+                        </div>
+                        <select id="careteam-name-select2" class="filter-input" name="newCareTeamNameSelect2" @ViewBag.Disabled>
+                            @if (Model != null && Model.PersonnelTeam != null)
+                            {
+                                <option selected value="@Model.PersonnelTeam.PersonnelTeamId">@Model.PersonnelTeam.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-item advanced-filter-item margin-bottom-17">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Description
+                    </div>
+                    <input type="text" class="filter-input descinput" id="description" value="@(Model != null && Model.Description != null ? Model.Description : sReportsV2.Cache.Resources.TextLanguage.EditEOC)" @ViewBag.Disabled>
+                </div>
+
+                <div class="button-partial">
+                    @if (!readOnly)
+                    {
+                        <button id="identifier-modal-button" class="submit-button right-button margin-left-13 margin-right-20" type="button" style="outline: none;" onclick="submitEOCForm()" dismiss="modal">
+                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                        </button>
+                    }
+                    <div class="button-wrapper-filter float-right" id="close">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        var placeholder = "-";
+
+        $("#careteam-name-select2").initSelect2(
+            getSelect2Object(
+                {
+                    placeholder: placeholder,
+                    width: '100%',
+                    url: `/PersonnelTeam/GetNameAutocompleteData?organizationId=${0}`  // setting organizationId = 0 we'll get CareTeams form every Org
+                }
+            )
+        );
+    });
+
+</script>

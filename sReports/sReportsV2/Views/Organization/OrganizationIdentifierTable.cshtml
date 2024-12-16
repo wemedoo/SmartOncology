@@ -1,0 +1,17 @@
+﻿@using sReportsV2.DTOs.Common.DataOut;
+@model List<IdentifierDataOut>
+
+@await Html.PartialAsync("IdentifierTable", Model != null ? Model : null)
+<div class="organization-line"></div>
+<div class="button-partial">
+    @if (!ViewBag.ReadOnly)
+    {
+        <button class="submit-patient right-button" type="button" onclick="clickedSubmit()" style="outline: none;">
+            <span class="submit-patient-info">@(Model != null ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)</span>
+        </button>
+    }
+    <i class="angle-left fas fa-angle-left"></i>
+    <div class="text-underline right-button" type="button" onclick="cancelOrganization()">
+        <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Back</span>
+    </div>
+</div>

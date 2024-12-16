@@ -1,0 +1,82 @@
+﻿@model sReportsV2.DTOs.Organization.OrganizationDataOut
+
+<div class="width-100">
+    <div class="organization-tabs">
+        <div data-id="OrgGeneralInfo" class="organization-tab active">
+            @sReportsV2.Cache.Resources.TextLanguage.GeneralInfo
+        </div>
+        <div data-id="Telecoms" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+            @sReportsV2.Cache.Resources.TextLanguage.Telecoms
+        </div>
+        <div data-id="Identifiers" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+            @sReportsV2.Cache.Resources.TextLanguage.Identifiers
+        </div>
+        <div data-id="PersonnelTeams" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+            @sReportsV2.Cache.Resources.TextLanguage.Personnel_Teams
+        </div>
+        <div data-id="CommunicationEntities" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" tdata-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+            @sReportsV2.Cache.Resources.TextLanguage.OrganizationCommunicationEntity
+        </div>
+    </div>
+</div>
+
+<div id="top-identifier-line" class="identifier-line" style=" margin-bottom: 14px;"></div>
+<div id="organizationId" value="@(Model != null ? Model.Id : 0)" hidden>@(Model != null ? Model.Id : 0)</div>
+<input type="hidden" id="orgId" value="@(Model != null ? Model.Id : 0)" />
+
+<div>
+    <div id="OrgGeneralInfo" class="organization-cont">
+        @await Html.PartialAsync("~/Views/Organization/OrganizationGeneralInfo.cshtml", Model)
+    </div>
+
+    @if (Model != null)
+    {
+        <div id="Identifiers" class="organization-cont" style="display:none">
+            @await Html.PartialAsync("~/Views/Organization/OrganizationIdentifierTable.cshtml", Model.Identifiers)
+        </div>
+
+        <div id="Telecoms" class="organization-cont" style="display:none">
+            @await Html.PartialAsync("~/Views/Organization/OrganizationTelecoms.cshtml", Model)
+        </div>
+
+        <div id="PersonnelTeams" class="organization-cont" style="display:none">
+            <div id="no-personnel-team-container" style="display:none">
+                <div class="no-result-content" style="padding:20px, 0px">
+                    <img alt="" class="margin-" src="/css/img/icons/no-care-teams.svg">
+                    <br>
+                    <div class="no-result-text">No teams created yet</div>
+                    @if (!ViewBag.ReadOnly)
+                    {
+                        <button type="button" class="btn btn-add-new" onclick="showPersonnelTeamModal(event)">
+                            <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new">Add Team</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div id="personnel-team-filters-table-container" style="display:none">
+                @await Html.PartialAsync("~/Views/PersonnelTeam/PersonnelTeamFilters.cshtml", Model)
+                <div id="personnelTeamTableContainer"></div>
+            </div>
+
+            <div id="single-personnel-team-container" style="display: none"></div>
+        </div>
+
+        <div id="CommunicationEntities" class="organization-cont" style="display:none">
+            @await Html.PartialAsync("~/Views/Organization/OrganizationCommunicationEntity.cshtml", Model.OrganizationCommunicationEntities)
+        </div>
+    }
+
+</div>
+<div class="modal fade" id="addOrgCommunicationModal" role="dialog"></div>
+
+@if (Model == null)
+{
+    <script>
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip({
+                placement: 'bottom'
+            });
+        });
+    </script>
+}

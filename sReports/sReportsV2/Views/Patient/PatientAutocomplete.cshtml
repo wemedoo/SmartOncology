@@ -1,0 +1,11 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.Patient.DataOut;
+@model List<PatientTableDataOut>
+
+@foreach (PatientTableDataOut patient in Model)
+{
+    string name = patient.FirstName + " " + patient.LastName + " " + (patient.BirthDate != null ? patient.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
+    <div class="option" data-value="@patient.Id" onclick="editEntity(event,'@patient.Id')">
+        @name
+    </div>
+}

@@ -1,0 +1,41 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using Microsoft.AspNetCore.Html
+
+@model FieldParagraphDataOut
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            AddField(Html, Model);
+        }
+    </div>
+</fieldset>
+
+@functions {
+    private void AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel)
+    {
+        string fieldInstanceRepetitionId = Model.GetFieldInstanceRepetitionInfo(0).Item1;
+        <div class="field-group">
+            <div for="@fieldInstanceRepetitionId" class="filter-label form-label-size d-inline-block">
+                @html.Raw(objectModel.FullLabel)
+            </div>
+            <div class="repetitive-field filter-input d-inline-block" id="@fieldInstanceRepetitionId">
+                @{
+                    AddInput();
+                }
+            </div>
+        </div>
+    }
+
+    private void AddInput()
+    {
+        AddLongTextInput();
+    }
+
+    private void AddLongTextInput()
+    {
+        <div class="paragraph-font">
+            @(new HtmlString(Model.Paragraph))
+        </div>
+    }
+}

@@ -1,0 +1,49 @@
+@using System.Reflection
+@using sReportsV2.Common.Helpers
+@model IEnumerable<sReportsV2.DTOs.User.DataOut.UserOrganizationDataOut>
+@{
+    Layout = ""; 
+    var version = Assembly.GetAssembly(typeof(ScriptHelper)).GetName().Version.ToString();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    @ScriptHelper.RenderHeadMetadata(true)
+    <title>Choose active organization - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/bootstrap-4.3.1/bootstrap.min.css"))
+    <link href="/css/login.css?v=@version" rel="stylesheet">
+    <link href="/css/login.min.css?v=@version" rel="stylesheet">
+</head>
+<body class="login-background">
+    <div class="container">
+        <div class="login w-50">
+            @if (Model != null && Model.Any())
+            {
+                <div class="mb-3">
+                    Please choose one of the below offered:
+                </div>
+                foreach (var organization in Model)
+                {
+                    <div class="login-organization" onclick="setActiveOrganization(event, '@organization.OrganizationId', '/Home/Index')">@organization.Organization.Name</div>
+                }
+            }
+            else
+            {
+                <div>
+                    You are not assigned to the any organization. Please contact your administrator for more information.
+                </div>
+            }
+
+            <button class="login-button mt-2" type="button" onclick="logout(event)">Logout</button>
+
+        </div>
+    </div>
+
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jquery-3.7.1/jquery-3.7.1.min.js"), "", ""));
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/popper-1.16.1/umd/popper.min.js"), "", ""));
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/bootstrap-4.3.1/bootstrap.min.js"), "", ""));
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/userLogin/user.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/sReports.js"), "", ""))
+</body>
+</html>

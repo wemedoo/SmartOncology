@@ -1,0 +1,71 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasUpdatePerm = userCookieData.UserHasPermission(PermissionNames.UpdateCode, ModuleNames.CodeSet);
+    bool hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.DeleteCode, ModuleNames.CodeSet);
+    var isReadOnly = ViewBag.ReadOnly;
+}
+
+<div class="table-responsive code-filter-border">
+    <table class="table table-striped table-border">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="CodeId" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('CodeId')">@sReportsV2.Cache.Resources.TextLanguage.CodeValue.ToUpper()</th>
+                <th id="PreferredTerm" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('PreferredTerm')">@sReportsV2.Cache.Resources.TextLanguage.CodeValueDisplay.ToUpper()</th>
+                <th id="ActiveFrom" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ActiveFrom')">@sReportsV2.Cache.Resources.TextLanguage.ActiveFrom.ToUpper()</th>
+                <th id="ActiveTo" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('ActiveTo')">@sReportsV2.Cache.Resources.TextLanguage.ActiveTo.ToUpper()</th>
+                <th style="border-bottom: unset;border-top: unset;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (CodeDataOut entry in Model.Data)
+            {
+                bool canDelete = hasDeletePerm && entry.IsActive();
+                <tr id="row-@entry.Id" class="table-content-row @(!entry.IsActive() ? "grayed-out" : "")" onclick="editCodeValues(event, '@entry.Id', '@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm')">
+                    <td>@entry.Id</td>
+                    <td>@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm</td>
+                    <td>@entry.ActiveFrom.ToTimeZoned(ViewBag.DateFormat as string)</td>
+                    <td>@(entry.ActiveTo.ToActiveToDateTimeFormat(ViewBag.DateFormat as string))</td>
+                    <td>
+                        @if ((hasUpdatePerm || hasDeletePerm) && !isReadOnly)
+                        {
+                            <div class="dropdown show">
+                                <a class="dropdown-button" href="#" data-toggle="dropdown" role="button" id="dropdownMenuLink-@entry.Id" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.Id">
+                                    @if (hasUpdatePerm)
+                                    {
+                                        <a class="dropdown-item editCodeSet pointer hover view-a" onclick="editCodeValues(event, '@entry.Id', '@entry.Thesaurus.GetTranslation(ViewBag.UserCookieData.ActiveLanguage as string).PreferredTerm')">
+                                            <img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit
+                                        </a>
+                                    }
+                                    @if (canDelete)
+                                    {
+                                        <a class="dropdown-item" href="#" onclick="removeCode(event, '@entry.Id')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Data.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+    @if (Model.Data.Count > 0)
+    {
+        <div class="pager-container">
+            @await Html.PartialAsync("Pagination")
+        </div>
+    }
+</div>

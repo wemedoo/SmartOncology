@@ -1,0 +1,82 @@
+﻿
+
+@{
+    int startVal = Model.DataIn.Page - 2;
+    int endVal = Model.DataIn.Page + 2;
+    int totalPages = (int)Math.Ceiling((double)Model.Count / Model.DataIn.PageSize);
+
+    if (Model.DataIn.Page < 3)
+    {
+        startVal = 1;
+    }
+    if (endVal > totalPages)
+    {
+        endVal = totalPages;
+    }
+
+}
+<select id="pageSizeSelector" class="pageSizeSelector">
+    @if (Model.DataIn.PageSize == 5)
+    {
+        <option value="5" selected>5</option>
+
+    }
+    else
+    {
+        <option value="5">5</option>
+
+    }
+    @if (Model.DataIn.PageSize == 10)
+    {
+        <option value="10" selected>10</option>
+
+
+
+    }
+    else
+    {
+        <option value="10">10</option>
+
+    }
+    @if (Model.DataIn.PageSize == 15)
+    {
+        <option value="15" selected>15</option>
+
+    }
+    else
+    {
+        <option value="15">15</option>
+
+    }
+    @if (Model.DataIn.PageSize == 20)
+    {
+        <option value="20" selected>20</option>
+
+    }
+    else
+    {
+        <option value="20">20</option>
+
+    }
+</select>
+<ul class="pagination">
+    <li class="@(Model.DataIn.Page == 1 ? "disabled" : "")">
+
+        <a class="pagination-item" @if (Model.DataIn.Page != 1) { <text> onclick="changePage(@Model.DataIn.Page-1, event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))" </text> }><img alt="" class="angle-size" src="/css/img/icons/left-angle.png"></a>
+    </li>
+    <li><a class="pagination-item" onclick="changePage(1, event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))"><img alt="" class="double-angle-size" src="/css/img/icons/double-left.png"></a></li>
+
+    @for (var i = startVal; i <= endVal; i++)
+    {
+        <li class="page-item @(i == Model.DataIn.Page ? "active" : "")">
+            <a class="pagination-item pagination-item-num" onclick="changePage(@i, event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))">@i</a>
+        </li>
+    }
+    <li><a class="pagination-item" onclick="changePage(@totalPages, event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))"><img alt="" class="double-angle-size" src="/css/img/icons/double-right.png"></a></li>
+
+    <li class="@((Model.DataIn.Page == totalPages) ? "disabled" : "")">
+
+        <a class="pagination-item" @if (Model.DataIn.Page != totalPages) { <text> onclick="changePage(@Model.DataIn.Page+1, event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))" </text> }><img alt="" class="angle-size" src="/css/img/icons/right-angle.png"></a>
+    </li>
+</ul>
+

@@ -1,0 +1,79 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+
+@model FieldEmailDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+}
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{ await AddField(Html, Model, isChapterReadonly, fieldSetId); }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+@*
+    ---------------------------------------------------------------------------------------------------
+                                        Temporarily - Hotfix
+    ---------------------------------------------------------------------------------------------------
+*@
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldStringDataOut objectModel, bool isChapterReadonly, string fieldSetId, string additionalFieldClass = "", string additionalInputClass = "")
+    {
+        if (objectModel.HasValue())
+        {
+            for (int i = 0; i < objectModel.FieldInstanceValues.Count; i++)
+            {
+                await AddField(html, objectModel, isChapterReadonly, fieldSetId, i + 1, objectModel.FieldInstanceValues[i].FirstValue, objectModel.FieldInstanceValues[i].IsSpecialValue, objectModel.IsRepetitive, additionalFieldClass, additionalInputClass);
+            }
+        }
+        else
+        {
+            await AddField(html, objectModel, isChapterReadonly, fieldSetId, 1, "", false, objectModel.IsRepetitive, additionalFieldClass, additionalInputClass);
+        }
+    }
+
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isSpecialValue, bool isRepetitive, string additionalFieldClass, string additionalInputClass, string customLabel = "")
+    {
+        <div class="field-group @additionalFieldClass">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @if (string.IsNullOrEmpty(customLabel))
+                {
+                    @html.Raw(objectModel.FullLabel)
+                }
+                else
+                {
+                    @customLabel
+                }
+            </div>
+            <div class="repetitive-field filter-input d-inline-block @additionalInputClass">
+                @{
+                    AddInput(html, objectModel, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue, isSpecialValue, isRepetitive);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+            @if (!isSpecialValue)
+            {
+                @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+            }
+        </div>
+    }
+
+    private void AddInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isSpecialValue, bool isRepetitive)
+    {
+        AddEmailInput(html, objectModel, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue, isRepetitive, isSpecialValue);
+    }
+
+    private void AddEmailInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, bool isRepetitive, bool isSpecialValue)
+    {
+        <input type="email"
+               class="form-element-field @(isRepetitive ? "text" : "") email"
+               placeholder="example@gmail.com"
+               value="@(!isSpecialValue ? repetitiveValue : "")"
+        @html.ReadOnly(objectModel.IsReadonly || isChapterReadonly || isSpecialValue)
+        @Html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter)) />
+    }
+}

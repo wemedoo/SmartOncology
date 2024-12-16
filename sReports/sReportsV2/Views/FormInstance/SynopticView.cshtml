@@ -1,0 +1,135 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DTOs.Field.DataOut;
+
+@model FormDataOut
+
+@{
+    string neValue = sReportsV2.Cache.Resources.TextLanguage.N_E;
+    bool isEngineModule = ViewBag.IsEngineModule;
+    List<string> synopticForClipboard = new List<string>() { "<h1  style='color:#1c94a3'>" + Model.Title + "</h1>" };
+}
+
+<input type="hidden" name="formInstanceId" value="@ViewBag.FormInstanceId" />
+<div>
+    <div class="form-instance-synoptic-view box-shadow @(isEngineModule ? "" : "w-100")">
+        
+        <div class="float-right clipboard-copy-btn px-1" title="@sReportsV2.Cache.Resources.TextLanguage.Copy_to_clipboard" data-copied="@sReportsV2.Cache.Resources.TextLanguage.Copied !" data-toggle="tooltip" onclick="copyToClipBoard(event, '#synopticForClipboard')">
+            <i class="fa fa-files-o" aria-hidden="true"></i>
+            @sReportsV2.Cache.Resources.TextLanguage.Copy
+        </div>
+
+        @foreach (FormChapterDataOut c in Model.Chapters)
+        {
+            <div class="synoptic-chapter">
+                <div class="title">
+                    @c.Title
+                </div>
+                @{ RenderChapterForClipboard(synopticForClipboard, c.Title); }
+
+                @foreach (FormPageDataOut p in c.Pages)
+                {
+                    <div class="synoptic-page">
+                        <div class="title">
+                            @p.Title
+                        </div>
+                        @{ RenderPageForClipboard(synopticForClipboard, p.Title); }
+
+                        @foreach (List<FormFieldSetDataOut> fieldSet in p.ListOfFieldSets)
+                        {
+                            int numOfFieldSetInstanceRepetitions = fieldSet.Count;
+                            for (int i = 0; i < numOfFieldSetInstanceRepetitions; i++)
+                            {
+                                FormFieldSetDataOut repetitiveFieldSet = fieldSet[i];
+                                <div class="synoptic-fieldset">
+                                    <div class="title">@repetitiveFieldSet.Label @{ RenderRepetitionSuffix(numOfFieldSetInstanceRepetitions, i); }</div>
+                                    @{ RenderFieldSetForClipboard(synopticForClipboard, repetitiveFieldSet.Label, numOfFieldSetInstanceRepetitions, i); }
+
+                                    @foreach (FieldDataOut field in repetitiveFieldSet.Fields.Where(f => f.HasValue() && f.IsVisible))
+                                    {
+                                        int numOfFieldInstanceRepetitions = field.GetRepetitiveFieldCount();
+                                        for (int j = 0; j < numOfFieldInstanceRepetitions; j++)
+                                        {
+                                            if (field.HasValue(j))
+                                            {
+                                                <div class="synoptic-field">
+                                                    <div class="title">@field.Label @{ RenderRepetitionSuffix(numOfFieldInstanceRepetitions, j); }</div>
+                                                    <div class="title" onclick="@{ GetDownloadCallBack(field); }" style="cursor:pointer">
+                                                        @Html.Raw(field.GetSynopticValue(j, neValue, ResourceTypes.HTML_BR))
+                                                    </div>
+                                                </div>
+
+                                                RenderFieldForClipboard(synopticForClipboard, field.Label, field.GetSynopticValue(j, neValue, ResourceTypes.HTML_BR), numOfFieldInstanceRepetitions, j);
+                                            }
+
+                                        }
+                                    }
+                                </div>
+                                synopticForClipboard.Add("</table>");
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div id="synopticForClipboard" style="display:none">
+    @Html.Raw(string.Join(" ", synopticForClipboard))
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/copyToClipboard.js"), "", ""))
+
+@functions {
+    private void RenderRepetitionSuffix(int numOfRepetitions, int repetitionIndex)
+    {
+        if (numOfRepetitions > 1)
+        {
+            <span>(@(repetitionIndex + 1))</span>
+        }
+    }
+
+    private void GetDownloadCallBack(FieldDataOut field)
+    {
+        string downloadCallBack = "";
+        if (field is IBinaryFieldDataOut binaryFieldDataOut)
+        {
+            string uri = field.GetFirstFieldInstanceValue();
+            downloadCallBack = string.Format("downloadResource(event,'{0}','{1}','{2}')", uri.GetResourceNameFromUri(), uri.GetFileNameFromUri(binaryFieldDataOut.ExcludeGUIDPartFromName), binaryFieldDataOut.BinaryType);
+        }
+        @downloadCallBack
+    }
+
+    private void RenderChapterForClipboard(List<string> synopticForClipboard, string chapterTitle)
+    {
+        synopticForClipboard.Add("<br><p><b style='font-size:22px; font-weight: 700;'>" + chapterTitle + "</b></p>");
+    }
+
+    private void RenderPageForClipboard(List<string> synopticForClipboard, string pageTitle)
+    {
+        synopticForClipboard.Add("<br><p style=\"padding-left:5px\"><span style=\"background-color:#E33282; color:#E33282; font-size: 16px;\">-</span> " + pageTitle.ToUpper() + " </p>");
+    }
+
+    private void RenderFieldSetForClipboard(List<string> synopticForClipboard, string fieldSetTitle, int numOfRepetitions, int repetitionIndex)
+    {
+        if (numOfRepetitions > 1)
+        {
+            fieldSetTitle += " " + (repetitionIndex + 1).ToString();
+        }
+        synopticForClipboard.Add("<br><span>&emsp;</span><span style='background-color:#ECEEEF' class='content'> " + fieldSetTitle + " </span>");
+        synopticForClipboard.Add("<table>");
+    }
+
+    private void RenderFieldForClipboard(List<string> synopticForClipboard, string fieldLabel, string fieldValue, int numOfRepetitions, int repetitionIndex)
+    {
+        if (numOfRepetitions > 1)
+        {
+            fieldLabel += " " + (repetitionIndex + 1).ToString();
+        }
+        synopticForClipboard.Add("<tr>" + "<td>&emsp;&emsp;" + fieldLabel + "</td>" + "<td>&emsp;&emsp;&emsp;" + fieldValue + "</td>" + "</tr>");
+    }
+}

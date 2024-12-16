@@ -1,0 +1,14 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.EpisodeOfCare.EpisodeOfCareDataOut
+
+<input type="hidden" id="eocId" value="@Model.Id" />
+
+<div class="flex" id="editPatientContainer">
+    <div class="encounter-container enc-container" id="encounterContainer" data-episode-of-care="@Model.Id">
+
+    </div>
+</div>
+<div class="modal fade hide-overflow-y" id="addEncounterModal" role="dialog"></div>
+<div class="modal fade" id="addTaskModal" role="dialog"></div>
+@Html.Raw(ScriptHelper.RenderBundle("js/editFromEOC-bundle.min.js"))

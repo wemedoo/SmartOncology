@@ -1,0 +1,62 @@
+﻿@using sReportsV2.DTOs.Form.DataOut
+
+@model ConsensusOrganizationUserInfoDataOut
+
+<div class="user-filter-part">
+    <div class="consensus-bordered-container">
+        <div class="d-flex world-level">
+            <img alt="" class="info-img" src="/css/img/icons/world_level.svg">
+            <div class="title-info">
+                <div class="info-title">
+                    @sReportsV2.Cache.Resources.TextLanguage.World_Level
+                </div>
+                <div class="info-title-small">
+                    @sReportsV2.Cache.Resources.TextLanguage.Upon_Select_Focus_On_Country
+                </div>
+            </div>
+        </div>
+        <div class="wl-items">
+            <div class="world-level-item">
+                <div class="wl-title">
+                    @sReportsV2.Cache.Resources.TextLanguage.Number_Of_Reg_Organization
+                </div>
+                <div class="wl-value">
+                    @Model.OrganizationsCount
+                </div>
+            </div>
+            <div class="world-level-item">
+                <div class="wl-title">
+                    @sReportsV2.Cache.Resources.TextLanguage.Number_Of_Reg_Users
+                </div>
+                <div class="wl-value">
+                    @Model.UsersCount
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="user-filter-part">
+    <div class="consensus-bordered-container">
+        <div class="d-flex world-level">
+            <img alt="" class="info-img" src="/css/img/icons/local.svg">
+            <div class="title-info">
+                <div class="info-title">
+                    @sReportsV2.Cache.Resources.TextLanguage.Local
+                </div>
+                <div class="info-title-small">
+                    @sReportsV2.Cache.Resources.TextLanguage.Upon_Select_Focus_On_Orgs
+                </div>
+            </div>
+        </div>
+        <div class="wl-items">
+            <div class="world-level-item">
+                <div class="wl-title">
+                    @sReportsV2.Cache.Resources.TextLanguage.Number_Of_Reg_Organization
+                </div>
+                <div class="wl-value">
+                    @Model.OrganizationsCountByState
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

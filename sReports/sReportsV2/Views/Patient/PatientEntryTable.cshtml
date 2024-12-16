@@ -1,0 +1,162 @@
+﻿@using System.Globalization
+@using sReportsV2.DTOs.Patient
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.DTOs.PatientList;
+@using sReportsV2.DTOs.DTOs.PatientList.DataIn;
+@using sReportsV2.DTOs.Common;
+@using System.Collections.Generic;
+@using sReportsV2.DTOs.User.DTO;
+@using sReportsV2.DTOs.Patient.DataIn;
+@using sReportsV2.Common.Enums;
+
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<PatientDataOut, PatientFilterDataIn>
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    Dictionary<int, IEnumerable<PatientListDTO>> listsAvailableForPatients = ViewBag.ListsAvailableForPatients;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> genders = ViewBag.Genders as List<CodeDataOut>;
+    bool hasCreateUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Patients);
+}
+
+<div class="table-responsive overflow-unset">
+    <table class="table table-striped table-border table-layout-fixed">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                <th id="NameGiven" class="pl-40 sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('NameGiven')">@sReportsV2.Cache.Resources.TextLanguage.Given.ToUpper()</th>
+                <th id="NameFamily" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('NameFamily')">@sReportsV2.Cache.Resources.TextLanguage.Family.ToUpper()</th>
+                <th id="Gender" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Gender')">@sReportsV2.Cache.Resources.TextLanguage.Gender.ToUpper()</th>
+                <th id="BirthDate" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('BirthDate')">@sReportsV2.Cache.Resources.TextLanguage.BirthDate.ToUpper()</th>
+                <th id="EntryDatetime" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('EntryDatetime')">@sReportsV2.Cache.Resources.TextLanguage.DateFirstCreated.ToUpper()</th>
+                <th style="border-bottom: unset;border-top: unset;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (PatientDataOut entry in Model.Data)
+            {
+                IEnumerable<PatientListDTO> selectablePatientLists = null;
+                if (listsAvailableForPatients != null)
+                {
+                    listsAvailableForPatients.TryGetValue(entry.Id, out selectablePatientLists);
+                }
+                <tr id="row-@entry.Id"
+                    onclick="clickedRow(event, @hasCreateUpdatePerm.ToJsBoolean(), '@entry.Id')"
+                    class="table-content-row"
+                    >
+
+                    @{ RenderPatientBasicInfo(entry, activeLanguage, genders); }
+
+                    @{ RenderLastCellInPatientRow(userCookieData, entry, hasCreateUpdatePerm, selectablePatientLists, ViewBag.CurrentPatientList); }
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Data.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+    @if (Model.Data.Count > 0)
+    {
+        <div class="pager-container">
+            @await Html.PartialAsync("Pagination")
+        </div>
+
+        RenderTooltip();
+    }
+</div>
+
+@functions {
+    private void RenderPatientBasicInfo(PatientDataOut patient, string activeLanguage, List<CodeDataOut> genders)
+    {
+        CodeDataOut genderEnum = genders.Find(g => g.Id == patient.GenderId);
+        string genderTranslated = genderEnum != null ? genderEnum.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
+        <td class="pl-40">@patient.Name</td>
+        <td>@patient.FamilyName</td>
+        <td>
+            @genderTranslated
+        </td>
+        <td>@(patient.BirthDate != null ? patient.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")</td>
+        <td>@patient.EntryDatetime.ToTimeZoned(ViewBag.DateFormat as string)</td>
+    }
+
+    private void RenderLastCellInPatientRow(UserCookieData userCookieData, PatientDataOut patient, bool hasCreateUpdatePerm, IEnumerable<PatientListDTO> availablePatientLists, PatientListFilterDataIn currentPatientList = null)
+    {
+        int patientId = patient.Id;
+        <td onclick="">
+            @{
+                bool hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Patients);
+                bool hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.Patients);
+                bool hasAddPatientToPatientListPermission = userCookieData.UserHasPermission(PermissionNames.AddPatientToPatientList, ModuleNames.Patients);
+                bool hasRemovePatientFromPatientListPermission = userCookieData.UserHasPermission(PermissionNames.RemovePatientFromPatientList, ModuleNames.Patients);
+            }
+
+            @if (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm || hasAddPatientToPatientListPermission || hasRemovePatientFromPatientListPermission)
+            {
+                <div>
+                    <div class="dropdown">
+                        <a class="dropdown-button" href="#" data-toggle="dropdown" role="button" id="dropdownMenuButton-@patientId" aria-haspopup="true" aria-expanded="false" data-display="static">
+                            <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                        </a>
+                        <div class="dropdown-menu patient-dropdown-menu dropdown-menu-right dropleft mr-3 mt-3" aria-labelledby="dropdownMenuButton-@patientId">
+                            @if (hasViewPerm)
+                            {
+                                <a class="dropdown-item" href="#" onclick="viewEntity(event,'@patientId')"><img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.PatientInfo</a>
+                            }
+                            @if (hasCreateUpdatePerm)
+                            {
+                                <a class="dropdown-item" href="#" onclick="editEntity(event,'@patientId')"><img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit @sReportsV2.Cache.Resources.TextLanguage.PatientInfo</a>
+                            }
+                            @if (hasDeletePerm)
+                            {
+                                <a class="dropdown-item" href="#" onclick="removePatientEntry(event, '@patientId', '@patient.RowVersion')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</a>
+                            }
+                            @if (hasRemovePatientFromPatientListPermission && currentPatientList != null && currentPatientList.ListWithSelectedPatients.HasValue && currentPatientList.ListWithSelectedPatients.Value)
+                            {
+                                <a class="dropdown-item" href="#" onclick="removePatientFromList(event, '@patientId', '@currentPatientList.PatientListId')">
+                                    <span class="" style="white-space: nowrap; overflow: hidden;">
+                                        <img alt="" class="edit-svg-size" src="/css/img/icons/remove_person.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove_from "@currentPatientList.PatientListName" @sReportsV2.Cache.Resources.TextLanguage.List
+                                    </span>
+                                </a>
+                            }
+                            else if (hasAddPatientToPatientListPermission && availablePatientLists != null && availablePatientLists.Any())
+                            {
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item d-flex px-4 py-2 nested-dropdown" href="#" role="button" id="nestedDropdown-@patientId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="text-nowrap nested-dropdown-span">
+                                        <img alt="" class="edit-svg-size mb-1" src="/css/img/icons/arrow_scroll_left.svg"> @sReportsV2.Cache.Resources.TextLanguage.Add_to @sReportsV2.Cache.Resources.TextLanguage.Patient_List
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu mt-negative-05rem" aria-labelledby="nestedDropdown-@patientId">
+                                    @foreach (PatientListDTO patientListDTO in availablePatientLists)
+                                    {
+                                        <a class="dropdown-item d-flex" href="#" onclick="addPatientToList(event, '@patientId', '@patientListDTO.PatientListId')">
+                                            <img alt="" class="edit-svg-size my-auto" src="/css/img/icons/list.svg"> <div class="dropdown-title" data-toggle="tooltip" title="@patientListDTO.PatientListName">@patientListDTO.PatientListName</div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </td>
+    }
+
+    private void RenderTooltip()
+    {
+        <script>
+            $(document).ready(function () {
+                $('[data-toggle="tooltip"]').tooltip({
+                    placement: 'auto'
+                });
+            });
+        </script>
+    }
+
+}

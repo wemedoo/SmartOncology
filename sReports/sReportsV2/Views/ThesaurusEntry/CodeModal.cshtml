@@ -1,0 +1,102 @@
+﻿@using sReportsV2.Common.Extensions;
+@{ 
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+<div class="modal fade" id="codeModal" tabindex="-1" role="dialog" aria-labelledby="codeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-codes">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+                    <form id="newCodeForm" onsubmit="addNewCode(event)" novalidate>
+                        <input type="hidden" id="codeId" name="codeId" />
+                        <input type="hidden" id="bevalid" name="bevalid" />
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/change_password.svg">
+                            <label class="code-form-title" id="addCodeTitle">
+                                @sReportsV2.Cache.Resources.TextLanguage.AddCode
+                            </label>
+                            <label class="code-form-title" style="display: none" id="editCodeTitle">
+                                @if (readOnly)
+                                {
+                                    @sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.Code
+                                }
+                                else
+                                {
+                                    @sReportsV2.Cache.Resources.TextLanguage.EditCode
+                                }
+                            </label>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.System
+                            </div>
+                            <select class="filter-input arrow-select" id="codeSystem" name="codeSystem" required @ViewBag.Disabled>
+                                <option value=""></option>
+                                @foreach( var codeSystem in ViewBag.CodeSystems)
+                                {
+                                    <option value="@codeSystem.Id">@codeSystem.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Version
+                            </div>
+                            <input required class="filter-input" type="text" id="codeVersion" name="codeVersion" @ViewBag.Disabled/>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Code
+                            </div>
+                            <input required class="filter-input" type="text" id="codeCode" name="codeCode" @ViewBag.Disabled/>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Value (@sReportsV2.Cache.Resources.TextLanguage.Preferred_term)
+                            </div>
+                            <input required class="filter-input" type="text" id="codeValue" name="codeValue" @ViewBag.Disabled/>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.VersionPublishDate
+                            </div>
+                            @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> { 
+                                    { "class", "filter-input" }, 
+                                    { "id", "codeVersionPublishDate" }, 
+                                    { "name", "codeVersionPublishDate" },
+                                    { @ViewBag.Disabled, null }
+                                },
+                                InputBtnAttributes = new Dictionary<object, object> { 
+                                    { "class", "date-img" }, 
+                                    { @Html.DateDisabled(readOnly), null }, 
+                                    { "id", "codeCalendar"}, 
+                                    {"style", "top:33px" } 
+                                },
+                            })
+                        </div>
+
+                        <div class="button-partial">
+                            @if (!readOnly)
+                            {
+                                <button class="submit-button right-button margin-left-13" type="submit" style="outline: none;" dismiss="modal">
+                                    <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                                </button>
+                            }
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

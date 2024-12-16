@@ -1,0 +1,146 @@
+@using System
+@using sReportsV2.Common.Constants
+@using sReportsV2.Common.Helpers
+<!DOCTYPE html>
+<html>
+<head>
+    @ScriptHelper.RenderHeadMetadata()
+
+    <link rel="stylesheet" href="/favicon.ico" />
+
+    <title>@ViewBag.Title - Smart Open Oncology by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"))
+    @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css")
+    @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
+    @ScriptHelper.RenderStylesheet("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap")
+    @ScriptHelper.RenderStylesheet("//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/login.min.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/swissOpenOncology.min.css"))
+    @Html.Raw(ScriptHelper.RenderBundle("css/styles.min.css"))
+    @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
+    @RenderSection("Stylesheet", false)
+    @RenderSection("Scripts", false)
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/swissOpenOncology.min.css"))
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R0C73CHFJS" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+
+
+        gtag('config', 'G-R0C73CHFJS');
+    </script>
+</head>
+@{
+    string action = ViewContext.RouteData.Values["Action"].ToString();
+}
+
+<body class="sidebar-shrink">
+    <div class="d-none">Environment(@ViewBag.Env)</div>
+    <img alt="" id="notFound" src="/css/img/icons/no_results.svg" hidden>
+    <img alt="" id="deleteIcon" src="/css/img/icons/remove.svg" hidden>
+    <img alt="" id="editIcon" src="/css/img/icons/edit.svg" hidden>
+    @if (!action.Equals("Index"))
+    {
+        <nav class="top-bar navbar sticky-top navbar-expand-lg p-0 navbar navbar-expand-lg navbar-light">
+            <div class="header-wrapper soo-header-color">
+                <div class="navbar-brand col-6 col-sm-3 col-md-2" style="padding-left:7px;">
+                    <a href="@Url.Action("Index", "ThesaurusGlobal")" class="color-text layout-header-group">
+                        <img alt="" class="gt-navbar-logo" src="/css/img/icons/SwissOpenOncology/logo/smart oncology logo white.svg">
+                    </a>
+                </div>
+                <div class="navbar-right-part">
+                    @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasAnyOfRole(SmartOncologyRoleNames.SuperAdministrator))
+                    {
+                        <div class="header-btn" onclick="manageUsers()">
+                            <img alt="" src="/css/img/icons/SwissOpenOncology/edit.svg" />
+                            Manage users
+                        </div>
+                    }
+                    @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasAnyOfRole(SmartOncologyRoleNames.Viewer, SmartOncologyRoleNames.Curator, SmartOncologyRoleNames.Editor))
+                    {
+                        <div class="header-btn" onclick="goToBrowse()">
+                            <img alt="" src="/css/img/icons/SwissOpenOncology/browse.svg" />
+                            Browse
+                        </div>
+                    }
+                    @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasAnyOfRole(SmartOncologyRoleNames.Curator, SmartOncologyRoleNames.Editor))
+                    {
+                        <div class="header-btn" onclick="goToCreateThesaurus()">
+                            <img alt="" src="/css/img/icons/SwissOpenOncology/submit_new_term.svg" />
+                            Submit new term
+                        </div>
+                    }
+                    @if (ViewBag.UserCookieData != null)
+                    {
+                        <div class="logged-user">
+                            <div class="layout-avatar">
+                                <div>@(!string.IsNullOrWhiteSpace(ViewBag.UserCookieData.FirstName) ? ViewBag.UserCookieData.FirstName.Substring(0, 1).ToUpper() : "U" )</div>
+                            </div>
+                            <div class="user-label">
+                                @ViewBag.UserCookieData.Username
+                            </div>
+                            <div class="log-out" onclick="logout(event)">
+                                Log Out
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="login-register">
+                            <div class="go-to-login" onclick="goToLogin()">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <div> Login </div>
+                            </div>
+                            <div class="go-to-register" onclick="goToRegistration()">
+                                <div> Register </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    }
+
+    <div class="container-fluid" id="containerFluid">
+        <div class="row">
+            <div class="col-12">
+                <main role="main" class="main-content mc-min-height">
+                    @RenderBody()
+                </main>
+                <div id="loaderOverlay" class="loader-overlay">
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="gt-footer">
+        @await Html.PartialAsync("~/Views/ThesaurusGlobal/Shared/Footer.cshtml")
+    </div>
+
+    @await Html.PartialAsync("DeleteModal")
+
+    <script>
+        var noResultFound = '@sReportsV2.Cache.Resources.TextLanguage.NoResultFound';
+        var deleteItem = '@sReportsV2.Cache.Resources.TextLanguage.Delete';
+        var editItem = '@sReportsV2.Cache.Resources.TextLanguage.Edit';
+        var userPageSize = '@(ViewBag.UserCookieData != null ? ViewBag.UserCookieData.PageSize : 5)';
+        var simplifiedApp;
+        var df = '@ViewBag.DateFormatClient';
+        var dateFormatDisplay = '@ViewBag.DateFormatDisplay';
+        var timeFormatDisplay = '@ViewBag.TimeFormatDisplay';
+    </script>
+
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/ajv/6.10.2/ajv.bundle.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("//d3js.org/d3.v6.min.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("//d3js.org/topojson.v1.min.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/SwissOpenOncology/swissOpenOncology.js"), "", ""))
+</body>
+</html>

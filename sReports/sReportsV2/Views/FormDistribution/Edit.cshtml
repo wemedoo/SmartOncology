@@ -1,0 +1,74 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.FormDistribution.DataOut
+@using sReportsV2.Common.Constants;
+
+@{
+    ViewBag.Title = "GetByThesaurusId";
+}
+
+@model FormDistributionParameterizationDataOut
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Simulator }, { "linkLevel1", "/FormDistribution/GetAll" }, { "level2", Model.FormDistribution.Title }, { "activeLevel", 2 } })
+<h1>
+    @Model.FormDistribution.Title
+    <div>(@sReportsV2.Cache.Resources.TextLanguage.DefineDistributionsParameters)</div>
+</h1>
+<form onsubmit="return submitDistributionConfigForm()" id="distributionForm" class="element-background-grey simulator-height">
+    <input type="hidden" id="formDistributionId" name="formDistributionId" value="@Model.FormDistribution.Id" />
+    <input type="hidden" id="lastUpdate" name="lastUpdate" value="@Model.FormDistribution.LastUpdate" />
+    <input type="hidden" id="thesaurusId" name="thesaurusId" value="@Model.FormDistribution.ThesaurusId" />
+    <input type="hidden" id="versionId" name="VersionId" value="@Model.FormDistribution.VersionId" />
+
+    <div class="row">
+        <div class="col-5">
+            @await Html.PartialAsync("SimulatorFormTree", Model.Form)
+        </div>
+        <div class="col-7 ">
+            <div class="rows-container" id="parameters-container">
+
+            </div>
+            <div class="simulator-submit-btn-container" style="display: none;">
+                <div class="button-wrapper-filter simulator-submit-btn-cancel" id="close" onclick="goBack(event)">
+                    <a class="btn advanced-cancel">
+                        @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                    </a>
+                </div>
+                @if (!ViewBag.ReadOnly)
+                {
+                    <input type="submit" class="btn btn-filter-primary simulator-submit-btn" id='submitBtn' value="Submit" />
+                }
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Modal -->
+@await Html.PartialAsync("AddRelationModal")
+
+<script>
+     $('#distributionForm').validate(
+         {
+            rules: {
+                 @foreach (var field in Model.FormDistribution.Fields)
+                 {
+                     if (field.Type == "radio")
+                     {
+                         foreach (var combination in field.ValuesCombination)
+                         {
+                             foreach(var value in combination.Values)
+                             {
+                                 for (int i = 1; i < field.ValuesCombination.Count + 1; i++)
+                                 {
+                                      <text> 'radio-@value.ThesaurusId-@i': {  equalToOne: true },</text>
+                                 }
+                             }
+                         }
+
+                     }
+                 }
+            }
+
+
+        });
+</script>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/simulator/formDistribution.js"), "", ""))

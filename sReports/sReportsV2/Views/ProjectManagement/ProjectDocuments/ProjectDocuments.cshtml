@@ -1,0 +1,34 @@
+﻿@using sReportsV2.DTOs.Common.DataOut;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.DTOs.Pagination;
+@using sReportsV2.Common.Constants;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasAddDocumentPerm = userCookieData.UserHasPermission(PermissionNames.AddDocument, ModuleNames.ProjectManagement);
+    bool showUserProjects = ViewBag.ShowUserProjects;
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+}
+
+<div>
+    <div class="input-group-title d-flex mb-4">
+        <div class="mr-auto"> @sReportsV2.Cache.Resources.TextLanguage.Documentation </div>
+
+        @if (hasAddDocumentPerm && !showUserProjects && !readOnly)
+        {
+            <div class="btn-group float-right">
+                <button id="AddDocumentsBtn" type="button" class="btn btn-create" onclick="showAddTrialDocumentsModal()">
+                    <img alt="" class="pr-1" src="/css/img/icons/adding_doc_white.svg"> @sReportsV2.Cache.Resources.TextLanguage.Add_Documents
+                </button>
+            </div>
+        }
+
+    </div>
+    @await Html.PartialAsync("~/Views/ProjectManagement/ProjectDocuments/ProjectDocumentsFilterGroup.cshtml")
+    <div id="TrialDocumentsTable">
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Views/ProjectManagement/ProjectDocuments/AddProjectDocumentsModal.cshtml")
+
+

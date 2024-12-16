@@ -1,0 +1,18 @@
+﻿@using Microsoft.AspNetCore.Html
+@using sReportsV2.DTOs.Field.DataOut;
+@model FieldParagraphDataOut
+
+<fieldset class="form-input">
+    <div class="filter-label form-label-size d-inline-block">
+        <span class="comment-target-item" id="@Model.Id">  @Html.Raw(Model.FullLabel) </span>
+    </div>
+    <div class="repetitive-field filter-input d-inline-block">
+        <div class="paragraph-font" name="paragraph" type="text" value='@(Model != null && Model.Paragraph != null ? Model.Paragraph : "")' @ViewBag.Disabled>
+            @(new HtmlString(Model != null && Model.Paragraph != null ? Model.Paragraph : ""))
+        </div>
+    </div>
+</fieldset>
+<a class="add-comment-link comment-block-hide" onclick="addComment('@Model.Id')">
+
+    <img alt="" class="add-comment-icon" src="/css/img/icons/add_comment_1.svg">
+</a>

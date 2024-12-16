@@ -1,0 +1,226 @@
+﻿@using System.Globalization
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model sReportsV2.DTOs.Encounter.EncounterDataOut
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Encounter_Create;
+    var userCookieData = ViewBag.UserCookieData;
+    var hasAddEncounterPerm = userCookieData.UserHasPermission(PermissionNames.AddEncounter, ModuleNames.Patients);
+    bool readOnly = ViewBag.ReadOnly;
+    string disabled = !hasAddEncounterPerm || readOnly ? "disabled" : "";
+    bool hasPeriod = Model != null && Model.Period != null;
+    DateTime startDate = hasPeriod ? Model.Period.StartDate.DateTime : DateTime.Now;
+    string timeZoneOffset = userCookieData.TimeZoneOffset;
+    startDate = startDate.ToTimeZoned(timeZoneOffset);
+    string modalTitle = Model.Id > 0 ? (readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewEncounter : @sReportsV2.Cache.Resources.TextLanguage.EditEncounter) : @sReportsV2.Cache.Resources.TextLanguage.NewEncounter;
+}
+
+<div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content eoc-content-advanced" id="">
+        <div class="modal-body modal-body-advanced overh enc-overh">
+            <div class="float-right filter-eoc-close-btn">
+                <img alt="" src="/css/img/icons/close_black.svg" data-dismiss="modal" aria-label="Close">
+            </div>
+            <form id="newEncForm">
+                <input type="hidden" id="fromEncounterTable">
+                <div class="d-flex advanced-filter-header title-div">
+                    <p class="title-p">@modalTitle</p>
+                </div>
+                <div class="d-flex margin-top-20">
+                    <input type="hidden" id="editEncounterId" value="@Model.Id">
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Status
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="status" name="Status" required @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var encounterStatuses = ViewBag.EncounterStatuses as List<CodeDataOut>;
+                                var filteredEncounterStatuses = ObjectExtension.FilterDataSource(encounterStatuses, readOnly, Model != null ? Model.StatusId : null);
+                                bool selectedStatusExists = false;
+                                foreach (var encounterStatus in filteredEncounterStatuses)
+                                {
+                                    bool isSelected = Model != null && encounterStatus.Id == Model.StatusId;
+                                    selectedStatusExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterStatus, false, isSelected))
+                                }
+                                if (Model != null && Model.StatusId != null && !selectedStatusExists)
+                                {
+                                    ViewBag.SelectedId = Model.StatusId;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterStatuses.Find(x => x.Id == Model.StatusId), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Class
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="classification" name="Classification" required @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var encounterClasses = ViewBag.EncounterClassifications as List<CodeDataOut>;
+                                var filteredEncounterClasses = ObjectExtension.FilterDataSource(encounterClasses, readOnly, Model != null ? Model.ClassId : null);
+                                bool selectedClassExists = false;
+                                foreach (var encounterClass in filteredEncounterClasses)
+                                {
+                                    bool isSelected = Model != null && encounterClass.Id == Model.ClassId;
+                                    selectedClassExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterClass, false, isSelected))
+                                }
+                                if (Model != null && Model.ClassId != null && !selectedClassExists)
+                                {
+                                    ViewBag.SelectedId = Model.ClassId;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterClasses.Find(x => x.Id == Model.ClassId), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex margin-top-20">
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Encounter_Type_Name
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="type" name="Type" required @disabled>
+                            <option id="enctype-option" value=""></option>
+                            @{
+                                var encounterTypes = ViewBag.EncounterTypes as List<CodeDataOut>;
+                                var filteredEncounterTypes = ObjectExtension.FilterDataSource(encounterTypes, readOnly, Model != null ? Model.TypeId : null);
+                                bool selectedTypeExists = false;
+                                foreach (var encounterType in filteredEncounterTypes)
+                                {
+                                    bool isSelected = Model != null && encounterType.Id == Model.TypeId;
+                                    selectedTypeExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterType, false, isSelected))
+                                }
+                                if (Model != null && Model.TypeId != null && !selectedTypeExists)
+                                {
+                                    ViewBag.SelectedId = Model.TypeId;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterTypes.Find(x => x.Id == Model.TypeId), true, true))
+                                }
+                            }
+                        </select>
+
+                    </div>
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Encounter_ServiceType_Name
+                        </div>
+                        <select class="filter-input arrow-select patient-background padding-right-36" id="servicetype" name="ServiceType" required @disabled>
+                            <option value="" disabled selected></option>
+                            @{
+                                var encounterServiceTypes = ViewBag.ServiceTypes as List<CodeDataOut>;
+                                var filteredEncounterServiceTypes = ObjectExtension.FilterDataSource(encounterServiceTypes, readOnly, Model != null ? Model.ServiceTypeId : null);
+                                bool selectedServiceTypeExists = false;
+                                foreach (var encounterServiceType in filteredEncounterServiceTypes)
+                                {
+                                    bool isSelected = Model != null && encounterServiceType.Id == Model.ServiceTypeId;
+                                    selectedServiceTypeExists |= isSelected;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterServiceType, false, isSelected))
+                                }
+                                if (Model != null && Model.ServiceTypeId != null && !selectedServiceTypeExists)
+                                {
+                                    ViewBag.SelectedId = Model.ServiceTypeId;
+                                    @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(encounterServiceTypes.Find(x => x.Id == Model.ServiceTypeId), true, true))
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex margin-top-20">
+                    <div class="advanced-filter-item filter-item ">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.EOC_PeriodStartDate
+                        </div>
+
+                        <div class="filter-date-time datetime-picker-container">
+                            <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                                @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                                {
+                                    InputAttributes = new Dictionary<object, object> {
+                                        { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
+                                        { "value",  startDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) },
+                                        { "id", "periodStartDate"},
+                                        { "name", "periodStartDate"},
+                                        { @disabled, null},
+                                    }
+                                })
+                                <input id="periodStartDateTime" name="periodStartDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@startDate.ToString("s")" />
+                                <div class="img-wrapper">
+                                    <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
+                                </div>
+                            </div>
+                            <div class="time-wrapper w-35 input-border">
+                                <input type="text"
+                                       placeholder="@DateConstants.TimeFormatDisplay"
+                                       class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
+                                       value="@startDate.GetTimePart()"
+                                       id="periodStartTime"
+                                       name="periodStartTime" @disabled>
+                                <div class="clock-wrapper">
+                                    <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="advanced-filter-item filter-item ">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.EOC_PeriodEndDate
+                        </div>
+                        <div class="filter-date-time datetime-picker-container">
+                            <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                                @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                                {
+                                    InputAttributes = new Dictionary<object, object> {
+                                        { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
+                                        { "value", hasPeriod ? Model.Period.EndToTimeZonedDateString(ViewBag.DateFormat) : "" },
+                                        { "id", "periodEndDate"},
+                                        { "name", "periodEndDate"},
+                                        { @disabled, null},
+                                    }
+                                })
+                                <input id="periodEndDateTime" name="periodEndDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@(hasPeriod && Model.Period.EndDate != null ? Model.Period.EndDate.Value.DateTime.ToString("s") : "")" />
+                                <label id="admissionPeriod-error" class="error" for="periodEndDate" style="display:none">@sReportsV2.Cache.Resources.TextLanguage.Discharge_Error_Msg</label>
+                                <div class="img-wrapper">
+                                    <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
+                                </div>
+                            </div>
+                            <div class="time-wrapper w-35 input-border">
+                                <input type="text"
+                                       placeholder="@DateConstants.TimeFormatDisplay"
+                                       class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
+                                       value="@( hasPeriod ? Model.Period.EndToTimeZonedTimeString(ViewBag.DateFormat) : "")"
+                                       id="periodEndTime"
+                                       name="periodEndTime" @disabled>
+                                <div class="clock-wrapper">
+                                    <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @await Html.PartialAsync("EncounterDoctors")
+                <div class="button-partial">
+                    @if (!readOnly)
+                    {
+                        <button id="identifier-modal-button" class="submit-button right-button margin-left-13 " type="button" style="outline: none;" onclick="submitEncounterForm(event)" dismiss="modal">
+                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                        </button>
+                    }
+                    <div class="button-wrapper-filter float-right" id="close">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

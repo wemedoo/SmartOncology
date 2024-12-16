@@ -1,0 +1,65 @@
+﻿@using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@model List<PersonnelTeamRelationDataOut>
+
+@if (Model != null)
+{
+    foreach (PersonnelTeamRelationDataOut personnelTeamRelation in Model)
+    {
+        <div class="advanced-filter-item add-personnel-team-member">
+            <form class="add-personnel-team-member-form" data-property="filled">
+                <div class="mr-2 width-100">
+                    <select required class="new-team-member-name-select2 filter-input arrow-select" name="newTeamMemberNameSelect2" disabled>
+                        <option selected="selected" value="@personnelTeamRelation.UserId">@personnelTeamRelation.User.FirstName @personnelTeamRelation.User.LastName</option>
+                    </select>
+                </div>
+                <div class="width-100">
+                    <select required class="filter-input arrow-select new-team-member-role-select2" name="newTeamMemberRoleSelect2">
+                        <option value="" disabled selected></option>
+                        @{
+                            var personnelTeamRelationTypes = ViewBag.PersonnelTeamRelationshipType as List<CodeDataOut>;
+                            var filteredPersonnelTeamRelationTypes = ObjectExtension.FilterDataSource(personnelTeamRelationTypes);
+                            bool selectedPersonnelTeamRelationTypeExists = false;
+                            foreach (var personnelTeamRelationType in filteredPersonnelTeamRelationTypes)
+                            {
+                                bool isSelected = Model != null && personnelTeamRelation.RelationType != null && personnelTeamRelationType.Id == personnelTeamRelation.RelationType.Id;
+                                selectedPersonnelTeamRelationTypeExists |= isSelected;
+                                @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(personnelTeamRelationType, false, isSelected))
+                            }
+                            if (Model != null && personnelTeamRelation.RelationType != null && personnelTeamRelation.RelationType.Id != 0 && !selectedPersonnelTeamRelationTypeExists)
+                            {
+                                ViewBag.SelectedId = personnelTeamRelation.RelationType.Id;
+                                @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(personnelTeamRelationTypes.Find(x => x.Id == personnelTeamRelation.RelationType.Id), true, true))
+                            }
+                        }
+
+                    </select>
+                </div>
+                <div style="width:0%">
+                    <img alt="" class="remove-member" src="/css/img/icons/close_gray.svg" onclick="removeTeamMember(this)">
+                </div>
+            </form>
+
+        </div>
+    }
+
+    <script>
+        $(document).ready(function () {
+
+            var placeholder = "-";
+
+            $(".new-team-member-name-select2").initSelect2(
+                getSelect2Object(
+                    {
+                        placeholder: placeholder,
+                        allowClear: false,
+                        minimumResultsForSearch: 5,
+                        width: '100%',
+                        url: `/User/GetAutocompleteData?organizationId=${$('#id').val()}`
+                    }
+                )
+            );
+
+    </script>
+}

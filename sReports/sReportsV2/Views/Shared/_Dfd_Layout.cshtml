@@ -1,0 +1,54 @@
+@using sReportsV2.Common.Helpers
+<!DOCTYPE html>
+<html>
+<head>
+    @ScriptHelper.RenderHeadMetadata()
+    <title>@ViewBag.Title - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"))
+    @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css")
+    @ScriptHelper.RenderStylesheet("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap")
+    @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
+    @Html.Raw(ScriptHelper.RenderBundle("css/styles.min.css"))
+</head>
+<body class="sidebar-shrink">
+    <nav class="top-bar navbar sticky-top navbar-expand-lg p-0 navbar navbar-expand-lg navbar-light">
+        <img alt="" id="notFound" src="/css/img/icons/no_results.svg" hidden>
+        <img alt="" id="deleteIcon" src="/css/img/icons/remove.svg" hidden>
+        <img alt="" id="editIcon" src="/css/img/icons/edit.svg" hidden>
+        <div class="header-wrapper">
+            <div class="navbar-brand col-6 col-sm-3 col-md-2">
+                <a href="#" class="dfd-logo">
+                    <img alt="" class="navbar-logo" src="/css/img/icons/oopus-logo.png">
+                    @sReportsV2.Common.Constants.ResourceTypes.SoftwareName
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+
+
+            <main role="main" class="main-content">
+                @RenderBody()
+            </main>
+            <div id="loaderOverlay" class="loader-overlay">
+                <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var noResultFound = '@sReportsV2.Cache.Resources.TextLanguage.NoResultFound';
+        var deleteItem = '@sReportsV2.Cache.Resources.TextLanguage.Delete';
+        var editItem = '@sReportsV2.Cache.Resources.TextLanguage.Edit';
+        var userPageSize = '@(ViewBag.UserCookieData != null ? ViewBag.UserCookieData.PageSize : 5)';
+        var simplifiedApp;
+    </script>
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/ajv/6.10.2/ajv.bundle.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js", "", ""))
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

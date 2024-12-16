@@ -1,0 +1,98 @@
+@using sReportsV2.Common.Constants
+@using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Models.MicrosoftAuthentification;
+@{
+    var alerts = TempData.ContainsKey(Alert.AlertKey)
+       ? (List<Alert>)TempData[Alert.AlertKey]
+       : new List<Alert>();
+
+    string returnUrl = null;
+    if (Model != null && !string.IsNullOrWhiteSpace(Model.ReturnUrl.ToString()))
+    {
+        returnUrl = Model.ReturnUrl;
+    }
+    else if (!string.IsNullOrEmpty(ViewBag.ReturnUrl as string))
+    {
+        returnUrl = ViewBag.ReturnUrl;
+    }
+
+    Layout = "";
+}
+@model sReportsV2.DTOs.User.DataIn.UserLoginDataIn
+<!DOCTYPE html>
+<html>
+<head>
+    @ScriptHelper.RenderHeadMetadata(true)
+    <title>Login - Swiss Open Oncology by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/bootstrap-4.3.1/bootstrap.min.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/toastr-2.1.1/toastr.min.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/login.css"))
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/login.min.css"))
+
+</head>
+<body>
+    @foreach (var alert in alerts)
+    {
+        <div>@alert.Message</div>
+    }
+    <div class="login-page">
+        <div class="login-info">
+            <div class="login-info-logo">
+                <img alt="" class="w-50" src="/css/img/icons/SwissOpenOncology/logo/smart oncology logo white.svg">
+            </div>
+            <div class="info-values">
+                <div class="login-info-title">In Numbers</div>
+                <div class="login-info-value" id="thesaurusEntriesTotal"></div>
+                <div class="login-info-label">Number of thesaurus entries</div>
+                <div class="login-info-value" id="documentsTotal"></div>
+                <div class="login-info-label">Number of documents</div>
+                <div class="login-info-value" id="datasetsTotal"></div>
+                <div class="login-info-label">Number of datasets</div>
+            </div>
+        </div>
+        <div class="login-registration">
+            <div class="d-flex">
+
+                @await Html.PartialAsync("~/Views/ThesaurusGlobal/Login/RegistrationPartial.cshtml")
+                @await Html.PartialAsync("~/Views/ThesaurusGlobal/Login/LoginPartial.cshtml")
+
+                <div class="sign-in-part">
+                    <div class="sub-title mb-48">
+                        Or sign in with...
+                    </div>
+                    <a class="sign-in-button" href="@Url.Action("SignInExternal", "User", new { returnUrl = returnUrl, providerName = CodeAttributeNames.Google})" style="text-decoration: none;">
+                        <div class="elipsis"></div>
+                        <div class="sb-content">
+                            <div class="sb-img">
+                                <img alt="" src="/css/img/icons/SwissOpenOncology/google.svg">
+                            </div>
+                            <div class="sign-in-text"> Sign In with Google</div>
+                        </div>
+                        <div class="elipsis"></div>
+
+                    </a>
+                    <a class="sign-in-button" href="@Url.Action("SignInExternal", "User", new { returnUrl = returnUrl, providerName = CodeAttributeNames.Microsoft})" style="text-decoration: none;">
+                        <div class="elipsis"></div>
+                        <div class="sb-content">
+                            <div class="sb-img" style="width:37px;">
+                                <img alt="" class="microsoft-icon" src="/css/img/icons/SwissOpenOncology/microsoft.svg">
+                            </div>
+                            <div class="sign-in-text"> Sign In with Microsoft</div>
+                        </div>
+                        <div class="elipsis"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @await Html.PartialAsync("~/Views/ThesaurusGlobal/Shared/Footer.cshtml")
+
+    @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/popper-1.16.1/umd/popper.min.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/bootstrap-4.3.1/bootstrap.min.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/SwissOpenOncology/globalLogin.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/SwissOpenOncology/swissOpenOncology.js"), "", ""))
+</body>
+</html>

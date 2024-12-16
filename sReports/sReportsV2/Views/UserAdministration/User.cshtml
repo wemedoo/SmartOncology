@@ -1,0 +1,82 @@
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Helpers
+@model sReportsV2.DTOs.Common.DataOut.UserDataOut;
+@{
+    ViewData["Title"] = @sReportsV2.Cache.Resources.TextLanguage.Profile;
+    var activeUser = (Model != null ? Model.Id : -1);
+    bool isReadonly = (activeUser == ViewBag.UserCookieData.Id);
+    bool readOnlyView = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    if(Model != null)
+    {
+        Html.HiddenFor(model => model.RowVersion);
+    }
+}
+<form method="post" id="idUserInfo" class="form-user-info element-background-grey reduce-right-margin" onsubmit="return submitForm(this, event)" novalidate>
+    <input type="hidden" class="form-control" id="readonlyField" name="ReadonlyField" value="@isReadonly.ToString()" />
+    @if (Model != null)
+    {
+        <input class="form-control" id="rowVersion" type="hidden" value="@(Model.RowVersion)" />
+    }
+    <input type="hidden" class="form-control" id="userId" value="@( Model != null  ? Model.Id : 0)" />
+    <div class="user-content element-background-white">
+        @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.User }, { "linkLevel1", "/UserAdministration/GetAll" }, { "level2", Model != null ? Model.Username : sReportsV2.Cache.Resources.TextLanguage.Create_user }, { "activeLevel", 2 } })
+        <div class="user-title">@sReportsV2.Cache.Resources.TextLanguage.User</div>
+    </div>
+    <div class="user-container position-relative" id="userInfo">
+        <div class="personnel-tabs element-background-white-user">
+            <div data-id="personalData" class="personnel-tab active">
+                <img alt="" class="pd-img" src="/css/img/icons/person_data_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.PersonnelProfile
+            </div>
+            <div data-id="institutionData" class="@(Model == null ? "personnel-tab-disabled" : "personnel-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.UserTabTooltip">
+                <img alt="" class="id-img" src="/css/img/icons/institution_data_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.OrganizationAssociation
+            </div>
+            <div data-id="identifierData" class="@(Model == null ? "personnel-tab-disabled" : "personnel-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.UserTabTooltip">
+                <img alt="" class="id-img" src="/css/img/icons/institution_data_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.PersonnelIdentifiers
+            </div>
+        </div>
+        <img alt="" style="display:none" class="user-arrow-left" src="/css/img/icons/arrow_left.svg">
+        <img alt="" class="user-arrow-right" src="/css/img/icons/arrow_right.svg">
+
+        <div class="user-containers">
+            <div id="personalData" class="user-cont">
+                @await Html.PartialAsync("UserPersonalData", Model)
+            </div>
+            <div id="institutionData" class="user-cont" style="display:none">
+                @await Html.PartialAsync("UserInstitutionalData", Model)
+            </div>
+            <div id="identifierData" class="user-cont" style="display:none">
+                @if (Model != null)
+                {
+                    @await Html.PartialAsync("IdentifierTable", Model.Identifiers)
+                }
+            </div>
+            <div class="button-partial user-btn-top-border" id="buttonGroupPrimary">
+                @if (!readOnlyView)
+                {
+                    <button class="submit-patient right-button" type="submit" style="outline: none;">
+                        <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Submit</span>
+                    </button>
+                }
+                <i class="angle-left fas fa-angle-left"></i>
+                <div class="text-underline right-button" type="button" onclick="cancelUserEdit()">
+                    <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Back</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@await Html.PartialAsync("AddressModal")
+@await Html.PartialAsync("IdentifierModal")
+@await Html.PartialAsync("ChangePasswordModal")
+@await Html.PartialAsync("AddInstitutionModal")
+
+@Html.Raw(ScriptHelper.RenderBundle("js/user-bundle.min.js"))
+
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+    setReadOnly(@(readOnlyView ? "true" : ""));
+    setUserAdministration(@(ViewBag.UserAdministration ? "true" : ""));
+</script>

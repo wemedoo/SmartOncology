@@ -1,0 +1,103 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Enums;
+@{
+    var allAddressTypes = ViewBag.AddressTypes as List<CodeDataOut>;
+    var addressTypes = allAddressTypes.Where(x => x.IsActive()).ToList();
+    var inactiveAddressTypes = allAddressTypes.Where(x => x.IsInactive()).ToList();
+    inactiveAddressTypes.ForEach(inactive => inactive.PreferredTerm = inactive.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage));
+}
+
+<div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="addressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-password">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+                    <form id="newAddressForm">
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/change_password.svg">
+                            <div id="addressModalTitle"></div>
+                        </div>
+                        <input type="hidden" id="addressEntityId" name="addressEntityId">
+                        <input type="hidden" id="addressEntityVersion" name="addressEntityVersion">
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.AddressType
+                            </div>
+                            <select required class="filter-input arrow-select patient-background" id="addressType" name="addressType" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.AddressType)">
+                                <option value=""></option>
+                                @foreach (var type in addressTypes)
+                                {
+                                    <option value="@type.Id">
+                                        @type.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.City
+                            </div>
+                            <input type="text" class="filter-input" required name="city" id="city" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Postal_code
+                            </div>
+                            <input type="text" class="filter-input" id="postalCode" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
+                        </div>
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Street
+                            </div>
+                            <input type="text" class="filter-input" required name="street" id="street" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
+                        </div>
+                        @*<div class="advanced-filter-item input-margin">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.StreetNumber
+                                </div>
+                                <input type="text" class="filter-input" id="streetNumber" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
+                            </div>*@
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.State
+                            </div>
+                            <input type="text" class="filter-input" id="state" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
+                        </div>
+                        <div class="advanced-filter-item input-margin country-select-input">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Country
+                            </div>
+                            <select class="filter-input arrow-select" name="countryCD" id="countryCD" @ViewBag.Disabled required>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="button-partial">
+                            @if (!ViewBag.ReadOnly)
+                            {
+                                <button id="address-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="submitAddress(event)" dismiss="modal">
+                                    <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                                </button>
+                            }
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var addressActiveEntity = '@this.ViewContext.RouteData.Values["controller"].ToString()';
+    var viewOrAddAddressModalTitle = '@(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.View : sReportsV2.Cache.Resources.TextLanguage.AddNew) @sReportsV2.Cache.Resources.TextLanguage.Address';
+    var editAddressModalTitle = '@sReportsV2.Cache.Resources.TextLanguage.Edit @sReportsV2.Cache.Resources.TextLanguage.Address';
+    var inactiveAddressTypes = @Html.Raw(Json.Serialize(inactiveAddressTypes));
+</script>

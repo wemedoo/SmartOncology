@@ -1,0 +1,21 @@
+﻿
+@using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.Common.Constants;
+@model sReportsV2.DTOs.Pagination.PaginationDataOut<PersonnelTeamRelationDataOut, DataIn>
+
+<div class="d-flex mb-2">
+    <img alt="" class="" src="/css/img/icons/arrow_back_gray.svg" style="height: 12px; cursor: pointer; margin: 2px;" onclick="togglePersonnelTeamTabs()">
+
+    <div class="filter-label" style="">
+        @(ViewBag.PersonnelTeamName != null ? ViewBag.PersonnelTeamName : "")
+    </div>
+</div>
+
+<div id="single-personnel-team-filters-container">
+    @await Html.PartialAsync("~/Views/PersonnelTeam/PersonnelTeamRelation/SinglePersonnelTeamFilters.cshtml")
+</div>
+
+<div id="single-personnel-team-table-container">
+    @await Html.PartialAsync("~/Views/PersonnelTeam/PersonnelTeamRelation/SinglePersonnelTeamTable.cshtml", Model)
+</div>

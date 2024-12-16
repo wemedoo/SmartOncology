@@ -1,0 +1,32 @@
+@using System.Globalization
+@using sReportsV2.Common.Helpers;
+@using sReportsV2.DTOs.Patient.DataOut;
+@model PatientTableDataOut
+
+@{
+    ViewBag.Title = sReportsV2.Cache.Resources.TextLanguage.History_of_Oncological_Disease;
+    string patientName = string.Concat(Model.FirstName, " ", Model.LastName);
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology_Patient_Management }, { "linkLevel1", "/SmartOncology/BasicPatientDataOncology" }, { "level2", @sReportsV2.Cache.Resources.TextLanguage.History_of_Oncological_Disease }, { "linkLevel2", "/SmartOncology/BasicPatientDataOncology?selectedPatientId=" + Model.Id }, { "level3", patientName }, { "activeLevel", 3 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.History_of_Oncological_Disease (@patientName@(Model.BirthDate != null ? ", " + Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : ""))
+        <button class="btn btn-create float-right" onclick="newEntity()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
+    </div>
+
+    @await Html.PartialAsync("SchemaInstance/SchemaInstanceFilterGroup")
+
+    <div id="tableContainer">
+    </div>
+</div>
+
+@await Html.PartialAsync("SchemaInstance/AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/tableCommon.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/smartOncologyPatientDiseasesHistory.js"), "", ""))

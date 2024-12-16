@@ -1,0 +1,12 @@
+﻿@model sReportsV2.DTOs.Patient.PatientDataOut
+
+<div class="form-row remove-right-margin">
+    <div class="patient-address-telecom-table address-table">
+        @await Html.PartialAsync("AddressTable", Model != null ? Model.Addresses : new List<sReportsV2.DTOs.Common.AddressDTO>(), new ViewDataDictionary(ViewData) { { "activeAddressContainer", "patientAddresses" } })
+    </div>
+    <div class="patient-address-telecom-table">
+        @await Html.PartialAsync("TelecomTable", Model != null ? Model.Telecoms : null, new ViewDataDictionary(ViewData) {
+        { "activeTelecomContainer", "telecomsForPatientTelecom" }
+        })
+    </div>
+</div>

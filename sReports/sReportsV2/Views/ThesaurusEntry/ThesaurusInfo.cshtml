@@ -1,0 +1,85 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> states = ViewBag.ThesaurusStates as List<CodeDataOut>;
+    int? draftStateCD = states?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Draft))?.Id;
+}
+
+    <div class="thesaurusInfo">
+        <div class="row mb-2">
+            <div class="@(Model.StateCD == draftStateCD ? "draft" : "production")">
+                @Html.Raw(Model.ConvertStateCDToDisplayName(states, activeLanguage))
+            </div>
+        </div>
+        <div class="row thesaurus-o4 mb-2">
+            <div class="col-3 thesaurus-label">
+                O4MTId : 
+            </div>
+            <div class="col-9 thesaurus-value">
+                @Html.Raw(Model.Id)
+            </div>
+        </div>
+        <div class="row thesaurus-term mb-2">
+            <div class="col-3 thesaurus-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Preferred_term :
+            </div>
+            <div class="col-9 thesaurus-value">
+                @Html.Raw(Model.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage))
+            </div>
+        </div>
+        <div class="row thesaurus-description mb-2">
+            <div class="col-3 thesaurus-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Description :
+            </div>
+            <div class="col-9 thesaurus-value">
+                @Html.Raw(Model.GetDefinitionByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage))
+            </div>
+        </div>
+        <div class="row thesaurus-syno mb-2">
+            <div class="col-3 thesaurus-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Synonyms :
+            </div>
+            <div class="col-9 thesaurus-value">
+                @foreach (var synonym in Model.GetTranslation(ViewBag.UserCookieData.ActiveLanguage).Synonyms)
+                {
+                    <div class="filter-element" style="display:inline-block;">
+                        @synonym
+                    </div>
+                }
+                @*@Html.Raw(Model.GetSynonyms(ViewBag.UserCookieData.ActiveLanguage))*@
+            </div>
+        </div>
+        <div class="row thesaurus-abre mb-2">
+            <div class="col-3 thesaurus-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Abbreviations :
+            </div>
+            <div class="col-9 thesaurus-value">
+                @foreach (var abbre in Model.GetTranslation(ViewBag.UserCookieData.ActiveLanguage).Abbreviations)
+                {
+                    <div class="abbre-element" style="display:inline-block;">
+                        @abbre
+                    </div>
+                }
+                @*@Html.Raw(Model.GetAbbreviations(ViewBag.UserCookieData.ActiveLanguage))*@
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-3">
+                @sReportsV2.Cache.Resources.TextLanguage.FoundIn :
+            </div>
+            <div class="col-9 found-in-tree" id="foundIn-@Model.Id" style="background-color:white;padding:unset;">
+            </div>
+
+        </div>
+    </div>
+    
+
+
+
+
+

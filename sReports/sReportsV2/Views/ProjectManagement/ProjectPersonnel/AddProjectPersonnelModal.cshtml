@@ -1,0 +1,40 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Common.DataOut;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.DTOs.Pagination;
+
+@{
+    ViewBag.Container = "AddTrialPersonnelModal";
+}
+
+
+<div class="modal fade" id="AddTrialPersonnelModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content h-100" id="addeoc-content">
+            <div class="modal-body modal-body-advanced overh">
+                <div class="float-right filter-eoc-close-btn">
+                    <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                </div>
+                <div class="d-flex advanced-filter-header title-div">
+                    <p class="title-p" id="" data-value=""> @sReportsV2.Cache.Resources.TextLanguage.Add_Personnel_To_Trial</p>
+                </div>
+                <div class="margin-top-20 margin-bottom-17 encounter-info-container">
+
+                    @await Html.PartialAsync("~/Views/ProjectManagement/ProjectPersonnel/ProjectPersonnelFilterGroup.cshtml")
+                    <div id="AddTrialPersonnelTable"  class="personnel-trial-border">
+                    </div>
+
+                    <div class="identifier-line mb-4"></div>
+
+                    <div class="d-flex min-height-50 mb-4">
+                        <div class="button-wrapper-filter filter-button float-right d-flex" style="width:unset">
+                            <button class="btn btn-filter-primary w-100 h-100" onclick="addPersonnelsToTrial(event)"> @sReportsV2.Cache.Resources.TextLanguage.Save</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

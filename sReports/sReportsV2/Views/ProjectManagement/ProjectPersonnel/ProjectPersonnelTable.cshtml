@@ -1,0 +1,119 @@
+﻿
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.DTOs.TrialManagement;
+@using sReportsV2.DTOs.Common.DataOut;
+@using sReportsV2.DTOs.Common;
+@using sReportsV2.DTOs.Pagination;
+
+@model PaginationDataOut<UserDataOut, DataIn>
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    bool hasAddPersonnelPerm = userCookieData.UserHasPermission(PermissionNames.AddPersonnel, ModuleNames.ProjectManagement);
+    bool hasDeletePersonnelPerm = userCookieData.UserHasPermission(PermissionNames.DeletePersonnel, ModuleNames.ProjectManagement);
+    bool insideModal = !(ViewBag.Container != null && ViewBag.Container == "TrialPersonnelTable");
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+
+    if (insideModal)
+    {
+        ViewBag.PreventPushHistoryState = true;
+    }
+
+    List<CodeDataOut> occupations = ViewBag.Occupations as List<CodeDataOut>;
+    List<UserDataOut> personnels = Model != null && Model.Data != null ? Model.Data : new List<UserDataOut>();
+}
+
+<div class="table-responsive trial-table-container">
+    <table class="table table-striped table-border">
+        <thead class="color-header-important trial-head">
+            <tr class="table-header-row">
+                <th id="OrganizationId" class="color-header-important align-middle" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.Organizations.ToUpper()</th>
+                <th id="PersonnelTeamId" class="color-header-important text-nowrap align-middle" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.Personnel_Teams.ToUpper()</th>
+                <th id="Occupation" class="sort-arrow color-header-important align-middle" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Occupation')">@sReportsV2.Cache.Resources.TextLanguage.Occupation.ToUpper()</th>
+                <th id="Username" class="sort-arrow color-header-important align-middle" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Username')">@sReportsV2.Cache.Resources.TextLanguage.User.ToUpper()</th>
+                @if (insideModal && hasAddPersonnelPerm)
+                {
+                    <th style="border-bottom: unset;border-top: unset;" class="d-flex text-nowrap color-header-important align-middle">
+                        <button id="selectAllPersonnelBtn" type="button" class="btn btn-create font-size-12px" onclick="checkAllPersonnels(event)">
+                            @sReportsV2.Cache.Resources.TextLanguage.Select_All
+                        </button>
+                    </th>
+                }
+                else
+                {
+                    <th style="border-bottom: unset;border-top: unset;"></th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (UserDataOut personnel in personnels)
+            {
+                <tr id="row-@personnel.Id@(insideModal? "-modal" : "")" class="table-content-row row-patient-preview row-shown">
+                    <td class="trial-row-organizations">@personnel.GetorganizationListFormatted()</td>
+                    <td class="trial-row-teams"> @personnel.GetPersonnelTeamNamesFormatted() </td>
+                    <td class="trial-row-occupation"> @personnel.GetPersonnelOccupation(activeLanguage, occupations) </td>
+                    <td class="trial-row-user">@personnel.ToString()</td>
+
+                    @if (insideModal)
+                    {
+                        <td class="px-3 py-1 text-center">
+                            @if (hasAddPersonnelPerm)
+                            {
+                                <div class="d-inline-block">
+                                    <label class="form-checkbox-label">
+                                        <input value="@personnel.Id" class="form-checkbox-field form-checkbox-table" type="checkbox" />
+                                        <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                                    </label>
+                                </div>
+                            }
+                        </td>
+                    }
+                    else if (!readOnly)
+                    {
+                        <td>
+                            @if (hasDeletePersonnelPerm)
+                            {
+                            <div class="dropdown show">
+                                    <a class="dropdown-button" href="#" data-toggle="dropdown" role="button" id="dropdownMenuLink-@personnel.Id" aria-haspopup="true" aria-expanded="false">
+                                    <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                                </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@personnel.Id">
+                                    @if (hasDeletePersonnelPerm)
+                                    {
+                                            <a class="dropdown-item" href="#" onclick="showDeleteModal(event, '@personnel.Id', 'removePersonnelsFromTrial', '', null)"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</a>
+                                    }
+                                </div>
+                            </div>
+                            }
+                        </td>
+                    }
+                    else
+                    {
+                        <td></td>
+                    }
+
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (personnels.Count == 0)
+    {
+        <div class="no-result-content">
+            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+            <br>
+            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+        </div>
+    }
+    @if (personnels.Count > 0)
+    {
+        <div class="outer-paging">
+            <div class="pager-container">
+                @await Html.PartialAsync("Pagination")
+            </div>
+        </div>
+    }
+</div>

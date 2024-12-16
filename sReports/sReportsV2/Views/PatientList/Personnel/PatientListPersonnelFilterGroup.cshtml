@@ -1,0 +1,65 @@
+﻿
+
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Organization
+            </div>
+            <select class="filter-input arrow-select organization-select2" id="organizationId">
+                <option value=""></option>
+            </select>
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Personnel_Team
+            </div>
+            <select class="filter-input arrow-select personnelteam-select2" id="personnelTeamId">
+                <option value=""></option>
+            </select>
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Occupation
+            </div>
+            <select class="filter-input arrow-select bg-white" id="occupationCD">
+                <option value=""></option>
+                @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.Occupations, readOnlyMode: true))
+                {
+                    var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
+                    <option id="OccupationCD_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData != null && ViewBag.FilterData.OccupationId == option.Id ? "selected" : "")>@optionName</option>
+                }
+            </select>
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.User
+            </div>
+            <select class="filter-input arrow-select personnel-select2" id="personnelId">
+                <option value=""></option>
+            </select>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="filter-tags-container">
+    <div class="d-flex filter-elements" id="PatientListPersonnelFilterElements" data-container="PatientListPersonnelTable">
+    </div>
+</div>
+
+
+

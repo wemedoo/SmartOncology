@@ -1,0 +1,21 @@
+﻿@model CTCAE.Models.Patient
+@{
+    ViewData["Title"] = "GetSymptoms";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<body class="ctcae-background">
+    <div class="ctcae-center">
+
+        @await Html.PartialAsync("PatientInfo")
+        @await Html.PartialAsync("PartialLetter")
+
+    </div>
+
+</body>
+<script src="~/js/patient.js"></script>
+<script src="~/js/common.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".@Model.FirstLetter").addClass("letter-frame");
+    });
+</script>

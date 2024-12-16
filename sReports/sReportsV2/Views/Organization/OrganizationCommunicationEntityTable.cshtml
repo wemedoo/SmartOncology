@@ -1,0 +1,63 @@
+﻿@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.DTOs.DTOs.Organization.DataOut;
+@using sReportsV2.Common.Extensions;
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> orgCommunicationEntities = ViewBag.OrgCommunicationEntities as List<CodeDataOut>;
+    List<CodeDataOut> primaryCommunicationSystems = ViewBag.PrimaryCommunicationSystems as List<CodeDataOut>;
+}
+
+<table class="table table-striped org-entity-border">
+    <thead class="color-header">
+        <tr class="table-header-row">
+            <th id="DisplayName" class="sort-arrow encounter-th" onclick="sortOrgCommTable('DisplayName')">@sReportsV2.Cache.Resources.TextLanguage.DisplayName.ToUpper()</th>
+            <th id="OrgCommunicationEntityCD" class="sort-arrow encounter-th" onclick="sortOrgCommTable('OrgCommunicationEntityCD')">@sReportsV2.Cache.Resources.TextLanguage.OrganizationCommunicationEntity.ToUpper()</th>
+            <th id="PrimaryCommunicationSystemCD" class="sort-arrow encounter-th" onclick="sortOrgCommTable('PrimaryCommunicationSystemCD')">@sReportsV2.Cache.Resources.TextLanguage.PrimaryCommunicationSystem.ToUpper()</th>
+            <th id="ActiveFrom" class="sort-arrow encounter-th" onclick="sortOrgCommTable('ActiveFrom')">@sReportsV2.Cache.Resources.TextLanguage.ActiveFrom.ToUpper()</th>
+            <th id="ActiveTo" class="sort-arrow encounter-th" onclick="sortOrgCommTable('ActiveTo')">@sReportsV2.Cache.Resources.TextLanguage.ActiveTo.ToUpper()</th>
+            <th style="border-bottom: unset;border-top: unset;"></th>
+        </tr>
+    </thead>
+    <tbody class="color-header">
+        @foreach (OrganizationCommunicationEntityDataOut entry in Model)
+        {
+            <tr id="row-@entry.OrgCommunicationEntityId" class="table-content-row @(!entry.IsActive() ? "grayed-out" : "")" onclick="editOrganizationCommunicationModal(event, '@entry.OrgCommunicationEntityId', false)">
+                <td>@entry.DisplayName </td>
+                <td>@(entry.OrgCommunicationEntityCD.HasValue ? entry.ConvertOrgCommunicationEntityCDToDisplayName(orgCommunicationEntities, activeLanguage) : "")</td>
+                <td>@(entry.PrimaryCommunicationSystemCD.HasValue ? entry.ConvertPrimaryCommunicationSystemCDToDisplayName(primaryCommunicationSystems, activeLanguage) : "")</td>
+                <td>@entry.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string)</td>
+                <td>@entry.ActiveTo.ToActiveToDateFormat(ViewBag.DateFormat as string)</td>
+                <td>
+                    <div class="dropdown show">
+                        <a class="dropdown-button" href="#" data-toggle="dropdown" role="button" id="dropdownMenuLink-@entry.OrgCommunicationEntityId" aria-haspopup="true" aria-expanded="false">
+                            <img alt="" class="dots" src="/css/img/icons/3dots.png">
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.OrgCommunicationEntityId">
+                            @if (!ViewBag.ReadOnly)
+                            {
+                                <a class="dropdown-item editCodeSet pointer hover view-a" onclick="showOrganizationCommunicationModal(event, '@entry.OrgCommunicationEntityId', false)">
+                                    <img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Edit
+                                </a>
+                            }
+                            <a class="dropdown-item pointer hover view-a" onclick="showOrganizationCommunicationModal(event, '@entry.OrgCommunicationEntityId', true)">
+                                <img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg"> @sReportsV2.Cache.Resources.TextLanguage.View
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (Model.Count == 0)
+{
+    <div class="no-result-content">
+        <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
+        <br>
+        <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+    </div>
+}

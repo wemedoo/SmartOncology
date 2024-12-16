@@ -1,0 +1,185 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+<!DOCTYPE html>
+<html>    
+@{
+    string action = ViewContext.RouteData.Values["Action"].ToString();
+    string controller = ViewContext.RouteData.Values["Controller"].ToString();    
+}
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-1020988-30" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-1020988-30');
+    </script>
+    @ScriptHelper.RenderHeadMetadata()
+    <title>@ViewBag.Title - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
+    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"))
+    @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css")
+    @ScriptHelper.RenderStylesheet("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap")
+    @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
+    @Html.Raw(ScriptHelper.RenderBundle("css/styles.min.css"))
+    <style>
+    </style>
+</head>
+
+<body class="sidebar-shrink">
+    <nav class="top-bar navbar sticky-top navbar-expand-lg p-0 navbar navbar-expand-lg navbar-light">
+        <img alt="" id="notFound" src="/css/img/icons/no_results.svg" hidden>
+        <img alt="" id="deleteIcon" src="/css/img/icons/remove.svg" hidden>
+        <img alt="" id="editIcon" src="/css/img/icons/edit.svg" hidden>
+        <div class="header-wrapper-simplified color-header header-wrapper-height">
+            <button class="menu-btn-md" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="fas fa-bars"></span>
+            </button>
+            <div class="navbar-brand col-5  col-sm-2 col-md-1">
+                <a class="logo-link color-text layout-header-group" href="#">
+                    <img alt="" class="navbar-logo" src="/css/img/icons/oopus-logo.png">
+                    @sReportsV2.Common.Constants.ResourceTypes.SoftwareName
+                </a>
+            </div>
+            <div class="mobile-hidden">
+                <ul class="inline-list">
+                    @foreach (sReportsV2.DTOs.EnumDTO language in (ViewBag.Languages as List<sReportsV2.DTOs.EnumDTO>).Where(x => !x.Value.Equals(LanguageConstants.IT)))
+                    {
+                        if (language.Value.Equals((ViewBag.Language as string)))
+                        {
+                            <li onclick="setActiveLanguage(event, '@language.Value')" data-value="@language.Value" class="crf-language active">
+                                <a class="dropdown-item" href="#">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(language.Label)</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li onclick="setActiveLanguage(event, '@language.Value')" data-value="@language.Value" class="crf-language">
+                                <a class="dropdown-item" href="#">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(language.Label)</a>
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="dropdown-toggle nav-link" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user"></i>
+                        <span> Select language </span>
+                    </a>
+                    <ul class="dropdown-menu level-1" aria-labelledby="navbarDropdown">
+                        @foreach (sReportsV2.DTOs.EnumDTO language in (ViewBag.Languages as List<sReportsV2.DTOs.EnumDTO>).Where(x => !x.Value.Equals(LanguageConstants.IT)))
+                        {
+                            if (ViewBag != null && language.Value.Equals((ViewBag.Language as string)))
+                            {
+                                <li onclick="setActiveLanguage(event, '@language.Value')" data-value="@language.Value" class="language active">
+                                    <a class="nav-link" href="#">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(language.Label)</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li onclick="setActiveLanguage(event, '@language.Value')" data-value="@language.Value" class="language">
+                                    <a class="nav-link" href="#">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(language.Label)</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </li>
+                @if (Context.Request.Query["id"] != "14573")
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="/crf/create?id=14573&language=@ViewBag.Language&">Core Case Record Form – Admission</a>
+                    </li>
+                }
+                @if (Context.Request.Query["id"] != "14911")
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="/crf/create?id=14911&language=@ViewBag.Language">Daily Case Record Form</a>
+                    </li>
+                }
+                @if (Context.Request.Query["id"] != "15112")
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="/crf/create?id=15112&language=@ViewBag.Language">Core Case Record Form – Hospitalization and Discharge</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="sidebar" id="sidebar">
+                <ul class="nav flex-column flex-nowrap">
+                    <li class="nav-item">
+                        <a class="nav-link  d-flex nav-link-remove-padding" target="_blank" href="http://wemedoo.com/" rel="noopener">
+                            <div class="sidebar-img">
+                                <i class="fas fa-chart-line crf-fa-icon"></i>
+                            </div>
+                            <span> Graph </span>
+                        </a>
+                    </li>
+                    <li class="nav-item @(((action.ToLower().Equals("instructions")) && controller.ToLower().Equals("crf")) ? "active" : "")">
+                        <a class="nav-link d-flex nav-link-remove-padding" href="~/CRF/Instructions?language=@ViewBag.Language">
+                            <div class="sidebar-img">
+                                <i class="fas fa-info w-100 crf-fa-icon"></i>
+                            </div>
+                            <span> Instructions </span>
+                        </a>
+                    </li>
+                    <li class="nav-item @(((action.ToLower().Equals("create")) && controller.ToLower().Equals("crf")) ? "active" : "")">
+                        <a class="nav-link d-flex nav-link-remove-padding" href="~/crf/create?id=14573&language=@ViewBag.Language">
+                            <div class="sidebar-img">
+                                <i class="fas fa-plus crf-fa-icon"></i>
+                            </div>
+                            <span> Data capture </span>
+                        </a>
+                    </li>
+                    @{
+                        string current = Context.Request.Query["id"].ToString();
+                        if (string.IsNullOrWhiteSpace(current))
+                        {
+                            current = Context.Request.Query["ThesaurusId"].ToString();
+                            if (string.IsNullOrWhiteSpace(current))
+                            {
+                                current = ViewBag.ThesaurusId ?? "14573";
+                            }
+                        }
+                    }
+                    <li class="nav-item @(((action.ToLower().Equals("getallbyformthesaurus")) && controller.ToLower().Equals("forminstance")) ? "active" : "")">
+                        <a class="nav-link d-flex nav-link-remove-padding" href="~/@("FormInstance/GetAllByFormThesaurus?ThesaurusId=" + current + "&IsSimplifiedLayout=True&Language="+  ViewBag.Language ?? sReportsV2.Common.Constants.LanguageConstants.EN)">
+                            <div class="sidebar-img">
+                                <i class="fas fa-list crf-fa-icon"></i>
+                            </div>
+                            <span> Data </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <main role="main" class="main-content">
+                @RenderBody()
+            </main>
+            <div id="loaderOverlay" class="loader-overlay">
+                <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var noResultFound = '@sReportsV2.Cache.Resources.TextLanguage.NoResultFound';
+        var deleteItem = '@sReportsV2.Cache.Resources.TextLanguage.Delete';
+        var editItem = '@sReportsV2.Cache.Resources.TextLanguage.Edit';
+        var userPageSize = '@(ViewBag.UserCookieData != null ? ViewBag.UserCookieData.PageSize : 20)';
+        var simplifiedApp = "/CRF/Edit";
+    </script>
+
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/bootstrap-treeview-1.2.0/bootstrap-treeview.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/ajv/6.10.2/ajv.bundle.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js", "", ""))
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,39 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchema.DataOut;
+
+@model ChemotherapySchemaDataOut
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.Preview_Chemotherapy_Schema;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Schema }, { "linkLevel1", "/SmartOncology/BrowseSchemas" }, { "level2", Model != null ? Model.Name : @sReportsV2.Cache.Resources.TextLanguage.Preview_Chemotherapy_Schema }, { "activeLevel", 2 } })
+
+@section Stylesheet {
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/open-oncology/scss/schema_style.css"))
+}
+
+<div class="schema-definition-wrapper">
+    <div class="chemotherapy-schema-content">
+        <div class="chemotherapy-schema-header">
+            <h1 class="title">
+                @sReportsV2.Cache.Resources.TextLanguage.Preview_Chemotherapy_Schema
+            </h1>
+            <button class="btn-primary-schema btn-icon font-size-14 float-right" onclick="newEntity()">
+                <span class="icon white-background">
+                    <img src="/css/open-oncology/images/icons/plus.svg" alt="Add icon">
+                </span>
+                @sReportsV2.Cache.Resources.TextLanguage.Add_New_Chemotherapy_Schema
+            </button>
+        </div>
+        <section class="chemotherapy-schema" data-id="@(Model != null ? Model.Id : 0)">
+            <div class="row">
+                @await Html.PartialAsync("SchemaDefinition/EditPreviewBasicProperties", Model, new ViewDataDictionary(ViewData) { { "Preview", true } })
+                @await Html.PartialAsync("SchemaDefinition/PreviewSchemaMedications", Model)
+                @await Html.PartialAsync("SchemaDefinition/PreviewSchemaApprovedBy", Model)
+            </div>
+        </section>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/schemaDefinitionPreview.js"), "", ""))

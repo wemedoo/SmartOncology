@@ -1,0 +1,556 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Enums;
+@using sReportsV2.Common.Extensions;
+@using System.Linq;
+@inject sReportsV2.Controllers.FormCommonController Controller
+
+@model FormDataOut
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    bool readOnlyAction = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    bool activeFormState = Model.IsFormInstanceInActiveState();
+    bool readOnlyMode = readOnlyAction || !activeFormState || (ViewBag.CannotUpdateDocument ?? false);
+    bool isEngineModule = ViewBag.IsEngineModule;
+    bool isEdit = ViewBag.FormInstanceId != null;
+    bool canLockDocument = userCookieData != null
+        && userCookieData.UserHasPermission(PermissionNames.SignFormInstance, ModuleNames.Engine)
+        && userCookieData.UserHasPermission(PermissionNames.ChangeFormInstanceState, ModuleNames.Engine)
+        && isEdit && !readOnlyAction && !Model.FormState.Equals(FormState.Locked) && Model.DoesAllMandatoryFieldsHaveValue;
+    bool canLockPage = userCookieData != null
+        && userCookieData.UserHasPermission(PermissionNames.LockPage, ModuleNames.Engine)
+        && !readOnlyAction && isEdit;
+    bool canUnlockPage = userCookieData != null
+        && userCookieData.UserHasPermission(PermissionNames.UnlockPage, ModuleNames.Engine)
+        && !readOnlyAction && isEdit;
+    bool canLockChapter = userCookieData != null
+       && userCookieData.UserHasPermission(PermissionNames.LockChapter, ModuleNames.Engine)
+       && !readOnlyAction && isEdit;
+    bool canUnlockChapter = userCookieData != null
+       && userCookieData.UserHasPermission(PermissionNames.UnlockChapter, ModuleNames.Engine)
+       && !readOnlyAction && isEdit;
+
+    Dictionary<string, bool> arguments = new Dictionary<string, bool>() {
+        {FormInstanceConstants.IsEngineModule, isEngineModule},
+        { FormInstanceConstants.ReadOnlyMode, readOnlyMode},
+        { FormInstanceConstants.CanLockPage, canLockPage},
+        { FormInstanceConstants.CanUnlockPage, canUnlockPage},
+        { FormInstanceConstants.CanLockChapter, canLockChapter},
+        { FormInstanceConstants.CanUnlockChapter, canUnlockChapter}
+    };
+}
+<form id="fid" method="post" action="@ViewBag.Action" novalidate onsubmit="return clickedSubmit(event);" autocomplete="off">
+    @{
+        RenderHiddenInputs();
+    }
+    <div class="d-flex">
+        @{
+            RenderChapterTabs(isEngineModule, userCookieData, arguments);
+        }
+        <div class="@(isEngineModule ? "w-75" : "w-100") chapters-container @(isEngineModule ? "padding-top-32" : "")" ">
+            <div class="box-shadow">
+                @foreach (FormChapterDataOut c in Model.Chapters)
+                {
+                    await RenderChapterContent(c, arguments);
+                }
+                @{ 
+                    await RenderReferrableFieldsContainer(); 
+                }
+                @await Html.PartialAsync("~/Views/FormInstance/AdministrativeData.cshtml", Model, new ViewDataDictionary(ViewData) { { FormInstanceConstants.ReadOnlyMode, readOnlyMode } })
+            </div>
+            @{
+                RenderButtonContainer(canLockDocument, readOnlyMode);
+            }
+        </div>
+    </div>
+</form>
+
+<div id="missingValueModal">
+</div>
+
+@await Html.PartialAsync("~/Views/FormInstance/LockUnlockDocumentModal.cshtml")
+@await Html.PartialAsync("~/Views/FieldInstanceHistory/FormInstanceHistoryModal.cshtml")
+@{ RenderHelpModal(); }
+@{ RenderNEMessageContent(); }
+@{ RenderDependentOnChangeHandlers(); }
+
+@Html.Raw(ScriptHelper.RenderBundle("js/form-instance-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderBundle("js/form-common-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/datetimepicker.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/fieldInstanceHistory/fieldInstanceHistory.js"), "", ""))
+@* -------------- Helpers' definitions ---------------*@
+
+@functions {
+    private void RenderHiddenInputs()
+    {
+            <input type="hidden" name="formDefinitionId" value="@Model.Id" />
+            <input type="hidden" name="thesaurusId" value="@Model.ThesaurusId" />
+            <input type="hidden" name="language" value="@Model.Language" />
+            <input hidden value="@ViewBag.NotApplicableId" id="notApplicableId">
+
+        if (Model.Version != null)
+        {
+                <input type="hidden" name="VersionId" value="@Model.Version.Id" />
+        }
+
+        if (ViewBag.FilterFormInstanceDataIn != null && ViewBag.FilterFormInstanceDataIn.VersionId != null)
+        {
+                <input type="hidden" name="VersionId" value="@ViewBag.FilterFormInstanceDataIn.VersionId" />
+        }
+
+        if (ViewBag.VersionId != null)
+        {
+                <input type="hidden" name="VersionId" value="@ViewBag.VersionId" />
+        }
+
+            <input type="hidden" name="LastUpdate" value="@(ViewBag.LastUpdate != null? ViewBag.LastUpdate.ToString("o") : null) " />
+
+
+        if (ViewBag.FormInstanceId != null && !string.IsNullOrEmpty(ViewBag.FormInstanceId.ToString()))
+        {
+                <input type="hidden" name="formInstanceId" value="@ViewBag.FormInstanceId" />
+        }
+
+        if (ViewBag.EncounterId != null && !string.IsNullOrEmpty(ViewBag.EncounterId.ToString()))
+        {
+                <input type="hidden" name="encounterId" value="@ViewBag.EncounterId" />
+        }
+
+        if (ViewBag.Referrals != null)
+        {
+            foreach (var referral in ViewBag.Referrals)
+            {
+                    <input type="hidden" name="referrals" value="@referral" />
+            }
+        }
+    }
+
+    private void RenderChapterTabs(bool isEngineModule, sReportsV2.DTOs.User.DTO.UserCookieData userCookieData, Dictionary<string, bool> arguments)
+    {
+            <div id="chapters" class="chapters-ul sticky" style="display:@(isEngineModule ? "" : "none")">
+                @foreach (FormChapterDataOut c in Model.Chapters)
+            {
+                    <div id="@Html.HtmlContainerId(@c.Id, isContainer: false)" class="chapter-li position-relative @(c.Id == Model.ActiveChapterId ? "active" : "")" data-id="@c.Id">
+                        <span class="chapter-tab-title">@c.Title</span>
+                        @{
+                        RenderChapterTabActions(c, arguments);
+                        }
+                    </div>
+            }
+                @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Engine))
+            {
+                    <div id="@Html.HtmlContainerId("administrativeChapter", isContainer: false)" class="chapter-li @(Model.ActiveChapterId == FormInstanceConstants.AdministrativeChapter ? "active" : "")" data-id="@FormInstanceConstants.AdministrativeChapter">
+                        @sReportsV2.Cache.Resources.TextLanguage.Administative_data
+                    </div>
+            }
+                @if (ViewBag.Referrals != null)
+            {
+                    <div id="@Html.HtmlContainerId("referralChapter", isContainer: false)" class="chapter-li @(Model.ActiveChapterId == FormInstanceConstants.ReferralChapter ? "active" : "")" data-id="@FormInstanceConstants.ReferralChapter">
+                        @sReportsV2.Cache.Resources.TextLanguage.Summary_Data
+                    </div>
+            }
+            </div>
+    }
+
+    private void RenderChapterTabActions(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        RenderLockChapterAction(c, arguments);
+        RenderUnlockChapterAction(c, arguments);
+    }
+
+    private void RenderLockChapterAction(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        bool showAction = c.DoesAllMandatoryFieldsHaveValue && arguments[FormInstanceConstants.CanLockChapter] && !c.IsLocked;
+        if (showAction)
+        {
+            bool chapterIsActive = c.Id == Model.ActiveChapterId;
+                <div class="lock-action">
+                    <img alt="" class="@(chapterIsActive ? "" : "d-none") active-chapter-action"
+                         src="/css/img/icons/partial_lock_black.svg"
+                         onclick="showLockOrUnlockPartialConfirmationModal(event, '@c.Id', '', true)"
+                         title="@sReportsV2.Cache.Resources.TextLanguage.Lock @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+                    <img alt="" class="@(chapterIsActive ? "d-none" : "") inactive-chapter-action"
+                         src="/css/img/icons/partial_lock_green.svg"
+                         onclick="showLockOrUnlockPartialConfirmationModal(event, '@c.Id', '', true)"
+                         title="@sReportsV2.Cache.Resources.TextLanguage.Lock @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+                </div>
+        }
+    }
+
+    private void RenderUnlockChapterAction(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        bool showAction = c.IsLocked && arguments[FormInstanceConstants.CanUnlockChapter];
+        if (showAction)
+        {
+            bool chapterIsActive = c.Id == Model.ActiveChapterId;
+                <div class="lock-action">
+                    <img alt="" class="@(chapterIsActive ? "" : "d-none") active-chapter-action"
+                         src="/css/img/icons/partial_unlock_black.svg"
+                         onclick="showLockOrUnlockPartialConfirmationModal(event, '@c.Id', '', false)"
+                         title="@sReportsV2.Cache.Resources.TextLanguage.Unlock @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+                    <img alt="" class="@(chapterIsActive ? "d-none" : "") inactive-chapter-action"
+                         src="/css/img/icons/partial_unlock_green.svg"
+                         onclick="showLockOrUnlockPartialConfirmationModal(event, '@c.Id', '', false)"
+                         title="@sReportsV2.Cache.Resources.TextLanguage.Unlock @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+                </div>
+        }
+        bool showLockedIndicator = c.IsLocked && !arguments[FormInstanceConstants.CanUnlockChapter];
+        if (showLockedIndicator)
+        {
+            bool chapterIsActive = c.Id == Model.ActiveChapterId;
+                <div class="lock-action">
+                    <img alt="" class="@(chapterIsActive ? "" : "d-none") active-chapter-action"
+                         src="/css/img/icons/partial_lock_black.svg"
+                         title="@sReportsV2.Cache.Resources.TextLanguage.Locked @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+                    <img alt="" class="@(chapterIsActive ? "d-none" : "") inactive-chapter-action"
+                         src="/css/img/icons/partial_lock_green.svg"
+                         title="@sReportsV2.Cache.Resources.TextLanguage.Locked @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+                </div>
+        }
+    }
+
+    private async Task RenderChapterContent(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        bool isEngineModule = arguments[FormInstanceConstants.IsEngineModule];
+        bool isChapterReadonly = (ViewBag.formInstanceId != null && !string.IsNullOrEmpty(ViewBag.formInstanceId.ToString()) && c.IsReadonly);
+        bool chapterIsActive = c.Id == Model.ActiveChapterId;
+        isChapterReadonly = Model.FormState != null && Model.FormState.Equals(FormState.Finished.ToString()) || isChapterReadonly;
+        arguments[FormInstanceConstants.IsChapterReadOnly] = isChapterReadonly;
+        arguments[FormInstanceConstants.ChapterIsLocked] = c.IsLocked;
+            <div class="des-container form-accordion hide-arrow" style="display:@(chapterIsActive || !isEngineModule ? "block" : "none");" id="@Html.HtmlContainerId(c.Id, isContainer: true)">
+                @{
+                    RenderChapterHeader(c, arguments);
+                }
+                <div class="collapse chapter @(chapterIsActive ? "show" : "")" id="@c.GetHtmlId()">
+                    <div class="card">
+                        @{
+                            RenderDescriptionContent(!string.IsNullOrEmpty(c.Description) && !c.Description.Equals(c.Title), "chapter", c.Description);
+                        }
+                        @{
+                            RenderPageTabs(c, arguments);
+                        }
+                        <div class='card-body' style="padding:unset;">
+                            @foreach (FormPageDataOut p in c.Pages)
+                            {
+                                await RenderPageContent(p, arguments);
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+    }
+
+    private void RenderChapterHeader(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        bool allowChapterCollapse = ViewBag.CollapseChapters ?? false;
+        bool chapterIsActive = c.Id == Model.ActiveChapterId;
+
+            <div class="color-green-primary position-relative enc-form-instance-header display-flex @(allowChapterCollapse ? "chapter-hover" : "chapter-non-collapse") @(chapterIsActive ? "chapter-non-collapse" : "colapsed")"
+                 data-link-id="#@Html.HtmlContainerId(c.Id, isContainer: false)"
+                 data-toggle="@(allowChapterCollapse ? "collapse" : "")"
+                 onclick="@(allowChapterCollapse ? "collapseChapter(this)" : "return false;")"
+                 data-target="#@c.GetHtmlId()"
+                 aria-expanded="@(chapterIsActive ? "true" : "false")"
+                 aria-controls="@c.GetHtmlId()">
+
+                @if(allowChapterCollapse)
+            {
+                    <img alt="" class="chapter-icon" src="@(!chapterIsActive ? "/css/img/icons/u_plus.svg" : "/css/img/icons/u_minus.svg")" />
+            }
+
+                <span class="chapter-title @(!allowChapterCollapse ? "padding-left-16" : "")">@c.Title</span>
+                @if (Model.CountAllFieldsWhichCanSaveWithoutValue(c.Id) > 0)
+            {
+                    <div class="missing-value-chapter">
+                        <img alt="" class="mr-1" src="/css/img/icons/ph_warning.svg">
+                        <span class="codes-for-missing-values">
+                            @sReportsV2.Cache.Resources.TextLanguage.ChapterContainsMissingData
+                        </span>
+                    </div>
+            }
+
+                @{
+                RenderDescriptionAction("chapter-des", !string.IsNullOrEmpty(c.Description) && !c.Description.Equals(c.Title));
+                RenderChapterHeaderActions(c, arguments);
+                }
+            </div>
+    }
+
+    private void RenderChapterHeaderActions(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        RenderLockChapterHeaderAction(c, arguments);
+        RenderUnlockChapterHeaderAction(c, arguments);
+    }
+
+    private void RenderLockChapterHeaderAction(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        if (c.ShouldLockActionBeShown(arguments[FormInstanceConstants.CanLockChapter]))
+        {
+                <img alt="" class="lock-unlock-icon"
+                     src="/css/img/icons/partial_lock_black.svg"
+                     onclick="showLockOrUnlockPartialConfirmationModal(event, '@c.Id', '', true)"
+                     title="@sReportsV2.Cache.Resources.TextLanguage.Lock @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+        }
+    }
+
+    private void RenderUnlockChapterHeaderAction(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        bool showAction = c.IsLocked && arguments[FormInstanceConstants.CanUnlockChapter];
+        if (showAction)
+        {
+                <img alt="" class="lock-unlock-icon"
+                     src="/css/img/icons/partial_unlock_black.svg"
+                     onclick="showLockOrUnlockPartialConfirmationModal(event, '@c.Id', '', false)"
+                     title="@sReportsV2.Cache.Resources.TextLanguage.Unlock @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+        }
+        bool showLockedIndicator = c.IsLocked && !arguments[FormInstanceConstants.CanUnlockChapter];
+        if (showLockedIndicator)
+        {
+                <img alt="" class="lock-unlock-icon"
+                     src="/css/img/icons/partial_lock_black.svg"
+                     title="@sReportsV2.Cache.Resources.TextLanguage.Locked @sReportsV2.Cache.Resources.TextLanguage.Chapter">
+        }
+    }
+
+    private void RenderPageTabs(FormChapterDataOut c, Dictionary<string, bool> arguments)
+    {
+        bool scrollActionIsRequired = Model.ActiveChapterId == c.Id && Model.ActivePageLeftScroll > 0;
+            <span class="arrow-scroll-left-page scroll-page-action @(scrollActionIsRequired ? "d-none": "")"></span>
+            <span class="arrow-scroll-right-page scroll-page-action @(scrollActionIsRequired ? "d-none": "")"></span>
+            <div class="page-selector pages-links d-flex @(scrollActionIsRequired ? "invisible" : "")" style="overflow-x:hidden" id="pagesTabs-chapter-@c.Id" @Html.Raw(string.Format("data-current-left-scroll=\"{0}\"", Model.ActiveChapterId == c.Id ? Model.ActivePageLeftScroll.GetValueOrDefault() : 0))>
+                @foreach (FormPageDataOut p in c.Pages)
+            {
+                    <div class="pages-link position-relative @(p.Id == Model.ActivePageId ? "active" : "")" id="page-link-@p.Id">
+                        <span class="page-tab-title">@p.Title</span>
+                        @{
+                        RenderPageTabActions(p, c.Id, arguments);
+                        }
+                    </div>
+            }
+            </div>
+    }
+
+    private void RenderPageTabActions(FormPageDataOut p, string chapterId, Dictionary<string, bool> arguments)
+    {
+        RenderLockPageAction(p, chapterId, arguments);
+        RenderUnlockPageAction(p, chapterId, arguments);
+    }
+
+    private void RenderLockPageAction(FormPageDataOut p, string chapterId, Dictionary<string, bool> arguments)
+    {
+        if (p.ShouldLockActionBeShown(arguments[FormInstanceConstants.CanLockPage]))
+        {
+                <img alt="" src="/css/img/icons/partial_lock_black.svg" style="width: 12px"
+                     onclick="showLockOrUnlockPartialConfirmationModal(event, '@chapterId', '@p.Id', true)"
+                     title="@sReportsV2.Cache.Resources.TextLanguage.Lock @sReportsV2.Cache.Resources.TextLanguage.Page">
+        }
+    }
+
+    private void RenderUnlockPageAction(FormPageDataOut p, string chapterId, Dictionary<string, bool> arguments)
+    {
+        bool showUnlockAction = p.IsLocked && arguments[FormInstanceConstants.CanUnlockPage];
+        if (showUnlockAction)
+        {
+                <img alt="" src="/css/img/icons/partial_unlock_black.svg"
+                     onclick="showLockOrUnlockPartialConfirmationModal(event, '@chapterId', '@p.Id', false)"
+                     title="@sReportsV2.Cache.Resources.TextLanguage.Unlock @sReportsV2.Cache.Resources.TextLanguage.Page">
+        }
+        bool showLockedIndicator = p.IsLocked && !arguments[FormInstanceConstants.CanUnlockPage];
+        if (showLockedIndicator)
+        {
+                <img alt="" src="/css/img/icons/partial_lock_black.svg" style="width: 12px"
+                     title="@sReportsV2.Cache.Resources.TextLanguage.Locked @sReportsV2.Cache.Resources.TextLanguage.Page">
+        }
+    }
+
+    private void RenderDescriptionAction(string containerCssClass, bool isConditionSatisfied)
+    {
+        if (isConditionSatisfied)
+        {
+                <div class="@containerCssClass">
+                    <img alt="" src="/css/img/icons/fieldset_info.svg" />
+                </div>
+        }
+    }
+
+    private void RenderDescriptionContent(bool isConditionSatisfied, string itemType, string description)
+    {
+        if (isConditionSatisfied)
+        {
+                <div class='@itemType-description desc position-relative' style="display:none;">@Html.Raw(description)<img alt="" src="/css/img/icons/Administration_remove.svg" class="x-des"></div>
+        }
+    }
+
+    private async Task RenderPageContent(FormPageDataOut p, Dictionary<string, bool> arguments)
+    {
+        arguments[FormInstanceConstants.PageIsLocked] = p.IsLocked;
+            <div class='page des-container' id='@p.Id' style="display: @(p.Id == Model.ActivePageId ? "block" : "none")">
+                @{
+                    RenderPageHeader(p);
+                }
+                @{
+                    RenderDescriptionContent(!string.IsNullOrEmpty(p.Description) && p.IsVisible, "page", p.Description);
+                }
+                <div class="row @(p.ImageMap != null ? "image-map" : "")">
+                    @await Html.PartialAsync("~/Views/Form/DragAndDrop/ImageMapPreview.cshtml", p)
+                    <div class="@(p.ImageMap != null ? "col-md-12 col-lg-6 " : " col-md-12 col-lg-12")">
+                        <div class="row">
+                            @{
+                                await RenderFieldsets(p, arguments);
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+    }
+
+    private void RenderPageHeader(FormPageDataOut p)
+    {
+        if (!string.IsNullOrEmpty(p.Title) && p.IsVisible && !string.IsNullOrEmpty(p.Description))
+        {
+                <div class="page-header position-relative">
+                    @p.Title
+                    @{
+                        RenderDescriptionAction("page-des", true);
+                    }
+                </div>
+        }
+    }
+
+    private async Task RenderFieldsets(FormPageDataOut p, Dictionary<string, bool> arguments)
+    {
+        for (int i = 0; i < p.ListOfFieldSets.Count; i++)
+        {
+            await RenderRepetitionsForOneFieldset(p.ListOfFieldSets[i], p, i, arguments);
+        }
+    }
+
+    private async Task RenderRepetitionsForOneFieldset(List<FormFieldSetDataOut> listFs, FormPageDataOut p, int fsOverallIndex, Dictionary<string, bool> arguments)
+    {
+        arguments[FormInstanceConstants.ReadOnlyOrLocked] = arguments[FormInstanceConstants.ReadOnlyMode] || arguments[FormInstanceConstants.ChapterIsLocked] || arguments[FormInstanceConstants.PageIsLocked];
+            <div class="col-12 oneFsRepetitionsContainer">
+                <fieldset class="form-fieldset w-100" id="@listFs[0].Id" page-id='@p.Id' data-map-area="@listFs[0].MapAreaId" @Html.Disabled(arguments[FormInstanceConstants.ReadOnlyOrLocked])>
+                    <div class="field-set-container">
+                        @for (int fsIndexInRepetition = 0; fsIndexInRepetition < listFs.Count; fsIndexInRepetition++)
+                    {
+                        await RenderOneRepetitionInFieldset(listFs[fsIndexInRepetition], p, listFs.Count, fsOverallIndex, fsIndexInRepetition, arguments);
+                    }
+                    </div>
+                </fieldset>
+            </div>
+    }
+
+    private async Task RenderOneRepetitionInFieldset(FormFieldSetDataOut fs, FormPageDataOut p, int fsNumsInRepetition, int fsOverallIndex, int fsIndexInRepetition, Dictionary<string, bool> arguments)
+    {
+        bool isLastFieldsetInRepetition = fsIndexInRepetition == fsNumsInRepetition - 1;
+        bool isLastFieldsetOnPage = fsOverallIndex == p.ListOfFieldSets.Count - 1 && isLastFieldsetInRepetition;
+
+            @await Html.PartialAsync("~/Views/FormInstance/FormInstanceFieldSet.cshtml", fs, new ViewDataDictionary(ViewData)
+        {
+            { "arguments", arguments},
+            { "isLastFieldsetOnPage" , isLastFieldsetOnPage},
+            { "isLastFieldsetInRepetition" , isLastFieldsetInRepetition},
+            { "fsNumsInRepetition" , fsNumsInRepetition}
+        })
+    }
+
+    private async Task RenderReferrableFieldsContainer()
+    {
+        if (Model.ReferrableFields != null && Model.ReferrableFields.Count > 0)
+        {
+                <div>
+                    @await Html.PartialAsync("~/Views/DiagnosticReport/ReferrableFields.cshtml", Model.ReferrableFields, new ViewDataDictionary(ViewData) { { "ActiveChapterId", Model.ActiveChapterId } })
+                </div>
+        }
+    }
+
+    private void RenderButtonContainer(bool canLockDocument, bool readOnlyMode)
+    {
+            <div class="form-instance-button-container">
+                @if (canLockDocument)
+            {
+                    <button id="lockDocument" type="button" class="btn btn-filter-primary" style="height:unset;" onclick="showLockUnlockDocumentModal(event, '@FormState.Locked')">
+                        <img alt="" class="lock-unlock-form-instance-icon" src="/css/img/icons/partial_lock_white.svg">
+                        @sReportsV2.Cache.Resources.TextLanguage.LockDocument
+                    </button>
+            }
+                @if (!readOnlyMode)
+            {
+                    <input type="submit" data-no-color-change="true" class="btn btn-filter-primary float-right margin-left-17" style="height:unset;" id='submitBtn' value="@(ViewBag.FormInstanceId != null ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)" />
+            }
+                @if (!ViewBag.IsDateCaptureMode)
+            {
+                    <div class="text-underline right-button" type="button" onclick="handleBackInForm()">
+                        <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Cancel</span>
+                    </div>
+            }
+            </div>
+    }
+
+    private void RenderHelpModal()
+    {
+            <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="helpModalTitle"></h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="helpModalBody">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">@sReportsV2.Cache.Resources.TextLanguage.Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    }
+
+    private void RenderNEMessageContent()
+    {
+            <div id="ne-value-selected-message" class="d-none">@string.Format(sReportsV2.Cache.Resources.TextLanguage.NeSelectedMessage)</div>
+    }
+
+    private void RenderDependentOnChangeHandlers()
+    {
+        if (Model.ParentFieldInstanceDependencies.Count > 0)
+        {
+                <script>
+                    if (typeof parentDependencies == 'undefined') {
+                        var parentDependencies = @Html.Raw(Model.ParentFieldInstanceDependencies.JsonSerialize());
+                    } else {
+                        parentDependencies = @Html.Raw(Model.ParentFieldInstanceDependencies.JsonSerialize());
+                    }
+                    $(document).ready(function () {
+                            @foreach (KeyValuePair<string, List<DependentOnInstanceInfoDataOut>> item in Model.ParentFieldInstanceDependencies)
+                        {
+                            string cssSelector = item.Value.FirstOrDefault()?.ParentFieldInstanceCssSelector;
+                                @:initParentDependencyHandling('@Html.Raw(cssSelector)', '@item.Key');
+                        }
+                    });
+                </script>
+        }
+    }
+}
+
+<script>
+    if (@readOnlyAction.ToJsBoolean())
+    {
+        $(document).ready(function () {
+            readyFunctionInReadOnlyMode();
+        });
+    }
+    else
+    {
+        addUnsavedChangesEventHandler("#fid");
+        $(document).ready(function () {
+            readyFunctionInEditableMode();
+        });
+    }
+    window.addEventListener('load', checkScrollButtons);
+    window.addEventListener('resize', checkScrollButtons);
+</script>

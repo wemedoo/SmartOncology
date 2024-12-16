@@ -1,0 +1,33 @@
+﻿
+@using sReportsV2.Common.Constants;
+
+<div class="form-group col-md-12">
+
+    <div id="view-list-button" class="toggle-personnel-team-members" onclick="toggleTeamMembersList()">@sReportsV2.Cache.Resources.TextLanguage.Close_List</div>
+    <div id="close-list-button" class="toggle-personnel-team-members" style="display: none" onclick="toggleTeamMembersList()">@sReportsV2.Cache.Resources.TextLanguage.View_List</div>
+
+    <div class="d-flex advanced-filter-header">
+        @sReportsV2.Cache.Resources.TextLanguage.Add_Members
+    </div>
+
+    <div id="personnel-team-members-container">
+
+        <div id="personnel-team-members-list" class="personnel-team-members-list">
+            @await Html.PartialAsync("~/Views/PersonnelTeam/PersonnelTeamRelation/NewMemberForm.cshtml", null)
+        </div>
+
+    </div>
+
+    <div class="button-members">
+        <button class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="addMembers(event, @(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : ""))" dismiss="modal">
+            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+        </button>
+        <div class="button-wrapper-filter float-right" id="close">
+            <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+            </a>
+        </div>
+    </div>
+
+
+</div>

@@ -1,0 +1,14 @@
+﻿.show-hidden-fields {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.show-hidden-fields .always-click-action {
+  pointer-events: auto;
+}
+
+.file-name-text {
+  padding-right: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

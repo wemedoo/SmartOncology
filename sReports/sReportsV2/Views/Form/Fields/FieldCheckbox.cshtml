@@ -1,0 +1,68 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@model FieldCheckboxDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+    var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(0);
+}
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-checkbox form-checkbox-inline field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="form-checkbox-legend d-inline-block form-label-size filter-label" title="@Model.DescriptionLabel">
+        @Html.Raw(Model.FullLabel)
+    </div>
+    <div class="d-inline-block checkbox-container">
+        @{ int counter = 0;}
+        @foreach (FormFieldValueDataOut ffv in Model.Values)
+        {
+            <div class="d-flex selectable-field-option">
+                <label class="form-checkbox-label field-instance width-fit-content">
+                    @{ AddCheckBox(Model.IsOptionChosen(ffv.Id), Model.IsReadonly || isChapterReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo); }
+                    <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                    <span>@ffv.Label</span>
+                </label>
+                @if (Model.Values != null && Model.Values.Count > 5)
+                {
+                    counter++;
+                }
+                @if (counter % 2 == 0)
+                {
+                    <br />
+                }
+                @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
+                {
+                    <div class="w-1rem d-flex">
+                        <img alt="" title="Thesaurus" class="margin-bottom-5 hover-th-icon" src="/css/img/icons/@(ffv != null ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToThesaurus('@ffv.ThesaurusId')">
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model, new ViewDataDictionary(ViewData) { { "repetitiveValue", Model.GetValue() } })
+    @if (!fieldInstanceRepetitionInfo.Item2)
+    {
+        @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+    }
+    <div style="display:none" class="form-element-description field-desc">
+        @Html.Raw(Model.Description)
+    </div>
+</fieldset>
+
+@functions {
+    private void AddCheckBox(bool isChecked, bool isReadonly, FormFieldValueDataOut ffv, string fieldSetId, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        <input
+               value="@ffv.Id"
+               data-value="@ffv.Label"
+               id="@fieldInstanceRepetitionInfo.Item1-@ffv.Value.ReplaceNonAlphaCharactersWithDash().RemoveDiacritics()"
+               @(isChecked ? "checked" : "")
+               class="checkbox-radio form-checkbox-field"
+               type="checkbox"
+               data-numericvalue="@ffv.NumericValue"
+               onclick="return @((!isReadonly).ToString().ToLower())"
+               @Html.Raw(Model.GetFieldInstanceDataAttrs(fieldSetId, 1))
+               @Html.Disabled(fieldInstanceRepetitionInfo.Item2) />
+    }
+}

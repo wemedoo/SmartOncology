@@ -1,0 +1,69 @@
+﻿
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Title
+            </div>
+            <input type="text" class="filter-input" id="title">
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.DocumentClass
+            </div>
+            <select class="filter-input arrow-select document-select2 bg-white" id="classes">
+                @{ Options("Classes"); }
+            </select>
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Explicit_Purpose
+            </div>
+            <select class="filter-input arrow-select document-select2 bg-white" id="explicitPurpose">
+                @{ Options("ExplicitPurpose"); }
+            </select>
+        </div>
+
+        <div class="advanced-filter-item filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Clinical_Context
+            </div>
+            <select class="filter-input arrow-select document-select2 bg-white" id="clinicalContext">
+                @{ Options("ClinicalContext"); }
+            </select>
+        </div>
+
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter button-filter" id="">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="advanceFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="filter-tags-container">
+    <div id="filterElementsTrialDocuments" class="d-flex filter-elements" data-container="TrialDocumentsTable">
+    </div>
+</div>
+
+
+@functions {
+    private void Options(string key)
+    {
+        <option value=""> </option>
+        foreach (var option in ViewBag.DocumentPropertiesEnums[key] as List<EnumDTO>)
+        {
+            <option value="@option.Value">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(option.Label)</option>
+        }
+    }
+}

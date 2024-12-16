@@ -1,0 +1,43 @@
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
+@{
+    var thesaurusId = Model != null ? Model.Id : 0;
+    var backUrl = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}", thesaurusId) : "/";
+    ViewBag.Title = "Preview thesaurus";
+}
+<input type="hidden" id="id" value="@thesaurusId" />
+<div id="preview" class="thesaurus-preview">
+    <div class="tp-title">
+        <b>@(Model != null ? Model.GetPreferredTermByTranslationOrDefault(Model.PreferredLanguage) : "")</b>
+        @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasAnyOfRole(SmartOncologyRoleNames.Curator, SmartOncologyRoleNames.Editor))
+        {
+            <div class="contribute-btn" onclick="contributeToTranslation(event, @thesaurusId, '@backUrl')">
+                <img alt="" src="/css/img/icons/SwissOpenOncology/translation.svg"> Contribute to translation
+            </div>
+            <div class="thesaurus-edit-btn" onclick="goToEdit('@Model.Id')">
+                <img alt="" src="/css/img/icons/SwissOpenOncology/edit.svg"> Edit
+            </div>
+        }
+    </div>
+    <div class="preview-content">
+        @await Html.PartialAsync("~/Views/ThesaurusGlobal/Shared/ThesaurusTree.cshtml", Model)
+
+        <div class="preview-translations">
+            @await Html.PartialAsync("~/Views/ThesaurusGlobal/Preview/TranslationsPreview.cshtml", Model)
+            <div class="buttons-container">
+                <div class="preview-btn-container">
+                    <div class="float-right" id="close" onclick="goBack('/ThesaurusGlobal/Browse')">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Back">
+                            @sReportsV2.Cache.Resources.TextLanguage.Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/tableCommon.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/SwissOpenOncology/thesaurusPreview.js"), "", ""))

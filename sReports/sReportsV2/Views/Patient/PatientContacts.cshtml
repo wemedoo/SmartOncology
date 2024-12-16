@@ -1,0 +1,45 @@
+﻿@using sReportsV2.DTOs.Common.DTO;
+@using System.Collections.Generic;
+
+@model List<ContactDTO>
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+}
+
+<div class="person-margin">
+    <span class="identifiers-info identifier-padd">@sReportsV2.Cache.Resources.TextLanguage.Contact_People</span>
+    @if (!readOnly)
+    {
+        <button type="button" class="btn btn-add-new float-right" onclick="showContact('0', false)">
+            <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.AddNew</span>
+        </button>
+    }
+</div>
+
+<div class="identifier-line"></div>
+
+<div id="contacts" class="@(Model.Count == 0 ? "identifier-line-bottom" : "")">
+    <table class="codes-table">
+        <thead>
+            <tr>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.Given</span></th>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.Family</span></th>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.Gender</span></th>
+                <th><span class="identifier-name">@sReportsV2.Cache.Resources.TextLanguage.Relationship</span></th>
+                <th class="contact-action-th-cell"></th>
+            </tr>
+        </thead>
+
+        <tbody class="identifer-table text-table">
+            @foreach (ContactDTO contact in Model)
+            {
+                @await Html.PartialAsync("PatientContactRow", contact, new ViewDataDictionary(ViewData))
+            }
+        </tbody>
+    </table>
+</div>
+<div class="identifier-line margin-top-15 margin-bottom-35"></div>
+<div class="" id="contactDetail">
+
+</div>

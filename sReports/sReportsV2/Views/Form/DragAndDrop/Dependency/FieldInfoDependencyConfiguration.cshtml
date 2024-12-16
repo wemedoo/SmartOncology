@@ -1,0 +1,60 @@
+﻿@using sReportsV2.DTOs.Field.DataOut;
+
+@model FieldDataOut
+
+<div class="dependency-configuration-content">
+    <div class="dependency-configuration-container">
+        <div class="dependency-choose-variables">
+            @await Html.PartialAsync("~/Views/Form/DragAndDrop/Dependency/DependencyChooseVariableContainer.cshtml", Model)
+        </div>
+        <div class="dependency-variables">
+            @{ await RenderVariablesAndFormula(); }
+        </div>
+    </div>
+</div>
+
+@functions {
+    private async Task RenderVariablesAndFormula()
+    {
+
+        DependentOnInfoDataOut dependentOnInfo = Model.DependentOn;
+        string formula = dependentOnInfo != null ? dependentOnInfo.Formula : "";
+        bool hasDependentOnFields = dependentOnInfo != null && dependentOnInfo.DependentOnFieldInfos != null && dependentOnInfo.DependentOnFieldInfos.Count > 0;
+
+        <div>
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Formula
+            </div>
+            <div class="formula-input-container">
+                <div class="formula-input-logo"><img alt="" src="/css/img/icons/formula_fx.svg" /></div>
+                <div class="formula-input">
+                    <textarea id="dependentFormula"
+                              class="form-control filter-input"
+                              name="dependentFormula"
+                              value="@formula"
+                              rows="2" @ViewBag.Disabled>@formula</textarea>
+                </div>
+            </div>
+            <div class="d-flex">
+                <div style="width: 10%">
+                </div>
+                <div id="formulaValidationErrors"></div>
+            </div>
+        </div>
+        <div class="dependent-on-fields-list @(hasDependentOnFields ? "" : "d-none")">
+            <div class="variables-header">
+                <div class="variable-cell-header">@sReportsV2.Cache.Resources.TextLanguage.Variable</div>
+                <div class="field-cell-header">@sReportsV2.Cache.Resources.TextLanguage.Field</div>
+            </div>
+            <div id="variables-body">
+                @if (hasDependentOnFields)
+                {
+                    foreach (DependentOnFieldInfoDataOut item in dependentOnInfo.DependentOnFieldInfos)
+                    {
+                        @await Html.PartialAsync("~/Views/Form/DragAndDrop/Dependency/DependentOnFieldInfo.cshtml", item)
+                    }
+                }
+            </div>
+        </div>
+    }
+}

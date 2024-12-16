@@ -1,0 +1,161 @@
+﻿@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@inject sReportsV2.Controllers.FormCommonController Controller
+@model FormDataOut
+
+@{
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+}
+
+<div class="cf nestable-lists ">
+    <div class="dd nestableTree" id="nestable">
+        <ol class="dd-list dd-scrollable-container">
+            <li class="dd-item dd-nodrag"
+                data-id="@(Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder)"
+                data-itemtype="form"
+                data-activeversion='@(Model != null ? Model.GetActiveVersionJsonString() : null)'
+                @(Html.Raw(Model != null ? Model.GetDataAttr() : FormDataOut.GetInitialDataAttributes()))>
+
+                <div class="dd-nohandle" data-toggle="tooltip" data-placement="left" title="@(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)">
+                    @(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)
+                </div>
+                @{ RenderEditButton(readOnly); }
+
+                <ol class="dd-list">
+                    @if (Model != null && Model.Chapters != null)
+                    {
+                        foreach (FormChapterDataOut chapterDataOut in Model.Chapters)
+                        {
+                            <li class="dd-item"
+                                @Html.Raw(chapterDataOut.GetDataAttr()) data-itemtype="chapter">
+                                <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@chapterDataOut.Title">@chapterDataOut.Title</div>
+                                @{ RenderRemoveButton(readOnly); }
+                                @{ RenderEditButton(readOnly); }
+
+                                <ol class="dd-list">
+                                    @if (chapterDataOut.Pages != null && chapterDataOut.Pages.Count > 0)
+                                    {
+                                        foreach (FormPageDataOut pageDataOut in chapterDataOut.Pages)
+                                        {
+                                            <li class="dd-item" data-itemtype="page" @Html.Raw(pageDataOut.GetDataAttr())>
+                                                <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@pageDataOut.Title">@pageDataOut.Title</div>
+                                                @{ RenderRemoveButton(readOnly); }
+                                                @{ RenderEditButton(readOnly); }
+
+                                                <ol class="dd-list">
+                                                    @if (pageDataOut.ListOfFieldSets != null && pageDataOut.ListOfFieldSets.Count > 0)
+                                                    {
+                                                        foreach (List<FormFieldSetDataOut> formFieldSet in pageDataOut.ListOfFieldSets)
+                                                        {
+                                                            bool isMatrix = formFieldSet[0].IsMatrixFieldSet();
+                                                            <li class="dd-item" @Html.Raw(formFieldSet[0].GetDataAttr()) data-itemtype="fieldset">
+                                                                <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@formFieldSet[0].Label">@(string.IsNullOrEmpty(formFieldSet[0].Label) ? "Label is not defined" : formFieldSet[0].Label)</div>
+                                                                @{ RenderRemoveButton(readOnly); }
+                                                                @{ RenderEditButton(readOnly); }
+
+                                                                <ol class="dd-list">
+                                                                    @if (formFieldSet[0].Fields != null && formFieldSet[0].Fields.Count > 0)
+                                                                    {
+                                                                        foreach (FieldDataOut field in formFieldSet[0].Fields)
+                                                                        {
+                                                                            <li class="dd-item" data-itemtype="field" @Html.Raw(field.GetDataAttr()) data-parentid="@formFieldSet[0].Id" data-maxitems="@(formFieldSet[0].LayoutStyle != null && !string.IsNullOrEmpty(formFieldSet[0].LayoutStyle.MaxItems) ? int.Parse(formFieldSet[0].LayoutStyle.MaxItems) : 0)">
+                                                                              <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@field.GetLabel()">@field.GetLabel()</div>
+                                                                                @{ RenderRemoveButton(readOnly); }
+                                                                                @{ RenderEditButton(readOnly); }
+
+                                                                                @if (field is FieldSelectableDataOut fieldSelectableDataOut)
+                                                                                {
+                                                                                    <ol class="dd-list">
+
+                                                                                        @if (fieldSelectableDataOut != null && fieldSelectableDataOut.Values.Count > 0)
+                                                                                        {
+                                                                                            foreach (FormFieldValueDataOut valueDataOut in fieldSelectableDataOut.Values)
+                                                                                            {
+                                                                                                <li class="dd-item" data-itemtype="fieldvalue" data-ismatrix="@isMatrix" @Html.Raw(valueDataOut.GetDataAttr())>
+                                                                                                    <div @*style="max-width:400px;"*@ class="dd-handle" data-toggle="tooltip" data-placement="left" title="@valueDataOut.Label">@valueDataOut.Label</div>
+                                                                                                    @if (!isMatrix) { RenderRemoveButton(readOnly); }
+                                                                                                    @{ RenderEditButton(readOnly); }
+                                                                                                </li>
+                                                                                            }
+                                                                                        }
+                                                                                        @if (!isMatrix)
+                                                                                        { 
+                                                                                           RenderAddNewTreeItem(readOnly, "fieldvalue", "option", @field.Id); 
+                                                                                       }
+                                                                                    </ol>
+                                                                                }
+                                                                            </li>
+                                                                        }
+                                                                    }
+                                                                    @if (!(formFieldSet[0] != null
+                                                                           && formFieldSet[0].LayoutStyle != null
+                                                                           && formFieldSet[0].LayoutStyle.LayoutType == sReportsV2.Common.Enums.LayoutType.Matrix
+                                                                           && formFieldSet[0].LayoutStyle.MaxItems != null
+                                                                           && int.Parse(formFieldSet[0].LayoutStyle.MaxItems) == formFieldSet[0].Fields.Count))
+                                                                    {
+                                                                        RenderAddNewTreeItem(readOnly, "field", "field", @formFieldSet[0].Id);
+                                                                    }
+                                                                </ol>
+                                                            </li>
+                                                        }
+                                                    }
+                                                    @{ RenderAddNewTreeItem(readOnly, "fieldset", "fieldset", @pageDataOut.Id); }
+                                                </ol>
+                                            </li>
+                                        }
+                                    }
+                                    @{ RenderAddNewTreeItem(readOnly, "page", "page", @chapterDataOut.Id); }
+                                </ol>
+                            </li>
+                        }
+                    }
+                    @{ RenderAddNewTreeItem(readOnly, "chapter", "chapter", Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder); }
+                </ol>
+            </li>
+        </ol>
+    </div>
+</div>
+@if (!readOnly)
+{
+    <script>
+        $(document).ready(function (e) {
+            $('#nestable').nestable({
+                group: 1,
+                maxDepth: 7
+            });
+        });
+    </script>
+}
+
+@functions {
+    private void RenderAddNewTreeItem(bool readOnly, string itemType, string itemLabel, string parentId)
+    {
+        if (!readOnly)
+        {
+            <li class="add-item-button add-chapter-button dd-nodrag" data-itemtype="@itemType" data-parentid="@parentId">
+                <div>
+                    <img alt="" src="/css/img/icons/add_new.svg" />
+                    @sReportsV2.Cache.Resources.TextLanguage.AddNew @itemLabel
+                </div>
+            </li>
+        }
+    }
+
+    private void RenderRemoveButton(bool readOnly)
+    {
+        if (!readOnly)
+        {
+            <div class="remove-button">
+                <img alt="" src="/css/img/icons/remove_simulator.svg" />
+            </div>
+        }
+    }
+
+    private void RenderEditButton(bool readOnly)
+    {
+        <div class="edit-button @(readOnly ? "to-the-right" : "")">
+            <img alt="" src="/css/img/icons/edit_pencil_03.svg" />
+        </div>
+    }
+}

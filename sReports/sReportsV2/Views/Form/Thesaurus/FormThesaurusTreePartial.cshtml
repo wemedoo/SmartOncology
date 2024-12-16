@@ -1,0 +1,73 @@
+﻿@using sReportsV2.DTOs.Form.DataOut.Tree
+@model TreeDataOut
+
+@foreach (FormTreeDataOut form in Model.Forms)
+{
+    <div class="tree-item tree-item-thesaurus" style="padding-bottom: 10px;">
+
+        <span>@(form.Title)@DisplayThesaurus(form.ThesaurusId) <span class="thesaurus-count">@form.ThesaurusAppearances</span></span>
+
+        @foreach (FormTreeChapterDataOut chapter in form.SelectChapters(Model.O4MtId))
+        {
+            <div class="tree-item c @(chapter.ThesaurusId.Equals(Model.O4MtId) ? "main" : "")">
+                <div class="line-tree"></div>
+
+                <span class="span-c">@(chapter.Title)@DisplayThesaurus(chapter.ThesaurusId)</span>
+
+                @foreach (FormTreePageDataOut page in chapter.SelectPages(Model.O4MtId))
+                {
+                    <div class="tree-item p @(page.ThesaurusId.Equals(Model.O4MtId) ? "main" : "")">
+                        <div class="line-tree"></div>
+
+                        <span class="span-p">@(page.Title)@DisplayThesaurus(page.ThesaurusId)</span>
+
+                        @foreach (FormTreeFieldSetDataOut fs in page.SelectFieldSets(Model.O4MtId))
+                        {
+                            <div class="tree-item fs @(fs.ThesaurusId.Equals(Model.O4MtId) ? "main" : "")">
+                                <div class="line-tree"></div>
+                                <div class="vertical-line"></div>
+                                <span class="span-fs"> @(fs.Label)@DisplayThesaurus(fs.ThesaurusId)</span>
+
+
+
+                                @foreach (FormTreeFieldDataOut field in fs.SelectFields(Model.O4MtId))
+                                {
+                                    <div class="tree-item f @(field.ThesaurusId.Equals(Model.O4MtId) ? "main" : "")">
+                                        <div class="line-tree"></div>
+
+                                        <span class="span-f">@(field.Label)@DisplayThesaurus(field.ThesaurusId)</span>
+
+                                        @foreach (FormTreeFieldValueDataOut value in field.SelectFieldValues(Model.O4MtId))
+                                        {
+                                            <div class="tree-item fv @(value.ThesaurusId.Equals(Model.O4MtId) ? "main" : "")">
+                                                <div class="line-tree"></div>
+
+                                                <span class="span-fv">@(value.Label)@DisplayThesaurus(value.ThesaurusId)</span>
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+                }
+
+
+            </div>
+        }
+
+    </div>
+}
+<div class="load-more-button-container load-more-umls" id="loadMoreThesaurus-@Model.O4MtId">
+    <div class="load-more-button load-concepts" onclick="loadMore(@Model.O4MtId, event)">@sReportsV2.Cache.Resources.TextLanguage.Load_more</div>
+</div>
+
+@functions {
+    private string DisplayThesaurus(int thesaurusId)
+    {
+        return thesaurusId != 0 ? "(" + thesaurusId + ")" : "";
+    }
+}

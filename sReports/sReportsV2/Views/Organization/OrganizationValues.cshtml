@@ -1,0 +1,12 @@
+﻿@using System.Web
+@using sReportsV2.DTOs.Organization;
+
+@model List<OrganizationDataOut>
+
+@foreach (OrganizationDataOut organization in Model)
+{
+    <div class="option" data-value="@organization.Id" onclick="orgOptionClicked(event, '@organization.Id', '@System.Net.WebUtility.HtmlEncode(organization.Name)')">
+        @organization.Name
+    </div>
+}
+

@@ -1,0 +1,111 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchema.DataOut;
+@using sReportsV2.Common.Constants;
+@model ChemotherapySchemaDataOut
+
+@{
+    ViewBag.Title = sReportsV2.Cache.Resources.TextLanguage.Create_New_Schema;
+    var userCookieData = ViewBag.UserCookieData;
+    bool hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalOncology);
+    bool hasUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.ClinicalOncology);
+    bool hasCreatePerm = userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.ClinicalOncology);
+}
+
+@section Stylesheet {
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/open-oncology/scss/schema_style.css"))
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Schema }, { "linkLevel1", "/SmartOncology/BrowseSchemas" }, { "level2", Model != null ? Model.Name ?? sReportsV2.Cache.Resources.TextLanguage.Predefined_schema_name : @sReportsV2.Cache.Resources.TextLanguage.Create_New_Schema }, { "activeLevel", 2 } })
+
+<div class="schema-definition-wrapper">
+    <div class="chemotherapy-schema-content">
+        <div class="chemotherapy-schema-header">
+            <h1 class="title">
+                @sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Schema
+            </h1>
+            @if (hasViewPerm)
+            {
+                <button class="btn-primary-schema btn-icon @(Model == null ? "d-none" : "")" id="previewSchemaBtn" data-id="@(Model != null ? Model.Id : 0)">
+                    <span class="icon"><img src="/css/open-oncology/images/icons/dashboard.svg" alt="Dashboard icon"></span>
+                    @sReportsV2.Cache.Resources.TextLanguage.Preview_Chemotherapy_Schema
+                </button>
+            }
+        </div>
+
+        <!-- Start .chemotherapy-schema  -->
+        <input id="rowVersion" name="rowVersion" type="hidden" value="@(Model != null ? Model.RowVersion: "")" />
+        <section class="chemotherapy-schema" data-id="@(Model != null ? Model.Id : 0)">
+            <div class="row">
+                @await Html.PartialAsync("SchemaDefinition/EditPreviewBasicProperties")
+                <div class="schema-col col-2">
+                    <div class="schema-card">
+                        <div class="schema-card-header">
+                            <span class="icon">
+                                <img src="/css/open-oncology/images/icons/medications.svg" alt="">
+                            </span>
+                            <h3>
+                                @sReportsV2.Cache.Resources.TextLanguage.Medications
+                            </h3>
+                            @if (hasCreatePerm)
+                            {
+                                <button class="add-new-medication-btn update-medication" data-id="0">
+                                    <i class="fas fa-plus-circle"></i>
+                                    @sReportsV2.Cache.Resources.TextLanguage.Add_New
+                                </button>
+                            }
+                        </div>
+                        <div id="medicationsPreview">
+                            @if (Model != null)
+                            {
+                                foreach (var medication in Model.Medications)
+                                {
+                                    <div class="schema-card-item item-link update-medication" data-id="@medication.Id">
+                                        <div class="item-header pointer">
+                                            <h3>@medication.Name</h3>
+                                            @if (hasUpdatePerm)
+                                            {
+                                                <span class="icon">
+                                                    <img src="/css/open-oncology/images/icons/edit-icon.svg" alt="Edit">
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        @if (hasCreatePerm)
+                        {
+                            <div class="schema-card-item add-new update-medication" data-id="0">
+                                <div class="item-header">
+                                    <h3>
+                                        @sReportsV2.Cache.Resources.TextLanguage.Add_new_medication
+                                    </h3>
+                                    <span class="icon">
+                                        <img src="/css/open-oncology/images/icons/plus.svg" alt="Add new">
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="schema-col col-6 new-medication-wrapper"></div>
+                @await Html.PartialAsync("SchemaDefinition/EditGeneralProperties")
+            </div>
+        </section>
+        <!-- End .chemotherapy-schema  -->
+        <!-- Modal window for indication -->
+        @await Html.PartialAsync("SchemaDefinition/EditIndicationsModal")
+
+        <!-- Modal window for Schema Name -->
+        @await Html.PartialAsync("SchemaDefinition/EditNameModal")
+
+        <!-- Modal window for  Literature reference-->
+        <div class="modal-window modal-reference" id="literatureReferenceModal">
+        </div>
+
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/schemaDefinition.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/schemaDefinitionMedication.js"), "", ""))

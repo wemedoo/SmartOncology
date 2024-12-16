@@ -1,0 +1,46 @@
+﻿@using sReportsV2.DTOs.Common.DTO;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using System.Collections.Generic;
+@using System.Linq;
+
+@model ContactDTO
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> genders = ViewBag.Genders as List<CodeDataOut>;
+    List<CodeDataOut> relationships = ViewBag.ContactRelationships as List<CodeDataOut>;
+    bool readOnly = ViewBag.ReadOnly;
+
+    CodeDataOut genderEnum = genders.Find(g => g.Id == Model.GenderId);
+    string genderTranslated = genderEnum != null ? genderEnum.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
+    CodeDataOut relationshipEnum = relationships.Find(g => g.Id == Model.ContactRelationshipId);
+    string relationshipTranslated = relationshipEnum != null ? relationshipEnum.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
+}
+                
+    <tr data-value="@Model.Id"
+    data-version="@Model.RowVersion"
+        data-content="@Model.ToJsonString()"
+        data-readonly="@readOnly.ToJsBoolean()"
+        class="contact-entry">
+        <td title="@Model.NameGiven" data-property="NameGiven" data-value="@Model.NameGiven" class="custom-td-first">
+            @Html.RenderTableCell(Model.NameGiven)
+        </td>
+        <td title="@Model.NameFamily" data-property="NameFamily" data-value="@Model.NameFamily" class="custom-td">
+            @Html.RenderTableCell(Model.NameFamily)
+        </td>
+        <td title="@genderTranslated" data-property="Gender" data-value="@Model.GenderId" class="custom-td">
+            @Html.RenderTableCell(genderTranslated)
+        </td>
+        <td title="@relationshipTranslated" data-property="ContactRelationship" data-value="@Model.ContactRelationshipId" class="custom-td">
+            @Html.RenderTableCell(relationshipTranslated)
+        </td>
+        <td class="custom-td-last position-relative">
+            @if (!readOnly)
+            {
+                <img alt="" src="/css/img/icons/editing.svg" class="contact-entry" />
+                <i class="remove-table-row-icon remove-contact"></i>
+            }
+        </td>
+    </tr>

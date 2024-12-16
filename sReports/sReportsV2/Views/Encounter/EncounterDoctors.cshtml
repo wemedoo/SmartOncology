@@ -1,0 +1,135 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Encounter;
+@using sReportsV2.DTOs.DTOs.Encounter.DataOut;
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+
+@model EncounterDataOut
+
+@{
+    bool readOnly = ViewBag.ReadOnly;
+    var userCookieData = ViewBag.UserCookieData;
+    string language = userCookieData.ActiveLanguage;
+    List<CodeDataOut> relationTypeCodes = ViewBag.RelationType as List<CodeDataOut>;
+}
+
+<div class="doctors">
+    <div class="div-header">
+        @sReportsV2.Cache.Resources.TextLanguage.Doctors
+    </div>
+    <div class="doctor-list">
+        @if (Model.Doctors != null)
+        {
+            foreach (var doctor in Model.Doctors)
+            {
+                RenderEncounterPatientDoctor(doctor, relationTypeCodes, language);
+            }
+        }
+        @if (!readOnly)
+        {
+            RenderAddNewEncounterPatientDoctor(language, relationTypeCodes);
+        }
+    </div>
+
+    @{
+        RenderEncounterPatientDoctor(null, relationTypeCodes, language);
+    }
+</div>
+
+@functions {
+    private void RenderAddNewEncounterPatientDoctor(string language, List<CodeDataOut> relationTypeCodes)
+    {
+        <div class="d-flex margin-top-10">
+            <div class="advanced-filter-item filter-item margin-right-5">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Doctor
+                </div>
+                <select class="filter-input arrow-select patient-background padding-right-36 margin-left-13 encounter-doctor-input" id="doctor" name="doctor">
+                    <option value="" disabled selected></option>
+                </select>
+            </div>
+            <div class="advanced-filter-item d-flex padding-left-15">
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.RelationType
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36 encounter-doctor-input" id="relationType" name="relationType">
+                        <option value="" disabled selected></option>
+                        @foreach (var relationTypeOption in ObjectExtension.FilterDataSource(relationTypeCodes))
+                        {
+                            <option value="@relationTypeOption.Id">
+                                @relationTypeOption.Thesaurus.GetPreferredTermByTranslationOrDefault(language)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="advanced-filter-item encounter-doctor-btn-div">
+                    <button class="btn btn-encounter-doctor add-new-doctor" title="@sReportsV2.Cache.Resources.TextLanguage.AddNew">
+                        <i class="fas fa-plus-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+    private void RenderEncounterPatientDoctor(EncounterPersonnelRelationDataOut doctor, List<CodeDataOut> relationTypeCodes, string language)
+    {
+        bool isDoctorDefined = doctor != null;
+        string relationTypeTranslated = "";
+        if (isDoctorDefined)
+        {
+            CodeDataOut relationTypeOption = relationTypeCodes.Find(c => c.Id == doctor.RelationTypeId);
+            if (relationTypeOption != null)
+            {
+                relationTypeTranslated = relationTypeOption.Thesaurus.GetPreferredTermByTranslationOrDefault(language);
+            }
+        }
+
+        <div id="@(isDoctorDefined ? "doctor-encounter-relation" + doctor.Id : "encounter-doctor-pattern-row")"
+             class="@(isDoctorDefined ? "d-flex" : "d-none") margin-top-10 encounter-doctor-row" data-id="@(isDoctorDefined ? doctor.Id.ToString() : "0")">
+            <div class="advanced-filter-item filter-item margin-right-5">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Doctor
+                </div>
+                <select class="filter-input arrow-select patient-background padding-right-36 encounter-doctor" disabled>
+                    @if (isDoctorDefined)
+                    {
+                        <option value="@doctor.DoctorId" selected>@doctor.Doctor.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="advanced-filter-item d-flex padding-left-15">
+                <div class="advanced-filter-item">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.RelationType
+                    </div>
+                    <select class="filter-input arrow-select patient-background padding-right-36 encounter-doctor-relation" disabled>
+                        @if (isDoctorDefined)
+                        {
+                            <option value="@doctor.RelationTypeId" selected>@relationTypeTranslated</option>
+                        }
+                    </select>
+                </div>
+                <div class="advanced-filter-item encounter-doctor-btn-div">
+                    <button class="btn btn-encounter-doctor delete-doctor" title="@sReportsV2.Cache.Resources.TextLanguage.Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+
+}
+
+<script>
+    $(document).ready(function () {
+        $("#doctor").initSelect2(
+            getSelect2Object(
+                {
+                    placeholder: "-",
+                    width: '100%',
+                    url: `/UserAdministration/GetNameAutocompleteData?filterByDoctors=true`
+                }
+            )
+        );
+    });
+</script>

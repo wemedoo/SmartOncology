@@ -1,0 +1,23 @@
+@using sReportsV2.Common.Helpers
+@model string
+@{
+    ViewBag.Title = "Browse";
+}
+<div class="browse-container">
+    <div class="search-input browse-search">
+        <img alt="" class="search-book" src="/css/img/icons/SwissOpenOncology/search_icon.svg">
+        <input type="text" class="search-btn-gt" placeholder="Search by Name, Code or Property" id="search" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.Term : "")" />
+        <img alt="" class="search-i" id="searchIcon" src="/css/img/icons/search_green.svg">
+        <div class="advanced-search-btn" onclick="advancedFilterModal(event)">Advanced Search</div>
+    </div>
+    <div id="browseResults" class="browse-results">
+
+    </div>
+</div>
+<div id="gtAdvancedSearch">
+    @await Html.PartialAsync("~/Views/ThesaurusGlobal/Search/AdvancedFilterModal.cshtml")
+
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/tableCommon.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/SwissOpenOncology/browse.js"), "", ""))
