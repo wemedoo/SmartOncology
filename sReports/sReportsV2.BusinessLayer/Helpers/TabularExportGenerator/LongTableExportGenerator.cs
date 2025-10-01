@@ -1,5 +1,4 @@
-﻿using sReportsV2.Common.Constants;
-using sReportsV2.Common.Extensions;
+﻿using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Entities.FieldEntity;
 using sReportsV2.Domain.Entities.FormInstance;
 using sReportsV2.Domain.Services.Interfaces;
@@ -39,45 +38,11 @@ namespace sReportsV2.BusinessLayer.Helpers.TabularExportGenerator
                     {
                         foreach (FieldSet fieldset in page.ListOfFieldSets.SelectMany(x => x))
                         {
-                            var fieldInstancesInFieldsetGrouped = formInstance.FieldInstances.Where(x => x.FieldSetId == fieldset.Id).GroupBy(x => x.FieldSetInstanceRepetitionId);
-                            
-                            foreach (var fieldInstanceGroup in fieldInstancesInFieldsetGrouped)
+                            var fieldSetsToProcess = fieldset.ListOfFieldSets.Any() ? fieldset.ListOfFieldSets : new List<FieldSet> { fieldset };
+
+                            foreach (var fs in fieldSetsToProcess)
                             {
-                                foreach (Field field in fieldset.Fields.Where(x => !x.Id.Equals(Domain.Entities.DFD.Constants.StateSmsSystemFieldId) && !x.Id.Equals("1001")))
-                                {
-                                
-                                    List<FieldInstance> fieldInstances = fieldInstanceGroup.Where(x => x.FieldId == field.Id).ToList();
-
-                                    fieldInstances.ForEach(x =>
-                                    {
-                                        if (x.FieldInstanceValues != null && x.FieldInstanceValues.Count > 0)
-                                        {
-                                            foreach (FieldInstanceValue fieldInstanceValue in x.FieldInstanceValues)
-                                            {
-                                                inputParams.FileWriter.WriteRow(new List<string>() {
-                                                    inputParams.Organization.Value,
-                                                    formInstance.Id,
-                                                    chapter.Title,
-                                                    page.Title,
-                                                    fieldset.Label,
-                                                    field.Label,
-                                                    field.GetDisplayValue(fieldInstanceValue, inputParams.MissingValues) });
-                                            }
-                                        }
-                                        else
-                                        {
-                                            inputParams.FileWriter.WriteRow(new List<string>() {
-                                                inputParams.Organization.Value,
-                                                formInstance.Id,
-                                                chapter.Title,
-                                                page.Title,
-                                                fieldset.Label,
-                                                field.Label, 
-                                                string.Empty });
-                                        }
-                                    });
-                                }
-
+                                ProcessFieldSet(fs, formInstance, chapter, page);
                             }
                         }
                     }
@@ -85,20 +50,65 @@ namespace sReportsV2.BusinessLayer.Helpers.TabularExportGenerator
             }
         }
 
-        private List<string> GenerateHeaderRow()
+        private void ProcessFieldSet(FieldSet fieldset, FormInstance formInstance, FormChapter chapter, FormPage page) 
         {
-            return new List<string>() {
-                    TextLanguage.Organization,
-                    TextLanguage.Document_Id,
-                    TextLanguage.Chapter_Name,
-                    TextLanguage.Page_Name,
-                    TextLanguage.Fieldset_Name,
-                    TextLanguage.Field_Label,
-                    TextLanguage.Field_Value,
+            var fieldInstancesInFieldsetGrouped = formInstance.FieldInstances.Where(x => x.FieldSetId == fieldset.Id).GroupBy(x => x.FieldSetInstanceRepetitionId);
 
-                };
+            foreach (var fieldInstanceGroup in fieldInstancesInFieldsetGrouped)
+            {
+                foreach (Field field in fieldset.Fields.Where(x => !x.Id.Equals(Domain.Entities.DFD.Constants.StateSmsSystemFieldId) && !x.Id.Equals("1001")))
+                {
+                    List<FieldInstance> fieldInstances = fieldInstanceGroup.Where(x => x.FieldId == field.Id).ToList();
+
+                    fieldInstances.ForEach(x =>
+                    {
+                        if (x.FieldInstanceValues != null && x.FieldInstanceValues.Count > 0)
+                        {
+                            foreach (FieldInstanceValue fieldInstanceValue in x.FieldInstanceValues)
+                            {
+                                inputParams.FileWriter.WriteRow(new List<string>() 
+                                {
+                                    inputParams.Organization.Value,
+                                    formInstance.Id,
+                                    chapter.Title,
+                                    page.Title,
+                                    fieldset.Label,
+                                    field.Label,
+                                    field.GetDisplayValue(fieldInstanceValue, inputParams.MissingValues) 
+                                });
+                            }
+                        }
+                        else
+                        {
+                            inputParams.FileWriter.WriteRow(new List<string>() 
+                            {
+                                inputParams.Organization.Value,
+                                formInstance.Id,
+                                chapter.Title,
+                                page.Title,
+                                fieldset.Label,
+                                field.Label,
+                                string.Empty 
+                            });
+                        }
+                    });
+                }
+            }
         }
 
+        private List<string> GenerateHeaderRow()
+        {
+            return new List<string>() 
+            {
+                TextLanguage.Organization,
+                TextLanguage.Document_Id,
+                TextLanguage.Chapter_Name,
+                TextLanguage.Page_Name,
+                TextLanguage.Fieldset_Name,
+                TextLanguage.Field_Label,
+                TextLanguage.Field_Value,
+            };
+        }
 
     }
 }

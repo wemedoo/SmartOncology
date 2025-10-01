@@ -11,6 +11,7 @@ namespace sReportsV2.BusinessLayer.Helpers.TabularExportGenerator
 {
     public class TabularExportGeneratorInputParams
     {
+        public TabularExportGeneratorInputParams() { }
         public TabularExportGeneratorInputParams(FileWriter fileWriter, Form currentForm, UserCookieData userCookieData, string dateFormat, KeyValuePair<int, string> organization, Dictionary<int, Dictionary<int, string>> missingValues, int batchSize = 10000, object repetitiveElement = null)
         {
             FileWriter = fileWriter;

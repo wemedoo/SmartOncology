@@ -33,8 +33,8 @@ namespace sReportsV2.DTOs.DTOs.SmartOncology.Enum.DataOut
         public const string DiagnosesSheet = "Diagnoses";
         public const string TherapyCategorizationSheet = "Therapy categorisation";
         public const string ChemotherapySchemasSheet = "Chemotherapy Schemas";
-
-        public const string sReportsVocabularyFileName = "sReports Vocabulary and FHIR Resources";
+        public const string ChemotheraphyFolder = "ChemotherapyData";
+        public const string SReportsVocabularyFileName = "sReports Vocabulary and FHIR Resources";
         public const string ChemotherapyCompendiumFileName = "Chemotherapy_Compendium";
     }
 }

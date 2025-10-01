@@ -18,24 +18,21 @@ using sReportsV2.Domain.Sql.Entities.OrganizationEntities;
 using sReportsV2.Cache.Resources;
 using Chapters.Generators;
 using System;
-using iText.Kernel.Events;
 using Chapters.Helpers;
 using iText.Html2pdf.Resolver.Font;
+using Chapters.Extensions;
 
 namespace Chapters
 {
     public class FormPdfGenerator : PdfGenerator
     {
         #region Drawing constant attributes
-
+        private const int TextMaxLength = 90;
         private const int PageFontSize = 12;
         private const int FieldFontSize = 10;
         private const int CheckAndRadioFontSize = 8;
         private const int PagePaddingX = 47;
         private const int FormFieldPadding = 87;
-        private const int RectanglePadding = 81;
-        private const int ChapterPaddingOffset = 60;
-        private const int RectangleWidth = 557;
         private const int PageHeight = 833;
         private const int PageMargin = 50;
         private const int Step = 20;
@@ -47,8 +44,6 @@ namespace Chapters
         private FormChapter currentChapter;
         private readonly Form form;
         private readonly Dictionary<string, Field> fields;
-
-        private readonly string activeUserNameInfo;
 
         #endregion /Form and User attributes
 
@@ -71,9 +66,8 @@ namespace Chapters
 
         #endregion /Helper properties
 
-        public FormPdfGenerator(Form form, Organization organization, string activeUserNameInfo) : base(organization, "Roboto-Regular")
+        public FormPdfGenerator(Form form, Organization organization, string activeUserNameInfo) : base(organization, "Roboto-Regular", activeUserNameInfo, new Resources.FormPdfMetadata(form.Title, form.Version, form.EntryDatetime))
         {
-            this.activeUserNameInfo = activeUserNameInfo;
             this.form = form;
             this.fields = form.GetAllFields().ToDictionary(f => f.Id, f => f);
 
@@ -93,8 +87,6 @@ namespace Chapters
 
         protected override void PopulatePdf()
         {
-            pdfDocument.AddEventHandler(PdfDocumentEvent.END_PAGE, new HeaderEventHandler(document, basePath, RectangleWidth, RectanglePadding - ChapterPaddingOffset, form, font));
-            pdfDocument.AddEventHandler(PdfDocumentEvent.END_PAGE, new FooterEventHandler(document, basePath, RectangleWidth, RectanglePadding - ChapterPaddingOffset, activeUserNameInfo, organization, font));
             pdfDocument.AddNewPage();
             AddMetadataInfo();
             AddChapters();
@@ -457,9 +449,11 @@ namespace Chapters
 
         private void AddFieldSets(List<FieldSet> fieldSets)
         {
-            for (int fieldSetPosition = 0; fieldSetPosition < fieldSets.Count; fieldSetPosition++)
+            List<FieldSet> listOfFieldsets = fieldSets.GetEffectiveFieldSets();
+
+            for (int fieldSetPosition = 0; fieldSetPosition < listOfFieldsets.Count; fieldSetPosition++)
             {
-                FieldSet fieldSet = fieldSets[fieldSetPosition];
+                FieldSet fieldSet = listOfFieldsets[fieldSetPosition];
                 if (fieldSet.Label != null)
                 {
                     ChangePdfRowCounter("+=", 1);
@@ -520,7 +514,7 @@ namespace Chapters
             foreach (var radioOption in formField.Values)
             {
                 CheckPagePosition(radioOption.Value.Length < 100 ? 1 : radioOption.Value.Length / 100 + 1);
-                AddRadioInput(group);
+                AddRadioInput(group, radioOption.Id);
 
                 document.AddParagraphs(AddRadioParagraph(radioOption));
 
@@ -529,8 +523,9 @@ namespace Chapters
             }
         }
 
-        private void AddRadioInput(PdfButtonFormField group)
+        private void AddRadioInput(PdfButtonFormField group, string radioOptionId)
         {
+            PdfFormField.CreateRadioButton(pdfDocument, new Rectangle(FormFieldPadding, GetY(-Step * pdfRowCounter + additionalPadding), 15, 15), group, radioOptionId).SetFont(font);
             group.SetRadio(true);
         }
 
@@ -759,6 +754,7 @@ namespace Chapters
                 case PdfGeneratorType.Date:
                 case PdfGeneratorType.DateTime:
                 case PdfGeneratorType.Email:
+                case PdfGeneratorType.RichTextParagraph:
                     {
                         ChangeAditionalPadding("+=", 7);
                         CheckPagePosition(2);

@@ -16,10 +16,5 @@ namespace sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchema.DataOut
         public int? UnitId { get; set; }
         public UnitDTO Unit { get; set; }
         public int MedicationId { get; set; }
-
-        public string ToJson()
-        {
-            return HttpUtility.UrlEncode(JsonConvert.SerializeObject(this));
-        }
     }
 }

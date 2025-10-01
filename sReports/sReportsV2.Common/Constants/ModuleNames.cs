@@ -18,5 +18,6 @@ namespace sReportsV2.Common.Constants
         public const string ProjectManagement = "ProjectManagement";
         public const string ClinicalPathway = "ClinicalPathway";
         public const string ClinicalOncology = "ClinicalOncology";
+        public const string QueryManagement = "QueryManagement";
     }
 }

@@ -46,13 +46,7 @@ function advanceFilter() {
 }
 
 function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setAdvancedFilterBtnStyle(requestObject, ['Indication', 'StateCD', 'Name', 'patientId', 'page', 'pageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject, {doOrdering: false})
+    let requestObject = applyActionsBeforeServerReload(['Indication', 'StateCD', 'Name', 'patientId', 'page', 'pageSize'], true, { doOrdering: false });
 
     if (!requestObject.Page) {
         requestObject.Page = 1;

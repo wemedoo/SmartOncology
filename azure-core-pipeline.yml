@@ -1,5 +1,5 @@
 trigger:
-- dev
+  - dev
 
 pool:
   vmImage: 'windows-latest'
@@ -74,4 +74,3 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
 - task: AdvancedSecurity-Dependency-Scanning@1
-# - task: AdvancedSecurity-Codeql-Analyze@1

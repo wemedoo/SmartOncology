@@ -1,9 +1,7 @@
-﻿using sReportsV2.DTOs.Common;
+﻿using sReportsV2.Common.Enums;
+using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.Field.DataIn;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace sReportsV2.DTOs.Form.DataIn
 {
@@ -22,6 +20,10 @@ namespace sReportsV2.DTOs.Form.DataIn
         public bool IsRepetitive { get; set; }
         public int NumberOfRepetitions { get; set; }
         public bool IsReadOnlyViewMode { get; set; }
+        public string FormId { get; set; }
+        public string MatrixId { get; set; }
+        public MatrixType? MatrixType { get; set; }
         public List<FormFieldValueDataIn> Options { get; set; } = new List<FormFieldValueDataIn>();
+        public List<FormFieldSetDataIn> ListOfFieldSets { get; set; } = new List<FormFieldSetDataIn>();
     }
 }

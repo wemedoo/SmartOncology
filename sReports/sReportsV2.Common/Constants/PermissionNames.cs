@@ -22,6 +22,7 @@
         public const string ViewComments = "ViewComments";
         public const string AddComment = "AddComment";
         public const string ChangeCommentStatus = "ChangeCommentStatus";
+        public const string GenerateReports = "GenerateReports";
 
         // engine permisssions
         public const string Download = "Download";
@@ -31,6 +32,8 @@
         public const string UnlockPage = "UnlockPage";
         public const string LockChapter = "LockChapter";
         public const string UnlockChapter = "UnlockChapter";
+        public const string LockFieldSet = "LockFieldSet";
+        public const string UnlockFieldSet = "UnlockFieldSet";
 
         // thesaurus permissions
         public const string CreateCode = "CreateCode";

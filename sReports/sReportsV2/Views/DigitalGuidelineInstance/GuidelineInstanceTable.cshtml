@@ -1,4 +1,5 @@
 ﻿@using System.Globalization
+@using sReportsV2.Common.Extensions
 @using sReportsV2.DTOs.DigitalGuidelineInstance.DataOut
 @model List<GuidelineInstanceDataOut>
 
@@ -15,7 +16,7 @@
                 bool isLastElement = Model.IndexOf(guideline) == Model.Count - 1;
                 <div id="@guideline.Id" class="single-guideline-instance-container @(isLastElement ? "selected" : "")">
                     <div class="digital-guidelines-item" onclick="loadGraph('@guideline.Id', '@guideline.DigitalGuidelineId')">
-                        @guideline.Title - @guideline.Period.Start.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)
+                        @guideline.Title - @guideline.Period.Start.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)
                         <a class="remove-guideline-instance" href="#" onclick="showDeleteModal(event, '@guideline.Id', 'removeGuidelineInstance')" aria-label="Remove guideline instance"></a>
                         <i class="fas fa-chevron-up toggle-arrow hide"></i>
                         <i class="fas fa-chevron-down toggle-arrow" ></i>
@@ -29,11 +30,7 @@
     </div>
     @if (Model.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
 </div>
 

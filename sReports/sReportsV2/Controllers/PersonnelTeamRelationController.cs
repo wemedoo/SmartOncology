@@ -1,5 +1,4 @@
-﻿using Hl7.FhirPath.Sprache;
-using sReportsV2.BusinessLayer.Interfaces;
+﻿using sReportsV2.BusinessLayer.Interfaces;
 using sReportsV2.Common.Constants;
 using sReportsV2.Common.CustomAttributes;
 using sReportsV2.Common.Enums;
@@ -12,10 +11,8 @@ using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
 using sReportsV2.DTOs.Pagination;
 using sReportsV2.SqlDomain.Interfaces;
 using System.Collections.Generic;
-using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -23,20 +20,19 @@ namespace sReportsV2.Controllers
 {
     public class PersonnelTeamRelationController : BaseController
     {
-        private readonly IPersonnelTeamRelationDAL personnelTeamRelationDAL;
         private readonly IPersonnelTeamRelationBLL personnelTeamRelationBLL;
         private readonly IPersonnelTeamBLL personnelTeamBLL;
 
-        public PersonnelTeamRelationController(IPersonnelTeamRelationDAL personnelTeamRelationDAL, 
+        public PersonnelTeamRelationController(
             IPersonnelTeamRelationBLL personnelTeamRelationBLL, 
             IPersonnelTeamBLL personnelTeamBLL,             
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration,
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
-            this.personnelTeamRelationDAL = personnelTeamRelationDAL;
             this.personnelTeamRelationBLL = personnelTeamRelationBLL;
             this.personnelTeamBLL = personnelTeamBLL;
         }
@@ -121,11 +117,11 @@ namespace sReportsV2.Controllers
 
         [SReportsAuthorize(Permission = PermissionNames.View)]
         [SReportsAuditLog]
-        public ActionResult GetSinglePersonnelTeam(PersonnelTeamRelationFilterDataIn dataIn)
+        public ActionResult GetSinglePersonnelTeam(PersonnelTeamRelationFilterDataIn dataIn, bool readOnly)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             PaginationDataOut<PersonnelTeamRelationDataOut, DataIn> paginationDataOut = personnelTeamRelationBLL.GetAllFiltered(dataIn);
-            
+            ViewBag.ReadOnly = readOnly;
             SetViewBag(dataIn.PersonnelTeamId);
 
             return PartialView("~/Views/PersonnelTeam/PersonnelTeamRelation/SinglePersonnelTeam.cshtml", paginationDataOut);

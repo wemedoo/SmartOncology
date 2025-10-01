@@ -3,7 +3,8 @@
 @using sReportsV2.DTOs;
 @using sReportsV2.Common.Extensions;
 @using sReportsV2.DTOs.CodeEntry.DataOut;
-
+@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor HttpContextAccessor
 
 <div class="d-flex">
     <div class="d-flex main-filter mb-2">
@@ -60,10 +61,13 @@
 @functions {
     private void Options(string key)
     {
-        <option value=""> </option>
+        <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+        var queryValue = HttpContextAccessor.HttpContext.Request.Query[key].ToString();
         foreach (var option in ViewBag.DocumentPropertiesEnums[key] as List<EnumDTO>)
         {
-            <option value="@option.Value">@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(option.Label)</option>
+            var optionValue = option.Value;
+            var optionLabel = sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(option.Label);
+            <option id="@string.Format("{0}_{1}", key, optionValue)" data-display="@optionLabel" value="@optionValue" @(!string.IsNullOrEmpty(queryValue) && optionValue == queryValue ? "selected" : "")>@optionLabel</option>
         }
     }
 }

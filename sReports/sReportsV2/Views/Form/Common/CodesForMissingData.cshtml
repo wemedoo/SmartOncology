@@ -1,6 +1,6 @@
 ﻿@model sReportsV2.DTOs.Field.DataOut.FieldDataOut
 
-@if (ViewBag.formInstanceId != null && Model.ShowCodeMissingValue() && !Model.HasValue(0))
+@if (Model.ShowCodeMissingValue() && !Model.HasValue(0))
 {
     <div class="d-flex">
         <div class="form-label-size d-inline-block" hidden></div>

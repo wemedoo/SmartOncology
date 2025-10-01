@@ -1623,13 +1623,7 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DiagnosisCondition")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiagnosisRank")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("DiagnosisRole")
+                    b.Property<int?>("DiagnosisConditionId")
                         .HasColumnType("int");
 
                     b.Property<int?>("EntityStateCD")
@@ -1667,6 +1661,8 @@ namespace sReportsV2.Domain.Sql.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("DiagnosisConditionId");
+
                     b.HasIndex("EntityStateCD");
 
                     b.HasIndex("PatientId");
@@ -1678,41 +1674,6 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.HasIndex("TypeCD");
 
                     b.ToTable("EpisodeOfCares");
-                });
-
-            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.EpisodeOfCare.EpisodeOfCareWorkflow", b =>
-                {
-                    b.Property<int>("EpisodeOfCareWorkflowId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("EpisodeOfCareWorkflowId");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EpisodeOfCareWorkflowId"));
-
-                    b.Property<string>("DiagnosisCondition")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("DiagnosisRole")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EpisodeOfCareId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PersonnelId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StatusCD")
-                        .HasColumnType("int")
-                        .HasColumnName("StatusCD");
-
-                    b.Property<DateTimeOffset>("Submited")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("EpisodeOfCareWorkflowId");
-
-                    b.HasIndex("EpisodeOfCareId");
-
-                    b.ToTable("EpisodeOfCareWorkflows");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.FormComment.Comment", b =>
@@ -2219,9 +2180,6 @@ namespace sReportsV2.Domain.Sql.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TimeZone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TimeZoneOffset")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TypesString")
@@ -3820,11 +3778,11 @@ namespace sReportsV2.Domain.Sql.Migrations
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.ProjectEntry.ProjectDocumentRelation", b =>
                 {
-                    b.Property<int>("ProjectPersonnelRelationId")
+                    b.Property<int>("ProjectDocumentRelationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectPersonnelRelationId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectDocumentRelationId"));
 
                     b.Property<DateTimeOffset>("ActiveFrom")
                         .HasColumnType("datetimeoffset");
@@ -3855,7 +3813,7 @@ namespace sReportsV2.Domain.Sql.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.HasKey("ProjectPersonnelRelationId");
+                    b.HasKey("ProjectDocumentRelationId");
 
                     b.HasIndex("CreatedById");
 
@@ -3964,6 +3922,134 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.HasIndex("ProjectId");
 
                     b.ToTable("ProjectPersonnelRelations");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.QueryManagement.Query", b =>
+                {
+                    b.Property<int>("QueryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QueryId"));
+
+                    b.Property<DateTimeOffset>("ActiveFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ActiveTo")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EntityStateCD")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("EntryDatetime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("FieldId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormInstanceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("LastUpdate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("LastUpdateById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReasonCD")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("StatusCD")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("QueryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("EntityStateCD");
+
+                    b.HasIndex("LastUpdateById");
+
+                    b.HasIndex("ReasonCD");
+
+                    b.HasIndex("StatusCD");
+
+                    b.ToTable("Queries");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.QueryManagement.QueryHistory", b =>
+                {
+                    b.Property<int>("QueryHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QueryHistoryId"));
+
+                    b.Property<DateTimeOffset>("ActiveFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ActiveTo")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EntityStateCD")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("EntryDatetime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LastUpdate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("LastUpdateById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QueryId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("StatusCD")
+                        .HasColumnType("int");
+
+                    b.HasKey("QueryHistoryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("EntityStateCD");
+
+                    b.HasIndex("LastUpdateById");
+
+                    b.HasIndex("QueryId");
+
+                    b.HasIndex("StatusCD");
+
+                    b.ToTable("QueryHistories");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.TaskEntry.Task", b =>
@@ -4118,12 +4204,40 @@ namespace sReportsV2.Domain.Sql.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdministrativeDataId"));
 
-                    b.Property<int>("ThesaurusEntryId")
-                        .HasColumnType("int");
-
                     b.HasKey("AdministrativeDataId");
 
                     b.ToTable("AdministrativeDatas");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.ThesaurusEntry.FormThesaurusReportView", b =>
+                {
+                    b.Property<int>("ThesaurusEntryId")
+                        .HasColumnType("int")
+                        .HasColumnName("ThesaurusEntryId");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredTerm")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("System")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Version")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("VersionPublishDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ThesaurusEntryId");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("FormThesaurusReportViews", (string)null);
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.ThesaurusEntry.O4CodeableConcept", b =>
@@ -4434,6 +4548,50 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.HasIndex("TypeCD");
 
                     b.ToTable("Versions");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.UploadPatientData.UploadPatientData", b =>
+                {
+                    b.Property<int>("UploadPatientDataId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("UploadPatientDataId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UploadPatientDataId"));
+
+                    b.Property<DateTimeOffset>("ActiveFrom")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ActiveTo")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EntityStateCD")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("EntryDatetime")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LastUpdate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("UploadPath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UploadPatientDataId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("EntityStateCD");
+
+                    b.ToTable("UploadPatientData");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.User.Personnel", b =>
@@ -5717,6 +5875,10 @@ namespace sReportsV2.Domain.Sql.Migrations
                         .WithMany()
                         .HasForeignKey("CreatedById");
 
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.ThesaurusEntry.ThesaurusEntry", "DiagnosisCondition")
+                        .WithMany()
+                        .HasForeignKey("DiagnosisConditionId");
+
                     b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "EntityState")
                         .WithMany()
                         .HasForeignKey("EntityStateCD");
@@ -5766,6 +5928,8 @@ namespace sReportsV2.Domain.Sql.Migrations
 
                     b.Navigation("CreatedBy");
 
+                    b.Navigation("DiagnosisCondition");
+
                     b.Navigation("EntityState");
 
                     b.Navigation("Patient");
@@ -5777,17 +5941,6 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.Navigation("Status");
 
                     b.Navigation("Type");
-                });
-
-            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.EpisodeOfCare.EpisodeOfCareWorkflow", b =>
-                {
-                    b.HasOne("sReportsV2.Domain.Sql.Entities.EpisodeOfCare.EpisodeOfCare", "EpisodeOfCare")
-                        .WithMany("WorkflowHistory")
-                        .HasForeignKey("EpisodeOfCareId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EpisodeOfCare");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.FormComment.Comment", b =>
@@ -6873,6 +7026,80 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.QueryManagement.Query", b =>
+                {
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.User.Personnel", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "EntityState")
+                        .WithMany()
+                        .HasForeignKey("EntityStateCD");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.User.Personnel", "LastUpdateBy")
+                        .WithMany()
+                        .HasForeignKey("LastUpdateById");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "Reason")
+                        .WithMany()
+                        .HasForeignKey("ReasonCD")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusCD")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("EntityState");
+
+                    b.Navigation("LastUpdateBy");
+
+                    b.Navigation("Reason");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.QueryManagement.QueryHistory", b =>
+                {
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.User.Personnel", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "EntityState")
+                        .WithMany()
+                        .HasForeignKey("EntityStateCD");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.User.Personnel", "LastUpdateBy")
+                        .WithMany()
+                        .HasForeignKey("LastUpdateById");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.QueryManagement.Query", "Query")
+                        .WithMany("History")
+                        .HasForeignKey("QueryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusCD")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("EntityState");
+
+                    b.Navigation("LastUpdateBy");
+
+                    b.Navigation("Query");
+
+                    b.Navigation("Status");
+                });
+
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.TaskEntry.Task", b =>
                 {
                     b.HasOne("sReportsV2.Domain.Sql.Entities.User.Personnel", "CreatedBy")
@@ -7076,6 +7303,21 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.Navigation("StateCode");
 
                     b.Navigation("TypeCode");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.UploadPatientData.UploadPatientData", b =>
+                {
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.User.Personnel", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("sReportsV2.Domain.Sql.Entities.Common.Code", "EntityState")
+                        .WithMany()
+                        .HasForeignKey("EntityStateCD");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("EntityState");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.User.Personnel", b =>
@@ -7417,8 +7659,6 @@ namespace sReportsV2.Domain.Sql.Migrations
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.EpisodeOfCare.EpisodeOfCare", b =>
                 {
                     b.Navigation("Encounters");
-
-                    b.Navigation("WorkflowHistory");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.GlobalThesaurusUser.GlobalThesaurusUser", b =>
@@ -7488,6 +7728,11 @@ namespace sReportsV2.Domain.Sql.Migrations
                     b.Navigation("ProjectPatientRelations");
 
                     b.Navigation("ProjectPersonnelRelations");
+                });
+
+            modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.QueryManagement.Query", b =>
+                {
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("sReportsV2.Domain.Sql.Entities.ThesaurusEntry.AdministrativeData", b =>

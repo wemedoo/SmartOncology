@@ -35,7 +35,15 @@ namespace sReportsV2.Controllers
         private readonly IMapper mapper;
         private readonly IConfiguration configuration;
 
-        public ThesaurusGlobalController(IGlobalUserBLL globalUserBLL, IThesaurusEntryBLL thesaurusBLL, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public ThesaurusGlobalController(IGlobalUserBLL globalUserBLL, 
+            IThesaurusEntryBLL thesaurusBLL,
+            IMapper mapper, 
+            IConfiguration configuration, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.globalUserBLL = globalUserBLL;
             this.thesaurusBLL = thesaurusBLL;

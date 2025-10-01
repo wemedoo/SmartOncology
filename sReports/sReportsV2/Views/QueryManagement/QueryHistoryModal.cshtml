@@ -1,0 +1,76 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.DTOs.QueryManagement.DataOut;
+@model QueryDataOut
+
+@{
+    bool readOnly = (ViewBag.IsReadOnly as bool?) ?? false;
+    bool isFormInstanceMode = (ViewBag.IsFormInstanceMode as bool?) ?? false;
+    int repetitiveCounter = ((int?)ViewBag.RepetitiveCounter).GetValueOrDefault(1);
+    var fieldInstanceRepetitionInfo = Model?.Field.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
+    string fieldInstanceRepetitionId = fieldInstanceRepetitionInfo.Item1;
+}
+
+<form id="queryHistoryForm" name="queryHistoryModalForm" onsubmit="return false">
+    <div class="modal fade" id="queryHistoryModal" tabindex="-1" role="dialog" aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content query-history-content">
+                <div class="missing-value-modal-content">
+                    <div class="missing-value-modal-title">
+                        <img alt="" src="/css/img/icons/green_pen.svg">
+                        <span class="missing-value-modal-title-text">
+                            @sReportsV2.Cache.Resources.TextLanguage.Queries
+                        </span>
+                        <div class="cancel-button-missing-value-modal ">
+                            <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="queryFieldId" />
+                    <input type="hidden" id="queryReadOnly" />
+
+                    <div class="query-field-container">
+                        <div class="query-info">
+                            <div class="query-field-item">
+                                <span class="query-field-label">@sReportsV2.Cache.Resources.TextLanguage.FieldType</span>
+                                <span>@Model.Field.Type</span>
+                            </div>
+                            <div class="query-field-item">
+                                <span class="query-field-label">@sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label</span>
+                                <span>@Model.Field.Label</span>
+                            </div>
+                            <div class="query-field-item">
+                                <span class="query-field-label">@sReportsV2.Cache.Resources.TextLanguage.Result</span>
+                                <span>@Model.EntryDatetime.ToDateZoned(ViewBag.DateFormat as string)</span>
+                            </div>
+
+                            @if (!readOnly && isFormInstanceMode)
+                            {
+                                <button class="btn btn-create query-add-new" type="button" style="outline: none;" onclick="showQueryModal(event, @readOnly.ToJsBoolean(), '@fieldInstanceRepetitionId', '@Model.Field.Label', @true.ToJsBoolean())" dismiss="modal">
+                                    <i class="fas fa-plus-circle"></i>
+                                    @sReportsV2.Cache.Resources.TextLanguage.AddNew
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div id="queryHistoryTableContainer">
+                 
+                    </div>
+                </div>
+                <div class="missing-value-modal-buttons">
+                    @if (!readOnly)
+                    {
+                        <button id="identifier-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="updateQuery(event)" dismiss="modal">
+                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                        </button>
+                    }
+                    <div class="float-right" id="close">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

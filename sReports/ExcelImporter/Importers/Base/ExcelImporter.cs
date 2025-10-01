@@ -5,6 +5,7 @@ using ExcelImporter.Constants;
 using sReportsV2.Common.Helpers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -118,7 +119,7 @@ namespace ExcelImporter.Importers
 
         protected string GetFile()
         {
-            return DirectoryHelper.AppDataFolder + $"\\{fileName}.xlsx";
+            return Path.Combine(DirectoryHelper.AppDataFolder, $"{fileName}.xlsx");
         }
 
         private CellInfo ParseCell(string text, string columnName, string address, int rowIndex)

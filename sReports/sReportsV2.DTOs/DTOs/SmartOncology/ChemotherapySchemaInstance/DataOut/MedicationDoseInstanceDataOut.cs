@@ -23,11 +23,6 @@ namespace sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchemaInstance.DataOut
         public string RowVersion { get; set; }
         public int? IntervalId { get; set; }
 
-        public string ToJson()
-        {
-            return HttpUtility.UrlEncode(JsonConvert.SerializeObject(this));
-        }
-
         public string RenderTimeDosesValue()
         {
             var doseTimes = MedicationDoseTimes.Select(x => { return string.Concat(x.Time, "h : ", RenderDose(x.Dose)); });

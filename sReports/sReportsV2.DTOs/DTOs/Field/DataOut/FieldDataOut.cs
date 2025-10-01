@@ -4,15 +4,12 @@ using sReportsV2.DTOs.Form.DataOut;
 using sReportsV2.Common.Constants;
 using System;
 using System.Linq;
-using System.Text;
 using System.Collections.Generic;
-using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
 using sReportsV2.Common.Enums;
-using sReportsV2.DTOs.DTOs.FieldInstance.DataOut;
 
 namespace sReportsV2.DTOs.Field.DataOut
 {
-    public class FieldDataOut
+    public partial class FieldDataOut
     {
         public virtual string NestableView { get; }
         public virtual string PartialView { get; }
@@ -50,28 +47,8 @@ namespace sReportsV2.DTOs.Field.DataOut
         public DependentOnInfoDataOut DependentOn { get; set; }
 
         public bool IsDisabled { get; set; }
-        public string FieldSetInstanceRepetitionId { get; set; }
-        public string FieldSetId { get; set; }
-        public List<FieldInstanceValueDataOut> FieldInstanceValues { get; set; }
-        public bool HiddenFieldsShown { get; set; }
         public virtual bool IsFieldRepetitive => false;
 
-        public virtual string GetValue()
-        {
-            return GetFirstFieldInstanceValue();
-        }
-        public virtual bool IsSpecialValue()
-        {
-            return HasAnyFieldInstanceValue && (FieldInstanceValues.FirstOrDefault()?.IsSpecialValue ?? false);
-        }
-        public virtual string GetValueLabel()
-        {
-            return HasAnyFieldInstanceValue ? FieldInstanceValues.FirstOrDefault()?.ValueLabel ?? string.Empty : string.Empty;
-        }
-        public virtual string GetSpecialValueLabel(Dictionary<string, string> specialValues)
-        {
-            return specialValues.FirstOrDefault(x => x.Key == FieldInstanceValues.FirstOrDefault()?.FirstValue).Value;
-        }
         public virtual string GetLabel()
         {
             return this.Label;
@@ -180,186 +157,26 @@ namespace sReportsV2.DTOs.Field.DataOut
             }
         }
 
+
         public virtual bool CanBeInDependencyFormula()
         {
             return false;
         }
 
-        public string GetFieldInstanceDataAttrs(string fieldSetId, int fieldInstanceRepetitionIndex)
+        public virtual bool CanBeConnectedField()
         {
-            string fieldInstanceRepetitionId = this.GetFieldInstanceRepetitionInfo(fieldInstanceRepetitionIndex - 1).Item1;
-
-            StringBuilder stringBuilder = new StringBuilder($"name=\"{fieldInstanceRepetitionId}\" ")
-                .AppendLine($"data-fieldtype=\"{this.Type}\" ")
-                .AppendLine($"data-thesaurusid=\"{this.ThesaurusId}\" ")
-                .AppendLine($"data-fieldsetid=\"{fieldSetId}\" ")
-                .AppendLine($"data-fieldsetinstancerepetitionid=\"{this.FieldSetInstanceRepetitionId}\" ")
-                .AppendLine($"data-fieldid=\"{this.Id}\" ")
-                .AppendLine($"data-fieldinstancerepetitionid=\"{fieldInstanceRepetitionId}\" ")
-                .AppendLine($"data-isrequired=\"{IsRequired}\" ")
-                .AppendLine($"data-allowsavewithoutValue=\"{this.AllowSaveWithoutValue}\" ");
-
-            if (NullFlavors != null && NullFlavors.Any())
-            {
-                string nullFlavorsString = string.Join(",", NullFlavors);
-                stringBuilder.AppendLine($"data-nullflavors=\"{nullFlavorsString}\" ");
-            }
-
-            return stringBuilder.ToString();
+            return true;
         }
 
-        [JsonIgnore]
-        public string FirstValue
+
+        protected void AddAttributeIfNotNull(List<string> attributes, string attributeName, object value)
         {
-            get
+            if (value != null)
             {
-                return FieldInstanceValues?.FirstOrDefault()?.FirstValue;
+                attributes.Add($"{attributeName}={value}");
             }
         }
 
-        [JsonIgnore]
-        private bool HasAnyFieldInstanceValue
-        {
-            get
-            {
-                return FieldInstanceValues != null && FieldInstanceValues.Count > 0;
-            }
-        }
-
-        public int GetRepetitiveFieldCount()
-        {
-            return FieldInstanceValues != null ? FieldInstanceValues.Count : 0;
-        }
-
-        public string GetFirstFieldInstanceValue()
-        {
-            return this.HasAnyFieldInstanceValue ? this.FirstValue ?? string.Empty : string.Empty;
-        }
-
-        public List<string> GetFirstFieldInstanceValues()
-        {
-            return this.HasAnyFieldInstanceValue ? this.FieldInstanceValues.FirstOrDefault()?.Values ?? new List<string>() : new List<string>();
-        }
-
-        public bool HasValue()
-        {
-            return HasAnyFieldInstanceValue;
-        }
-
-        public string GetSynopticValue(int repetitiveValueIndex, string neTranslated, string valueSeparator)
-        {
-            FieldInstanceValueDataOut fieldInstanceValue = FieldInstanceValues[repetitiveValueIndex];
-            return IsRequired && fieldInstanceValue.Values.Count == 0 ? neTranslated : FormatDisplayValue(fieldInstanceValue, valueSeparator);
-        }
-
-        protected virtual string FormatDisplayValue(FieldInstanceValueDataOut fieldInstanceValue, string valueSeparator)
-        {
-            return fieldInstanceValue.FirstValue ?? string.Empty;
-        }
-
-        public virtual bool IsInputDisabled(bool isChapterReadonly, bool isSpecialValue)
-        {
-            return IsReadonly || isChapterReadonly || isSpecialValue;
-        }
-
-        public string GetParentFieldInstanceCssSelector(string fieldInstanceRepetitionId)
-        {
-            return $"[name=\"{fieldInstanceRepetitionId}\"]:not([spec-value])";
-        }
-
-        public virtual string GetChildFieldInstanceCssSelector(string fieldInstanceRepetitionId)
-        {
-            return $"[data-fieldinstancerepetitionid=\"{fieldInstanceRepetitionId}\"]";
-        }
-
-        public string GetValueForTextExport(Dictionary<int, Dictionary<int, string>> missingValues)
-        {
-            List<string> values = new List<string>(); 
-            foreach (FieldInstanceValueDataOut fieldInstanceValue in FieldInstanceValues)
-            {
-                string value;
-                if (fieldInstanceValue.IsSpecialValue)
-                {
-                    value = GetCodeMissingValue(fieldInstanceValue.FirstValue, missingValues);
-                }
-                else
-                {
-                    value = FormatDisplayValue(fieldInstanceValue, ",");
-                }
-                if (!string.IsNullOrEmpty(value))
-                {
-                    values.Add(value);
-                }
-            }
-
-            return string.Join(Environment.NewLine, values);
-        }
-
-        public Tuple<string, bool> GetFieldInstanceRepetitionInfo(int index)
-        {
-            if(!HasAnyFieldInstanceValue)
-            {
-                FieldInstanceValues = new List<FieldInstanceValueDataOut>()
-                {
-                    new FieldInstanceValueDataOut(null)
-                };
-            }
-            string repetitionId = FieldInstanceValues?.ElementAtOrDefault(index)?.FieldInstanceRepetitionId ?? String.Empty;
-            bool isSpecialValue = FieldInstanceValues?.ElementAtOrDefault(index)?.IsSpecialValue ?? false;
-
-            return Tuple.Create(repetitionId, isSpecialValue);
-        }
-
-        public bool HasValue(int index)
-        {
-            if (!HasAnyFieldInstanceValue)
-            {
-                FieldInstanceValues = new List<FieldInstanceValueDataOut>()
-                {
-                    new FieldInstanceValueDataOut(null)
-                };
-            }
-            FieldInstanceValueDataOut fieldInstanceValueData = FieldInstanceValues.ElementAtOrDefault(index);
-            return fieldInstanceValueData != null && fieldInstanceValueData.Values.Count > 0;
-        }
-
-
-        public bool IsNullFlavorChecked(int codeId)
-        {
-            if (NullFlavors.Count > 0)
-                return NullFlavors.Contains(codeId);
-            else
-                return true;
-        }
-
-        public void HandleDependency(LogicalExpresionResult logicalExpresionResult, int? missingCodeValueId)
-        {
-            if (logicalExpresionResult == LogicalExpresionResult.TRUE)
-            {
-                this.IsVisible = true;
-            }
-            else
-            {
-                this.IsVisible = false;
-                this.FieldInstanceValues.ForEach(x => x.ResetValue(this.IfSpecialValueCanBeSet(), missingCodeValueId));
-            }
-        }
-
-        public void AddMissingPropertiesInDependency(FormDataOut form)
-        {
-            if (this.DependentOn?.DependentOnFieldInfos != null)
-            {
-                Dictionary<string, string> fields = form.GetAllFields().ToDictionary(x => x.Id, x => x.Type);
-
-                foreach (DependentOnFieldInfoDataOut item in this.DependentOn.DependentOnFieldInfos)
-                {
-                    if (fields.TryGetValue(item.FieldId, out string fieldType))
-                    {
-                        item.FieldType = fieldType;
-                    }
-                }
-            }
-        }
 
         protected virtual int GetMissingValueCodeSetId()
         {
@@ -375,6 +192,16 @@ namespace sReportsV2.DTOs.Field.DataOut
                         .Where(v => v.Key == codeId)
                         .Select(v => v.Value)
                         .FirstOrDefault();
+        }
+
+
+
+        public bool IsNullFlavorChecked(int codeId)
+        {
+            if (NullFlavors.Count > 0)
+                return NullFlavors.Contains(codeId);
+            else
+                return true;
         }
     }
 }

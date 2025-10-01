@@ -4,12 +4,22 @@
 @using sReportsV2.Common.Helpers
 @using sReportsV2.DTOs;
 @using Microsoft.AspNetCore.Http;
+@using sReportsV2.DTOs.Form;
 @inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    bool isDataCapture = ViewBag.Title == sReportsV2.Cache.Resources.TextLanguage.DataCaptureEngine;
+    FormFilterDataIn filter = ViewBag.FilterData as FormFilterDataIn;
+    string timeFrom = filter != null ? filter.DateTimeFrom.GetTimePart() : "";
+    string timeTo = filter != null ? filter.DateTimeTo.GetTimePart() : "";
+    string dateFrom = filter != null ? filter.DateTimeFrom.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+    string dateTo = filter != null ? filter.DateTimeTo.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+}
 
 <form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
     <div class="modal fade" id="advancedFilterModal" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content modal-content-advanced form-advanced-content">
+            <div class="modal-content modal-content-advanced form-advanced-content @(isDataCapture ? "form-expanded" : "")">
                 <div class="float-right filter-close-btn">
                     <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
 
@@ -31,29 +41,25 @@
                                     {
                                         InputAttributes = new Dictionary<object, object> { 
                                             { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" }, 
-                                            { "value", ViewBag.FilterData != null && ViewBag.FilterData.DateTimeFrom != null ? ViewBag.FilterData.DateTimeFrom.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                            { "value", dateFrom },
                                             { "id", "dateFrom"},
                                             { "name", "dateFrom"}
                                         }
                                     })
-                                    <input id="dateTimeFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeFrom != null ? ViewBag.FilterData.DateTimeFrom.ToString("s") : "")" />
+                                    <input id="dateTimeFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.DateTimeFrom != null ? filter.DateTimeFrom.Value.ToString("s") : "")" />
                                     <div class="img-wrapper">
                                         <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
                                     </div>
                                 </div>
-                                <div class="time-wrapper w-35 input-border">
-                                    <input 
-                                           type="text" 
-                                           placeholder="@DateConstants.TimeFormatDisplay" 
-                                           class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90" 
-                                           value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeFrom != null ? ViewBag.FilterData.DateTimeFrom.GetTimePart() : "")"
-                                           id="timeFrom"
-                                           name="timeFrom"
-                                           >
-                                    <div class="clock-wrapper">
-                                        <i class="fas fa-clock" @Html.TimeDisabled(readOnly: false)></i>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                           {
+                               InputAttributes = new Dictionary<object, object> {
+                                { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                { "value", timeFrom },
+                                { "id", "timeFrom"},
+                                { "name", "timeFrom"}
+                                }
+                           })
                             </div>
                         </div>
                         <div class="advanced-filter-item filter-item">
@@ -66,45 +72,55 @@
                                     {
                                         InputAttributes = new Dictionary<object, object> { 
                                             { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" }, 
-                                            { "value", ViewBag.FilterData != null && ViewBag.FilterData.DateTimeTo != null ? ViewBag.FilterData.DateTimeTo.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                            { "value", dateTo },
                                             { "id", "dateTo"},
                                             { "name", "dateTo"}
                                         }
                                     })
-                                    <input id="dateTimeTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeTo != null ? ViewBag.FilterData.DateTimeTo.ToString("s") : "")" />
+                                    <input id="dateTimeTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.DateTimeTo != null ? filter.DateTimeTo.Value.ToString("s") : "")" />
                                     <div class="img-wrapper">
                                         <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
                                     </div>
                                 </div>
-                                <div class="time-wrapper w-35 input-border">
-                                    <input 
-                                           type="text" 
-                                           placeholder="@DateConstants.TimeFormatDisplay" 
-                                           class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90" 
-                                           value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeTo != null ? ViewBag.FilterData.DateTimeTo.GetTimePart() : "")"
-                                           id="timeTo"
-                                           name="timeTo"
-                                           >
-                                    <div class="clock-wrapper">
-                                        <i class="fas fa-clock" @Html.TimeDisabled(readOnly: false)></i>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                           {
+                               InputAttributes = new Dictionary<object, object> {
+                                { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                { "value", timeTo },
+                                { "id", "timeTo"},
+                                { "name", "timeTo"}
+                                }
+                           })
                             </div>
                         </div>
                     </div>
+
+                    @if (isDataCapture)
+                    {
+                        <div class="d-flex margin-top-20">
+                            <div class="advanced-filter-item filter-item">
+                                <div class="label filter-label">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Content
+                                </div>
+                                <input type="text" class="filter-input" id="content" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.Content : "")">
+                            </div>
+                            <div class="advanced-filter-item filter-item">
+                            </div>
+                        </div>
+                    }
 
                     <div class="d-flex margin-top-20">
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Title
                             </div>
-                            <input type="text" class="filter-input" id="title" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Title : "")">
+                            <input type="text" class="filter-input" id="title" value="@(filter!= null ? filter.Title : "")">
                         </div>
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.ThesaurusId
                             </div>
-                            <input type="text" class="filter-input" id="thesaurusId" value="@(ViewBag.FilterData != null && ViewBag.FilterData.ThesaurusId > 0 ? ViewBag.FilterData.ThesaurusId : "")">
+                            <input type="text" class="filter-input" id="thesaurusId" value="@(filter != null && filter.ThesaurusId > 0 ? filter.ThesaurusId : "")">
                         </div>
                     </div>
 
@@ -117,7 +133,8 @@
                                 <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
                                 @foreach (var option in Enum.GetNames(typeof(sReportsV2.Common.Enums.FormDefinitionState)))
                                 {
-                                    <option class="advanced-select" value="@option" @(ViewBag.FilterData != null && ViewBag.FilterData.State != null && ViewBag.FilterData.State.ToString() == option ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(option)</option>
+                                    string optionLabel = @sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(option);
+                                    <option id="State_@option" data-display="@optionLabel" class="advanced-select" value="@option" @(filter != null && filter.State != null && filter.State.ToString() == option ? "selected" : "")>@optionLabel</option>
                                 }
                             </select>
                         </div>
@@ -153,7 +170,7 @@
                                 <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
                                 @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.ClinicalDomains, readOnlyMode: true))
                                 {
-                                    <option id="@option.Id" @(ViewBag.FilterData.ClinicalDomain == option.Id ? "selected" : "")>@option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)</option>
+                                    <option id="@option.Id" @(filter.ClinicalDomain == option.Id ? "selected" : "")>@option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)</option>
                                 }
                             </select>
                         </div>
@@ -185,7 +202,7 @@
                     <div class="d-flex">
                         <div class=" margin-top-20 advanced-filter-item filter-item @(HttpContextAccessor.HttpContext.Request.Query["ClinicalContext"] == "FollowUp"? "d-block":"d-none")" id="documentFollowUp" style="width:47%;">
                             <div class="label filter-label">@sReportsV2.Cache.Resources.TextLanguage.FollowUp</div>
-                            <select class=" filter-input arrow-select" id="documentFollowUpSelect">
+                            <select class=" filter-input arrow-select" id="followUp">
                                 @{
                                     Options("FollowUp");
                                 }
@@ -260,14 +277,7 @@
         {
             var optionValue = option.Value;
             var optionLabel = sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(option.Label);
-            if (!string.IsNullOrEmpty(queryValue) && optionValue == queryValue)
-            {
-                <option value="@optionValue" selected>@optionLabel</option>
-            }
-            else
-            {
-                <option value="@optionValue">@optionLabel</option>
-            }
+            <option id="@string.Format("{0}_{1}", key, optionValue)" data-display="@optionLabel" value="@optionValue" @(!string.IsNullOrEmpty(queryValue) && optionValue == queryValue ? "selected" : "")>@optionLabel</option>
         }
     }
 }

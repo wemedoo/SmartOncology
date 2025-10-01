@@ -5,9 +5,9 @@ namespace sReportsV2.Common.Helpers
 {
     public static class ExceptionHelper
     {
-        public static string GetExceptionStackMessages(Exception exception)
+        public static string GetExceptionStackMessages(this Exception exception)
         {
-            StringBuilder stringBuilder = new StringBuilder(exception.Message ?? string.Empty);
+            StringBuilder stringBuilder = new StringBuilder(exception?.Message ?? string.Empty);
 
             Exception currentException = exception?.InnerException;
             while (currentException != null)

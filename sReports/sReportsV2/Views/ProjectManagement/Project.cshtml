@@ -9,7 +9,7 @@
 <div class="element-background-white">
     @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "linkLevel1", "/ProjectManagement/GetAll" }, { "level2", Model != null ? Model.ProjectName : sReportsV2.Cache.Resources.TextLanguage.CreateProject }, { "activeLevel", 2 } })
 
-    <div class="header header-new">
+    <div class="header header-new" id="project-header-name">
         @(Model != null ? Model.ProjectName : sReportsV2.Cache.Resources.TextLanguage.CreateProject)
     </div>
 

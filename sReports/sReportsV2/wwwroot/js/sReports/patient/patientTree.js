@@ -1,11 +1,11 @@
-﻿function handleSuccessFormSubmitFromPatient(data, isEditForm) {
+﻿function handleSuccessFormSubmitFromPatient(data, isEditForm, callback) {
     if (isEditForm) {
-        reloadAfterFormInstanceChange();
+        reloadAfterFormInstanceChange(callback);
     }
     else {
         let activeEncounterId = getActiveEncounterId();
         showDetails(activeEncounterId, false);
-        submitNewEncounterDocument(data.formInstanceId, $("#patientId").val(), $("#activeEOC").val(), activeEncounterId, false, true)
+        submitNewEncounterDocument(data.formInstanceId, $("#patientId").val(), $("#activeEOC").val(), activeEncounterId, false, true, callback)
     }
 }
 
@@ -33,8 +33,9 @@ function loadDynamicForm(e) {
         toastr.error('Please select a document');
         return;
     }
+    preventMultipleSubmit('loadDynamicFormBtn');
+    setFormInstanceContent('');
     let formId = $(selectedFormElement).data('id');
-
     createNewFormInstance(formId);
 }
 
@@ -43,19 +44,12 @@ function createNewFormInstance(formId) {
     var patientId = $('#patientId').val();
     var encounterId = getActiveEncounterId();
 
-    callServer({
-        type: "GET",
-        url: `/DiagnosticReport/CreateFromPatient?encounterId=${encounterId}&episodeOfCareId=${episodeOfCareId}&patientId=${patientId}&formId=${formId}&${getReferralsAsParameter()}`,
-        data: {},
-        success: function (data) {
-            deactivateSelectedFormInstance();
-            $("#formInstanceContainer").html(data);         
-            $(".extended-div").addClass("hidden-element");
-            closeCustomModal();
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-            handleResponseError(xhr);
-        }
+    let url = `/DiagnosticReport/CreateFromPatient?encounterId=${encounterId}&episodeOfCareId=${episodeOfCareId}&patientId=${patientId}&formId=${formId}&${getReferralsAsParameter()}`;
+    fetchFormInstance(url, function () {
+        deactivateSelectedFormInstance();
+        $(".extended-div").addClass("hidden-element");
+        closeCustomModal();
+        $('#temporalFormInstanceDiv').html('');
     });
 }
 
@@ -118,7 +112,7 @@ $(document).on('keyup', '#searchCondition', function (e) {
 
             loadingForms = callServer({
                 method: 'GET',
-                url: `/Encounter/ListForms?condition=${inputValue}`,
+                url: `/Encounter/ListForms?searchName=${inputValue}`,
                 success: function (data) {
                     $('#formsContainer').html(data);
                     loadingForms = null;
@@ -331,9 +325,10 @@ function submitEOCForm() {
         request['TypeCD'] = $("#type").val();
         request['Period'] = period;
         request['PatientId'] = $("#patientId").val();
+        request['DiagnosisConditionId'] = $("#diagnosisConditionId").val();
         request['Description'] = $("#description").val();
         request['PersonnelTeamId'] = $('#careteam-name-select2 :selected').val();
-        var action = request.Id ? "Edit" : 'Create';
+        var action = request.Id !== '0' ? "Edit" : 'Create';
         callServer({
             type: "POST",
             url: `/EpisodeOfCare/${action}`,
@@ -379,8 +374,6 @@ function getPatientRequestObject(requestObject) {
     return requestObject;
 }
 
-$("#typeEOC").val();
-
 var type = "";
 
 function formatEpisodeOfCare(episodeOfCare) {
@@ -388,6 +381,16 @@ function formatEpisodeOfCare(episodeOfCare) {
         return episodeOfCare.text;
     }
     var $episode = $('<span class="eoc-tt">' + episodeOfCare.text + '</span>');
+    return $episode;
+}
+
+function formatSkosResult(skosData) {
+    if (!skosData.id) {
+        return skosData.text;
+    }
+    let synonymSuffix = skosData.issynonym ? '(synonym)' : '';
+    let className = skosData.issynonym ? 'alt-label-option' : 'pref-label-option';
+    var $episode = $(`<span class="${className}">${skosData.text} ${synonymSuffix}</span>`);
     return $episode;
 }
 
@@ -454,14 +457,6 @@ function addPropertyToObject(object, name, value) {
     }
 }
 
-function getFilterUrlParams(filter) {
-    let result = "";
-    for (const property in filter) {
-        result = result.concat(`&${property}=${filter[property]}`);
-    }
-    return result;
-}
-
 function cancelForm() {
     noDocuments();
 }
@@ -496,8 +491,7 @@ function toggleVisibility() {
         var patientContainer = document.querySelector(".patient-container");
         patientContainer.style.minWidth = "350px";
         patientContainer.style.maxWidth = "350px";
-        var documentContainer = document.querySelector(".eoc-document");
-        documentContainer.style.width = "unset";
+        $(".eoc-document").width("unset");
     }
 }
 
@@ -510,7 +504,6 @@ function hidePatientInfo() {
         var patientContainer = document.querySelector(".patient-container");
         patientContainer.style.width = "auto";
         patientContainer.style.minWidth = "fit-content";
-        var documentContainer = document.querySelector(".eoc-document");
-        documentContainer.style.width = "calc(100% + 367px)";
+        $(".eoc-document").width("calc(100% + 367px)");
     }
 }

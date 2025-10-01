@@ -1,12 +1,20 @@
-﻿@using sReportsV2.DTOs.Form.DataOut
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.DTOs.Form.DataOut
 @using sReportsV2.Common.Enums;
 @using sReportsV2.Common.Extensions;
 @using sReportsV2.Cache.Resources
 
 @model FormFieldSetDataOut
 
+@{
+    bool hideRepetitive = !string.IsNullOrEmpty(Model?.MatrixId) || (Model?.ListOfFieldSets?.Count > 0);
+    string disabled = ViewBag.Disabled == "disabled" ? "disabled" : "";
+    string layoutDisabled = ViewBag.Disabled == "disabled" || Model?.ListOfFieldSets?.Count > 0 || (!Model.IsMatrixFieldSet() && !string.IsNullOrEmpty(Model.Id)) ? "disabled" : "";
+}
+
 <form class="designer-item-form" id="fieldsetGeneralInfoForm">
     <input type="hidden" id="elementId" value="@(string.IsNullOrWhiteSpace(Model.Id) ? GuidExtension.NewGuidStringWithoutDashes() : Model.Id)" />
+    <input type="hidden" id="fsMatrixId" value="@(Model?.MatrixId)" />
     <div class="designer-form-section">
         <div class="designer-form-section-title thesaurus-title">
             @sReportsV2.Cache.Resources.TextLanguage.FieldsetGeneral 
@@ -16,9 +24,9 @@
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.FieldsetLabel
                 </div>
-                <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @ViewBag.Disabled/>
+                <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @disabled />
             </div><!--
-            --><div class="designer-form-input-group half-width">
+            --><div id="repetitive" class="designer-form-input-group half-width @(hideRepetitive ? "hide-repetitive" : "")">
                    <div class="label filter-label">
                        @sReportsV2.Cache.Resources.TextLanguage.Repetitive
                    </div>
@@ -28,7 +36,8 @@
                     <option value="false" @(Model == null || !Model.IsRepetitive ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.No_</option>
                 </select>
             </div><!--
-            --><div class="designer-form-input-group half-width no-margin-right">
+            -->
+            <div id="numOfRepetition" class="designer-form-input-group half-width no-margin-right @(hideRepetitive ? "hide-repetitive" : "")">
                    <div class="label filter-label">
                        @sReportsV2.Cache.Resources.TextLanguage.NumberOfRepetitionOnPdf
                    </div>
@@ -61,12 +70,13 @@
         <div class="designer-form-section-title">
             @sReportsV2.Cache.Resources.TextLanguage.LayoutSettings
         </div>
+
         <div class="designer-form-input-group half-width" style="display: flex;">
             <div class="layout-style">
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.LayoutStyle
                 </div>
-                <select class="designer-form-input arrow-select patient-background" id="layoutType" @ViewBag.Disabled @(!Model.IsMatrixFieldSet() && !string.IsNullOrEmpty(Model.Id) ? "disabled" : "")>
+                <select class="designer-form-input arrow-select patient-background" id="layoutType" @layoutDisabled>
                     <option value="@LayoutType.Vertical" @(!Model.IsMatrixFieldSet() ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Vertical</option>
                     <option value="@LayoutType.Matrix" @(Model.IsMatrixFieldSet() ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Matrix</option>
                 </select>
@@ -76,6 +86,35 @@
                        @sReportsV2.Cache.Resources.TextLanguage.MaxItems
                    </div>
                 <input class="designer-form-input" id="layoutMaxItems" name="layoutMaxItems" type="number" value="@(Model != null && Model.LayoutStyle != null ? Model.LayoutStyle.MaxItems : "")" @ViewBag.Disabled/>
+            </div>
+        </div>
+
+        <div class="flex">
+            <div id="matrixTypeContainer" class="designer-form-input-group half-width-fieldtype" style="display: none">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.MatrixType
+                </div>
+                <select class="designer-form-input arrow-select patient-background" id="matrixType" @ViewBag.Disabled @(!string.IsNullOrEmpty(Model.Id) ? "disabled" : "")>
+                    <option value="@MatrixType.FieldMatrix" @(!Model.IsFieldSetMatrixType() ? "selected" : "")>
+                        @sReportsV2.Cache.Resources.TextLanguage.FieldMatrix
+                    </option>
+                    <option value="@MatrixType.FieldSetMatrix" @(Model.IsFieldSetMatrixType() ? "selected" : "")>
+                        @sReportsV2.Cache.Resources.TextLanguage.FieldSetMatrix
+                    </option>
+                </select>
+            </div>
+            <div id="fieldTypeContainer" class="designer-form-input-group half-width-fieldtype" style="display: none">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Type
+                </div>
+                <select class="designer-form-input arrow-select patient-background" id="matrixFieldType" @ViewBag.Disabled @(!string.IsNullOrEmpty(Model.Id) ? "disabled" : "")>
+                    <option value="@FieldTypes.Number" @(!Model.IsTextFieldType() ? "selected" : "")>
+                        @sReportsV2.Cache.Resources.TextLanguage.Number
+                    </option>
+                    <option value="@FieldTypes.Text" @(Model.IsTextFieldType() ? "selected" : "")>
+                        @sReportsV2.Cache.Resources.TextLanguage.Text
+                    </option>
+                </select>
             </div>
         </div>
 
@@ -91,29 +130,33 @@
                     {
                         foreach (var entry in Model.Options)
                         {
-                            <div class="advanced-filter-item margin-bottom-8 option-group">
+                            <div class="advanced-filter-item margin-bottom-8 option-group options-group">
                                 <input class="filter-input fs-item-title margin-right-8 option-input optionLabel" type="text" data-id="@entry.Id" data-label="@entry.Label" data-value="@entry.Value" value="@entry.Label" disabled>
                                 <input class="filter-input fs-item-title margin-right-8 option-input" type="text" data-value="@entry.Value" value="@entry.Value" disabled>
                                 <span class="remove-option" id="removeButtonId">
-                                    <img alt="" class="remove-option-btn" onclick="removeOption(this)" src="/css/img/icons/close_black.svg">
+                                    <img alt="" class="remove-option-btn" src="/css/img/icons/close_black.svg">
                                 </span>
                             </div>
                         }
                     }
-                    <div class="advanced-filter-item margin-bottom-16 option-group">
+                    <div id="optionGroup" class="advanced-filter-item margin-bottom-16 option-group @GetAddOptionVisibilityClass()">
                         <input class="filter-input fs-item-title margin-right-8 option-input" id="optionLabel" name="optionLabel" type="text" placeholder="@sReportsV2.Cache.Resources.TextLanguage.EnterOptionLabel">
                         <input class="filter-input fs-item-title margin-right-23 option-input" id="optionValue" name="optionValue" type="text" placeholder="@sReportsV2.Cache.Resources.TextLanguage.EnterOptionValue">
                     </div>
                 </div>
             </div>
 
-            <div class="position-relative">
+            <div id="addOptionButton" class="position-relative @GetAddOptionVisibilityClass()">
                 <button class="btn btn-add-option d-flex align-items-center"
                         onclick="createNewOption(event)">
                     <img alt="" class="add-option-btn" src="/css/img/icons/add_new.svg">
                     <span class="plus-option">@sReportsV2.Cache.Resources.TextLanguage.Add @sReportsV2.Cache.Resources.TextLanguage.Option.ToLower()</span>
                 </button>
             </div>
+        </div>
+
+        <div id="fieldSetMatrixLayoutDiv">
+            @await Html.PartialAsync("~/Views/Form/DragAndDrop/FieldSetMatrix.cshtml")
         </div>
 
     </div>
@@ -145,6 +188,21 @@
         }
     </div>
 </form>
+
+@functions {
+    public string GetAddOptionVisibilityClass()
+    {
+        if (Model?.Options?.Count == 0 ||
+            (Model?.LayoutStyle?.MaxItems is not null
+             && int.TryParse(Model.LayoutStyle.MaxItems, out int maxItems)
+             && Model.Options?.Count < maxItems))
+        {
+            return "show";
+        }
+        return "hide";
+    }
+}
+
 <script>
     $(document).ready(function () {
         $('#helpContent').ckeditor();
@@ -159,17 +217,17 @@
             handleLayoutTypeChange($(this).val());
         });
 
-        handleLayoutTypeChange($('#layoutType').val());
-    });
+        $('#matrixType').change(function () {
+            handleMatrixTypeChange($(this).val());
+        });
 
-    function handleLayoutTypeChange(value) {
-        if (value === 'Matrix') {
-            $('#matrixLayoutDiv').show();
-            $('#layoutMaxItems').closest('.layout-maxitems').show();
-        } else {
-            $('#matrixLayoutDiv').hide();
-            $('#layoutMaxItems').closest('.layout-maxitems').hide();
-        }
-    }
+        $('#layoutMaxItems').on('change', function () {
+            toggleFieldsetVisibility();
+            toggleOptionsVisibility();
+        });
+
+        handleLayoutTypeChange($('#layoutType').val());
+        handleMatrixTypeChange($('#matrixType').val());
+    });
 </script>
 

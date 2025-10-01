@@ -16,7 +16,7 @@
         </div>
 
         <div class="forms-container-list" id="formsDocumentContainer">
-            @await Html.PartialAsync("FilterGuidelineDocuments", Model.FormInstances)
+            @await Html.PartialAsync("SelectOptionRows", Model.FormInstances)
         </div>
     </div>
 
@@ -24,8 +24,8 @@
 
 <div class="button-container">
     <div class="cancel-button" onclick="closeGuidelineInstanceModal()">
-        Back
+        @sReportsV2.Cache.Resources.TextLanguage.Back
     </div>
 
-    <div class="submit-button" onclick="insertValueFromDocument()">Continue</div>
+    <div class="submit-button" onclick="insertValueFromDocument()">@sReportsV2.Cache.Resources.TextLanguage.Continue</div>
 </div>

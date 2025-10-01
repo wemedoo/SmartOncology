@@ -45,13 +45,13 @@ namespace sReportsV2.SqlDomain.Implementations
             if (chemotherapySchemaFilter.ColumnName != null)
             {
                 result = SortTableHelper.OrderByField(result, chemotherapySchemaFilter.ColumnName, chemotherapySchemaFilter.IsAscending)
-                    .Skip((chemotherapySchemaFilter.Page - 1) * chemotherapySchemaFilter.PageSize)
+                    .Skip(chemotherapySchemaFilter.GetHowManyElementsToSkip())
                     .Take(chemotherapySchemaFilter.PageSize);
             }
             else
             {
                 result = result.OrderByDescending(x => x.EntryDatetime)
-                   .Skip((chemotherapySchemaFilter.Page - 1) * chemotherapySchemaFilter.PageSize)
+                   .Skip(chemotherapySchemaFilter.GetHowManyElementsToSkip())
                    .Take(chemotherapySchemaFilter.PageSize);
             }
 

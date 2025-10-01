@@ -17,6 +17,7 @@ namespace sReportsV2.DTOs.DTOs.User.DataIn
         public int? RoleCD { get; set; }
         public int? PersonnelTypeCD { get; set; }
         public int ActiveOrganization { get; set; }
+        public bool HasAdminRole { get; set; }
 
         public int? CountryCD { get; set; }
         public string CountryName { get; set; }

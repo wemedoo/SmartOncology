@@ -19,6 +19,7 @@
         public const string PatientBirthDate = "PatientBirthDate";
         public const string TaskType = "TaskType";
         public const string TaskStatus = "TaskStatus";
+        public const string Type = "Type";
         public const string Status = "Status";
         public const string Class = "Class";
         public const string ExplicitPurpose = "ExplicitPurpose";
@@ -30,5 +31,15 @@
         public const string User = "User";
         public const string Patient = "Patient";
         public const string ProjectName = "ProjectName";
+        public const string NameGiven = "NameGiven";
+        public const string NameFamily = "NameFamily";
+        public const string Reason = "Reason";
+        public const string RaisedBy = "RaisedBy";
+        public const string QueryReason = "QueryReason";
+        public const string QueryDescription = "QueryDescription";
+        public const string QueryStatus = "QueryStatus";
+        public const string DaysOpen = "DaysOpen";
+        public const string DaysSinceLastChange = "DaysSinceLastChange";
+        public const string FieldId = "FieldId";
     }
 }

@@ -11,7 +11,7 @@ namespace sReportsV2.DTOs.DigitalGuideline.DataIn
     {
         public string Id { get; set; }
         public string Title { get; set; }
-        public ThesaurusEntryDataOut Thesaurus { get; set; }
+        public int ThesaurusId { get; set; }
         public DateTime? LastUpdate { get; set; }
         public GuidelineElementsDataIn GuidelineElements { get; set; }
         public VersionDTO Version { get; set; }

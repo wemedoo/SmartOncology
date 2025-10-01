@@ -1,0 +1,44 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.DTOs.UploadPatientData.DataOut;
+@using sReportsV2.DTOs.DTOs.UploadPatientData.DataIn;
+
+@model List<PromptResultDataOut>
+
+<div>
+    <h1 class="prompt-results-header">Prompt Results</h1>
+</div>
+<div class="table-responsive overflow-unset mt-15">
+    <table class="table table-striped table-border table-layout-fixed">
+        <thead class="color-header">
+            <tr class="table-header-row">
+                @foreach (PromptResultDataOut entry in Model)
+                {
+                    <th class="pl-40" style="border-bottom: unset;border-top: unset;">@entry.GetPromptItemName()</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="table-content-row">
+                @foreach (PromptResultDataOut entry in Model)
+                {
+                    <td class="text-center">
+                        @entry.Answer <img alt="" title="view-prompt" class="prompt-result-icon" src="/css/img/icons/thesaurus_green.svg" onclick="showPrompt(event, '@entry.Prompt')">
+                    </td>
+                }
+            </tr>
+        </tbody>
+    </table>
+    @if (Model.Count == 0)
+    {
+        @await Html.PartialAsync("NoResultFound")
+    }
+</div>
+<div id="prompt-result" class="d-none">
+    <div class="prompt-input">
+        <div class="label filter-label">
+            Prompt
+        </div>
+        <textarea class="designer-form-input form-control" rows="10" placeholder="Type a prompt" id="prompt-text" name="prompt-text"></textarea>
+    </div>
+</div>

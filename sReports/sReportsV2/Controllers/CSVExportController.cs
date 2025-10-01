@@ -20,11 +20,17 @@ namespace sReportsV2.Controllers
     {
         private static readonly List<CSVModel> csvModels = new List<CSVModel>();
         private static readonly List<SecondCSV> secondCsvs = new List<SecondCSV>();
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
-        public CSVExportController(IMapper mapper, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public CSVExportController(IMapper mapper, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         // GET: CSVExport
@@ -84,7 +90,7 @@ namespace sReportsV2.Controllers
             int currentPage = 1;
             while (currentPage != -1)
             {
-                UmlsDataOut<SearchResultDataOut> result = Mapper.Map<UmlsDataOut<SearchResultDataOut>>(umlsClient.GetSearchResult(term, 100, currentPage));
+                UmlsDataOut<SearchResultDataOut> result = mapper.Map<UmlsDataOut<SearchResultDataOut>>(umlsClient.GetSearchResult(term, 100, currentPage));
                 List<ConceptSearchResultDataOut> umlsList = new List<ConceptSearchResultDataOut>();
                 for (int i = 0; i < result.Result.Results.Count; i++)
                     umlsList.Add(result.Result.Results[i]);
@@ -107,7 +113,7 @@ namespace sReportsV2.Controllers
         private string GetDefinitions(Client umlsClient, ConceptSearchResultDataOut umls) 
         {
             StringBuilder textBuilder = new StringBuilder();
-            var definitions = Mapper.Map<UmlsDataOut<List<ConceptDefinitionDataOut>>>(umlsClient.GetConceptDefinition(umls.Ui));
+            var definitions = mapper.Map<UmlsDataOut<List<ConceptDefinitionDataOut>>>(umlsClient.GetConceptDefinition(umls.Ui));
             if (definitions != null)
             {
                 foreach (var def in definitions.Result)
@@ -122,7 +128,7 @@ namespace sReportsV2.Controllers
         private string GetAtoms(Client umlsClient, ConceptSearchResultDataOut umls)
         {
             StringBuilder textBuilder = new StringBuilder();
-            var atoms = Mapper.Map<UmlsDataOut<List<AtomDataOut>>>(umlsClient.GetAtomsResult(umls.Ui));
+            var atoms = mapper.Map<UmlsDataOut<List<AtomDataOut>>>(umlsClient.GetAtomsResult(umls.Ui));
             if (atoms != null)
             {
                 foreach (var at in atoms.Result)

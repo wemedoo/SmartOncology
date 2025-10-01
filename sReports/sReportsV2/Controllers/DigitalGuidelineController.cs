@@ -5,11 +5,9 @@ using sReportsV2.Common.JsonModelBinder;
 using sReportsV2.DTOs.Common.DTO;
 using sReportsV2.DTOs.DigitalGuideline.DataIn;
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
 namespace sReportsV2.Controllers
@@ -22,8 +20,9 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.digitalGuidelineBLL = digitalGuidelineBLL;
         }
@@ -43,6 +42,13 @@ namespace sReportsV2.Controllers
             return PartialView("DigitalGuidelineTable", digitalGuidelineBLL.GetAll(dataIn));
         }
 
+        [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.ClinicalPathway)]
+        public ActionResult ReloadVersionHistoryTable(GuidelineFilterDataIn dataIn, string guidelineId)
+        {
+            ViewBag.GuidelineId = guidelineId;
+            return PartialView("VersionHistoryTable", digitalGuidelineBLL.GetVersionHistory(dataIn));
+        }
+
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.ClinicalPathway)]
         public async Task<ActionResult> Edit(string id)
         {
@@ -52,9 +58,10 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.Create, Module = ModuleNames.ClinicalPathway)]
         [SReportsAuditLog]
         [HttpPost]
+        [SReportsGuidlineValidate]
         public async Task<ActionResult> Create([ModelBinder(typeof(JsonNetModelBinder))]GuidelineDataIn dataIn) 
         {
-            ResourceCreatedDTO resourceCreatedDTO =  await digitalGuidelineBLL.InsertOrUpdate(dataIn).ConfigureAwait(false);
+            ResourceCreatedDTO resourceCreatedDTO =  await digitalGuidelineBLL.InsertOrUpdate(dataIn, userCookieData.Id).ConfigureAwait(false);
             return Json(resourceCreatedDTO);
         }
 

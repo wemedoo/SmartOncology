@@ -2,6 +2,7 @@
 using sReportsV2.Common.Enums;
 using sReportsV2.Domain.Sql.Entities.CodeEntry;
 using sReportsV2.Domain.Sql.Entities.Common;
+using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +11,15 @@ using System.Threading.Tasks;
 
 namespace sReportsV2.DAL.Sql.Interfaces
 {
-    public interface ICodeDAL
+    public interface ICodeDAL : IReplaceThesaurusDAL
     {
         int Insert(Code code, string organizationTimeZone = null);
         int Update(Code code);
-        void Delete(int codeId);
+        Task Delete(int codeId);
         IQueryable<Code> GetAll();
         IQueryable<Code> GetCodeFiltered(CodeFilter filter);
         List<Code> GetAll(CodeFilter filter);
         List<Code> GetAllAssociationsFiltered(CodeFilter filter);
-        int UpdateManyWithThesaurus(int oldThesaurus, int newThesaurus);
-        bool ThesaurusExist(int thesaurusId);
         bool CodesExist(int codeSetId);
         void InsertMany(List<int> bulkedThesauruses, int? codeSetId);
         Code GetByPreferredTerm(string preferredTerm, int? codeSetId, string language = LanguageConstants.EN);

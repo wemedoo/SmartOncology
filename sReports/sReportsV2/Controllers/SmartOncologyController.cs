@@ -38,7 +38,17 @@ namespace sReportsV2.Controllers
         private readonly ITrialManagementBLL trialManagementBLL;
         private readonly IMapper mapper;
 
-        public SmartOncologyController(IChemotherapySchemaBLL chemotherapySchemaBLL, IChemotherapySchemaInstanceBLL chemotherapySchemaInstanceBLL, ITrialManagementBLL trialManagementBLL, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IPatientBLL patientBLL, IMapper mapper, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public SmartOncologyController(IChemotherapySchemaBLL chemotherapySchemaBLL, 
+            IChemotherapySchemaInstanceBLL chemotherapySchemaInstanceBLL, 
+            ITrialManagementBLL trialManagementBLL, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IPatientBLL patientBLL,
+            IMapper mapper, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.chemotherapySchemaBLL = chemotherapySchemaBLL;
             this.chemotherapySchemaInstanceBLL = chemotherapySchemaInstanceBLL;
@@ -124,7 +134,7 @@ namespace sReportsV2.Controllers
             var filtered = SingletonDataContainer.Instance.GetSmartOncologyEnums(dataIn.EnumType)
                 .Where(e => e.Name.ToLower().Contains(dataIn.Term.ToLower()));
             var enumDataOuts = filtered
-                .OrderBy(x => x.Name).Skip(dataIn.Page * 15).Take(15)
+                .OrderBy(x => x.Name).Skip(dataIn.GetHowManyElementsToSkip()).Take(FilterConstants.DefaultPageSize)
                 .Select(e => new AutocompleteDataOut()
                 {
                     id = e.Name,
@@ -138,7 +148,7 @@ namespace sReportsV2.Controllers
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count()),
                 },
                 results = enumDataOuts
             };
@@ -353,7 +363,7 @@ namespace sReportsV2.Controllers
         public ActionResult ProgressNote(int? schemaInstanceId)
         {
             SetSmartOncologyCodeSetsToViewBag();
-            var data = schemaInstanceId.HasValue ? chemotherapySchemaInstanceBLL.GetSchemaInstance(schemaInstanceId.Value) : new ChemotherapySchemaInstanceDataOut();
+            var data = schemaInstanceId.HasValue ? chemotherapySchemaInstanceBLL.GetSchemaInstance(schemaInstanceId.Value, userCookieData) : new ChemotherapySchemaInstanceDataOut();
             return View("ProgressNote/ProgressNote", data);
         }
 
@@ -368,7 +378,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.ClinicalOncology)]
         public ActionResult ViewSchema(int id, DateTime? schemaStartDate, string viewDisplayType)
         {
-            var schema = chemotherapySchemaBLL.GetSchemaDefinition(id, schemaStartDate);
+            var schema = chemotherapySchemaBLL.GetSchemaDefinition(id, schemaStartDate, userCookieData);
             ViewBag.ViewDisplayType = viewDisplayType;
 
             return PartialView("ProgressNote/ViewSchemaData", schema);
@@ -385,7 +395,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.ClinicalOncology)]
         public ActionResult ViewSchemaInstanceTableData(int id)
         {
-            var data = chemotherapySchemaInstanceBLL.GetSchemaTableData(id);
+            var data = chemotherapySchemaInstanceBLL.GetSchemaTableData(id, userCookieData);
 
             return PartialView("ProgressNote/ViewSchemaData", data);
         }
@@ -511,11 +521,6 @@ namespace sReportsV2.Controllers
             ViewBag.ChemotherapyType = SingletonDataContainer.Instance.GetSmartOncologyEnums(SmartOncologyEnumNames.ChemotherapyType);
         }
 
-        private void SetGenderTypesToViewBag()
-        {
-            ViewBag.Genders = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Gender);
-        }
-
         private void SetSmartOncologyCodeSetsToViewBag()
         {
             ViewBag.Contraceptions = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Contraception);
@@ -528,6 +533,7 @@ namespace sReportsV2.Controllers
             filterDataIn = Ensure.IsNotNull(filterDataIn, nameof(filterDataIn));
             filterDataIn.OrganizationId = userCookieData.ActiveOrganization;
             filterDataIn.SimpleNameSearch = true;
+            filterDataIn.PageSize = userCookieData.PageSize;
             PaginationDataOut<PatientTableDataOut, PatientFilterDataIn> result = await patientBLL.GetAllFilteredAsync<PatientTableDataOut>(filterDataIn).ConfigureAwait(false);
             SetGenderTypesToViewBag();
             if (isPartialView)

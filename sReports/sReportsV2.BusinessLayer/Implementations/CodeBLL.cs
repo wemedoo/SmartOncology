@@ -14,7 +14,6 @@ using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using sReportsV2.Domain.Sql.Entities.TaskEntry;
 using System.Data.SqlClient;
 using sReportsV2.Common.Constants;
 using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
@@ -22,6 +21,7 @@ using sReportsV2.DTOs.ThesaurusEntry;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.Common.Enums;
 using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -32,8 +32,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly ICodeAssociationDAL codeAssociationDAL;
         private readonly ITaskDAL taskDAL;
         private readonly IThesaurusDAL thesaurusDAL;
-        private readonly IMapper Mapper;
-        private readonly IConfiguration configuration;
+        private readonly IMapper mapper;
 
         public CodeBLL(ICodeDAL codeDAL, ICodeSetDAL codeSetDAL, ICodeAssociationDAL codeAssociationDAL, ITaskDAL taskDAL, IThesaurusDAL thesaurusDAL, IMapper mapper, IConfiguration configuration)
         {
@@ -42,19 +41,18 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.codeAssociationDAL = codeAssociationDAL;
             this.taskDAL = taskDAL;
             this.thesaurusDAL = thesaurusDAL;
-            Mapper = mapper;
-            this.configuration = configuration;
+            this.mapper = mapper;
         }
 
-        public void Delete(int codeId)
+        public async Task Delete(int codeId)
         {
-            codeDAL.Delete(codeId);
+            await codeDAL.Delete(codeId).ConfigureAwait(false);
         }
 
         public int Insert(CodeDataIn codeDataIn)
         {
             codeDataIn = Ensure.IsNotNull(codeDataIn, nameof(codeDataIn));
-            Code entry = Mapper.Map<Code>(codeDataIn);
+            Code entry = mapper.Map<Code>(codeDataIn);
             int codeId = codeDAL.Insert(entry);
             UpdateAssociations(codeId, entry.ActiveTo);
 
@@ -186,11 +184,11 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public PaginationDataOut<CodeDataOut, DataIn> GetAllFiltered(CodeFilterDataIn dataIn)
         {
-            CodeFilter filter = Mapper.Map<CodeFilter>(dataIn);
+            CodeFilter filter = mapper.Map<CodeFilter>(dataIn);
             PaginationDataOut<CodeDataOut, DataIn> result = new PaginationDataOut<CodeDataOut, DataIn>()
             {
                 Count = this.codeDAL.GetAllEntriesCount(filter),
-                Data = Mapper.Map<List<CodeDataOut>>(this.codeDAL.GetAll(filter)),
+                Data = mapper.Map<List<CodeDataOut>>(this.codeDAL.GetAll(filter)),
                 DataIn = dataIn
             };
 
@@ -199,14 +197,14 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public PaginationDataOut<CodeDataOut, DataIn> GetAllAssociationsFiltered(CodeFilterDataIn dataIn)
         {
-            CodeFilter filter = Mapper.Map<CodeFilter>(dataIn);
+            CodeFilter filter = mapper.Map<CodeFilter>(dataIn);
             if (!string.IsNullOrEmpty(filter.CodeSetDisplay) && filter.CodeSetId == 0)
                 filter.CodeSetId = codeSetDAL.GetIdByPreferredTerm(filter.CodeSetDisplay);
             
             PaginationDataOut<CodeDataOut, DataIn> result = new PaginationDataOut<CodeDataOut, DataIn>()
             {
                 Count = this.codeDAL.GetAllAssociationsCount(filter),
-                Data = Mapper.Map<List<CodeDataOut>>(this.codeDAL.GetAllAssociationsFiltered(filter)),
+                Data = mapper.Map<List<CodeDataOut>>(this.codeDAL.GetAllAssociationsFiltered(filter)),
                 DataIn = dataIn
             };
 
@@ -215,7 +213,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public List<CodeDataOut> GetByCodeSetId(int codeSetId)
         {
-            List<CodeDataOut> codesDataOut = Mapper.Map<List<CodeDataOut>>(codeDAL.GetByCodeSetId(codeSetId));
+            List<CodeDataOut> codesDataOut = mapper.Map<List<CodeDataOut>>(codeDAL.GetByCodeSetId(codeSetId));
             return codesDataOut;
         }
 
@@ -247,7 +245,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             List<CodeAssociation> associations = codeAssociationDAL.GetAllByParentId(completeQuestionnaireId);
             List<CodeDataOut> documents = new List<CodeDataOut>();
-            List<TaskDocument> taskDocuments = taskDAL.GetAllTaskDocuments();
+            List<sReportsV2.Domain.Sql.Entities.TaskEntry.TaskDocument> taskDocuments = taskDAL.GetAllTaskDocuments();
+            
             foreach (var association in associations)
             {
                 var codeDataOut = GetDataOutById(association.ChildId);
@@ -263,7 +262,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             List<CodeDataOut> codeDataOuts = new List<CodeDataOut>();
             foreach (var codeId in associationChildIds)
             {
-                var code = Mapper.Map<CodeDataOut>(codeDAL.GetById(codeId));
+                var code = mapper.Map<CodeDataOut>(codeDAL.GetById(codeId));
                 if (code != null)
                     codeDataOuts.Add(code);
             }
@@ -273,7 +272,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private CodeDataOut GetDataOutById(int? codeId)
         {
-            CodeDataOut codeDataOut = Mapper.Map<CodeDataOut>(codeDAL.GetById(codeId ?? 0));
+            CodeDataOut codeDataOut = mapper.Map<CodeDataOut>(codeDAL.GetById(codeId ?? 0));
             return codeDataOut;
         }
 
@@ -281,7 +280,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             int thesaurusId = InsertWithPreferredTerm(preferredTerm);
 
-            Code code = Mapper.Map<Code>(codeDataIn);
+            Code code = mapper.Map<Code>(codeDataIn);
             code.ThesaurusEntryId = thesaurusId;
             codeDAL.Insert(code);
 
@@ -297,7 +296,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 thesaurusId = thesaurusEntryDb.ThesaurusEntryId;
             else
             {
-                ThesaurusEntry thesaurus = Mapper.Map<ThesaurusEntry>(new ThesaurusEntryDataIn()
+                ThesaurusEntry thesaurus = mapper.Map<ThesaurusEntry>(new ThesaurusEntryDataIn()
                 {
                     Translations = new List<ThesaurusEntryTranslationDataIn>()
                     {

@@ -18,9 +18,9 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<PaginationDataOut<FieldInstanceHistoryDataOut, FieldInstanceHistoryFilterDataIn>> GetAllFieldHistoriesFiltered(FieldInstanceHistoryFilterDataIn fieldInstanceHistoryFilter)
         {
             fieldInstanceHistoryFilter = Ensure.IsNotNull(fieldInstanceHistoryFilter, nameof(fieldInstanceHistoryFilter));
-            FieldInstanceHistoryFilterData filter = Mapper.Map<FieldInstanceHistoryFilterData>(fieldInstanceHistoryFilter);
+            FieldInstanceHistoryFilterData filter = mapper.Map<FieldInstanceHistoryFilterData>(fieldInstanceHistoryFilter);
 
-            List<FieldInstanceHistoryDataOut> histories = Mapper.Map<List<FieldInstanceHistoryDataOut>>(await fieldInstanceHistoryDAL.GetAllFilteredAsync(filter).ConfigureAwait(false));
+            List<FieldInstanceHistoryDataOut> histories = mapper.Map<List<FieldInstanceHistoryDataOut>>(await fieldInstanceHistoryDAL.GetAllFilteredAsync(filter).ConfigureAwait(false));
 
             await SetUserChangeInfos(histories).ConfigureAwait(false);
 
@@ -130,7 +130,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private async Task SetUserChangeInfos(List<FieldInstanceHistoryDataOut> histories)
         {
             List<int> distinctUserIds = histories.Select(y => y.UserId).Distinct().ToList();
-            List<UserDataOut> usersWhoMadeChanges = Mapper.Map<List<UserDataOut>>(
+            List<UserDataOut> usersWhoMadeChanges = mapper.Map<List<UserDataOut>>(
                 await userDAL.GetAllByIdsAsync(distinctUserIds).ConfigureAwait(false)
                 );
             histories.ForEach(x => x.UserCompleteName = usersWhoMadeChanges.Find(z => z.Id == x.UserId).ToString());

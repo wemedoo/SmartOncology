@@ -45,6 +45,8 @@
         submitButton.dataset.id = id;
         submitButton.dataset.state = state;
         submitButton.dataset.callingfunction = callingFunction;
+        submitButton.dataset.rowId = $('.remove-modal-button').attr('data-row-id');
+        submitButton.dataset.matrixid = $('.remove-modal-button').attr('data-matrixid');
 
         if (submitButton.dataset.dynamiclastupdate != null) {
             submitButton.dataset.lastupdate = submitButton.dataset.dynamiclastupdate;

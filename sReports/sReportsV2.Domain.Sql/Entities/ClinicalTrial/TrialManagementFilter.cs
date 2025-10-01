@@ -1,4 +1,5 @@
-﻿using System;
+﻿using sReportsV2.Common.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace sReportsV2.Domain.Sql.Entities.ClinicalTrial
 {
-    public class TrialManagementFilter
+    public class TrialManagementFilter : EntityFilter
     {
         public int? ClinicalTrialId { get; set; }
         public string ClinicalTrialTitle { get; set; }
@@ -21,11 +22,5 @@ namespace sReportsV2.Domain.Sql.Entities.ClinicalTrial
         public int? OccupationCD { get; set; }
         public int? OrganizationId { get; set; }
         public int? PersonnelTeamId { get; set; }
-
-        // --- DataIn ---
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 5;
-        public string ColumnName { get; set; }
-        public bool IsAscending { get; set; }
     }
 }

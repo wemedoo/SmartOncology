@@ -8,6 +8,7 @@
 }
 <input type="hidden" id="formId" value="@Model.Id">
 <input type="hidden" id="consensusId" value="@(consensus != null ? consensus.Id : string.Empty)">
+<input type="hidden" id="iterationId" value="@(consensus != null ? iteration.Id : string.Empty)">
 <div class="consensus-visible" style=" margin-left: 20px;">
     @if (consensus == null || (loggedUserId == consensus.CreatorId && (iteration.State == IterationState.Finished || iteration.State == IterationState.Terminated)))
     {

@@ -7,6 +7,8 @@
         public const string ImageMap = "imageMaps";
         public const string OrganizationLogo = "organizationLogos";
         public const string UMLS = "UMLS";
+        public const string UploadPatientData = "uploadPatientData";
+        public const string CodeSets = "codesets";
 
     }
 }

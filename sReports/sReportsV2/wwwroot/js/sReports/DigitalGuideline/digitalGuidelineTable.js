@@ -1,11 +1,5 @@
 ﻿function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterTagsFromUrl();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setAdvancedFilterBtnStyle(requestObject, ['Title', 'page', 'pageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReload(['Title', 'page', 'pageSize'], false);
 
     callServer({
         type: 'GET',
@@ -52,14 +46,12 @@ function advanceFilter() {
     $('#TitleTemp').val($('#title').val());
 
     filterData();
-    //clearFilters();
 }
 
 function mainFilter() {
     $('#title').val($('#TitleTemp').val());
 
     filterData();
-    //clearFilters();
 }
 
 function getFilterParametersObject() {
@@ -74,12 +66,6 @@ function getFilterParametersObject() {
         addPropertyToObject(requestObject, 'Minor', $('#minor').val());
         addPropertyToObject(requestObject, 'DateTimeTo', toLocaleDateStringIfValue($('#dateTimeTo').val()));
         addPropertyToObject(requestObject, 'DateTimeFrom', toLocaleDateStringIfValue($('#dateTimeFrom').val()));
-    }
-    if (requestObject['DateTimeFrom']) {
-        addPropertyToObject(requestObject, 'DateTimeFrom', toValidTimezoneFormat(requestObject['DateTimeFrom']));
-    }
-    if (requestObject['DateTimeTo']) {
-        addPropertyToObject(requestObject, 'DateTimeTo', toValidTimezoneFormat(requestObject['DateTimeTo']));
     }
 
     return requestObject;

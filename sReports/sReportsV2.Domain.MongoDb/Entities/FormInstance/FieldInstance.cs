@@ -1,10 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using sReportsV2.Common.Constants;
 using sReportsV2.Domain.Entities.Common;
-using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Entities.FieldEntity;
-using System.Collections.Generic;
-using System.Linq;
+using sReportsV2.Domain.MongoDb.Entities.FormInstance;
 
 namespace sReportsV2.Domain.Entities.FormInstance
 {
@@ -28,7 +25,6 @@ namespace sReportsV2.Domain.Entities.FormInstance
         public string InstanceId { get; set; }
         [BsonIgnoreIfNull]
         public List<string> ValueLabel { get; set; }
-        
 
         #region Constructors
 
@@ -87,6 +83,22 @@ namespace sReportsV2.Domain.Entities.FormInstance
             {
                 FieldInstanceValues = FieldInstanceValues.GetFieldInstanceValuesOrInitial();
                 FieldInstanceValues.Add(fieldInstanceValue);
+            }
+        }
+
+        public void UpdateValue(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+
+            FieldInstanceValues = FieldInstanceValues.GetFieldInstanceValuesOrInitial();
+            if(FieldInstanceValues.Count == 0)
+            {
+                FieldInstanceValues.Add(new FieldInstanceValue(value));
+            }
+            else
+            {
+                FieldInstanceValues[0].ValueLabel = value;
+                FieldInstanceValues[0].Values = new List<string>() { value };
             }
         }
     } 

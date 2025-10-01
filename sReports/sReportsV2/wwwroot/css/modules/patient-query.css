@@ -1,0 +1,31 @@
+﻿#thesaurusNetwork {
+  height: 600px;
+  border: 1px solid grey;
+}
+
+.semantic-data-field {
+  border: 1px dashed green;
+}
+.semantic-data-field-info {
+  text-align: center;
+}
+
+.scrollable-selected-container {
+  max-height: 110px;
+  overflow-y: scroll;
+  padding-right: 15px;
+}
+
+.pref-label-option {
+  color: green;
+}
+
+.alt-label-option {
+  color: orange;
+}
+
+.skos-export-action {
+  color: gray;
+  font-size: 14px;
+  margin-right: 10px;
+}

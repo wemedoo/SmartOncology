@@ -59,11 +59,7 @@
 }
 else
 {
-    <div class="no-result-content">
-        <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-        <br>
-        <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-    </div>
+    @await Html.PartialAsync("NoResultFound")
 }
 
 <input type="hidden" id="filterByFieldInstanceRepetitionId" value="@Model.DataIn.FieldInstanceRepetitionId" />

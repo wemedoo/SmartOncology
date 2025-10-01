@@ -151,7 +151,7 @@ function addDependencyConfigurationValidationMethods() {
         if (value == 'true') {
             let itemId = getOpenedElementId();
             let itemType = isFieldForm(element) ? 'field' : 'fieldset';
-            let doesOccurredInDependency = getDoesOccurredInDependencyHandler(itemType);
+            let doesOccurredInDependency = getCannotActionHandler(itemType);
             valid = !doesOccurredInDependency(itemId, itemType, params, 'repetitive');
         }
         return valid;
@@ -175,7 +175,7 @@ function isFieldForm(element) {
 function doesFieldValueOccurredInDependency(fieldValueId, itemType, params, action) {
     let occurrence = false;
     $('#nestable [data-dependenton]').each(function () {
-        if (findParentFieldOccurrence($(this), params, f => f.fieldValueId == fieldValueId, itemType, action)) {
+        if (findParentFieldDependencyOccurrence($(this), params, f => f.fieldValueId == fieldValueId, itemType, action)) {
             occurrence = true;
             return false;
         }
@@ -183,14 +183,24 @@ function doesFieldValueOccurredInDependency(fieldValueId, itemType, params, acti
     return occurrence;
 }
 
-function doesFieldOccurredInDependency(fieldId, itemType, params, action) {
+function doesFieldOccurredSomewhere(fieldId, itemType, params, action) {
     let occurrence = false;
     $('#nestable [data-dependenton]').each(function () {
-        if (findParentFieldOccurrence($(this), params, f => f.fieldId == fieldId, itemType, action)) {
+        if (findParentFieldDependencyOccurrence($(this), params, f => f.fieldId == fieldId, itemType, action)) {
             occurrence = true;
             return false;
         }
     });
+
+    if (action == 'deleted') {
+        $('#nestable [data-type="connected"]').each(function () {
+            if (findParentFieldConnectedOccurrence($(this), params, f => f == fieldId, action)) {
+                occurrence = true;
+                return false;
+            }
+        });
+    }
+    
     return occurrence;
 }
 
@@ -200,7 +210,7 @@ function doesFieldSetOccurredInDependency(fieldSetId, itemType, params, action) 
         return $(this).attr('data-id');
     }).get();
     $(`#nestable [data-itemtype="fieldset"][data-id!="${fieldSetId}"] [data-dependenton]`).each(function () {
-        if (findParentFieldOccurrence($(this), params, f => fieldsIdsWithinFieldSet.some(fieldIdFromCurrentFs => fieldIdFromCurrentFs == f.fieldId), itemType, action)) {
+        if (findParentFieldDependencyOccurrence($(this), params, f => fieldsIdsWithinFieldSet.some(fieldIdFromCurrentFs => fieldIdFromCurrentFs == f.fieldId), itemType, action)) {
             occurrence = true;
             return false;
         }
@@ -208,36 +218,66 @@ function doesFieldSetOccurredInDependency(fieldSetId, itemType, params, action) 
     return occurrence;
 }
 
-function findParentFieldOccurrence($fieldElement, params, query, itemType, action) {
+function findParentFieldDependencyOccurrence($fieldElement, params, query, itemType, action) {
     let findMatch = false;
     let dependentOn = JSON.parse(decodeURIComponent($fieldElement.attr('data-dependenton')));
     if (dependentOn) {
         let fieldIncludesInDepedency = dependentOn.dependentOnFieldInfos.some(query);
         if (fieldIncludesInDepedency) {
             let childFieldTitle = decode($fieldElement.attr('data-label'));
-            params[0] = getDependencyValidationErrorMessage(itemType, childFieldTitle, action);
+            params[0] = getCannotDeleteValidationErrorMessage(itemType, childFieldTitle, action);
             findMatch = true;
         }
     }
+
+    let calculationData = $fieldElement.attr('data-identifiersandvariables');
+    if (calculationData) {
+        let calculationIdentifiersAndValues = JSON.parse(decodeURIComponent(calculationData));
+        let fieldIncludedInCalculation = Object.keys(calculationIdentifiersAndValues).map(f => ({ fieldId: f })).some(query) && action == 'deleted';
+        if (fieldIncludedInCalculation) {
+            let childFieldTitle = decode($fieldElement.attr('data-label'));
+            params[0] = getCannotDeleteValidationErrorMessage('fieldCalculation', childFieldTitle, action);
+            findMatch = true;
+        }
+    }
+    
     return findMatch;
 }
 
-function examineDependencyOnDelete(itemType) {
+function findParentFieldConnectedOccurrence($fieldElement, params, query, action) {
+    let findMatch = false;
+
+    let connectedFieldIds = JSON.parse(decodeURIComponent($fieldElement.attr('data-connectedfieldids') ?? '[]'));
+    if (connectedFieldIds) {
+        let fieldIncludesInConnectedField = connectedFieldIds.some(query);
+        if (fieldIncludesInConnectedField) {
+            let childFieldTitle = decode($fieldElement.attr('data-label'));
+            params[0] = getCannotDeleteValidationErrorMessage('fieldConnected', childFieldTitle, action);
+            findMatch = true;
+        }
+    }
+
+    return findMatch;
+}
+
+function examineConditionsBeforeDelete(itemType) {
     return ['fieldset', 'field', 'fieldvalue'].includes(itemType);
 }
 
-function getDoesOccurredInDependencyHandler(itemType) {
+function getCannotActionHandler(itemType) {
     return {
         'fieldset': doesFieldSetOccurredInDependency,
-        'field': doesFieldOccurredInDependency,
+        'field': doesFieldOccurredSomewhere,
         'fieldvalue': doesFieldValueOccurredInDependency
     }[itemType];
 }
 
-function getDependencyValidationErrorMessage(itemType, childFieldTitle, action) {
+function getCannotDeleteValidationErrorMessage(itemType, childFieldTitle, action) {
     return {
         'fieldset': `Field from this fieldset has been included in dependency field for '${childFieldTitle}'. It can't be ${action}`,
         'field': `This field has been included in dependency for field '${childFieldTitle}'. It can't be ${action}.`,
+        'fieldCalculation': `This field has been included in calculation for field '${childFieldTitle}'. It can't be ${action}.`,
+        'fieldConnected': `This field has been included as connected field for field '${childFieldTitle}'. It can't be ${action}.`,
         'fieldvalue': `This field option has been included in dependency for field '${childFieldTitle}'. It can't be ${action}.`
     }[itemType];
 }

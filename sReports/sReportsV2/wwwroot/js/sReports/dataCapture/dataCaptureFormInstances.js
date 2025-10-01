@@ -1,38 +1,21 @@
-﻿var params;
-
-function createFormInstance(id, language, projectId, projectName, showUserProject) {
+﻿function createFormInstance(id, language, projectId, projectName, showUserProject) {
     if (simplifiedApp) {
         window.location.href = `/crf/create?id=${id}&language=${language}`;
     } else {
-        if (projectId !== "") {
-            const apiUrl = showUserProject !== ""
-                ? `/FormInstance/CreateForUserProject?VersionId=${filter.versionId}&ThesaurusId=${filter.thesaurusId}&ProjectId=${filter.projectId}&ProjectName=${projectName}`
-                : `/FormInstance/CreateForProject?VersionId=${filter.versionId}&ThesaurusId=${filter.thesaurusId}&ProjectId=${filter.projectId}&ProjectName=${projectName}`;
-
-            fetchFormInstance(apiUrl);
-        } else {
-            const apiUrl = `/FormInstance/Create?VersionId=${filter.versionId}&ThesaurusId=${filter.thesaurusId}`;
-            fetchFormInstance(apiUrl);
-        }
+        fetchFormInstance(getCreateUrl(projectId, showUserProject, projectName));
     }
 }
 
-function fetchFormInstance(url) {
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.text();
-        })
-        .then(html => {
-            var existingDiv = document.getElementById('temporalFormInstanceDiv');
-            existingDiv.innerHTML = html;
-            submitForm();
-        })
-        .catch(error => {
-            console.error('Error loading content:', error);
-        });
+function getCreateUrl(projectId, showUserProject, projectName) {
+    let apiUrl;
+    if (projectId !== "") {
+        apiUrl = showUserProject !== ""
+            ? `/FormInstance/CreateForUserProject?VersionId=${filter.versionId}&ThesaurusId=${filter.thesaurusId}&ProjectId=${filter.projectId}&ProjectName=${projectName}`
+            : `/FormInstance/CreateForProject?VersionId=${filter.versionId}&ThesaurusId=${filter.thesaurusId}&ProjectId=${filter.projectId}&ProjectName=${projectName}`;
+    } else {
+        apiUrl = `/FormInstance/Create?VersionId=${filter.versionId}&ThesaurusId=${filter.thesaurusId}`;
+    }
+    return apiUrl;
 }
 
 function createPdfFormInstance(event, formId) {
@@ -150,10 +133,8 @@ function removeFormInstance(event, id, lastUpdate) {
 
 
 function reloadTable(initLoad) {
-    let requestObject = getFilterParametersObject();
-    checkUrlPageParams();
-    setFilterTagsFromObj(requestObject);
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReloadSimple(false, true);
+
     callServer({
         type: 'GET',
         url: `/FormInstance/ReloadByFormThesaurusTable?showUserProjects=${$('#showUserProjects').val()}`,
@@ -171,15 +152,15 @@ function reloadTable(initLoad) {
 function getFilterParametersObject() {
     let requestObject = {};
 
-    if (filter) {
-        requestObject = filter;
+    if (defaultFilter) {
+        requestObject = getDefaultFilter();
+        filter = requestObject;
         defaultFilter = null;
     } else {
-        requestObject.Content = $('#content').val();
-        //requestObject.UserIds = setUser();
-        //requestObject.PatientIds = setPatient();
-        requestObject.VersionId = $('#VersioId').val();
-        requestObject.ThesaurusId = $('#thesaurusId').val();
+        if (filter) {
+            requestObject = filter;
+        }
+        requestObject.content = $('#content').val();
     }
 
     return requestObject;
@@ -217,9 +198,7 @@ function getJson(formId, formTitle, lastFile = true) {
             request.setRequestHeader("LastFile", lastFile);
         },
         success: function (data) {
-            var jsonse = JSON.stringify(data, null, 2);
-            var blob = new Blob([jsonse], { type: "application/json" });
-            getDownloadedFile(blob, formTitle);
+            convertToBlobAndDownload(data, true, formTitle);
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -236,34 +215,17 @@ $(document).on('change', '#selectAllCheckboxes', function () {
     $(':checkbox').prop('checked', c);
 });
 
-function singleDocumentFilter() {
-    $('#content').val($('#ContentTemp').val());
+function getFilterParametersObjectForDisplay(requestObject) {
+    let filterObject = {};
+    filterObject['content'] = requestObject['content'];
 
-    if (filter) {
-        filter['Content'] = $('#ContentTemp').val();
-        //filter['UserIds'] = setUser();
-        //filter['PatientIds'] = setPatient();
-    }
-
-    filterData();
-    //clearSingleDocumentFilters();
+    return filterObject;
 }
 
-function clearSingleDocumentFilters() {
-    $('#ContentTemp').val(' ');
+function mainFilter() {
+    filterData();
 }
 
 function advanceFilter() {
-
-    $('#ContentTemp').val($('#content').val());
-
-    singleDocumentFilter();
-    //clearFilters();
-}
-
-function getFilterParametersObjectForDisplay(requestObject) {
-    let filterObject = {};
-    filterObject['Content'] = requestObject['Content'];
-
-    return filterObject;
+    mainFilter();
 }

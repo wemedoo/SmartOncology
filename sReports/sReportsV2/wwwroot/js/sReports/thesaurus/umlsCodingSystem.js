@@ -32,14 +32,14 @@ function handleNonEmptrySearchResult(data) {
     displayLoadMoreUmlsConceptsButton(true);
     $('#conceptNoResult').hide();
     $('#conceptsTableBody').append(data);
-    document.getElementById("conceptHeaderId").classList.add("atoms-border");
+    document.getElementById("conceptHeaderId").classList.add("curved-border");
     document.getElementById("conceptTableId").classList.remove("table-border");
 }
 
 function handleEmptySearchResult() {
     displayLoadMoreUmlsConceptsButton();
     $('#conceptNoResult').show();
-    document.getElementById("conceptHeaderId").classList.remove("atoms-border");
+    document.getElementById("conceptHeaderId").classList.remove("curved-border");
     document.getElementById("conceptTableId").classList.add("table-border");
     currentPage = currentPage + 1;
 }
@@ -135,7 +135,6 @@ function confirmUmlsSelection() {
         var name = $(item).find("[data-field='name']")[0].innerHTML;
         $('#UmlsCode').val(ui);
         $('#UmlsName').val(name);
-        console.log(`https://uts.nlm.nih.gov/metathesaurus.html?cui=${ui}`);
         $("#umlsLink").attr("href", `https://uts.nlm.nih.gov/metathesaurus.html?cui=${ui}`);
         $("#umlsLink").text(`https://uts.nlm.nih.gov/metathesaurus.html?cui=${ui}`);
         populateCodes(item);
@@ -219,7 +218,6 @@ function populateUmlsDefinitions() {
 function populateSynonyms() {
     $.each($("#atomsData [data-field='language'][data-value='ENG']"), function (index, value) {
         $.each($(value).siblings("[data-field='name']"), function (i, nameColumn) {
-            console.log($(nameColumn).data("value"));
             appendTagToContainer($(nameColumn).data("value"), 'synonym', 'en');
         });
     });

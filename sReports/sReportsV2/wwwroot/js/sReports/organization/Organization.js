@@ -6,18 +6,14 @@ let isSubmitting = false;
 addUnsavedChangesEventHandler("#idOrganization");
 
 function clickedSubmit() {
-    $('#idOrganization').validate();
-
-    if ($('#idOrganization').valid()) {
-        submitOrganizationForm();
-    }
+    submitOrganizationForm();
     return false;
 }
 
-function submitOrganizationForm() {
-    if (isSubmitting) {
-        return;
-    }
+function submitOrganizationForm(callback) {
+    $('#idOrganization').validate();
+
+    if (!$('#idOrganization').valid() || isSubmitting) return false;
 
     let organizationData = getOrganizationData();
     let action = $("#id").val() != 0 ? 'Edit' : 'Create';
@@ -34,18 +30,19 @@ function submitOrganizationForm() {
 
             if ($("#id").val()) {
                 setRowVersion(data);
-                reloadPartialTelecomOrIdentifier(data.id);
-            }
-            else {
+            } else {
                 toastr.options.onHidden = function () {
                     window.location.href = `/Organization/Edit?organizationId=${data.id}`;
                 }
             }
             saveInitialFormData("#idOrganization");
-            toastr.success("Success");
+            toastr.success("Oragnization data are successfully saved");
+            enableChangeTab(+organizationData["Id"]);
+            executeCallback(callback);
 
         },
         error: function (xhr, ajaxOptions, thrownError) {
+            isSubmitting = false;
             handleResponseError(xhr);
         }
     });
@@ -54,32 +51,6 @@ function submitOrganizationForm() {
 function setRowVersion(data) {
     $("#rowVersion").val(data.rowVersion);
     isSubmitting = false;
-}
-
-function reloadPartialTelecomOrIdentifier(organizationId) {
-    var activeTab = document.querySelector('.organization-tabs .organization-tab.active');
-    var dataId = activeTab.getAttribute('data-id');
-    if (dataId == "Telecoms")
-        reloadTelecomOrIdentifierTable(organizationId, "Telecoms");
-    else if (dataId == "Identifiers")
-        reloadTelecomOrIdentifierTable(organizationId, "Identifiers");
-}
-
-function reloadTelecomOrIdentifierTable(organizationId, partialViewId) {
-    callServer({
-        type: "POST",
-        url: `/Organization/GetOrganization${partialViewId}?organizationId=${organizationId}`,
-        success: function (data) {
-            var divElement = document.getElementById(partialViewId);
-            while (divElement.firstChild) {
-                divElement.removeChild(divElement.firstChild);
-            }
-            divElement.innerHTML = data;
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-            handleResponseError(xhr);
-        }
-    });
 }
 
 function getOrganizationData() {
@@ -113,19 +84,8 @@ function getOrganizationData() {
     var timezoneElement = document.getElementById("timezone");
     var selectedTimezone = timezoneElement.options[timezoneElement.selectedIndex];
     request['TimeZone'] = selectedTimezone.getAttribute("data-timezone");
-    request['TimeZoneOffset'] = selectedTimezone.getAttribute("data-offset");
 
     return request;
-}
-
-function getOrganizationClinicalDomainObject() {
-    return function (element) {
-        return {
-            clinicalDomainCD: $(element).attr("data-value"),
-            organizationClinicalDomainId: $(element).attr("data-id")
-        };
-
-    }
 }
 
 function getSelectedTypes() {
@@ -196,14 +156,14 @@ $('#city').on('blur', function (e) {
 });
 
 function cancelOrganization() {
-    if (!compareForms("#idOrganization")) {
-        if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-            saveInitialFormData("#idUserInfo");
+    unsavedChangesCheck("#idOrganization",
+        function () {
+            window.location.href = '/Organization/GetAll';
+        },
+        function () {
             window.location.href = '/Organization/GetAll';
         }
-    } else {
-        window.location.href = '/Organization/GetAll';
-    }
+    );
 }
 
 $(document).on('click', '#primaryColorInput', function (e) {
@@ -337,17 +297,36 @@ $('#impressum').on('keyup', function (e) {
 
 
 $(document).on('click', '.organization-tab', function (e) {
+    if ($(this).hasClass('tab-disabled')) return;
 
-    $('.organization-tab').removeClass('active');
+    let $el = $(this);
+    let doesNextContainerHaveBasicData = $el.hasClass('organization-basic');
+    let doesCurrentContainerHaveBasicData = $('.organization-tab.active').hasClass('organization-basic');
+    saveOrganizationIfThereAreChanges(doesCurrentContainerHaveBasicData, function () {
+        let containerId = $el.attr("data-id");
 
-    $(this).addClass('active');
-    $('.organization-cont').hide();
-    let containerId = $(this).attr("data-id");
+        $('.organization-tab').removeClass('active');
+        $el.addClass('active');
+        $('.organization-cont').hide();
 
-    activeContainerId = containerId;
-    $(`#${containerId}`).show();
+        activeContainerId = containerId;
+        $(`#${containerId}`).show();
 
+        if (doesNextContainerHaveBasicData) {
+            $('#org-button-partial').show();
+        } else {
+            $('#org-button-partial').hide();
+        }
+    });
 });
+
+function saveOrganizationIfThereAreChanges(basicData, callback) {
+    if (compareForms("#idOrganization")) {
+        executeCallback(callback);
+    } else if (basicData) {
+        submitOrganizationForm(callback);
+    }
+}
 
 function sortOrgCommTable(column) {
     if (organizationCommunicationSwitchCount == 0) {
@@ -410,9 +389,15 @@ function checkIfAsc(isAscending) {
     return !isAscending;
 }
 
+function viewOrganizationCommunicationModal(e, orgCommunicationEntityId, readOnly) {
+    if (!$(e.target).hasClass('dropdown-button') && !$(e.target).hasClass('fa-bars') && !$(e.target).hasClass('dropdown-item') && !$(e.target).hasClass('dots') && !$(e.target).hasClass('table-more')) {
+        showOrganizationCommunicationModal(e, orgCommunicationEntityId, readOnly)
+    }
+}
+
 function showOrganizationCommunicationModal(event, orgCommunicationEntityId, readOnly) {
     event.stopPropagation();
-    callServer({
+    callServer({ 
         type: 'GET',
         url: `/Organization/ShowOrganizationCommunicationModal?orgCommunicationEntityId=${orgCommunicationEntityId}&readOnly=${readOnly}`,
         success: function (data) {
@@ -442,8 +427,8 @@ function addNewOrgCommunication(e) {
         request['OrgCommunicationEntityCD'] = $("#orgCommunicationEntity").val();
         request['PrimaryCommunicationSystemCD'] = $("#primaryCommunicationSystem").val();
         request['OrganizationId'] = $("#orgId").val();
-        request['ActiveFrom'] = calculateDateWithOffset($("#activeFromDefault").val());
-        request['ActiveTo'] = calculateDateWithOffset($("#activeToDefault").val());
+        request['ActiveFrom'] = calculateDateWithOffset("#activeFromDefault");
+        request['ActiveTo'] = calculateDateWithOffset("#activeToDefault");
 
         callServer({
             type: 'POST',

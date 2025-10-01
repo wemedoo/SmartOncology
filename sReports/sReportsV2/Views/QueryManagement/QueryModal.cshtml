@@ -1,0 +1,78 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.Common.Extensions
+@using sReportsV2.DTOs.CodeEntry.DataOut
+
+@{
+    List<CodeDataOut> statuses = ViewBag.Statuses as List<CodeDataOut>;
+    var newStatusCD = statuses?.FirstOrDefault(c => c.HasPreferredTerm(CodeAttributeNames.New))?.Id ?? 0;
+}
+
+<form id="queryForm" name="queryModalForm" onsubmit="return false">
+    <div class="modal fade" id="queryModal" tabindex="-1" role="dialog" aria-labelledby="chartModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content missing-value-content">
+                <div class="missing-value-modal-content">
+                    <div class="missing-value-modal-title">
+                        <img alt="" src="/css/img/icons/green_pen.svg">
+                        <span class="missing-value-modal-title-text">
+                            @sReportsV2.Cache.Resources.TextLanguage.RaiseNewQuery
+                        </span>
+                        <div class="cancel-button-missing-value-modal ">
+                            <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="fieldId" name="FieldId" />
+                    <input type="hidden" id="formInstanceId" name="FormInstanceId" />
+                    <input type="hidden" id="status" value="@newStatusCD" />
+                    <input type="hidden" id="raiseNewQuery" name="raiseNewQuery" />
+
+                    <div class="d-flex missing-value-header-red">
+                        <img alt="" src="/css/img/icons/red_pen.svg">
+                        <div class="obligatory-data-title" id="fieldTitle">
+                        </div>
+                    </div>
+                    <div class="provide-info-header margin-bottom-12">
+                        @sReportsV2.Cache.Resources.TextLanguage.ProvideAnAnwerWhyTheQueryIsRaised
+                    </div>
+
+                    <div class="advanced-filter-item input-margin">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Reason
+                        </div>
+                        <select required class="filter-input arrow-select" id="reason" name="reason">
+                            <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+                            @{
+                                var reasons = ViewBag.Reasons as List<CodeDataOut>;
+                                var filteredReason = ObjectExtension.FilterDataSource(reasons);
+
+                                foreach (var reason in filteredReason)
+                                {
+                                    <option value="@reason.Id">
+                                        @reason.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string)
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="advanced-filter-item">
+                        <div class="label filter-label">
+                            @sReportsV2.Cache.Resources.TextLanguage.Description
+                        </div>
+                        <textarea type="text" class="filter-input" id="description" required></textarea>
+                    </div>
+                </div>
+                <div class="missing-value-modal-buttons">
+                    <button id="identifier-modal-button" class="submit-button right-button margin-left-13" type="button" style="outline: none;" onclick="createQuery(event)" dismiss="modal">
+                        <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Save</span>
+                    </button>
+                    <div class="float-right" id="close">
+                        <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                            @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

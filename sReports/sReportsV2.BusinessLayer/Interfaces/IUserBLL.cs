@@ -23,7 +23,7 @@ namespace sReportsV2.BusinessLayer.Interfaces
         UserDataOut GetUserForEdit(int userId);
         void GeneratePassword(string email);
         PaginationDataOut<UserViewDataOut, DataIn> ReloadTable(PersonnelFilterDataIn dataIn);
-        CreateUserResponseResult Insert(UserDataIn userDataIn, string activeLanguage, int medicalDoctorsCodeId);
+        Task<CreateUserResponseResult> InsertOrUpdate(UserDataIn userDataIn, string activeLanguage);
         CreateResponseResult UpdateOrganizations(UserDataIn userDataIn);
         void UpdateLanguage(string newLanguage, UserCookieData userCookieData);
         UserOrganizationDataOut LinkOrganization(LinkOrganizationDataIn dataIn);
@@ -39,8 +39,7 @@ namespace sReportsV2.BusinessLayer.Interfaces
         List<UserData> GetUsersForCommentTag(string searchWord);
         void AddSuggestedForm(string username, string formId);
         void RemoveSuggestedForm(string username, string formId);
-        Task<AutocompleteResultDataOut> GetUsersByNameAsync(AutocompleteDataIn dataIn);
-        List<UserDataOut> GetUsersByName(string searchValue, int organizationId);
-        AutocompleteResultDataOut GetNameForAutocomplete(PersonnelAutocompleteDataIn autocompleteFilterDataIn);
+        Task<AutocompleteResultDataOut> GetAutocompleteData(PersonnelAutocompleteDataIn autocompleteFilterDataIn);
+        int GetMedicalDoctorsCodeId();
     }
 }

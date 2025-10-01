@@ -213,7 +213,7 @@ namespace sReportsV2.HL7
 
         private static string GetTimeStamp(DateTime? dateTime, string format = HL7Constants.HL7_DATE_TIME_FORMAT)
         {
-            return dateTime.HasValue ? dateTime.Value.ToString(format, CultureInfo.InvariantCulture) : string.Empty;
+            return dateTime.GetDateTimeDisplay(format, excludeTimePart: true);
         }
 
         private static string GetDate(DateTime? dateTime)

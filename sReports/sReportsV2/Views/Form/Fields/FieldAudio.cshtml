@@ -7,6 +7,7 @@
 @{
     bool isChapterReadonly = ViewBag.Chapter;
     string fieldSetId = ViewBag.FieldSetId;
+    bool readOnly = ViewBag.ReadOnly;
 }
 
 <fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input position-relative field-set-content @Model.ShowHiddenFieldsClass">
@@ -16,18 +17,18 @@
             for (int i = 0; i < Model.FieldInstanceValues.Count; i++)
             {
                 string value = !string.IsNullOrEmpty(Model.FieldInstanceValues[i].FirstValue) ? Model.FieldInstanceValues[i].FirstValue : "";
-                await AddField(Html, Model, isChapterReadonly, fieldSetId, i + 1, value);
+                await AddField(Html, Model, isChapterReadonly, fieldSetId, i + 1, value, readOnly);
             }
         }
         else
         {
-            await AddField(Html, Model, isChapterReadonly, fieldSetId, 1, "");
+            await AddField(Html, Model, isChapterReadonly, fieldSetId, 1, "", readOnly);
         }
     </div>
 </fieldset>
 
 @functions {
-    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string value)
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string value, bool readOnly)
     {
         var fieldInstanceRepetitionInfo = objectModel.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
         <div class="field-group">
@@ -36,22 +37,22 @@
             </div>
             <div class="repetitive-field filter-input d-inline-block">
                 @{
-                    await AddInput(Model, isChapterReadonly, fieldSetId, value, fieldInstanceRepetitionInfo);
+                    await AddInput(Model, isChapterReadonly, fieldSetId, value, fieldInstanceRepetitionInfo, readOnly);
                 }
             </div>
             @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", value } })
         </div>
     }
 
-    private async Task AddInput(FieldAudioDataOut objectModel, bool isChapterReadonly, string fieldSetId, string value, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    private async Task AddInput(FieldAudioDataOut objectModel, bool isChapterReadonly, string fieldSetId, string value, Tuple<string, bool> fieldInstanceRepetitionInfo, bool readOnly)
     {
-        await AddAudioInput(objectModel, fieldSetId, value, fieldInstanceRepetitionInfo, isChapterReadonly);
+        await AddAudioInput(objectModel, fieldSetId, value, fieldInstanceRepetitionInfo, isChapterReadonly, readOnly);
     }
 
-    private async Task AddAudioInput(FieldAudioDataOut objectModel, string fieldSetId, string value, Tuple<string, bool> fieldInstanceRepetitionInfo, bool isChapterReadonly)
+    private async Task AddAudioInput(FieldAudioDataOut objectModel, string fieldSetId, string value, Tuple<string, bool> fieldInstanceRepetitionInfo, bool isChapterReadonly, bool readOnly)
     {
         string repetitiveValue = !fieldInstanceRepetitionInfo.Item2 ? value : "";
-        <div class="audio-container">
+        <div class="audio-container" data-readonly="@(isChapterReadonly || readOnly ? "true" : "false")">
             <div class="startRecord start-rec-icon" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.StartRecording"></div>
             <div class="stopRecord stop-rec-icon" style="display: none;" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.StopRecording"></div>
             <div class="pauseRecord pause-rec-icon" style="display: none;"></div>

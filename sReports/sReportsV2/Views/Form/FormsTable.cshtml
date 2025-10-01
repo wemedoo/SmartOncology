@@ -5,8 +5,9 @@
     bool hasCreateUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Designer);
     bool hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.Designer);
     bool hasViewPerm = userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Designer);
+    bool hasGenerateReportsPerm = userCookieData.UserHasPermission(PermissionNames.GenerateReports, ModuleNames.Designer);
 }
-<div class="table-responsive filter-border">
+<div class="table-responsive overflow-unset">
     <table class="table table-striped table-border">
         <thead class="color-header">
             <tr class="table-header-row">
@@ -33,11 +34,11 @@
                                 <a class="dropdown-button" href="#" role="button" id="dropdownMenuLink-@form.Id" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <img alt="" class="dots" src="/css/img/icons/3dots.png">
                                 </a>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink-@form.Id">
+                                <div class="dropdown-menu expand-dropdown-menu" aria-labelledby="dropdownMenuLink-@form.Id">
                                     @if (hasCreateUpdatePerm)
                                     {
                                         <a class="dropdown-item d-flex" href="#" onclick="showGenerateModal(event, '@form.Id')">
-                                            <img alt="" class="edit-svg-size generate-translation-margin" src="/css/img/icons/generate_ translate_12x12.svg"><div>@sReportsV2.Cache.Resources.TextLanguage.GenerateTranslations</div>
+                                            <img alt="" class="edit-svg-size relocate-img" src="/css/img/icons/generate_ translate_12x12.svg"><div>@sReportsV2.Cache.Resources.TextLanguage.GenerateTranslations</div>
                                         </a>
                                     }
                                     @if (hasCreateUpdatePerm)
@@ -54,6 +55,15 @@
                                             <img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Delete
                                         </a>
                                     }
+                                    @if (hasGenerateReportsPerm)
+                                    {
+                                        <a class="dropdown-item d-flex" href="#" onclick="generateReport(event, '@form.Id')">
+                                            <img alt="" class="edit-svg-size relocate-img" src="/css/img/icons/documents_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.Generate @sReportsV2.Cache.Resources.TextLanguage.Reports
+                                        </a>
+                                        <a class="dropdown-item d-flex" href="#" onclick="exportToQuestionnaire(event, '@form.Id')">
+                                            <img alt="" class="edit-svg-size relocate-img" src="/css/img/icons/documents_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.ExportToQuestionnaire
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         }
@@ -64,11 +74,7 @@
     </table>
     @if (Model.Data.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
 
     @if (Model.Data.Count > 0)

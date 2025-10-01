@@ -1,14 +1,10 @@
 ﻿using sReportsV2.BusinessLayer.Interfaces;
-using System.Net;
 using sReportsV2.Common.CustomAttributes;
-using System.Collections.Generic;
 using sReportsV2.Common.Constants;
 using sReportsV2.DTOs.DTOs.PDF.DataOut;
 using sReportsV2.DTOs.DTOs.PDF.DataIn;
-using sReportsV2.Cache.Resources;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -22,8 +18,9 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration,
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.pdfBLL = pdfBLL;
         }

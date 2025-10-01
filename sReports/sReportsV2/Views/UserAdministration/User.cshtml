@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Html
 @using sReportsV2.Common.Extensions;
 @using sReportsV2.Common.Helpers
 @model sReportsV2.DTOs.Common.DataOut.UserDataOut;
@@ -11,8 +12,9 @@
         Html.HiddenFor(model => model.RowVersion);
     }
 }
-<form method="post" id="idUserInfo" class="form-user-info element-background-grey reduce-right-margin" onsubmit="return submitForm(this, event)" novalidate>
+<form method="post" id="idUserInfo" class="form-user-info element-background-grey reduce-right-margin" onsubmit="return submitUserForm(this, event)" novalidate>
     <input type="hidden" class="form-control" id="readonlyField" name="ReadonlyField" value="@isReadonly.ToString()" />
+    <input type="hidden" id="msgEdit" value=" @sReportsV2.Cache.Resources.TextLanguage.UserAdministrationMsgEdit" />
     @if (Model != null)
     {
         <input class="form-control" id="rowVersion" type="hidden" value="@(Model.RowVersion)" />
@@ -23,14 +25,14 @@
         <div class="user-title">@sReportsV2.Cache.Resources.TextLanguage.User</div>
     </div>
     <div class="user-container position-relative" id="userInfo">
-        <div class="personnel-tabs element-background-white-user">
+        <div class="custom-tabs element-background-white-user">
             <div data-id="personalData" class="personnel-tab active">
                 <img alt="" class="pd-img" src="/css/img/icons/person_data_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.PersonnelProfile
             </div>
-            <div data-id="institutionData" class="@(Model == null ? "personnel-tab-disabled" : "personnel-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.UserTabTooltip">
+            <div data-id="institutionData" class="personnel-tab @(Model==null ? "tab-disabled" : "" )" @RenderUserTabTooltip()>
                 <img alt="" class="id-img" src="/css/img/icons/institution_data_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.OrganizationAssociation
             </div>
-            <div data-id="identifierData" class="@(Model == null ? "personnel-tab-disabled" : "personnel-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.UserTabTooltip">
+            <div data-id="identifierData" class="personnel-tab @(Model == null ? "tab-disabled" : "")" @RenderUserTabTooltip()>
                 <img alt="" class="id-img" src="/css/img/icons/institution_data_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.PersonnelIdentifiers
             </div>
         </div>
@@ -45,10 +47,7 @@
                 @await Html.PartialAsync("UserInstitutionalData", Model)
             </div>
             <div id="identifierData" class="user-cont" style="display:none">
-                @if (Model != null)
-                {
-                    @await Html.PartialAsync("IdentifierTable", Model.Identifiers)
-                }
+                @await Html.PartialAsync("IdentifierTable", Model != null ? Model.Identifiers : null)
             </div>
             <div class="button-partial user-btn-top-border" id="buttonGroupPrimary">
                 @if (!readOnlyView)
@@ -75,8 +74,20 @@
 
 <script>
     $(document).ready(function () {
-        $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"]').tooltip();
     });
     setReadOnly(@(readOnlyView ? "true" : ""));
     setUserAdministration(@(ViewBag.UserAdministration ? "true" : ""));
 </script>
+
+@functions {
+    private HtmlString RenderUserTabTooltip()
+    {
+        string content = "";
+        if(Model == null)
+        {
+            content = $@"data-toggle=""tooltip"" title=""{@sReportsV2.Cache.Resources.TextLanguage.UserTabTooltip}""";
+        }
+        return new HtmlString(content);
+    }
+}

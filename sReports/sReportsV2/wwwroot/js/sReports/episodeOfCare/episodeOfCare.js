@@ -46,13 +46,13 @@ $(document).ready(function () {
     var readOnly;
     if (hasParamInUrl('formInstanceId')) {
         formInstanceId = getParamFromUrl('formInstanceId');
-        readOnly = getParamFromUrl('readOnly') == "true" ? true : false;
+        readOnly = getParamFromUrl('readOnly') == "true";
     }
-    var resetForm = hasParamInUrl('formInstanceId') ? false : true;
+    var resetForm = !hasParamInUrl('formInstanceId');
     showEncounterData(activeEncounterType, function () {
         if (formInstanceId) {
             setTimeout(function () {
-                showFormInstanceDetails(formInstanceId, null, readOnly);
+                showFormInstanceDetails(formInstanceId, readOnly);
             }, 1000);
         }
     }, false, resetForm);
@@ -155,10 +155,10 @@ function removeEncounter(event, id) {
         success: function (data) {
             viewEpisodeOfCare($("#encounterContainer").attr("data-episode-of-care"));
             var encountersContainer = document.getElementById("encountersContainer");
+            let numberOfDataEncounterIds = 0;
 
             if (encountersContainer) {
                 var encounterDivs = encountersContainer.getElementsByClassName("encounter-div");
-                let numberOfDataEncounterIds = 0;
 
                 for (const encounterDiv of encounterDivs) {
                     var dataEncounterId = encounterDiv.getAttribute("data-encounter-id");
@@ -186,7 +186,7 @@ function showExtended(formInstanceId) {
 
 var formInstance;
 
-function showFormInstanceDetails(formInstanceId, encounterIdForNewDocument = null, viewFormInstance = false) {
+function showFormInstanceDetails(formInstanceId, viewFormInstance = false) {
     $(document).off('click', '.dropdown-matrix');
     var formInstanceActive = getActiveFormInstanceId();
 
@@ -204,7 +204,7 @@ function showFormInstanceDetails(formInstanceId, encounterIdForNewDocument = nul
 
     var patientId = $(".eoc-encounter-documents-container").attr("data-patient");
     var episodeOfCareId = $("#encounterContainer").attr("data-episode-of-care")
-    var encounterId = encounterIdForNewDocument ? encounterIdForNewDocument : getActiveEncounterId();
+    var encounterId = getActiveEncounterId();
 
     if ($('#formInstanceContainer').show() && !$(`#edit-${formInstanceId}`).hasClass("blue-pencil") && !viewFormInstance) {
         clearEncounterFormInstance(patientId, episodeOfCareId, encounterId);
@@ -217,23 +217,27 @@ function showFormInstanceDetails(formInstanceId, encounterIdForNewDocument = nul
     }
 }
 
-function submitNewEncounterDocument(formInstanceId, patientId, episodeOfCareId, encounterId, viewFormInstance, submitNew = false) {
+function submitNewEncounterDocument(formInstanceId, patientId, episodeOfCareId, encounterId, viewFormInstance, submitNew = false, callback = null) {
     var requestObject = {};
-    requestObject['isReadOnlyViewMode'] = true;
     requestObject['formInstanceId'] = formInstanceId;
-    if (viewFormInstance)
-        history.pushState({}, '', `?patientId=${patientId}&episodeOfCareId=${episodeOfCareId}&encounterId=${encounterId}&formInstanceId=${formInstanceId}&readOnly=true`);
-    else
-        history.pushState({}, '', `?patientId=${patientId}&episodeOfCareId=${episodeOfCareId}&encounterId=${encounterId}&formInstanceId=${formInstanceId}&readOnly=false`);
+    requestObject['setReferrableValues'] = submitNew;
+
+    if (viewFormInstance) {
+        requestObject['isReadOnlyViewMode'] = true;
+    } else {
+        requestObject = getPatientRequestObject(requestObject);
+    }
+    history.pushState({}, '', `?patientId=${patientId}&episodeOfCareId=${episodeOfCareId}&encounterId=${encounterId}&formInstanceId=${formInstanceId}&readOnly=${viewFormInstance}`);
     callServer({
         type: 'GET',
-        data: viewFormInstance ? requestObject : getPatientRequestObject({ formInstanceId: formInstanceId }),
+        data: requestObject,
         url: '/DiagnosticReport/ShowFormInstanceDetails',
         success: function (data) {
             $("#formInstanceContainer").html(data);
             $("#formInstanceContainer").addClass("display-flex");
             if (submitNew)
                 $(`#edit-${formInstanceId}`).toggleClass("blue-pencil");
+            executeCallback(callback);
         },
         error: function (xhr, thrownError) {
             handleResponseError(xhr, true);

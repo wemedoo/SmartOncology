@@ -1,5 +1,9 @@
-﻿@using sReportsV2.DTOs.Form.DataOut;
-@model FormDataOut
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Form.DataOut;
+@{
+    string isReadOnly = ((bool)ViewBag.IsReadOnlyViewMode).ToJsBoolean();
+}
+@model string
 
     <div class="w-100 " >
         <div class="back-to-tree" onclick="goBackToTree()"><i class="fas fa-angle-left mr-5px"></i>@sReportsV2.Cache.Resources.TextLanguage.Back_To_Tree</div>
@@ -14,6 +18,6 @@
 
 <script>
     $(document).ready(function (e) {
-        showJsonEditor(@Html.Raw(Model != null ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.ToJson()) : new FormDataOut().ToJson()));
+        showJsonDesignerEditor(@Html.Raw(Model), @isReadOnly);
     });
 </script>

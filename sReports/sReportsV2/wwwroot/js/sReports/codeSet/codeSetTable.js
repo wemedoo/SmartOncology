@@ -1,10 +1,8 @@
 ﻿
 function reloadTable() {
     $('#thesaurusFilterModal').modal('hide');
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setTableProperties(requestObject, { page: getPageNum(), doOrdering: true});
+
+    let requestObject = applyActionsBeforeServerReloadSimple(true, false, { page: getPageNum(), doOrdering: true });
 
     callServer({
         type: 'GET',

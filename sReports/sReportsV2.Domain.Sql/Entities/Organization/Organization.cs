@@ -60,7 +60,6 @@ namespace sReportsV2.Domain.Sql.Entities.OrganizationEntities
         public virtual List<OrganizationIdentifier> OrganizationIdentifiers { get; set; } = new List<OrganizationIdentifier>();
         public virtual List<OrganizationCommunicationEntity> OrganizationCommunicationEntities { get; set; }
         public string TimeZone { get; set; }
-        public string TimeZoneOffset { get; set; }
 
         public void Copy(Organization copyFrom)
         {
@@ -79,7 +78,6 @@ namespace sReportsV2.Domain.Sql.Entities.OrganizationEntities
             CopyEntries(copyFrom.OrganizationIdentifiers);
             CopyEntries(copyFrom.ClinicalDomains);
             this.TimeZone = copyFrom.TimeZone;
-            this.TimeZoneOffset = copyFrom.TimeZoneOffset;
             CopyRowVersion(copyFrom);
         }
 
@@ -146,6 +144,11 @@ namespace sReportsV2.Domain.Sql.Entities.OrganizationEntities
             {
                 organizationCommunicationEntity.Delete(activeTo, setLastUpdateProperty, organizationTimeZone);
             }
+        }
+
+        public string GetOrganizationTimeZoneId()
+        {
+            return TimeZone?.GetTimeZoneInfoId();
         }
 
         private void CopyAddress(OrganizationAddress copyFrom)

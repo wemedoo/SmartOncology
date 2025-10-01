@@ -20,28 +20,25 @@ namespace sReportsV2.Controllers
 {
     public class CustomController : DiagnosticReportCommonController
     {
-        public CustomController(IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL,
-            IEncounterDAL encounterDAL, 
+        public CustomController(
             IUserBLL userBLL, 
             IOrganizationBLL organizationBLL, 
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL, 
             IFormBLL formBLL, 
-            IThesaurusDAL thesaurusDAL, 
             IDiagnosticReportBLL diagnosticReportBLL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
-            IConfiguration configuration) : 
-            base(patientDAL, episodeOfCareDAL, encounterDAL ,userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, diagnosticReportBLL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration) { }
+            IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService) : 
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, diagnosticReportBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService) { }
         // GET: Custom
         public async Task<ActionResult> CTCAE(int episodeOfCareId, FormInstanceDataIn formInstanceDataIn)
         {
             formInstanceDataIn = Ensure.IsNotNull(formInstanceDataIn, nameof(formInstanceDataIn));
-            Form form = this.formDAL.GetForm(formInstanceDataIn.FormDefinitionId);
+            Form form = formBLL.GetFormById(formInstanceDataIn.FormDefinitionId);
             if (form == null)
             {
                 return NotFound(TextLanguage.FormNotExists, formInstanceDataIn.FormDefinitionId);
@@ -49,9 +46,9 @@ namespace sReportsV2.Controllers
             FormInstance formInstance = formInstanceBLL.GetFormInstanceSet(form, formInstanceDataIn, userCookieData);
             if (episodeOfCareId != 0)
             {
-                formInstance.EncounterRef = GetEncounterFromRequestOrCreateDefault(episodeOfCareId, formInstanceDataIn.EncounterId);
+                formInstance.EncounterRef = formInstanceBLL.GetEncounterFromRequestOrCreateDefault(episodeOfCareId, formInstanceDataIn.EncounterId);
                 formInstance.EpisodeOfCareRef = episodeOfCareId;
-                formInstance.PatientId = episodeOfCareDAL.GetById(episodeOfCareId).PatientId;
+                formInstance.PatientId = formInstance.PatientId;
             }
 
             await formInstanceBLL.InsertOrUpdateAsync(

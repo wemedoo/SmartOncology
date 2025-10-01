@@ -36,6 +36,12 @@ function changePageSecondary(num, e, url, container, pageNumIdentifier, preventP
     reloadSecondaryTable(url, container, pageNumIdentifier);
 }
 
+function clickedSimulatorRow(e, thesaurusId, versionId) {
+    if (canExecuteClickedRow($(e.target), "")) {
+        redirectToDistributionParams(e, thesaurusId, versionId);
+    }
+}
+
 function redirectToDistributionParams(event, thesaurusId, versionId) {
     event.preventDefault();
     event.stopPropagation();

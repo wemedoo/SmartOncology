@@ -1,14 +1,53 @@
 ﻿function readyFunctionInEditableMode() {
     setDateTimeValidatorMethods();
     initValidationForRegexFieldInstances();
-    saveInitialFormData("#fid");
-    configureImageMap();
-    scrollActivePageTabIfNecessarry();
+    readyFunctionInReadOnlyMode();
 }
 
 function readyFunctionInReadOnlyMode() {
+    saveInitialFormData("#fid");
     configureImageMap();
     scrollActivePageTabIfNecessarry();
+    initTooltips();
+    restorePageScrollPosition();
+    markSemanticQueryElements();
+    initializeInputDropdown();
+}
+
+function restorePageScrollPosition() {
+    let activeChapterId = $('.chapter-li.active').attr('data-id');
+    let savedScrollPosition = localStorage.getItem(`pageScrollPosition_${activeChapterId}`) || '0';
+    let $pageTabs = $(`#pagesTabs-chapter-${activeChapterId}`);
+    let isFirstPageActive = $pageTabs.find('.pages-link').first().hasClass('active');
+
+    if ($pageTabs.length && savedScrollPosition !== '0' && !isFirstPageActive) {
+        $pageTabs.attr("data-current-left-scroll", savedScrollPosition);
+        $pageTabs.animate(
+            {
+                scrollLeft: savedScrollPosition
+            },
+            "fast",
+            "swing",
+            function () {
+                $(this).removeClass('invisible');
+                $(this).siblings(".scroll-page-action").removeClass("d-none");
+            }
+        );
+    }
+}
+
+function initTooltips() {
+    $('[data-toggle="tooltip"]').tooltip('dispose');
+    $('[data-toggle="tooltip"]').tooltip({
+        placement: 'bottom',
+        trigger: 'hover focus',
+        container: 'body',
+        boundary: 'window',
+    });
+
+    $('[data-toggle="tooltip"]').on('mouseenter', function () {
+        $(this).tooltip('update');
+    });
 }
 
 function initValidationForRegexFieldInstances() {
@@ -32,7 +71,7 @@ function initValidationForRegexFieldInstances() {
         var regexDescription = $(this).data('regexdescription');
         $(this).rules('add', {
             regex: true,
-            messages: { // optional custom messages
+            messages: { 
                 regex: regexDescription
             }
         });
@@ -48,6 +87,12 @@ function resetValue(event) {
     unsetSpecialValueIfSelected($specialValueElement);
     resetErrorLabel(fieldInstanceName);
     setInputFieldToDefault($resetLink, fieldInstanceName, true);
+    inactivateAllMatrixFields(document.querySelectorAll(".fieldset-matrix-td"));
+    updateMissingValueDisplay(fieldInstanceName);
+
+    if (typeof reenableTinyMCEEditor !== 'undefined') {
+        reenableTinyMCEEditor(fieldInstanceName);
+    }
 }
 
 function setInputFieldToDefault($element, fieldInstanceName, revertToDefaultEditableState) {
@@ -85,7 +130,7 @@ function setInputToDefault($el, params) {
         'coded': setInputValueForSelect,
         'date': setInputValueForDate,
         'datetime': setInputValueForDateTime,
-        'numeric': setInputValueForNumber,
+        'number': setInputValueForNumber,
         'text': setInputValueForText,
         'long-text': setInputValueForSimpleText,
         'regex': setInputValueForSimpleText,
@@ -274,7 +319,6 @@ function getActiveOptionDataThesaurusId(element) {
 }
 
 $(document).on("change", '.select-input-field', function (event) {
-
     var imgSrc = $(this).val() ? "/css/img/icons/thesaurus_green.svg" : "/css/img/icons/thesaurus_grey.svg";
     var $image = $(this).siblings("img");
     $image.attr("src", imgSrc);
@@ -287,15 +331,36 @@ function getFormInstanceFieldsSelector() {
 $(document).on('click', '.chapter-li', function (event) {
     executeEventFunctions(event);
 
-    chapterLinkIsClicked($(this));
+    changeChapterAction(event, this, true);
 });
 
-function chapterLinkIsClicked($chapterTab) {
-    let clickedChapterContainerId = $chapterTab.attr('id').replace('li', 'acc');
-    $('.form-accordion').hide();
+function saveIfThereAreChangesAndCollapse(event, chapterContainerId, isChapterLinkClicked) {
+    saveIfThereAreChangesAndContinue(event, function () {
+        let $chapterContainer = $(`#${chapterContainerId}`);
+        if (isChapterLinkClicked) {
+            $('.form-accordion').hide();
+            $chapterContainer.show();
+        }
 
-    $(`#${clickedChapterContainerId}`).show();
-    collapseChapter($(`#${clickedChapterContainerId}`).children('.enc-form-instance-header:first'));
+        collapseChapter($chapterContainer);
+    });
+}
+
+function changeChapterAction(event, chapterElement, isChapterLinkClicked) {
+    let clickedChapterContainerId;
+    if (isChapterLinkClicked) {
+        clickedChapterContainerId = $(chapterElement).attr('id').replace('li', 'acc');
+    } else {
+        clickedChapterContainerId = $(chapterElement).parent().attr("id");
+    }
+
+    saveIfThereAreChangesAndCollapse(event, clickedChapterContainerId, isChapterLinkClicked);
+}
+
+function chapterLinkIsClicked(event, $chapterContainerElement) {
+    let clickedChapterContainerId = $chapterContainerElement.attr('id').replace('li', 'acc');
+
+    saveIfThereAreChangesAndCollapse(event, clickedChapterContainerId, true);
 }
 
 function updateChapterTab($chapterTab, isActiveChapter) {
@@ -310,83 +375,105 @@ function updateChapterTab($chapterTab, isActiveChapter) {
     }
 }
 
-function updatePageTab($pageTab, isActivePage) {
-    if (isActivePage) {
-        $pageTab.addClass('active');
-    } else {
-        $pageTab.removeClass('active');
-    }
-}
-
-function collapseChapter(clickedChapterHeader) {
-    var previousActivePage = getPreviousActivePage();
-    $(previousActivePage).hide();
-
-    let clickedChapterContentId = $(clickedChapterHeader).data('target');
-    let $chaptersContainer = $(clickedChapterHeader).closest(".chapters-container");
-    let $clickedChapterContent = $chaptersContainer.find(clickedChapterContentId);
-
-    $chaptersContainer.find(`.chapter.collapse:not(${clickedChapterContentId})`).collapse('hide');
-    $chaptersContainer.find(`.chapter.collapse .page`).hide();
-    $clickedChapterContent.collapse('show');
-    $clickedChapterContent.find('.page:eq(0)').show(function () {
-        configureImageMap();
-    });
-
-    if (clickedChapterContentId == '#administrativeChapter') {
-        showAdministrativeArrowIfOverflow('administrative-container-form-instance');
-    }
-
-    scrollPageTabs(true, true, true);
-    let $activatedChapterTab = $($(clickedChapterHeader).attr('data-link-id'));
-    updateChapterTab($('.chapter-li.active'), false);
-    updateChapterTab($activatedChapterTab, true);
-
-    updatePageTab(getPreviousActivePageTab(), false);
-    updatePageTab($clickedChapterContent.find('.pages-link:first'), true);
-
-    var allChapters = document.querySelectorAll('.enc-form-instance-header');
-    allChapters.forEach(function (chapter) {
-        if (chapter != clickedChapterHeader) {
-            $(chapter).find('.chapter-icon').attr('src', '/css/img/icons/u_plus.svg');
-            $(chapter).removeClass("chapter-non-collapse");
+function updateChapterHeaders($clickedChapterHeader) {
+    $('.enc-form-instance-header').each(function () {
+        let $chapter = $(this);
+        if ($chapter.attr('data-link-id') != $clickedChapterHeader.attr('data-link-id')) {
+            $chapter.find('.chapter-icon').attr('src', '/css/img/icons/u_plus.svg');
+            $chapter.removeClass("chapter-active");
         } else {
-            let $chapterIcon = $(clickedChapterHeader).find('.chapter-icon');
+            let $chapterIcon = $chapter.find('.chapter-icon');
             if ($chapterIcon.attr('src') === '/css/img/icons/u_plus.svg') {
                 $chapterIcon.attr('src', '/css/img/icons/u_minus.svg');
-                $(clickedChapterHeader).addClass('chapter-non-collapse');
+                $chapter.addClass('chapter-active');
             } else {
                 $chapterIcon.attr('src', '/css/img/icons/u_plus.svg');
-                $(clickedChapterHeader).removeClass('chapter-non-collapse');
+                $chapter.removeClass('chapter-active');
             }
         }
 
     });
 }
 
+function collapseChapter($chapterContainer) {
+    let $clickedChapterHeader = $chapterContainer.children('.enc-form-instance-header:first')
+    let clickedChapterContentId = $clickedChapterHeader.data('target');
+    let $chaptersContainer = $clickedChapterHeader.closest(".chapters-container");
+    let $clickedChapterContent = $chaptersContainer.find(clickedChapterContentId);
+
+    handlePageChange($clickedChapterContent.find('.pages-link:first').attr("id"));
+
+    $chaptersContainer.find(`.chapter.collapse:not(${clickedChapterContentId})`).collapse('hide');
+    $clickedChapterContent.collapse('show');
+
+    if (clickedChapterContentId == '#administrativeChapter') {
+        showAdministrativeArrowIfOverflow('administrative-container-form-instance');
+    }
+
+    scrollPageTabs(true, true, true);
+    let $activatedChapterTab = $($clickedChapterHeader.attr('data-link-id'));
+    updateChapterTab($('.chapter-li.active'), false);
+    updateChapterTab($activatedChapterTab, true);
+    updateChapterHeaders($clickedChapterHeader);
+}
+
 $(document).on("click", ".pages-link", function (event) {
     executeEventFunctions(event, true);
-    pageIsClicked($(this));
+    pageIsClicked(event, $(this));
 });
 
-function pageIsClicked($pageTab) {
-    $('.pages-link').removeClass('active');
-    $pageTab.addClass('active');
+function addAtTheEnd(original, extra) {
+    return function (...args) {
+        original.apply(this, args); // run the original
+        extra.apply(this, args);    // then run the extra
+    };
+}
 
-    let pageId = $pageTab.attr("id").replace("page-link-", "");
-    var pageToShow = $(".chapters-container").find("#" + pageId);
-    showPage(pageToShow);
+function saveIfThereAreChangesAndContinue(event, callback) {
+    callback = addAtTheEnd(callback, function () {
+        saveInitialFormData("#fid");
+    });
+    if (compareForms("#fid")) {
+        executeCallback(callback);
+    } else {
+        clickedSubmit(event, callback);
+    }
+}
+
+function pageIsClicked(event, $pageTab) {
+    let pageTabId = $pageTab.attr('id');
+    saveIfThereAreChangesAndContinue(event, function () {
+        handlePageChange(pageTabId);
+    });
+}
+
+function handlePageChange(pageTabId) {
+    if (pageTabId) {
+        let $clickedPageTab = $(`#${pageTabId}`);
+
+        showPage(getPageFromPageTab($clickedPageTab));
+
+        $('.pages-link').removeClass('active');
+        $clickedPageTab.addClass('active');
+
+        let $activeChapterContainer = $clickedPageTab.closest('.pages-links');
+        let $chapterPages = $activeChapterContainer.find(".pages-link");
+        let currentIndex = $chapterPages.index($clickedPageTab);
+        updateArrowState(currentIndex, $chapterPages.length);
+    } else {
+        $(".navigation-arrow")
+            .addClass("arrow-disabled");
+    }
 }
 
 function showPage(pageToShow) {
-    let currentShownPage = $(".page:visible");
+    let currentShownPage = getPreviousActivePage();
     let currentVerticalScroll = window.scrollY;
     $(currentShownPage).hide(0);
     $(pageToShow).show(150, function () {
         scrollAfterPageChange(currentVerticalScroll);
+        configureImageMap();
     });
-    
-    setTimeout(function () { triggerResize(); }, 100);
 }
 
 function scrollAfterPageChange(currentVerticalScroll) {
@@ -394,9 +481,53 @@ function scrollAfterPageChange(currentVerticalScroll) {
     let totalHeight = document.documentElement.scrollHeight;
     let possibleScroll = totalHeight - displayedHeight;
     let newVerticalScroll = possibleScroll <= currentVerticalScroll ? possibleScroll : currentVerticalScroll;
+
     $('html, body').animate({
         scrollTop: newVerticalScroll
     }, 100);
+}
+
+$(document).on("click", ".navigation-arrow", function (event) {
+    executeEventFunctions(event);
+    if ($(this).hasClass("arrow-disabled")) return;
+    let isRightDirection = $(this).attr('id') == "rightArrow";
+    saveIfThereAreChangesAndContinue(event, function () {
+        scrollToAdjacentPage(isRightDirection ? 1 : - 1);
+        scrollPages(event, isRightDirection);
+    });
+});
+
+function scrollToAdjacentPage(direction) {
+    let $activeChapterContainer = $(".form-accordion:visible");
+    let $pages = $activeChapterContainer.find(".pages-link");
+
+    let $active = $pages.filter(".active");
+    let index = $pages.index($active);
+    let nextIndex = index + direction;
+
+    if (nextIndex >= 0 && nextIndex < $pages.length) {
+        let $nextPage = $pages.eq(nextIndex);
+        $nextPage.trigger("click");
+        updateArrowState(nextIndex, $pages.length);
+    }
+}
+
+function updateArrowState(currentIndex, totalPages) {
+    if (currentIndex <= 0) {
+        $("#leftArrow")
+            .addClass("arrow-disabled");
+    } else {
+        $("#leftArrow")
+            .removeClass("arrow-disabled");
+    }
+
+    if (currentIndex >= totalPages - 1) {
+        $("#rightArrow")
+            .addClass("arrow-disabled");
+    } else {
+        $("#rightArrow")
+            .removeClass("arrow-disabled");
+    }
 }
 
 function goToReferrableFormInstance(id, versionId) {
@@ -448,21 +579,23 @@ function scrollActivePageTabIfNecessarry() {
 }
 
 $(document).on('click', '.arrow-scroll-right-page', function (event) {
-    executeEventFunctions(event, true);
-
-    scrollPageTabs(true);
+    scrollPages(event, true);
 });
 
 $(document).on('click', '.arrow-scroll-left-page', function (event) {
-    executeEventFunctions(event, true);
-
-    scrollPageTabs(false);
+    scrollPages(event, false);
 });
+
+function scrollPages(event, scrollRight) {
+    executeEventFunctions(event, true);
+    scrollPageTabs(scrollRight);
+}
 
 function scrollPageTabs(scrollToTheRight, scrollToSpecificPosition = false, resetScrollPosition = false) {
     let $pageTabs = getPreviousActiveChapterPageTabs();
     if (resetScrollPosition) {
-        $pageTabs.attr("data-current-left-scroll", '0')
+        $pageTabs.attr("data-current-left-scroll", '0');
+        localStorage.setItem('activePageLeftScroll', '0');
     }
     let scrollToTheLeftCurrent = +$pageTabs.attr("data-current-left-scroll");
     if (scrollToSpecificPosition) {
@@ -478,7 +611,17 @@ function scrollPageTabs(scrollToTheRight, scrollToSpecificPosition = false, rese
             }
         );
     } else {
-        let scrollInPixels = 500;
+        let $pageLinks = $pageTabs.find('.pages-link');
+        let activeIndex = $pageLinks.index($pageLinks.filter('.active'));
+        let $targetTab = null;
+
+        if (scrollToTheRight) {
+            $targetTab = $pageLinks.eq(activeIndex - 1).length ? $pageLinks.eq(activeIndex - 1) : $pageLinks.last();
+        } else {
+            $targetTab = $pageLinks.eq(activeIndex + 1).length ? $pageLinks.eq(activeIndex + 1) : $pageLinks.first();
+        }
+
+        let scrollInPixels = $targetTab.length ? $targetTab.outerWidth() - 10 : 140;
         let scrollPrefix = scrollToTheRight ? '+' : '-';
         $pageTabs.animate({
             scrollLeft: `${scrollPrefix}=${scrollInPixels}px`
@@ -487,18 +630,28 @@ function scrollPageTabs(scrollToTheRight, scrollToSpecificPosition = false, rese
     }
 }
 
+function savePageScrollPosition($pageTabs) {
+    let scrollPosition = $pageTabs.attr("data-current-left-scroll") || '0';
+    let activeChapterId = $('.chapter-li.active').attr('data-id');
+    localStorage.setItem(`pageScrollPosition_${activeChapterId}`, scrollPosition);
+}
+
 function updateCurrentScrollPosInCache($pageTabs, scrollToTheRight, scrollToTheLeftCurrent, scrollInPixels) {
     let scrollToTheLeftUpdated = scrollToTheLeftCurrent + (scrollToTheRight ? 1 : -1) * scrollInPixels;
     if (scrollToTheLeftUpdated < 0) {
         scrollToTheLeftUpdated = 0;
     }
     $pageTabs.attr("data-current-left-scroll", scrollToTheLeftUpdated);
+    savePageScrollPosition($pageTabs);
 }
 
 function toggleFileNameContainer($field, binaryFieldType, resourceName = '') {
     let $fileNameDiv = $field.find(".file-name-div");
     let $fileNameDisplayDiv = $fileNameDiv.find(".file-name-text");
-    setFileDisplayNameComponent($fileNameDisplayDiv, binaryFieldType, resourceName);
+    let $downloadFile = $field.find(".download-predefined");
+    setFileTitleComponent($fileNameDisplayDiv, binaryFieldType, resourceName);
+    setFileDisplayNameComponent($downloadFile, binaryFieldType, resourceName);
+
     if (resourceName) {
         $fileNameDiv.show();
     } else {
@@ -506,12 +659,16 @@ function toggleFileNameContainer($field, binaryFieldType, resourceName = '') {
     }
 }
 
-function setFileDisplayNameComponent($fileNameDisplayDiv, binaryFieldType, dataGuidName) {
+function setFileTitleComponent($fileNameDisplayDiv, binaryFieldType, dataGuidName) {
     let fileName = getDisplayFileName(dataGuidName, binaryFieldType == 'file')
     $fileNameDisplayDiv
         .attr('data-guid-name', dataGuidName)
-        .attr('title', fileName)
         .text(fileName);
+}
+
+function setFileDisplayNameComponent($fileNameDisplayDiv, binaryFieldType, dataGuidName) {
+    $fileNameDisplayDiv
+        .attr('data-guid-name', dataGuidName);
 }
 
 function allowFileUploadIfValueIsReset($fileFieldContainer, revertToDefaultEditableState, $el) {
@@ -564,7 +721,6 @@ $(document).on("change", ".file-hid", function (event) {
 
 function removeBinary(event, binaryFieldType) {
     let $fieldContainer = $(event.currentTarget).closest(".repetitive-field");
-    deleteExistingBinaryFromServer(getBinaryNameInput($fieldContainer, binaryFieldType).val(), binaryFieldType);
     handleBinaryChange($fieldContainer, binaryFieldType);
 }
 
@@ -628,11 +784,6 @@ function skipInputValidation($input) {
         || $input.attr("type") == "file";
 }
 
-$('.collapse').on('shown.bs.collapse', function (e) {
-    e.preventDefault();
-    scrollToElement(this, 1000, 50);
-});
-
 function removeValidationMessages(element) {
     if (element.hasClass("error")) {
         element.removeClass("error");
@@ -685,110 +836,28 @@ function checkScrollButtons() {
     });
 }
 
-//dropdown for matrix table
-$(document).on('click', '.dropdown-matrix', function (event) {
-    event.preventDefault();
-    let $target = $(event.currentTarget);
-    clickDropdownButton($target);
-});
+function updateMissingValueDisplay(fieldInstanceName) {
+    let $missingValueDiv = $(".missing-value-span[name='" + fieldInstanceName + "']");
+    let $secondDiv = $missingValueDiv.next("span");
+    let $inputElement = $missingValueDiv.next(".form-element").find("input");
 
-$(window).on('scroll', function () {
-    hideOpenedDropdowns();
-});
-
-$('.chapters-container').on('scroll', function () {
-    hideOpenedDropdowns();
-});
-
-function clickDropdownButton($target) {
-    let $dropdown = $target.closest('.dropdown');
-    let $tr = $target.closest('tr');
-    if ($dropdown.hasClass('show')) {
-        dropdownIsHidding($target);
-        hideOpenedDropdown($dropdown, $tr);
-    } else {
-        hideOpenedDropdowns();
-        dropdownIsShowing($target);
-        showDropdown($dropdown, $tr);
+    if ($missingValueDiv.length > 0) {
+        $missingValueDiv.addClass("hide-missing-value").removeClass("show-missing-value");
+        $secondDiv.removeClass("hide-missing-value");
+        if ($inputElement.length > 0) {
+            $inputElement.removeClass("hide-missing-value");
+        }
     }
 }
 
-function showDropdown($dropdown, $tr) {
-    let $dropdownMenu = $dropdown.find('.dropdown-menu');
-    $dropdown.addClass('show');
-    $dropdownMenu.addClass('show');
-    $tr.addClass('grey-background');
-    relocateDropdown($dropdown, $dropdownMenu);
-}
-
-function relocateDropdown($dropdown, $dropdownMenu) {
-    let $td = $dropdown.closest('td');
-    let offsets = getDropdownOffsets($td, $dropdownMenu);
-    const { top, left } = getPosition($td);
-
-    $dropdownMenu
-        .css(
-            "cssText",
-            `left: ${left - offsets.leftOffset}px !important; 
-             top: ${top + offsets.topOffset}px; 
-             position: fixed
-             `
-        );
-
-    if ($td) {
-        $td.css("z-index", "10");
-    }
-}
-
-function getDropdownOffsets($td, $dropdownMenu) {
-    let dropdownMenuWidth = getWidth($dropdownMenu);
-    let tdWidth = getWidth($td);
-    let elementsWidthDiff = dropdownMenuWidth - tdWidth;
-    let staticLeftOffset = 10;
-    let leftOffset = elementsWidthDiff + staticLeftOffset;
-    let topOffset = 15;
-
-    return {
-        leftOffset,
-        topOffset
-    }
-}
-
-$(document).on('click', function (e) {
-    clickOutsideDropdown($(e.target));
-});
-
-function clickOutsideDropdown($target) {
-    if ($('.fieldsets').length > 0 && !($target.hasClass('dots') && $target.parent().is('.dropdown-matrix'))) {
-        hideOpenedDropdowns();
-    }
-}
-
-function hideOpenedDropdowns() {
-    $('.fieldsets .dropdown.show').each(function () {
-        let $dropdown = $(this);
-        let $tr = $dropdown.closest('tr');
-        dropdownIsHidding($(this).find('.dropdown-matrix'));
-        hideOpenedDropdown($dropdown, $tr);
+function markSemanticQueryElements() {
+    let data = JSON.parse(localStorage.getItem("semanticGraphData"));
+    $('[data-thesaurusid]').each(function () {
+        let thesaurusid = +$(this).attr('data-thesaurusid');
+        if (data?.includes(thesaurusid)) {
+            $(this).closest('fieldset.form-element')
+                .addClass('semantic-data-field')
+                .prepend($(`<p class="semantic-data-field-info">Semantic Data Field</p>`));
+        }
     });
-}
-
-function hideOpenedDropdown($dropdown, $tr) {
-    $dropdown.removeClass('show');
-    $dropdownMenu = $dropdown.children('.dropdown-menu');
-    $dropdownMenu.removeClass('show');
-    $tr.removeClass('grey-background');
-    $dropdownMenu
-        .css(
-            "cssText",
-            `left: ; 
-                top: ; 
-                position: 
-                `
-        );
-
-    let $td = $dropdown.closest('td');
-    if ($td) {
-        $td.css("z-index", "");
-    }
 }

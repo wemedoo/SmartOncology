@@ -6,57 +6,159 @@
     var userCookieData = ViewBag.UserCookieData;
 }
 <div class="sidebar" id="sidebar">
-    <ul class="nav flex-column">
+    <ul class="nav flex-column unset-padding-left padding-top-8">
         <li class="nav-item @(action.Equals("Index") && controller.Equals("Home") ? "active" : "")">
             <a class="nav-link d-flex nav-link-remove-padding" href="~/Home/Index">
                 <div class="sidebar-img">
-                    <img alt="" src="/css/img/icons/@(action.Equals("Index") && controller.Equals("Home") ? "overview_black.svg" : "overview_silver.svg")">
+                    <img alt="" src="/css/img/icons/Sidebar/dashboard_icon.svg">
                 </div>
-                <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Overview </div>
+                <div class="nav-text">
+                    <div class="sidebar-text-width">
+                        @sReportsV2.Cache.Resources.TextLanguage.Dashboard
+                    </div>
+                </div>
+
             </a>
         </li>
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
+        @if (userCookieData != null && (userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration) || userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ProjectManagement) || userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Designer) || userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus) || userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalPathway) || userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.CodeSet)))
         {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("Organization") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/Organization/GetAll">
+            <li class="nav-item parent-li">
+                <a class="nav-link d-flex nav-link-remove-padding" href="" data-toggle="collapse" data-target="#systemAdministrationSubmenu" aria-expanded="false">
                     <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("Organization") ? "organization_black.svg" : "organization_silver.svg")">
+                        <img alt="" src="/css/img/icons/Sidebar/system_administration_icon.svg">
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Organizations </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) ) && controller.Equals("RoleAdministration") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/RoleAdministration/GetAll">
-                    <div class="sidebar-img sidebar-i">
-                        <i class="fas fa-universal-access @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("RoleAdministration") ? "active-item" : "")"></i>
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.SystemAdministrationAndResources
+                        </div>
+                        <div class="toggle-icon minus-plus-icon">
+                            <img class="plus-icon" src="/css/img/icons/Sidebar/u_plus.svg" alt="Expand" style="display: inline;">
+                            <img class="minus-icon" src="/css/img/icons/Sidebar/u_minus.svg" alt="Collapse" style="display: none;">
+                        </div>
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Role_Administration </div>
                 </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals("UserProfile")) && controller.Equals("UserAdministration") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/UserAdministration/GetAll">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals("UserProfile")) && controller.Equals("UserAdministration") ? "user_administration_black.svg" : "user_administration_silver.svg")">
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.User_Administration </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ProjectManagement))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("ProjectManagement") || (action.Equals("GetAllByProject") || action.Equals("CreateForProject") || action.Equals("EditForProject")) && controller.Equals("FormInstance") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/ProjectManagement/GetAll">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("ProjectManagement") || (action.Equals("GetAllByProject") || action.Equals("CreateForProject") || action.Equals("EditForProject")) && controller.Equals("FormInstance") ? "projects_management_black.svg" : "projects_management_silver.svg")">
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement </div>
-                </a>
+                <ul class="collapse nav flex-column child-nav" id="systemAdministrationSubmenu">
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("Organization") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/Organization/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Organization
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("RoleAdministration") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/RoleAdministration/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Role_Administration
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals("UserProfile")) && controller.Equals("UserAdministration") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/UserAdministration/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.User_Administration
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ProjectManagement))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View)) && controller.Equals("ProjectManagement") || (action.Equals("GetAllByProject") || action.Equals("CreateForProject") || action.Equals("EditForProject")) && controller.Equals("FormInstance") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/ProjectManagement/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Designer))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals(EndpointConstants.Create)) && controller.Equals("Form") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/Form/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Designer
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals(EndpointConstants.Create) || action.Equals("GetReviewTree")) && controller.Equals("ThesaurusEntry") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/ThesaurusEntry/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Thesaurus
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.QueryManagement))
+                    {
+                        <li class="nav-item @(action.Equals(EndpointConstants.GetAll) && controller.Equals("QueryManagement") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/QueryManagement/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.QueryManagement
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalPathway))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit)) && controller.Equals("DigitalGuideline") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/DigitalGuideline/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.ClinicalPathwayBuilder
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.CodeSet))
+                    {
+                        <li class="nav-item @((action.Equals(EndpointConstants.GetAll) && controller.Equals("CodeSet") || (action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("ViewCodes")) && controller.Equals("Code")) ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/CodeSet/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.CodeValueManagement
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                    @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Administration))
+                    {
+                        <li class="nav-item @(action.Equals(EndpointConstants.GetAll) && controller.Equals("UploadPatientData") ? "active" : "")">
+                            <a class="nav-link d-flex nav-link-remove-padding" href="~/UploadPatientData/GetAll">
+                                <div class="nav-text">
+                                    <div class="sidebar-text-width">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Upload Patient Data
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
             </li>
         }
         @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ProjectManagement))
@@ -64,75 +166,13 @@
             <li class="nav-item @((action.Equals("GetAllUserProjects") || action.Equals("ProjectForms")) && controller.Equals("ProjectManagement") || (action.Equals("GetAllByUserProject") || action.Equals("CreateForUserProject") || action.Equals("EditForUserProject")) && controller.Equals("FormInstance") ? "active" : "")">
                 <a class="nav-link d-flex nav-link-remove-padding" href="~/ProjectManagement/GetAllUserProjects">
                     <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals("GetAllUserProjects") || action.Equals("ProjectForms")) && controller.Equals("ProjectManagement") || (action.Equals("GetAllByUserProject") || action.Equals("CreateForUserProject") || action.Equals("EditForUserProject")) && controller.Equals("FormInstance") ? "projects_black.svg" : "projects_silver.svg")">
+                        <img alt="" src="/css/img/icons/Sidebar/projects_icon.svg">
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Projects </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals(EndpointConstants.Create) || action.Equals("GetReviewTree")) && controller.Equals("ThesaurusEntry") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/ThesaurusEntry/GetAll">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals(EndpointConstants.Create) || action.Equals("GetReviewTree")) && controller.Equals("ThesaurusEntry") ? "thesaurus_black.svg" : "thesaurus_silver.svg")">
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.Projects
+                        </div>
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Thesaurus </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Designer))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals(EndpointConstants.Create)) && controller.Equals("Form") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/Form/GetAll">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals(EndpointConstants.Create)) && controller.Equals("Form") ? "designer_black.svg" : "designer_silver.svg")">
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Designer </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalPathway))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit)) && controller.Equals("DigitalGuideline") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/DigitalGuideline/GetAll">
-                    <div class="sidebar-img sidebar-i">
-                        <i class="fas fa-book @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit)) && controller.Equals("DigitalGuideline") ? "active-item" : "")"></i>
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.ClinicalPathwayBuilder </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalOncology))
-        {
-            <li class="nav-item @((action.Equals("CreateNewSchema") || action.Equals("BrowseSchemas") || action.Equals("EditSchema") || action.Equals("PreviewSchema")) && controller.Equals("SmartOncology") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/SmartOncology/BrowseSchemas">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/open-oncology/images/icons/@((action.Equals("CreateNewSchema") || action.Equals("BrowseSchemas") || action.Equals("EditSchema") || action.Equals("PreviewSchema")) && controller.Equals("SmartOncology") ? "che_onc_compendium_black.svg" : "che_onc_compendium.svg")">
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology - @sReportsV2.Cache.Resources.TextLanguage.HemOnc_Compendium </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalOncology))
-        {
-            <li class="nav-item @((action.Equals("BasicPatientDataOncology") || action.Equals("PatientOncologyDiseaseHistory")) && controller.Equals("SmartOncology") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/SmartOncology/BasicPatientDataOncology">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/open-oncology/images/icons/@((action.Equals("BasicPatientDataOncology") || action.Equals("PatientOncologyDiseaseHistory")) && controller.Equals("SmartOncology") ? "basic_patient_data_black.svg" : "basic_patient_data.svg")">
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology - @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology_Patient_Management </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalOncology))
-        {
-            <li class="nav-item @(action.Equals("ProgressNote") && controller.Equals("SmartOncology") ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/SmartOncology/ProgressNote">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/open-oncology/images/icons/@(action.Equals("ProgressNote") && controller.Equals("SmartOncology") ? "progress_note_black.svg" : "progress_note.svg")">
-                    </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology - @sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Prescription_Progress_Note </div>
                 </a>
             </li>
         }
@@ -141,55 +181,122 @@
             <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals("EditPatientInfo") || action.Equals("ViewPatientInfo") || action.Equals("ViewPatientEncounters") || action.Equals("EditPatientEncounters")) && controller.Equals("Patient") ? "active" : "")">
                 <a class="nav-link d-flex nav-link-remove-padding" href="~/Patient/GetAll">
                     <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.View) || action.Equals("EditPatientInfo") || action.Equals("ViewPatientInfo") || action.Equals("ViewPatientEncounters") || action.Equals("EditPatientEncounters")) && controller.Equals("Patient") ? "patients_black.svg" : "patients_silver.svg")">
+                        <img alt="" src="/css/img/icons/Sidebar/patients_icon.svg">
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Patients </div>
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.Patients
+                        </div>
+                    </div>
                 </a>
             </li>
         }
-
         @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.ViewEncounter, ModuleNames.Patients))
         {
             <li class="nav-item @((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit)) && controller.Equals("Encounter") ? "active" : "")">
                 <a class="nav-link d-flex nav-link-remove-padding" href="~/Encounter/GetAll">
                     <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Create) || action.Equals(EndpointConstants.Edit)) && controller.Equals("Encounter") ? "encounter_black.svg" : "encounter_silver.svg")">
+                        <img alt="" src="/css/img/icons/Sidebar/encounters_icon.svg">
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Encounters </div>
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.Encounters
+                        </div>
+                    </div>
                 </a>
             </li>
         }
-
         @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Engine))
         {
             <li class="nav-item @(((action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("GetAllByFormThesaurus") || action.Equals("GetAllFormDefinitions") || action.Equals(EndpointConstants.View)) && controller.Equals("FormInstance")) ? "active" : "")">
                 <a class="nav-link d-flex nav-link-remove-padding" href="~/FormInstance/GetAllFormDefinitions">
                     <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@(((action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("GetAllByFormThesaurus") || action.Equals("GetAllFormDefinitions") || action.Equals(EndpointConstants.View)) && controller.Equals("FormInstance")) ? "engine_black.svg" : "engine_silver.svg")">
+                        <img alt="" src="/css/img/icons/Sidebar/data_capture_icon.svg">
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.DataCaptureEngine </div>
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.DataCaptureEngine
+                        </div>
+                    </div>
                 </a>
+            </li>
+        }
+        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Engine))
+        {
+            <li class="nav-item @(((action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("GetPatientQuery") || action.Equals(EndpointConstants.View)) && controller.Equals("PatientQuery")) ? "active" : "")">
+                <a class="nav-link d-flex nav-link-remove-padding" href="~/PatientQuery/GetPatientQuery">
+                    <div class="sidebar-img">
+                        <i class="fa fa-question-circle" aria-hidden="true" style="padding-right: 5px; color: black"></i>
+                    </div>
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.PatientQueryWindow
+                        </div>
+                    </div>
+                </a>
+            </li>
+        }
+        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.ClinicalOncology))
+        {
+            <li class="nav-item parent-li">
+                <a class="nav-link d-flex nav-link-remove-padding" href="" data-toggle="collapse" data-target="#clinicalOncologySubmenu" aria-expanded="false">
+                    <div class="sidebar-img">
+                        <img alt="" src="/css/img/icons/Sidebar/clinical_oncology_icon.svg">
+                    </div>
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology
+                        </div>
+                        <div class="toggle-icon minus-plus-icon">
+                            <img class="plus-icon" src="/css/img/icons/Sidebar/u_plus.svg" alt="Expand" style="display: inline;">
+                            <img class="minus-icon" src="/css/img/icons/Sidebar/u_minus.svg" alt="Collapse" style="display: none;">
+                        </div>
+                    </div>
+          
+                </a>
+                <ul class="collapse nav flex-column child-nav" id="clinicalOncologySubmenu">
+                    <li class="nav-item @((action.Equals("CreateNewSchema") || action.Equals("BrowseSchemas") || action.Equals("EditSchema") || action.Equals("PreviewSchema")) && controller.Equals("SmartOncology") ? "active" : "")">
+                        <a class="nav-link d-flex nav-link-remove-padding" href="~/SmartOncology/BrowseSchemas">
+                            <div class="nav-text">
+                                <div class="sidebar-text-width">
+                                    @sReportsV2.Cache.Resources.TextLanguage.HemOnc_Compendium
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item @((action.Equals("BasicPatientDataOncology") || action.Equals("PatientOncologyDiseaseHistory")) && controller.Equals("SmartOncology") ? "active" : "")">
+                        <a class="nav-link d-flex nav-link-remove-padding" href="~/SmartOncology/BasicPatientDataOncology">
+                            <div class="nav-text">
+                                <div class="sidebar-text-width">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Clinical_Oncology_Patient_Management
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item @(action.Equals("ProgressNote") && controller.Equals("SmartOncology") ? "active" : "")">
+                        <a class="nav-link d-flex nav-link-remove-padding" href="~/SmartOncology/ProgressNote">
+                            <div class="nav-text">
+                                <div class="sidebar-text-width">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Prescription_Progress_Note
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
             </li>
         }
         @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Simulator))
         {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll)&& controller.Equals("FormDistribution") || (action.Equals("GetByThesaurusId")&& controller.Equals("FormDistribution"))) ? "active" : "")">
+            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) && controller.Equals("FormDistribution") || (action.Equals("GetByThesaurusId") && controller.Equals("FormDistribution"))) ? "active" : "")">
                 <a class="nav-link d-flex nav-link-remove-padding" href="~/FormDistribution/GetAll">
                     <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) && controller.Equals("FormDistribution") || (action.Equals("GetByThesaurusId")&& controller.Equals("FormDistribution"))) ? "simulator_black.svg" : "simulator_silver.svg")">
+                        <img alt="" src="/css/img/icons/Sidebar/simulator_icon.svg">
                     </div>
-                    <div class="nav-text"> @sReportsV2.Cache.Resources.TextLanguage.Simulator </div>
-                </a>
-            </li>
-        }
-        @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.View, ModuleNames.CodeSet))
-        {
-            <li class="nav-item @((action.Equals(EndpointConstants.GetAll) && controller.Equals("CodeSet") || (action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("ViewCodes")) && controller.Equals("Code")) ? "active" : "")">
-                <a class="nav-link d-flex nav-link-remove-padding" href="~/CodeSet/GetAll">
-                    <div class="sidebar-img">
-                        <img alt="" src="/css/img/icons/@((action.Equals(EndpointConstants.GetAll) && controller.Equals("CodeSet") || (action.Equals(EndpointConstants.GetAll) || action.Equals(EndpointConstants.Edit) || action.Equals(EndpointConstants.Create) || action.Equals("ViewCodes")) && controller.Equals("Code")) ? "code_managment_black.svg" : "code_managment_silver.svg")">
+                    <div class="nav-text">
+                        <div class="sidebar-text-width">
+                            @sReportsV2.Cache.Resources.TextLanguage.Simulator
+                        </div>
                     </div>
-                    <div class="nav-text"> Code Value Management </div>
                 </a>
             </li>
         }

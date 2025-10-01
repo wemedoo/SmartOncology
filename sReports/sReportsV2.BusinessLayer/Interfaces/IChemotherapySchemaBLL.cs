@@ -26,7 +26,7 @@ namespace sReportsV2.BusinessLayer.Interfaces
         EditMedicationDoseInBatchDataOut UpdateMedicationDoseInBatch(EditMedicationDoseInBatchDataIn dataIn);
         ChemotherapySchemaResourceCreatedDTO UpdateReference(EditLiteratureReferenceDataIn dataIn, UserCookieData userCookieData);
         ChemotherapySchemaDataOut GetById(int id);
-        SchemaTableDataOut GetSchemaDefinition(int id, DateTime? firstDay);
+        SchemaTableDataOut GetSchemaDefinition(int id, DateTime? firstDay, UserCookieData userCookieData);
         AutocompleteResultDataOut GetDataForAutocomplete(AutocompleteDataIn dataIn);
         MedicationDataOut GetMedication(int id);
         LiteratureReferenceDataOut GetReference(int id);

@@ -1,0 +1,160 @@
+﻿@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+<div class="modal fade" id="commandsModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-password w-616">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+                    <form class="designer-item-form" id="commandsModalForm">
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/ClinicalPathway/thesaurus_entry.svg">
+                            <div>@sReportsV2.Cache.Resources.TextLanguage.Commands</div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="commands-div">
+                                <p class="commands-text">CTRL</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">+</p>
+                            </div>
+                            <div class="commands-div">
+                                <p class="commands-text">C</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">COPY</p>
+                            </div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="commands-div">
+                                <p class="commands-text">CTRL</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">+</p>
+                            </div>
+                            <div class="commands-div">
+                                <p class="commands-text">V</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">PASTE</p>
+                            </div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="commands-div">
+                                <p class="commands-text">CTRL</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">+</p>
+                            </div>
+                            <div class="commands-div">
+                                <p class="commands-text">X</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">CUT</p>
+                            </div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="commands-div">
+                                <p class="commands-text">CTRL</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">+</p>
+                            </div>
+                            <div class="scroll-div">
+                                <div class="flex">
+                                    <img alt="" src="/css/img/icons/ClinicalPathway/scroll_mouse.svg">
+                                    <p class="commands-text scroll-p">SCROLL</p>
+                                </div>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">ZOOM IN/OUT</p>
+                            </div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="mouse-div">
+                                <img alt="" src="/css/img/icons/ClinicalPathway/mouse.svg">
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">SELECT</p>
+                            </div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="mouse-div">
+                                <img alt="" src="/css/img/icons/ClinicalPathway/mouse.svg">
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">+</p>
+                            </div>
+                            <div class="mouse-div">
+                                <img alt="" src="/css/img/icons/ClinicalPathway/mouse.svg">
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">EDIT TEXT</p>
+                            </div>
+                        </div>
+
+                        <div class="flex padding-bottom-10">
+                            <div class="mouse-div">
+                                <img alt="" src="/css/img/icons/ClinicalPathway/mouse.svg">
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">+</p>
+                            </div>
+                            <div class="commands-div">
+                                <p class="commands-text">DELETE</p>
+                            </div>
+                            <div class="commands-sign-div command-name-div">
+                                <p class="commands-text color-black">OR</p>
+                            </div>
+                            <div class="commands-div">
+                                <p class="commands-text">BACKSPACE</p>
+                            </div>
+                            <div class="commands-sign-div">
+                                <p class="commands-sign">=</p>
+                            </div>
+                            <div class="command-name-div">
+                                <p class="commands-text color-black">DELETE</p>
+                            </div>
+                        </div>
+                 
+                        <div class="button-partial">
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

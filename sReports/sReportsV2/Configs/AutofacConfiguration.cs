@@ -11,6 +11,8 @@ using sReportsV2.BusinessLayer.Components.Implementations;
 using sReportsV2.BusinessLayer.Components.Interfaces;
 using sReportsV2.Common.Constants;
 using Microsoft.Extensions.Configuration;
+using sReportsV2.DAL.MongoDb.Implementations;
+using sReportsV2.DAL.MongoDb.Interfaces;
 
 namespace sReportsV2.Configs
 {
@@ -33,7 +35,16 @@ namespace sReportsV2.Configs
             {
                 builder.RegisterType<SendGridEmailSender>().As<IEmailSender>();
             }
+            if (configuration["GraphDbUrl"] != null)
+            {
+                builder.RegisterType<SkosConnector>().As<ISkosConnector>();
+            }
+            else
+            {
+                builder.RegisterType<EmptySkosConnector>().As<ISkosConnector>();
+            }
             builder.RegisterType<AsyncRunner>().As<IAsyncRunner>().SingleInstance();
+            builder.RegisterType<CacheRefreshService>().As<ICacheRefreshService>().AsSelf().SingleInstance();
         }
 
         private static void RegisterBLLs(ContainerBuilder builder, IConfiguration configuration)
@@ -70,6 +81,10 @@ namespace sReportsV2.Configs
             builder.RegisterType<PatientListBLL>().As<IPatientListBLL>();
             builder.RegisterType<PatholinkBLL>().As<IPatholinkBLL>();
             builder.RegisterType<AdministrationApiBLL>().As<IAdministrationApiBLL>();
+            builder.RegisterType<PromptConfigurationBLL>().As<IPromptConfigurationBLL>();
+            builder.RegisterType<UploadPatientDataBLL>().As<IUploadPatientDataBLL>();
+            builder.RegisterType<CustomFieldFilterBLL>().As<ICustomFieldFilterBLL>();
+            builder.RegisterType<QueryManagementBLL>().As<IQueryManagementBLL>();
 
             _ = bool.TryParse(configuration["UseFileStorage"], out bool useFileStorage);
             if (useFileStorage)
@@ -140,6 +155,9 @@ namespace sReportsV2.Configs
             builder.RegisterType<FormCodeRelationDAL>().As<IFormCodeRelationDAL>().InstancePerLifetimeScope();
             builder.RegisterType<PatientListDAL>().As<IPatientListDAL>().InstancePerLifetimeScope();
             builder.RegisterType<AdministrationApiDAL>().As<IAdministrationApiDAL>().InstancePerLifetimeScope();
+            builder.RegisterType<PromptConfigurationDAL>().As<IPromptConfigurationDAL>().InstancePerLifetimeScope();
+            builder.RegisterType<UploadPatientDataDAL>().As<IUploadPatientDataDAL>().InstancePerLifetimeScope();
+            builder.RegisterType<QueryManagementDAL>().As<IQueryManagementDAL>().InstancePerLifetimeScope();
         }
     }
 }

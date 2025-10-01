@@ -1,10 +1,6 @@
 ﻿function reloadTable() {
     $('#thesaurusFilterModal').modal('hide');
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-
-    setTableProperties(requestObject, { page: getPageNum(), doOrdering: true });
+    let requestObject = applyActionsBeforeServerReloadSimple(true, false, { page: getPageNum(), doOrdering: true });
     isCustomState = true;
 
     callServer({
@@ -87,6 +83,9 @@ function removeCode(event, id) {
         success: function (data) {
             $(`#row-${id}`).remove();
             toastr.success(`Success`);
+            reloadNominatorTable();
+            reloadNomineeTable();
+            $('.code-action-btn').attr('disabled', true);
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -96,10 +95,10 @@ function removeCode(event, id) {
 
 function pushCustomState() {
     var codeSetDisplay = encodeURIComponent($('#thesaurusSearchInputCode').val());
-    return `?page=1&pageSize=${getPageSize()}&CodeSetId=${$('#newCodeSetNumberForCode').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+    return `?page=1&pageSize=${getPageSize()}&CodeSetId=${$('#newCodeSetNumberForCode').val()}&CodeSetDisplay=${codeSetDisplay}`;
 }
 
 function getCustomPageParams(number, pageSize) {
     var codeSetDisplay = encodeURIComponent($('#thesaurusSearchInputCode').val());
-    return `?page=${number}&pageSize=${pageSize}&CodeSetId=${$('#codeSetNumberForCode').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+    return `?page=${number}&pageSize=${pageSize}&CodeSetId=${$('#codeSetNumberForCode').val()}&CodeSetDisplay=${codeSetDisplay}`;
 }

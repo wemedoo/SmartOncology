@@ -3,7 +3,13 @@ using iText.IO.Image;
 using iText.Kernel.Colors;
 using iText.Layout;
 using iText.Layout.Element;
+using sReportsV2.Common.Constants;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using sReportsV2.Common.Helpers;
+using System.Web;
 
 
 namespace Chapters
@@ -63,7 +69,12 @@ namespace Chapters
 
         public static void AddPageImage(this Document document, string imagePath, int pageNum, float defaultPageWidth, int bottom, ref int additionalPadding)
         {
-            Image img = new Image(GetDataByImageExtension(imagePath));
+            ImageData imageData = GetDataByImageExtension(imagePath, StorageDirectoryNames.ImageMap);
+            if (imageData == null)
+            {
+                return;
+            }
+            Image img = new Image(imageData);
             float imgHeight = img.GetImageHeight();
             float imgWidth = img.GetImageWidth();
             if (bottom - imgHeight > 70 && imgWidth < defaultPageWidth)
@@ -110,21 +121,46 @@ namespace Chapters
             document.Flush();
         }
 
-        public static ImageData GetDataByImageExtension(string imagePath)
+        private static ImageData GetDataByImageExtension(string imagePath, string imageDomain = null)
         {
             ImageData data = null;
-            switch (System.IO.Path.GetExtension(imagePath).ToUpperInvariant())
+            switch (Path.GetExtension(imagePath).ToUpperInvariant())
             {
                 case PdfGeneratorType.Jpg:
-                    {
-                        data = ImageDataFactory.CreateJpeg(new System.Uri(imagePath));
-                    }
-                    break;
+                case PdfGeneratorType.Jpeg:
                 case PdfGeneratorType.Png:
                     {
-                        data = ImageDataFactory.CreatePng(new System.Uri(imagePath));
+                        bool isDynamicResource = !string.IsNullOrEmpty(imageDomain);
+                        if (isDynamicResource)
+                        {
+                            data = GetDataImageDynamically(imagePath, imageDomain);
+                        }
+                        else
+                        {
+                            data = ImageDataFactory.Create(new Uri(imagePath));
+                        }
                     }
                     break;
+            }
+            return data;
+        }
+
+        private static ImageData GetDataImageDynamically(string imagePath, string imageDomain)
+        {
+            ImageData data = null;
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("InternalDownloadRequest", "true");
+            imagePath = $"{HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority)}/Blob/DownloadInternally?Domain={imageDomain}&ResourceId={imagePath}";
+
+            var response = client.GetAsync(imagePath).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var imageBytes = response.Content.ReadAsByteArrayAsync().Result;
+                data = ImageDataFactory.Create(imageBytes);
+            }
+            else
+            {
+                LogHelper.Error($"Failed to fetch image while generate image map for synoptic pdf. Status code: {response.StatusCode}, path: {imagePath}, domain: {imageDomain}");
             }
             return data;
         }

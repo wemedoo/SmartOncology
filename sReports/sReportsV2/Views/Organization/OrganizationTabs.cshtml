@@ -1,20 +1,22 @@
-﻿@model sReportsV2.DTOs.Organization.OrganizationDataOut
+﻿@using Microsoft.AspNetCore.Html
+
+@model sReportsV2.DTOs.Organization.OrganizationDataOut
 
 <div class="width-100">
-    <div class="organization-tabs">
-        <div data-id="OrgGeneralInfo" class="organization-tab active">
+    <div id="organization-tabs" class="custom-tabs">
+        <div data-id="OrgGeneralInfo" class="organization-tab active organization-basic">
             @sReportsV2.Cache.Resources.TextLanguage.GeneralInfo
         </div>
-        <div data-id="Telecoms" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+        <div data-id="Telecoms" class="@(Model == null ? "tab-disabled" : "") organization-tab organization-basic" @RenderOrganizationTabTooltip()>
             @sReportsV2.Cache.Resources.TextLanguage.Telecoms
         </div>
-        <div data-id="Identifiers" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+        <div data-id="Identifiers" class="@(Model == null ? "tab-disabled" : "") organization-tab organization-basic" @RenderOrganizationTabTooltip()>
             @sReportsV2.Cache.Resources.TextLanguage.Identifiers
         </div>
-        <div data-id="PersonnelTeams" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+        <div data-id="PersonnelTeams" class="@(Model == null ? "tab-disabled" : "") organization-tab" @RenderOrganizationTabTooltip()>
             @sReportsV2.Cache.Resources.TextLanguage.Personnel_Teams
         </div>
-        <div data-id="CommunicationEntities" class="@(Model == null ? "organization-tab-disabled" : "organization-tab")" tdata-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip">
+        <div data-id="CommunicationEntities" class="@(Model == null ? "tab-disabled" : "") organization-tab" @RenderOrganizationTabTooltip()>
             @sReportsV2.Cache.Resources.TextLanguage.OrganizationCommunicationEntity
         </div>
     </div>
@@ -32,11 +34,13 @@
     @if (Model != null)
     {
         <div id="Identifiers" class="organization-cont" style="display:none">
-            @await Html.PartialAsync("~/Views/Organization/OrganizationIdentifierTable.cshtml", Model.Identifiers)
+            @await Html.PartialAsync("IdentifierTable", Model.Identifiers != null ? Model.Identifiers : null)
         </div>
 
         <div id="Telecoms" class="organization-cont" style="display:none">
-            @await Html.PartialAsync("~/Views/Organization/OrganizationTelecoms.cshtml", Model)
+            @await Html.PartialAsync("TelecomTable", Model != null ? Model.Telecoms : null, new ViewDataDictionary(ViewData) {
+                { "activeTelecomContainer", "telecomsForOrganizationTelecom" }
+            })
         </div>
 
         <div id="PersonnelTeams" class="organization-cont" style="display:none">
@@ -57,6 +61,7 @@
             <div id="personnel-team-filters-table-container" style="display:none">
                 @await Html.PartialAsync("~/Views/PersonnelTeam/PersonnelTeamFilters.cshtml", Model)
                 <div id="personnelTeamTableContainer"></div>
+                <input type="hidden" id="readOnly" value="@(ViewBag.ReadOnly ? "true" :"false")" />
             </div>
 
             <div id="single-personnel-team-container" style="display: none"></div>
@@ -66,6 +71,20 @@
             @await Html.PartialAsync("~/Views/Organization/OrganizationCommunicationEntity.cshtml", Model.OrganizationCommunicationEntities)
         </div>
     }
+
+
+    <div class="button-partial" id="org-button-partial">
+        @if (!ViewBag.ReadOnly)
+        {
+            <button class="submit-patient right-button" type="button" onclick="clickedSubmit()" style="outline: none;">
+                <span class="submit-patient-info">@(Model != null ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)</span>
+            </button>
+        }
+        <i class="angle-left fas fa-angle-left"></i>
+        <div class="text-underline right-button" type="button" onclick="cancelOrganization()">
+            <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Back</span>
+        </div>
+    </div>
 
 </div>
 <div class="modal fade" id="addOrgCommunicationModal" role="dialog"></div>
@@ -79,4 +98,16 @@
             });
         });
     </script>
+}
+
+@functions {
+    private HtmlString RenderOrganizationTabTooltip()
+    {
+        string content = "";
+        if (Model == null)
+        {
+            content = $@"data-toggle=""tooltip"" title=""{@sReportsV2.Cache.Resources.TextLanguage.Org_Tabs_Tooltip}""";
+        }
+        return new HtmlString(content);
+    }
 }

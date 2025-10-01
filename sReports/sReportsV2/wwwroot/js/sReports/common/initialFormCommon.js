@@ -1,5 +1,5 @@
 ﻿var initialFormData;
-var initialTrialFormData;
+var initialSecondFormData;
 
 function addUnsavedChangesEventHandler(formSelector) {
     window.onbeforeunload = function () {
@@ -9,30 +9,50 @@ function addUnsavedChangesEventHandler(formSelector) {
     };
 }
 
-function addUnsavedTrialChangesEventHandler(formSelector, trialFormSelector) {
+function addUnsavedSecondFormChangesEventHandler(formSelector, secondFormSelector) {
     window.onbeforeunload = function () {
-        if (!compareForms(formSelector) || !compareTrialForms(trialFormSelector)) {
+        if (thereAreChanges(formSelector, secondFormSelector)) {
+            return "You have unsaved changes. Are you sure you want to leave?";
+        }
+    };
+}
+
+function addUnsavedDesignerChangesEventHandler() {
+    window.onbeforeunload = function () {
+        if (editorTree && formDefinitionBefore && JSON.stringify(editorTree.get()) != formDefinitionBefore) {
             return "You have unsaved changes. Are you sure you want to leave?";
         }
     };
 }
 
 function saveInitialFormData(form) {
-    initialFormData = form != "#fid" ? serializeForm(form) : serializeFormInstance(form);
+    initialFormData = getSerializedForm(form);
 }
 
-function saveInitialTrialFormData(form) {
-    initialTrialFormData = serializeForm(form);
+function getSerializedForm(form) {
+    return form != "#fid" ? serializeForm(form) : serializeFormInstance(form);
+}
+
+function saveInitialSecondFormData(form) {
+    initialSecondFormData = serializeForm(form);
 }
 
 function compareForms(form) {
-    var currentFormData = form != "#fid" ? serializeForm(form) : serializeFormInstance(form);
-    return initialFormData === currentFormData;
+    if ($(form).length > 0) {
+        var currentFormData = getSerializedForm(form);
+        return initialFormData === currentFormData;
+    } else {
+        return true;
+    }
 }
 
-function compareTrialForms(form) {
+function compareSecondForms(form) {
     var currentFormData = serializeForm(form);
-    return initialTrialFormData === currentFormData;
+    return initialSecondFormData === currentFormData;
+}
+
+function thereAreChanges(formSelector, secondFormSelector) {
+    return !compareForms(formSelector) || !compareSecondForms(secondFormSelector);
 }
 
 function serializeForm(form) {
@@ -48,11 +68,11 @@ function serializeForm(form) {
 }
 
 function serializeFormInstance(form) {
-    var formData = {};
+    if (typeof tinymce !== 'undefined') {
+        tinymce.triggerSave();
+    }
 
-    serializeFormInstanceInputs(form, formData);
-    serializeSelects(form, formData);
-
+    var formData = getFormInstanceSubmissionJson(false);
     return JSON.stringify(formData);
 }
 
@@ -60,39 +80,15 @@ function serializeInputs(form, formData) {
     $(form).find(':input').each(function () {
         if (this.type === 'checkbox') {
             formData[this.id] = this.checked ? "true" : "false";
-        } else if (this.type === 'radio' && this.checked) {
-            formData[$(this).val()] = $(this).val();
+        } else if (this.type === 'radio') {
+            if (this.checked) {
+                formData[this.name] = $(this).val();
+            }
+            else if (!formData[this.name]) {
+                formData[this.name] = "";
+            }
         } else {
             formData[this.name] = $(this).val();
-        }
-    });
-}
-
-function serializeFormInstanceInputs(form, formData) {
-    $(form).find(':input').each(function () {
-        var name = this.name;
-        var originalName = name;
-
-        if (($(this).is(':hidden') && !$(this).hasClass('audio-hid')) || $(this).attr('type') === 'submit' || this.id === 'lockDocument')
-            return;
-
-        if (formData.hasOwnProperty(name)) {
-            var i = 1;
-            while (formData.hasOwnProperty(name + '-' + i)) {
-                i++;
-            }
-            name = name + '-' + i;
-        }
-
-        if (this.type === 'checkbox') {
-            formData[name] = this.checked ? "true" : "false";
-        } else if (this.type === 'radio' && this.checked) {
-            formData[$(this).val()] = $(this).val();
-        } else {
-            if (name !== originalName && formData[originalName] !== "")
-                formData[name] = formData[originalName];
-            else
-                formData[name] = $(this).val();
         }
     });
 }
@@ -180,11 +176,33 @@ function updateTableEntryFormData(tableRow, entriesFormName, createOrUpdateRow) 
     let tableRowData = serializeTableRow(tableRow);
     let tableRowDataId = tableRowData.id;
     let formEntries = formDataRaw[entriesFormName] ?? [];
-    let updatedFromEntries = formEntries.filter(el => el.id != tableRowDataId);
+    let indexOfEditedEntry = formEntries.map(el => el.id).indexOf(tableRowDataId);
     if (createOrUpdateRow) {
-        updatedFromEntries.push(tableRowData);
+        if (indexOfEditedEntry == -1) {
+            formEntries.push(tableRowData);
+        } else {
+            formEntries[indexOfEditedEntry] = tableRowData;
+        }
+    } else {
+        if (indexOfEditedEntry != -1) {
+            formEntries.splice(indexOfEditedEntry, 1);
+        }
     }
 
-    formDataRaw[entriesFormName] = updatedFromEntries;
     initialFormData = JSON.stringify(formDataRaw);
+}
+
+function unsavedChangesCheck(formId, confirmCallBack, noChangesCallback) {
+    let stopExecution = false;
+    if (!compareForms(formId)) {
+        if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+            saveInitialFormData(formId);
+            executeCallback(confirmCallBack);
+        } else {
+            stopExecution = true;
+        }
+    } else {
+        executeCallback(noChangesCallback);
+    }
+    return stopExecution;
 }

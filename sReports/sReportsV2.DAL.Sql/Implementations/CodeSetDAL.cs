@@ -1,15 +1,17 @@
-﻿using sReportsV2.Common.Constants;
+﻿using Microsoft.EntityFrameworkCore;
+using sReportsV2.Common.Constants;
+using sReportsV2.Common.Entities.User;
 using sReportsV2.Common.Exceptions;
 using sReportsV2.Common.Helpers;
 using sReportsV2.DAL.Sql.Sql;
 using sReportsV2.Domain.Sql.Entities.CodeSetEntry;
 using sReportsV2.Domain.Sql.Entities.Common;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace sReportsV2.SqlDomain.Implementations
 {
@@ -173,15 +175,15 @@ namespace sReportsV2.SqlDomain.Implementations
                 case AttributeNames.PreferredTerm:
                     if (filterData.IsAscending)
                         return result.AsEnumerable().OrderBy(x => x.ThesaurusEntry.GetPreferredTermByTranslationOrDefault(LanguageConstants.EN, filterData.ActiveLanguage))
-                                .Skip((filterData.Page - 1) * filterData.PageSize)
+                                .Skip(filterData.GetHowManyElementsToSkip())
                                 .Take(filterData.PageSize).AsQueryable();
                     else
                         return result.AsEnumerable().OrderByDescending(x => x.ThesaurusEntry.GetPreferredTermByTranslationOrDefault(LanguageConstants.EN, filterData.ActiveLanguage))
-                                .Skip((filterData.Page - 1) * filterData.PageSize)
+                                .Skip(filterData.GetHowManyElementsToSkip())
                                 .Take(filterData.PageSize).AsQueryable();
                 default:
                     return SortTableHelper.OrderByField(result, filterData.ColumnName, filterData.IsAscending)
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
             }
         }
@@ -223,18 +225,18 @@ namespace sReportsV2.SqlDomain.Implementations
                .FirstOrDefault(x => x.ThesaurusEntryId == thesaurusId).CodeSetId;
         }
 
-        public int UpdateManyWithThesaurus(int oldThesaurus, int newThesaurus)
+        public int ReplaceThesaurus(ThesaurusMerge thesaurusMerge, UserData userData = null)
         {
             int entriesUpdated = 0;
-            List<CodeSet> codeSets = context.CodeSets.Where(x => x.ThesaurusEntryId == oldThesaurus).ToList();
+            List<CodeSet> codeSets = context.CodeSets.Where(x => x.ThesaurusEntryId == thesaurusMerge.OldThesaurus).ToList();
             foreach (CodeSet codeSet in codeSets)
             {
-                codeSet.ReplaceThesauruses(oldThesaurus, newThesaurus);
+                codeSet.ReplaceThesauruses(thesaurusMerge);
                 ++entriesUpdated;
             }
 
             context.SaveChanges();
-
+            
             return entriesUpdated;
         }
 
@@ -270,7 +272,7 @@ namespace sReportsV2.SqlDomain.Implementations
                 query = SortByField(query, filter);
             else
                 query = query.OrderByDescending(x => x.EntryDatetime)
-                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Skip(filter.GetHowManyElementsToSkip())
                     .Take(filter.PageSize);
             return query;
         }

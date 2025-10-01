@@ -20,9 +20,12 @@
             <div class="advanced-filter-item input-margin">
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.Given
+                    @await Html.PartialAsync("RequiredLabel")
                 </div>
                 <input type="text" class="filter-input" id="name" name="name" value="@(Model != null && Model.Name != null ? Model.Name : "")" required @ViewBag.Disabled>
             </div>
+            <input type="hidden" class="form-control" id="femaleCodeId" name="femaleCodeId" value="@ViewBag.FemaleCodeId" />
+
 
             <div class="advanced-filter-item input-margin">
                 <div class="label filter-label">
@@ -126,7 +129,8 @@
                         { "class", "filter-input" },
                         { "id", "birthDate" },
                         { "name", "birthDate" },
-                        { "value", Model != null && Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                        { "data-preventfuturedates", true },
+                        { "value", Model != null ? Model.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" },
                         { @ViewBag.Disabled, null }
                     },
                     InputBtnAttributes = new Dictionary<object, object> {
@@ -154,7 +158,7 @@
                         {"class", "filter-input"},
                         {"id", "deceasedDateTime" },
                         {"name", "deceasedDateTime" },
-                        {"value", Model != null && Model.DeceasedDateTime != null ? Model.DeceasedDateTime.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                        {"value", Model != null ? Model.DeceasedDateTime.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" },
                         { @ViewBag.Disabled, null}
                     },
                     InputBtnAttributes = new Dictionary<object, object> {
@@ -164,22 +168,24 @@
                 })
             </div>
 
-            <div class="advanced-filter-item input-margin" id="multiple">
-                <div class="label filter-label">
-                    @sReportsV2.Cache.Resources.TextLanguage.Multiple_birth
+            <div id="multipleBirthContainer" class="@(Model != null && Model.GenderId == ViewBag.FemaleCodeId ? "" : "d-none")">
+                <div class="advanced-filter-item input-margin" id="multiple">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.Multiple_birth
+                    </div>
+                    <select class="filter-input arrow-select patient-background" id="multipleBirth" name="MultipleBirth" @ViewBag.Disabled>
+                        <option value=""></option>
+                        <option value="true" @(Model != null && Model.MultipleBirth ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.True</option>
+                        <option value="false" @(Model == null || !Model.MultipleBirth ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.False</option>
+                    </select>
                 </div>
-                <select class="filter-input arrow-select patient-background" id="multipleBirth" name="MultipleBirth" onchange="selectChanged()" @ViewBag.Disabled>
-                    <option value=""></option>
-                    <option value="true" @(Model != null && Model.MultipleBirth ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.True</option>
-                    <option value="false" @(Model == null || !Model.MultipleBirth ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.False</option>
-                </select>
-            </div>
 
-            <div class="advanced-filter-item input-margin" id="multipleBirth1" style=" @(Model != null && Model.MultipleBirth ? "" : "display:none") ">
-                <div class="label filter-label">
-                    @sReportsV2.Cache.Resources.TextLanguage.MultipleBirthNumber
+                <div class="advanced-filter-item input-margin @(Model != null && Model.MultipleBirth ? "" : "d-none")" id="multipleBirthNumberContainer">
+                    <div class="label filter-label">
+                        @sReportsV2.Cache.Resources.TextLanguage.MultipleBirthNumber
+                    </div>
+                    <input type="number" class="filter-input" id="multipleBirthNumber" min="1" max="10" value="@(Model != null && Model.MultipleBirthNumber > 1 ? Model.MultipleBirthNumber : 1)" @ViewBag.Disabled>
                 </div>
-                <input type="number" class="filter-input" id="multipleBirthNumber" min="1" max="10" value="@(Model != null && Model.MultipleBirthNumber > 1 ? Model.MultipleBirthNumber : 1)" @ViewBag.Disabled>
             </div>
         </div>
 
@@ -217,20 +223,10 @@
         </div>
 
         <div id="communicationTable" class="communication-table">
-            <div id="tableBody">
-                @if (Model != null && Model.Communications != null)
-                {
-                    foreach (CommunicationDTO entry in Model.Communications)
-                    {
-                        <div class="preferred-language-group @(entry.Preferred ? "preferred-language-text-active" : "")">
-                            <span data-property="preferred" data-value="@entry.Preferred" class="radio-space">
-                                <input data-id="@entry.Id" type="radio" name="radioPreferred" value="@entry.LanguageCD" class="form-radio-field" @ViewBag.Disabled data-no-color-change="true" @(entry.Preferred ? "checked" : "")>
-                            </span>
-                            <span id="firstLanguage" class="preferred-language-text" data-property="language" data-value="@entry.LanguageCD">@entry.ConvertLanguageCDToDisplayName(languages, activeLanguage)</span>
-                        </div>
-                    }
-                }
-            </div>
+            @if (Model != null && Model.Communications != null)
+            {
+                @await Html.PartialAsync("CommunicationsTable", Model.Communications)
+            }
         </div>
 
         @if (Model != null)

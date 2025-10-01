@@ -8,6 +8,7 @@ using sReportsV2.DTOs.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace sReportsV2.BusinessLayer.Implementations
@@ -73,7 +74,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             catch (Exception ex)
             {
-                throw new ConcurrencyDeleteException("An error occurred while attempting to delete the binary file.", ex);
+                throw new UserAdministrationException((int)HttpStatusCode.Conflict, "An error occurred while attempting to delete the binary file.");
             }
         }
 

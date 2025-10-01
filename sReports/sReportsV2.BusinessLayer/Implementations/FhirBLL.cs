@@ -44,7 +44,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPatientDAL patientDAL;
         private readonly IFormInstanceDAL formInstanceDAL;
         private readonly IFormInstanceBLL formInstanceBLL; 
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         private readonly IConfiguration configuration;
         private readonly IHttpContextAccessor httpContextAccessor;
 
@@ -71,7 +71,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.encounterDAL = encounterDAL;
             this.episodeOfCareDAL = episodeOfCareDAL;
             this.formInstanceBLL = formInstanceBLL;
-            this.Mapper = mapper;
+            this.mapper = mapper;
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
         }
@@ -79,8 +79,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         #region Questionnaire(Response)
         public Questionnaire ExportFormToQuestionnaire(string formId)
         {
-            FormDataOut form = Mapper.Map<FormDataOut>(formDAL.GetForm(formId));
-            return new QuestionnaireExportHelper(form, UrlHelper.GetBaseUrl(httpContextAccessor?.HttpContext?.Request), Mapper).CreateQuestionnaire();
+            FormDataOut form = mapper.Map<FormDataOut>(formDAL.GetForm(formId));
+            return new QuestionnaireExportHelper(form, UrlHelper.GetBaseUrl(httpContextAccessor?.HttpContext?.Request), mapper).CreateQuestionnaire();
         }
 
         public async System.Threading.Tasks.Task CreateOrUpdateFormInstanceFromQuestionnaireResponse(QuestionnaireResponse questionnaireResponse, UserCookieData userCookieData)
@@ -90,6 +90,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             Uri questionnaireURI = new Uri(questionnaireResponse?.Questionnaire);  // Getting form TITLE from Questionnaire Field (e.g. http://fhir-server-url:8080/smaragd/fhir/Questionnaire?title=Example)
             NameValueCollection queryDictionary = System.Web.HttpUtility.ParseQueryString(questionnaireURI?.Query);  // Handles special characters like %20
             string formTitle = queryDictionary?.Get("title");
+            formTitle = Ensure.IsNotNullOrWhiteSpace(formTitle, nameof(formTitle));
 
             List<Form> forms = await formDAL.GetByTitle(formTitle).ConfigureAwait(false);
             Form form = forms.FirstOrDefault();
@@ -341,12 +342,12 @@ namespace sReportsV2.BusinessLayer.Implementations
                     case FieldTypes.Date:
                         if (DateTime.TryParseExact(
                             fieldInputValue,
-                            DateConstants.DateFormat,
+                            DateTimeConstants.DateFormat,
                             CultureInfo.InvariantCulture,
                             DateTimeStyles.None,
                             out DateTime parsedDate))
                         {
-                            fieldInstanceValue = new FieldInstanceValue(parsedDate.GetDateTimeDisplay(DateConstants.UTCDatePartFormat, excludeTimePart: true));
+                            fieldInstanceValue = new FieldInstanceValue(parsedDate.GetDateTimeDisplay(DateTimeConstants.UTCDatePartFormat, excludeTimePart: true));
                         }
                         break;
                     default:
@@ -434,7 +435,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 case FieldTypes.Checkbox:
                     return string.Join(",", ((FieldSelectable)field).Values.Select(value => value.Label));
                 case FieldTypes.Date:
-                    return DateConstants.DateFormat;
+                    return DateTimeConstants.DateFormat;
                 default:
                     return "ENTER_VALUE";
             }

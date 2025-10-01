@@ -2,6 +2,7 @@
 using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.ThesaurusEntry.DataOut;
 using System;
+using System.Linq;
 
 namespace sReportsV2.DTOs.CodeEntry.DataOut
 {
@@ -26,6 +27,12 @@ namespace sReportsV2.DTOs.CodeEntry.DataOut
         {
             DateTimeOffset now = DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone();
             return this.ActiveFrom > now || this.ActiveTo < now;
+        }
+
+        public bool HasPreferredTerm(string term)
+        {
+            return Thesaurus?.Translations != null
+                   && Thesaurus.Translations.Any(t => t.PreferredTerm == term);
         }
     }
 }

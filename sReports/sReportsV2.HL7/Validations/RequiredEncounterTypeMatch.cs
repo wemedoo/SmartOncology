@@ -41,7 +41,7 @@ namespace sReportsV2.HL7.Validation
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"Error while performing RequiredMRNIdentifierMessageRule, message: {ex.Message}");
+                LogHelper.Error($"Error while performing RequiredMRNIdentifierMessageRule, message: {ex.GetExceptionStackMessages()}");
             }
             return validationExceptions;
         }

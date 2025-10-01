@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using sReportsV2.Domain.Sql.Entities.User;
 
 namespace sReportsV2.Domain.Sql.Entities.Common
 {
@@ -13,10 +9,15 @@ namespace sReportsV2.Domain.Sql.Entities.Common
         public string LastName { get; set; }
         public string UserName { get; set; }
 
-        public override string ToString()
+        public AutoCompleteUserData(Personnel personnel)
         {
-            return $"{UserName} ({FirstName} {LastName})";
+            PersonnelId = personnel.PersonnelId;
+            FirstName = personnel.FirstName;
+            LastName = personnel.LastName;
+            UserName = personnel.Username;
         }
+
+        public string DisplayName => $"{FirstName} {LastName} ({UserName})";
     }
 
     public class AutoCompleteData

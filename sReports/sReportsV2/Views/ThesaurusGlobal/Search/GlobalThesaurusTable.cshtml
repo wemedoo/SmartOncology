@@ -13,11 +13,7 @@
         </div>
         @if (Model.Data.Count == 0)
         {
-            <div class="no-result-content">
-                <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-                <br>
-                <div class="no-result-text">No result found!</div>
-            </div>
+            @await Html.PartialAsync("NoResultFound")
         }
 
         @foreach (var entity in Model.Data)

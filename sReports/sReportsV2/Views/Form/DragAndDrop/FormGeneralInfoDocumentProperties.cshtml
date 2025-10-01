@@ -105,7 +105,7 @@
                <div class="label filter-label">
                    @sReportsV2.Cache.Resources.TextLanguage.FollowUp
                </div>
-            <select class="designer-form-input" id="documentFollowUpSelect" @ViewBag.Disabled @disabledIfNotUpdateable>
+            <select class="designer-form-input" id="followUp" @ViewBag.Disabled @disabledIfNotUpdateable>
                 @{ Options(Model != null
             && Model.DocumentProperties != null
             && Model.DocumentProperties.ClinicalContext != null ? Model.DocumentProperties.ClinicalContext.FollowUp : null, "FollowUp"); }
@@ -124,11 +124,11 @@
                 @sReportsV2.Cache.Resources.TextLanguage.Clinical_Domain
             </div>
 
-            <div id="dropdownSearch" class="position-relative dropdown-search">
-                <div id="search">
-                    <input autocomplete="off" class="designer-form-input" id="clinicalDomain" name="ClinicalDomain" type="text" @ViewBag.Disabled @disabledIfNotUpdateable/>
+            <div class="position-relative dropdown-search">
+                <div id="search" class="autocomplete-wrapper">
+                    <input autocomplete="off" class="designer-form-input autocomplete-component" id="clinicalDomain" name="ClinicalDomain" type="text" @ViewBag.Disabled @disabledIfNotUpdateable/>
                 </div>
-                <div id="clinicalOptions" class="clinical-domain-options" aria-labelledby="search">
+                <div id="clinicalOptions" class="clinical-domain-options autocomplete-options" aria-labelledby="search">
                 </div>
             </div>
 
@@ -140,7 +140,7 @@
                         <div class="clinical" data-value="@item.ToString()">
                             @clinicalDomains.Find(x => x.Id == item).Thesaurus.GetPreferredTermByTranslationOrDefault(language)
                             @if (!ViewBag.ReadOnly && !ViewBag.NotUpdateableField)
-                            { <i class="fas fa-times clinical-remove"></i> }
+                            { <i class="fas fa-times clinical-remove selected-autocomplete-remove"></i> }
                         </div>
                     }
                 }

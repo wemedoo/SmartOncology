@@ -1,38 +1,53 @@
-﻿function clickedSubmit(event, callback=null) {
+﻿function fetchFormInstance(url, callback = null) {
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.text();
+        })
+        .then(html => {
+            var existingDiv = document.getElementById('temporalFormInstanceDiv');
+            existingDiv.innerHTML = html;
+            submitForm(callback, true);
+        })
+        .catch(error => {
+            console.error('Error loading content:', error);
+        });
+}
+
+function clickedSubmit(event, callback = null) {
     event.preventDefault();
-    var fieldsIds = populateRequiredInputsIds();
+    var fieldsIds = getRequiredInputsIds();
     if (fieldsIds.length != 0) {
         showMissingValuesModal(event, fieldsIds, false);
     }
     else {
-        if ($('#fid').valid() && !inputsAreInvalid("form instance")) {
-            submitForm(callback);
-        } else {
-            $('#fid').find('input').each(function (index, element) {
-                validateInput(element, event);
-            });
-        }
-        saveInitialFormData("#fid");
+        $('#fid').find('input').each(function (index, element) {
+            validateInput(element, event);
+        });
+        reAllowSubmit('submitBtn');
+
+        preventMultipleSubmit('submitBtn');
+        submitForm(callback);
         return false;
     }
 }
 
-function submitForm(callback=null) {
+function submitForm(callback = null, isCreate = false) {
     includeDisabledInputsInSubmit();
-    let jsonData = getFormInstanceSubmissionJson();
-    var isEditForm = jsonData.hasOwnProperty("FormInstanceId") && jsonData.FormInstanceId !== undefined;
+    let jsonData = getFormInstanceSubmissionJson(isCreate);
     callServer({
         url: $('#fid').attr('action'),
         type: "POST",
         data: jsonData,
         contentType: "application/json",
         success: function (data, textStatus, xhr) {
-            handleSuccessFormSubmit(data, $("#projectId").val(), $("#showUserProjects").val(), isEditForm);
-            if (callback != null)
-                callback();
+            handleSuccessFormSubmit(data, $("#projectId").val(), $("#showUserProjects").val() == "true", !isCreate, callback);
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
+            reAllowSubmit('submitBtn');
         }
     });
 
@@ -53,17 +68,16 @@ function includeDisabledSelect2InSubmit() {
     }
 }
 
-function handleSuccessFormSubmit(data, projectId, showUserProjects, isEditForm = false) {
+function handleSuccessFormSubmit(data, projectId, showUserProjects, isEditForm, callback) {
     toastr.success(data.message ? data.message : 'Success');
-
     if ($("#eocId").val() != undefined) {
-        handleSuccessFormSubmitFromPatient(data, isEditForm);
+        handleSuccessFormSubmitFromPatient(data, isEditForm, callback);
     } else {
-        handleSuccessFormSubmitFromEngine(data, projectId, showUserProjects);
+        handleSuccessFormSubmitFromEngine(data, projectId, showUserProjects, callback);
     }
 }
 
-function getFormInstanceSubmissionJson() {
+function getFormInstanceSubmissionJson(isCreate) {
 
     formInstanceData = {};
 
@@ -83,9 +97,13 @@ function getFormInstanceSubmissionJson() {
     formInstanceData.EncounterId = getFormInputValueByName("fid", "encounterId");
     formInstanceData.ProjectId = $("#formInstanceProjectId").val();
 
-    formInstanceData.FieldInstances = getFormInstanceFieldsSubmissionJson();
+    formInstanceData.FieldInstances = getFormInstanceFieldsSubmissionJson(isCreate ? undefined : getFieldInstancesFromActivePage());
 
     return formInstanceData;
+}
+
+function getFieldInstancesFromActivePage() {
+    return getPreviousActivePage().find(getFormInstanceFieldsSelector());
 }
 
 function modifyStateIfRequiresTransition(formInstanceState) {
@@ -93,7 +111,6 @@ function modifyStateIfRequiresTransition(formInstanceState) {
 }
 
 function getFormInstanceFieldsSubmissionJson(filteredFieldInstanceElements) {
-
     let formFields = [];
     let fieldInstanceElements = filteredFieldInstanceElements ? filteredFieldInstanceElements : getAllFieldInstanceElements();
 
@@ -102,43 +119,64 @@ function getFormInstanceFieldsSubmissionJson(filteredFieldInstanceElements) {
 
         $(this).find(":input[data-fieldid]", ":textarea[data-fieldid]").each(function () {
             let field = {};
+            const $input = $(this);
+            const element = this;
 
-            setCommonFieldProperties(field, $(this));
+            setCommonFieldProperties(field, $input);
 
-            if (isInputCheckboxOrRadio($(this))) {
+            if (isInputCheckboxOrRadio($input)) {
+                addValue(field, $input.is(':checked') ? $input.val() : null);
+                field.FlatValueLabel = $input.is(':checked') ? $input.attr('data-value') : null;
 
-                addValue(field, $(this).is(':checked') ? $(this).val() : null);
-                field.FlatValueLabel = $(this).is(':checked') ? $(this).attr('data-value') : null;
-
-            } else if (isInputFile($(this)) || isInputAudio($(this))) {
-                const value = $(this).val();
-                const separator = isInputFile($(this)) ? '_' : '/';
+            } else if (isInputFile($input) || isInputAudio($input)) {
+                const value = $input.val();
+                const separator = isInputFile($input) ? '_' : '/';
                 const valueLabel = getFileName(value, separator);
 
                 addValue(field, value);
                 field.FlatValueLabel = valueLabel;
-            } else if (this.type == "select-one" || this.type == "select-multiple") {
-
-                addValue(field, $(this).val());
-                if (isSelect2Component(this)) {
-                    field.FlatValueLabel = $(this).find(':selected').text();
+            } else if ($input.attr('data-fieldtype') == 'connected') {
+                field.ConnectedFieldInstanceRepetitionId = $input.val();
+                let $selectedConnectedField = $input.find(':selected');
+                let selectedConnectedFieldValue = $selectedConnectedField.attr("data-value");
+                field.FlatValueLabel = $selectedConnectedField.attr("data-label");
+                field.FlatValues = selectedConnectedFieldValue ? selectedConnectedFieldValue.split(",") : [];
+            } else if (element .type == "select-one" || element .type == "select-multiple") {
+                addValue(field, $input.val());
+                if (isSelect2Component(element )) {
+                    field.FlatValueLabel = readSelectedOptionLabel($input);
                 } else {
-                    field.FlatValueLabel = $(this).find(':selected').attr("title");
+                    field.FlatValueLabel = $input.find(':selected').attr("title");
                 }
-
             } else {
-
-                let value = getValue($(this));
+                let value = getValue($input);
                 
                 addValue(field, value);
                 field.FlatValueLabel = value;
             }
+
+            if (!$input.valid()) {
+                field.ValidationError = {
+                    FieldId: $input.data("fieldinstancerepetitionid") || null,
+                    Title: "Automatic Query Raised",
+                    Description: $input.attr('data-fieldtype') == 'regex' ? "Regex input does not match the required pattern." : element .validationMessage
+                };
+            } else if ($input.data("allowsavewithoutvalue") == 'True' && (getValue($input) == '' || field.FlatValues.length == 0)) {
+                field.ValidationError = {
+                    FieldId: $input.data("fieldinstancerepetitionid") || null,
+                    Title: "Automatic Query Raised",
+                    Description: "Mandatory field is empty."
+                };
+            } else {
+                field.ValidationError = null;
+            }
+
             fields.push(field);
         });
 
         formFields = formFields.concat(filterObjectsByFieldInstanceRepetitionId(fields));
-
     });
+
     return formFields.filter(item => item !== undefined);
 }
 

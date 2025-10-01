@@ -7,7 +7,7 @@
 function openDateTimeTimePicker(event) {
     event.stopPropagation();
     event.preventDefault();
-    let $timeInput = $(event.currentTarget).closest('.datetime-picker-container').find(".time-part");
+    let $timeInput = $(event.currentTarget).closest('.datetime-picker-container').find(".time-helper");
     $timeInput.focus();
 }
 
@@ -20,7 +20,6 @@ function showDatePicker(event) {
 }
 
 // DateTime field handlers
-var defaultTimePart = "00:00";
 
 $("input[data-date-input]").initDatePicker(
     true,
@@ -51,7 +50,9 @@ function handleDateHelper($el, resetTimePart = false) {
     $el.closest('.datetime-picker-container').find('.time-helper').val(newTimePart);
 }
 
-$(document).on("focus", ".time-helper", function () {
+$(document).on("focus", "input[data-time-input]", function () {
+    $(this).val('');
+    handleTimePartChange($(this))
     setTimepicker($(this));
 });
 
@@ -59,7 +60,12 @@ function setTimepicker($timeInput) {
     $timeInput.timepicker({
         timeFormat: 'HH:mm',
         change: function (time) {
-            handleTimePartChange($(this));
+            let $el = $(this);
+            let formId = $el.attr('data-range-valid-form-id');
+            if (formId) {
+                validateTimeRangeChange(formId);
+            }
+            handleTimePartChange($el);
         }
     });
 }
@@ -140,15 +146,6 @@ function getAllowedTimeLength() {
     return getTimeFormatDisplay().length;
 }
 
-function triggerTimeOnChange(formId) {
-    $('#activeFromTime, #activeToTime').timepicker({
-        timeFormat: 'HH:mm',
-        change: function (time) {
-            timeSelected({ target: this }, formId);
-        }
-    });
-}
-
-function timeSelected(e, formId) {
-    $(formId).validate().element("#activeToDate");
+function validateTimeRangeChange(formId) {
+    $(`#${formId}`).validate().element("#activeToDate");
 }

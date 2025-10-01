@@ -1,6 +1,12 @@
 ﻿var dependantElements = [];
 var formValidator;
 
+addUnsavedChangesEventHandler("#distributionForm");
+
+$(document).ready(function () {
+    saveInitialFormData("#distributionForm");
+});
+
 function submitDistributionConfigForm() {
     formValidator = $('#distributionForm').valid();
     if (formValidator) {
@@ -16,6 +22,7 @@ function submitDistributionConfigForm() {
             url: `/FormDistribution/SetParameters`,
             data: postData,
             success: function (data) {
+                saveInitialFormData("#distributionForm");
                 toastr.success('Success');
             },
             error: function (xhr, textStatus, thrownError) {
@@ -188,6 +195,7 @@ function resetlAllRelations(event, id) {
             $('#parameters-container').html(data);
             $('.simulator-submit-btn-container').show();
             dependantElements[formFieldDistributionId] = [];
+            saveInitialFormData("#distributionForm");
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -298,6 +306,13 @@ function showFieldDistribution(event) {
     event.preventDefault();
     event.stopPropagation();
 
+    if (initialFormData != null && !compareForms("#distributionForm")) {
+        const confirmChange = confirm("You have unsaved changes. Are you sure you want to leave?");
+        if (!confirmChange) {
+            return;
+        }
+    }
+
     $(`#row-${$(event.currentTarget).attr('id')}`).show();
     let parent = $(event.currentTarget).closest('.sim-child');
     $('.sim-child').removeClass('active');
@@ -309,6 +324,7 @@ function showFieldDistribution(event) {
         success: function (data) {
             $('#parameters-container').html(data);
             $('.simulator-submit-btn-container').show();
+            saveInitialFormData("#distributionForm");
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);

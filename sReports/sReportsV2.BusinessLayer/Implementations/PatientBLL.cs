@@ -38,7 +38,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPatientListDAL patientListDAL;
         private readonly IFormInstanceDAL formInstanceDAL;
         private readonly IConfiguration configuration;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         private readonly ITrialManagementDAL trialManagementDAL;
 
         public PatientBLL(IPatientDAL patientDAL, ICodeDAL codeDAL, IPatientListDAL patientListDAL, IFormInstanceDAL formInstanceDAL, IConfiguration configuration, IMapper mapper, ITrialManagementDAL trialManagementDAL)
@@ -48,7 +48,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.patientListDAL = patientListDAL;
             this.formInstanceDAL = formInstanceDAL;
             this.configuration = configuration;
-            Mapper = mapper;
+            this.mapper = mapper;
             this.trialManagementDAL = trialManagementDAL;
         }
 
@@ -56,10 +56,10 @@ namespace sReportsV2.BusinessLayer.Implementations
         public PatientDataOut GetById(int id, bool loadClinicalTrials)
         {
             Patient patient = patientDAL.GetById(id) ?? throw new ArgumentNullException(nameof(id), "Patient does not exist");
-            PatientDataOut patientDataOut = Mapper.Map<PatientDataOut>(patient);
+            PatientDataOut patientDataOut = mapper.Map<PatientDataOut>(patient);
             if (loadClinicalTrials)
             {
-                patientDataOut.ClinicalTrials = Mapper.Map<List<ClinicalTrialDataOut>>(trialManagementDAL.GetlClinicalTrialByIds(patient.PatientChemotherapyData?.GetClinicalTrialIds()));
+                patientDataOut.ClinicalTrials = mapper.Map<List<ClinicalTrialDataOut>>(trialManagementDAL.GetlClinicalTrialByIds(patient.PatientChemotherapyData?.GetClinicalTrialIds()));
             }
 
             return patientDataOut;
@@ -70,7 +70,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             Patient patient = await patientDAL.GetByIdAsync(id).ConfigureAwait(false);
             if (patient == null) throw new ArgumentNullException(nameof(id), "Patient does not exist");
 
-            return Mapper.Map<PatientDataOut>(patient);
+            return mapper.Map<PatientDataOut>(patient);
         }
 
         public async Task<PatientDataOut> GetByIdentifierAsync(PatientIdentifier identifier)
@@ -78,18 +78,18 @@ namespace sReportsV2.BusinessLayer.Implementations
             Task<Patient> patient = patientDAL.GetByIdentifierAsync(identifier);
             if (patient == null) throw new ArgumentNullException(nameof(identifier), "Patient does not exist");
 
-            return Mapper.Map<PatientDataOut>(await patient);
+            return mapper.Map<PatientDataOut>(await patient);
         }
 
         public PatientTableDataOut GetPreviewById(int id)
         {
-            PatientTableDataOut patientTableDataOut = Mapper.Map<PatientTableDataOut>(patientDAL.GetById(id));
+            PatientTableDataOut patientTableDataOut = mapper.Map<PatientTableDataOut>(patientDAL.GetById(id));
             return patientTableDataOut ?? throw new ArgumentNullException(nameof(id), "Patient does not exist");
         }
 
         public ResourceCreatedDTO InsertOrUpdate(PatientDataIn patientDataIn, UserData userData)
         {
-            Patient patient = Mapper.Map<Patient>(patientDataIn);
+            Patient patient = mapper.Map<Patient>(patientDataIn);
             patient.OrganizationId = userData.ActiveOrganization.GetValueOrDefault();
             Patient patientDb = patientDAL.GetById(patient.PatientId);
             PatientIdentifierDataIn defaultIdentifier = null;
@@ -109,7 +109,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 patientDb.Copy(patient, false);
             }
-            patientDAL.InsertOrUpdate(patientDb, Mapper.Map<PatientIdentifier>(defaultIdentifier));
+            patientDAL.InsertOrUpdate(patientDb, mapper.Map<PatientIdentifier>(defaultIdentifier));
 
             return new ResourceCreatedDTO()
             {
@@ -120,7 +120,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PatientContactDataIn patientContactDataIn)
         {
-            PatientContact patientContact = Mapper.Map<PatientContact>(patientContactDataIn);
+            PatientContact patientContact = mapper.Map<PatientContact>(patientContactDataIn);
             PatientContact patientContactDb = await patientDAL.GetById(new QueryEntityParam<PatientContact>(patientContact.PatientContactId)).ConfigureAwait(false);
 
             if (patientContactDb == null)
@@ -142,7 +142,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PatientIdentifierDataIn childDataIn)
         {
-            PatientIdentifier patientIdentifier = Mapper.Map<PatientIdentifier>(childDataIn);
+            PatientIdentifier patientIdentifier = mapper.Map<PatientIdentifier>(childDataIn);
             PatientIdentifier patientIdentifierDb = await patientDAL.GetById(new QueryEntityParam<PatientIdentifier>(childDataIn.Id)).ConfigureAwait(false);
 
             if (patientIdentifierDb == null)
@@ -164,7 +164,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PatientAddressDataIn addressDataIn)
         {
-            PatientAddress patientAddress = Mapper.Map<PatientAddress>(addressDataIn);
+            PatientAddress patientAddress = mapper.Map<PatientAddress>(addressDataIn);
             PatientAddress patientAddressDb = await patientDAL.GetById(new QueryEntityParam<PatientAddress>(addressDataIn.Id)).ConfigureAwait(false);
 
             if (patientAddressDb == null)
@@ -186,7 +186,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PatientContactAddressDataIn patientContactAddressDataIn)
         {
-            PatientContactAddress patientContactAddress = Mapper.Map<PatientContactAddress>(patientContactAddressDataIn);
+            PatientContactAddress patientContactAddress = mapper.Map<PatientContactAddress>(patientContactAddressDataIn);
             PatientContactAddress patientContactAddressDb = await patientDAL.GetById(new QueryEntityParam<PatientContactAddress>(patientContactAddressDataIn.Id)).ConfigureAwait(false);
 
             if (patientContactAddressDb == null)
@@ -208,7 +208,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PatientTelecomDataIn telecomDataIn)
         {
-            PatientTelecom patientTelecom = Mapper.Map<PatientTelecom>(telecomDataIn);
+            PatientTelecom patientTelecom = mapper.Map<PatientTelecom>(telecomDataIn);
             PatientTelecom patientTelecomDb = await patientDAL.GetById(new QueryEntityParam<PatientTelecom>(telecomDataIn.Id)).ConfigureAwait(false);
 
             if (patientTelecomDb == null)
@@ -230,7 +230,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PatientContactTelecomDataIn telecomDataIn)
         {
-            PatientContactTelecom patientContactTelecom = Mapper.Map<PatientContactTelecom>(telecomDataIn);
+            PatientContactTelecom patientContactTelecom = mapper.Map<PatientContactTelecom>(telecomDataIn);
             PatientContactTelecom patientContactTelecomDb = await patientDAL.GetById(new QueryEntityParam<PatientContactTelecom>(telecomDataIn.Id)).ConfigureAwait(false);
 
             if (patientContactTelecomDb == null)
@@ -254,7 +254,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                Patient patient = Mapper.Map<Patient>(patientDataIn);
+                Patient patient = mapper.Map<Patient>(patientDataIn);
                 await patientDAL.Delete(patient).ConfigureAwait(false);
                 await formInstanceDAL.DeleteByPatientIdAsync(patientDataIn.Id).ConfigureAwait(false);
             }
@@ -268,7 +268,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PatientContact patientContact = Mapper.Map<PatientContact>(childDataIn);
+                PatientContact patientContact = mapper.Map<PatientContact>(childDataIn);
                 await patientDAL.Delete(patientContact).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -281,7 +281,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PatientIdentifier patientIdentifier = Mapper.Map<PatientIdentifier>(childDataIn);
+                PatientIdentifier patientIdentifier = mapper.Map<PatientIdentifier>(childDataIn);
                 await patientDAL.Delete(patientIdentifier).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -294,7 +294,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PatientAddress patientAddress = Mapper.Map<PatientAddress>(childDataIn);
+                PatientAddress patientAddress = mapper.Map<PatientAddress>(childDataIn);
                 await patientDAL.Delete(patientAddress).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -307,7 +307,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PatientContactAddress patientContactAddress = Mapper.Map<PatientContactAddress>(childDataIn);
+                PatientContactAddress patientContactAddress = mapper.Map<PatientContactAddress>(childDataIn);
                 await patientDAL.Delete(patientContactAddress).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -320,7 +320,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PatientTelecom patientTelecom = Mapper.Map<PatientTelecom>(childDataIn);
+                PatientTelecom patientTelecom = mapper.Map<PatientTelecom>(childDataIn);
                 await patientDAL.Delete(patientTelecom).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -333,7 +333,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PatientContactTelecom patientTelecom = Mapper.Map<PatientContactTelecom>(childDataIn);
+                PatientContactTelecom patientTelecom = mapper.Map<PatientContactTelecom>(childDataIn);
                 await patientDAL.Delete(patientTelecom).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -345,14 +345,14 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public bool ExistEntity(PatientIdentifierDataIn identifierDataIn)
         {
-            PatientIdentifier identifier = Mapper.Map<PatientIdentifier>(identifierDataIn);
+            PatientIdentifier identifier = mapper.Map<PatientIdentifier>(identifierDataIn);
             return patientDAL.ExistsPatientByIdentifier(identifier);
         }
 
 
         public async Task<PaginationDataOut<T, PatientFilterDataIn>> GetAllFilteredAsync<T>(PatientFilterDataIn dataIn)
         {
-            PatientFilter filter = Mapper.Map<PatientFilter>(dataIn);
+            PatientFilter filter = mapper.Map<PatientFilter>(dataIn);
             PopulateGenders(filter);
             await GetPatientListFilterAsync(dataIn, filter).ConfigureAwait(false);
 
@@ -360,7 +360,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             PaginationDataOut<T, PatientFilterDataIn> result = new PaginationDataOut<T, PatientFilterDataIn>()
             {
                 Count = patientPagination.Count,
-                Data = Mapper.Map<List<T>>(patientPagination.Data),
+                Data = mapper.Map<List<T>>(patientPagination.Data),
                 DataIn = dataIn
             };
             return result;
@@ -368,8 +368,8 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public List<PatientTableDataOut> GetPatientsByFirstAndLastName(PatientByNameFilterDataIn patientByNameFilterDataIn)
         {
-            PatientByNameSearchFilter patientSearchFilter = Mapper.Map<PatientByNameSearchFilter>(patientByNameFilterDataIn);
-            return Mapper.Map<List<PatientTableDataOut>>(patientDAL.GetPatientsFilteredByFirstAndLastName(patientSearchFilter));
+            PatientByNameSearchFilter patientSearchFilter = mapper.Map<PatientByNameSearchFilter>(patientByNameFilterDataIn);
+            return mapper.Map<List<PatientTableDataOut>>(patientDAL.GetPatientsFilteredByFirstAndLastName(patientSearchFilter));
         }
 
         public AutocompleteResultDataOut GetAutocompletePatientData(AutocompleteDataIn dataIn, UserCookieData userCookieData)
@@ -378,7 +378,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             var filtered = patientDAL.GetAll(new PatientFilter { OrganizationId = userCookieData.ActiveOrganization, Given = dataIn.Term, SimpleNameSearch = true, ApplyOrderByAndPagination = false });
             var enumDataOuts = filtered
-                .OrderBy(x => x.NameGiven).Skip(dataIn.Page * 15).Take(15)
+                .OrderBy(x => x.NameGiven).Skip(dataIn.GetHowManyElementsToSkip()).Take(FilterConstants.DefaultPageSize)
                 .Select(e => new AutocompleteDataOut()
                 {
                     id = e.PatientId.ToString(),
@@ -392,7 +392,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = enumDataOuts
             };
@@ -404,7 +404,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             PatientContact patientContact = await patientDAL.GetById(new QueryEntityParam<PatientContact>(id)).ConfigureAwait(false);
 
-            return Mapper.Map<ContactDTO>(patientContact);
+            return mapper.Map<ContactDTO>(patientContact);
         }
 
         private void PopulateGenders(PatientFilter patientFilter)

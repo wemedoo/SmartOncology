@@ -60,5 +60,17 @@ namespace sReportsV2.Domain.Sql.Entities.ThesaurusEntry
                     this.FailedCollections = JsonConvert.DeserializeObject<List<string>>(value);
             }
         }
+
+        public void SaveMergeOccurenceOutcome(bool replaceFailed, string dalComponent)
+        {
+            if (replaceFailed)
+            {
+                this.FailedCollections.Add(dalComponent);
+            }
+            else
+            {
+                this.CompletedCollections.Add(dalComponent);
+            }
+        }
     }
 }

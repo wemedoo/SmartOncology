@@ -32,7 +32,7 @@ function reloadNominatorTable() {
     requestObject.IsAscending = nominatorIsAscending;
     requestObject.ColumnName = nominatorColumnName;
     requestObject.CodeSetId = $('#codeSetId').val();
-    requestObject.CodeSetDisplay = encodeURIComponent($('#codeSetDisplay').val());
+    requestObject.CodeSetDisplay = $('#codeSetDisplay').val();
 
     callServer({
         type: 'GET',
@@ -299,7 +299,6 @@ function createNoResultContent() {
         $(div).attr("id", "noContentAssociation");
 
         let img = document.createElement('img');
-        $(img).addClass("margin-");
         $(img).attr("src", "/css/img/icons/no_results.svg");
 
         let br = document.createElement('br');
@@ -594,7 +593,7 @@ function selectActiveNomineeElement(nomineeCodeId) {
 }
 
 $(document).on('keyup', '#nomineeCodeSetDisplay', function (e) {
-    if (e.which !== downArrow && e.which !== upArrow && e.which !== enter) {
+    if (isInputCharacter(e.which)) {
         page = 1;
         reloadCodeSets(false);
     }
@@ -607,7 +606,7 @@ function loadMoreCodeSets() {
 
 function reloadCodeSets(loadMore) {
     let requestObject = {};
-    requestObject.CodeSetDisplay = encodeURIComponent($('#nomineeCodeSetDisplay').val()).toLowerCase();
+    requestObject.CodeSetDisplay = $('#nomineeCodeSetDisplay').val().toLowerCase();
     requestObject.Page = page;
     requestObject.PageSize = 20;
 
@@ -660,40 +659,4 @@ function filterCodeSetName(event, codeSetId, codeSetDisplay) {
     reloadNomineeTable(codeSetId, codeSetId, codeSetDisplay);
 }
 
-$(document).on('keydown', '#codeSet-search', function (e) {
-    let next;
-    if (e.which === downArrow) {
-        if (liSelected) {
-            $(liSelected).removeClass('selected');
-            next = $(liSelected).next();
-            if (next.length > 0) {
-                liSelected = $(next).addClass('selected');
-            } else {
-                liSelected = $('.option').eq(0).addClass('selected');
-            }
-        } else {
-            liSelected = $('.option').eq(0).addClass('selected');
-        }
-    } else if (e.which === upArrow) {
-        if (liSelected) {
-            $(liSelected).removeClass('selected');
-            next = $(liSelected).prev();
-            if (next.length > 0) {
-                liSelected = $(next).addClass('selected');
-            } else {
-                liSelected = $('.option').last().addClass('selected');
-            }
-        } else {
-            liSelected = $('.option').last().addClass('selected');
-        }
-    }
-    else if (e.which === enter) {
-        $(liSelected).click();
-    }
-
-    e.stopImmediatePropagation();
-});
-
-var li = $('.option');
-var liSelected = null;
 var page = 1;

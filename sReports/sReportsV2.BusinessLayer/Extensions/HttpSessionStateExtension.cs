@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using sReportsV2.DTOs.User.DTO;
+using System.Web.SessionState;
 
 namespace sReportsV2.Common.Extensions
 {
@@ -25,6 +26,23 @@ namespace sReportsV2.Common.Extensions
         public static void SetObjectAsJson(this ISession session, string key, object value)
         {
             session.SetString(key, JsonConvert.SerializeObject(value));
+        }
+
+        public static void UpdateUserCookieDataInSession(this ISession session, bool value)
+        {
+            Ensure.IsNotNull(session, nameof(session));
+
+            UserCookieData userCookieData = session.GetUserFromSession();
+            userCookieData.FormInstanceLoaded = value;
+            session.SetObjectAsJson("userData", userCookieData);
+        }
+
+        public static T GetObject<T>(this ISession session, string key)
+        {
+            var value = session.GetString(key);
+            return value == null
+                ? default
+                : JsonConvert.DeserializeObject<T>(value);
         }
     }
 }

@@ -445,9 +445,8 @@ $(document).ready(function () {
     let formId = $("#nestable").find(`li[data-itemtype='form']`).first().attr('data-id');
 
     if (storageAvailable("localStorage") && formId !== "formIdPlaceHolder") {
-        console.log("localStorage available And Form Ok");
+        
     } else {
-        console.log("localStorage not available OR New Form");
         $("#copy-designer-items").remove(); // removing Copy button
         $("#paste-designer-items").remove(); // removing Paste button
         commonSelectionLogic = function () { return false; };

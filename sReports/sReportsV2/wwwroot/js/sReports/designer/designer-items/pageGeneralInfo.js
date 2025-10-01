@@ -47,7 +47,6 @@ function setImageMap(element) {
             mapId: mapId,
             map: imageMapAreas
         };
-        console.log('Image map data: ' + JSON.stringify(imageMapData));
         $(element).attr('data-imagemap', encodeURIComponent(JSON.stringify(imageMapData)));
     } else {
         $(element).attr('data-imagemap', null);
@@ -114,7 +113,6 @@ $(document).on("click", ".rotate-left-button img", function (e) {
     let rotateValue = 5;
     let rect = $(this).parent().parent();
     let rotate = +$(rect).attr('data-rotate');
-    console.log('rotate:' + rotate);
     if (rotate) {
         rotate += rotateValue;
         $(rect).attr('data-rotate', rotate);

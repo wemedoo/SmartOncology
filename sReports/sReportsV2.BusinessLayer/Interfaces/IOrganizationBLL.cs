@@ -27,6 +27,5 @@ namespace sReportsV2.BusinessLayer.Interfaces
         List<OrganizationCommunicationEntityDataOut> GetOrgCommunicationByOrgId(OrganizationFilterDataIn dataIn);
         Task<int> InsertOrganizationCommunication(OrganizationCommunicationEntityDataIn dataIn);
         Task<OrganizationCommunicationEntityDataOut> GetOrgCommunicationEntityIdByIdAsync(int orgCommunicationEntityId);
-        string GetTimeZoneOffset(int organizationId);
     }
 }

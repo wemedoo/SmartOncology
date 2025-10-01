@@ -22,17 +22,18 @@ namespace sReportsV2.Controllers
     public class RoleAdministrationController : BaseController
     {
         private readonly IPositionPermissionBLL positionPermissionBLL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         public RoleAdministrationController(IPositionPermissionBLL positionPermissionBLL, 
             IMapper mapper,             
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.positionPermissionBLL = positionPermissionBLL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Administration)]
@@ -89,13 +90,13 @@ namespace sReportsV2.Controllers
 
         private PaginationDataOut<CodeDataOut, DataIn> GetAllRoles(DataIn dataIn)
         {
-            RoleFilter filterData = Mapper.Map<RoleFilter>(dataIn);
+            RoleFilter filterData = mapper.Map<RoleFilter>(dataIn);
             List<CodeDataOut> roles = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Role);
             var result = new PaginationDataOut<CodeDataOut, DataIn>()
             {
                 Count = roles.Count,
                 DataIn = dataIn,
-                Data = Mapper.Map<List<CodeDataOut>>(FilterRoles(filterData, roles))
+                Data = mapper.Map<List<CodeDataOut>>(FilterRoles(filterData, roles))
             };
 
             return result;
@@ -114,14 +115,14 @@ namespace sReportsV2.Controllers
                         {
                             result = result
                                 .OrderBy(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage))
-                                .Skip((roleFilter.Page - 1) * roleFilter.PageSize)
+                                .Skip(roleFilter.GetHowManyElementsToSkip())
                                 .Take(roleFilter.PageSize);
                         }
                         else
                         {
                             result = result
                                 .OrderByDescending(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage))
-                                .Skip((roleFilter.Page - 1) * roleFilter.PageSize)
+                                .Skip(roleFilter.GetHowManyElementsToSkip())
                                 .Take(roleFilter.PageSize);
                         }
                         break;
@@ -130,20 +131,20 @@ namespace sReportsV2.Controllers
                         {
                             result = result
                                 .OrderBy(x => x.Thesaurus.GetDefinitionByTranslationOrDefault(userCookieData.ActiveLanguage))
-                                .Skip((roleFilter.Page - 1) * roleFilter.PageSize)
+                                .Skip(roleFilter.GetHowManyElementsToSkip())
                                 .Take(roleFilter.PageSize);
                         }
                         else
                         {
                             result = result
                                 .OrderByDescending(x => x.Thesaurus.GetDefinitionByTranslationOrDefault(userCookieData.ActiveLanguage))
-                                .Skip((roleFilter.Page - 1) * roleFilter.PageSize)
+                                .Skip(roleFilter.GetHowManyElementsToSkip())
                                 .Take(roleFilter.PageSize);
                         }
                         break;
                     default:
                         result = result
-                            .Skip((roleFilter.Page - 1) * roleFilter.PageSize)
+                            .Skip(roleFilter.GetHowManyElementsToSkip())
                             .Take(roleFilter.PageSize);
                         break;
                 }
@@ -151,7 +152,7 @@ namespace sReportsV2.Controllers
             else
             {
                 result = result
-                            .Skip((roleFilter.Page - 1) * roleFilter.PageSize)
+                            .Skip(roleFilter.GetHowManyElementsToSkip())
                             .Take(roleFilter.PageSize);
             }
 

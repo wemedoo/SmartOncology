@@ -7,6 +7,7 @@ using System.Linq;
 using sReportsV2.DTOs.DTOs.GlobalThesaurus.DataIn;
 using sReportsV2.Common.Constants;
 using sReportsV2.DTOs.CodeEntry.DataOut;
+using sReportsV2.DTOs.DTOs.ThesaurusEntry.DataOut;
 
 namespace sReportsV2.DTOs.ThesaurusEntry.DataOut
 {
@@ -27,7 +28,8 @@ namespace sReportsV2.DTOs.ThesaurusEntry.DataOut
         public string UriClassGUI { get; set; }
         public string UriSourceLink { get; set; }
         public string UriSourceGUI { get; set; }
-
+        public SkosDataOut SkosData { get; set; } = new SkosDataOut();
+        public bool ShowSkosData {  get; set; }
         public ThesaurusEntryTranslationDTO GetTranslation(string language)
         {
             return GetTranslationByLanguage(language) ?? GetTranslationByLanguage(LanguageConstants.EN) ?? Translations.Find(x => x.Language != null) ?? new ThesaurusEntryTranslationDTO() { Abbreviations = new List<string>(), Synonyms = new List<string>()};
@@ -147,6 +149,14 @@ namespace sReportsV2.DTOs.ThesaurusEntry.DataOut
             return user;
         }
 
+        public string ConvertStateCDToDisplayName(List<CodeDataOut> states, string language)
+        {
+            if (this.StateCD != null && this.StateCD.HasValue)
+                return states.Find(x => x.Id == this.StateCD)?.Thesaurus.GetPreferredTermByTranslationOrDefault(language);
+
+            return "";
+        }
+
         private string JoinList(List<string> list)
         {
             string result = "";
@@ -160,14 +170,6 @@ namespace sReportsV2.DTOs.ThesaurusEntry.DataOut
         private ThesaurusEntryTranslationDTO GetTranslationByLanguage(string language)
         {
             return this.Translations?.Find(x => x.Language.Equals(language));
-        }
-
-        public string ConvertStateCDToDisplayName(List<CodeDataOut> states, string language)
-        {
-            if (this.StateCD != null && this.StateCD.HasValue)
-                return states.Find(x => x.Id == this.StateCD)?.Thesaurus.GetPreferredTermByTranslationOrDefault(language);
-
-            return "";
         }
     }
 }

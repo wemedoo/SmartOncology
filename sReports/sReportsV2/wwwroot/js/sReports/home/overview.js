@@ -1,203 +1,150 @@
-﻿var max = 0;
-var steps = 10;
-var chartData = {};
+﻿let myChart = null;
 
-function respondCanvas() {
+function respondCanvas(chartData) {
     var c = $('#documentsPerThesaurus');
-    var ctx = c.get(0).getContext("2d");
+    var ctx = c.get(0).getContext('2d');
     var container = c.parent().parent();
     var $container = $(container);
-    c.attr('width', $container.width()); //max width
-    c.attr('height', $container.height() - 60); //max height
-    var chart = new Chart(ctx, chartData);
-    console.log(chart);
+    c.attr('width', $container.width());
+    c.attr('height', $container.height() - 60);
+   
+    if (myChart) {
+        myChart.destroy();
+        myChart = null;
+    }
+    myChart = new Chart(ctx, chartData);
 }
 
-Chart.scaleService.updateScaleDefaults('category', {
-    ticks: {
-        callback: function (tick) {
-            var characterLimit = 20;
-            if (tick && tick.length >= 20) {
-                return tick.slice(0, tick.length).substring(0, characterLimit - 1).trim() + '...';
-            }
-            return tick;
-        }
-    }
-});
-
 function getDocumentChartData() {
-    var c = $('#documentsPerThesaurus');
-    var ctx = c.get(0).getContext("2d");
-    gradient = ctx.createLinearGradient(0, 0, 0, 450);
-    gradient.addColorStop(0.5, '#34b5bf');
-    gradient.addColorStop(1, '#1c94a3');
-
+    destroyChartIfExist('documentsPerThesaurus');
 
     callServer({
         url: '/FormInstance/GetDocumentsPerDomain',
         method: 'GET',
         dataType: 'json',
         success: function (response) {
+            const canvas = document.getElementById('documentsPerThesaurus');
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 450);
+            gradient.addColorStop(0.5, '#34b5bf');
+            gradient.addColorStop(1, '#1c94a3');
+
             chartData = {
                 type: 'bar',
-                data:
-                {
+                data: {
                     labels: response.map(x => x.label),
                     datasets: [
                         {
-                            label: '# Documents',//#2a796b,
-                            fillColor: 'white',
+                            label: '# Documents',
                             backgroundColor: gradient,
                             data: response.map(x => x.count)
-
                         }
                     ]
                 },
                 options: {
                     scales: {
-                        xAxes: [{
-                            gridLines: {
+                        x: {
+                            grid: {
                                 display: true,
-                                color:'transparent',
+                                color: 'transparent',
                                 drawBorder: true,
-                                zeroLineColor:'lightgray'
+                                zeroLineColor: 'lightgray'
                             },
                             ticks: {
                                 beginAtZero: true,
-                                fontColor: "black",
-                                fontSize: 13
+                                color: 'black',
+                                font: { size: 13 },
+                                callback: function (value, index, ticks) {
+                                    var characterLimit = 20;
+                                    let label = this.getLabelForValue(value);
+                                    if (label && label.length >= characterLimit) {
+                                        return label.substring(0, characterLimit - 1).trim() + '...';
+                                    }
+                                    return label;
+                                }
                             },
                             display: true
-                        }],
-                        yAxes: [{
-                            gridLines: {
+                        },
+                        y: {
+                            grid: {
                                 display: true,
                                 color: '#e0e0e0',
                                 drawBorder: true,
                                 zeroLineColor: 'lightgray'
                             },
                             ticks: {
-                                beginAtZero: true
+                                beginAtZero: true,
+                                color: 'lightgrey',
+                                font: { size: 15 },
+                                padding: 25
                             }
-                        }]
+                        }
                     },
-                    ticks: {
-                        beginAtZero: true,
-                        fontSize: 15,
-                        fontColor: 'lightgrey',
-                        maxTicksLimit: 5,
-                        padding: 25
-                    },
-                    tooltips: {
-                        callbacks: {
-                            title: function (tooltipItems, data) {
-                                let label = data.labels[tooltipItems[0].index];
-                                var item = response[tooltipItems[0].index];
-                                if (item) {
-                                    label = `${label} (${item.Domain})`;
+                    plugins: {
+                        tooltip: {
+                            enabled: false,
+                            external: function (context) {
+                                var tooltipEl = document.getElementById('chartjs-tooltip');
+                                if (!tooltipEl) {
+                                    tooltipEl = document.createElement('div');
+                                    tooltipEl.id = 'chartjs-tooltip';
+                                    tooltipEl.innerHTML = '<table></table>';
+                                    document.body.appendChild(tooltipEl);
                                 }
-                                return label;
-                            },
-                            label: function (tooltipItem, data) {
-                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
 
-                                if (label) {
-                                    label = `${label}: ${Math.round(tooltipItem.yLabel * 100) / 100}`;
+                                let tooltipModel = context.tooltip;
+                                if (tooltipModel.opacity === 0) {
+                                    tooltipEl.style.opacity = 0;
+                                    return;
                                 }
-                                return label;
+
+                                tooltipEl.classList.remove('above', 'below', 'no-transform');
+                                if (tooltipModel.yAlign) {
+                                    tooltipEl.classList.add(tooltipModel.yAlign);
+                                } else {
+                                    tooltipEl.classList.add('no-transform');
+                                }
+
+                                if (tooltipModel.body && tooltipModel.dataPoints.length > 0) {
+                                    let dataPoint = tooltipModel.dataPoints[0];
+                                    let chartItem = response[dataPoint.dataIndex];
+                                    let label = `${chartItem.label} (${chartItem.domain})`;
+                                    let count = `${dataPoint.dataset.label}: ${chartItem.count}`;
+
+                                    var innerHtml = `<div><div class="tooltip-label-value">value</div><div class="tooltip-value">${count}</div> <div class="tooltip-label-value">document</div><div class="tooltip-value">${label}</div></div>`;
+                                    var tableRoot = tooltipEl.querySelector('table');
+                                    tableRoot.innerHTML = innerHtml;
+                                }
+
+                                var position = context.chart.canvas.getBoundingClientRect();
+                                tooltipEl.style.opacity = 1;
+                                tooltipEl.style.position = 'absolute';
+                                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX - 40 + 'px';
+                                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+                                tooltipEl.style.fontFamily = tooltipModel._bodyFontFamily;
+                                tooltipEl.style.fontSize = tooltipModel.bodyFontSize + 'px';
+                                tooltipEl.style.fontStyle = tooltipModel._bodyFontStyle;
+                                tooltipEl.style.pointerEvents = 'none';
+                                tooltipEl.style.width = '254px';
+                                tooltipEl.style.backgroundColor = 'white';
+                                tooltipEl.style.borderRadius = '8px';
+                                tooltipEl.style.boxShadow = '0 2px 14px 0 rgba(199, 199, 199, 0.5)';
+                                tooltipEl.style.padding = '20px';
                             }
-                        },
-                        enabled: false,
-                        custom: function (tooltipModel) {
-                            // Tooltip Element
-                            var tooltipEl = document.getElementById('chartjs-tooltip');
-
-                            // Create element on first render
-                            if (!tooltipEl) {
-                                tooltipEl = document.createElement('div');
-                                tooltipEl.id = 'chartjs-tooltip';
-                                tooltipEl.innerHTML = '<table></table>';
-                                document.body.appendChild(tooltipEl);
-                            }
-
-                            // Hide if no tooltip
-                            if (tooltipModel.opacity === 0) {
-                                tooltipEl.style.opacity = 0;
-                                return;
-                            }
-
-                            // Set caret Position
-                            tooltipEl.classList.remove('above', 'below', 'no-transform');
-                            if (tooltipModel.yAlign) {
-                                tooltipEl.classList.add(tooltipModel.yAlign);
-                            } else {
-                                tooltipEl.classList.add('no-transform');
-                            }
-
-                            function getBody(bodyItem) {
-                                return bodyItem.lines;
-                            }
-
-                            // Set Text
-                            if (tooltipModel.body) {
-                                var titleLines = tooltipModel.title || [];
-                                var bodyLines = tooltipModel.body.map(getBody);
-
-                                //var innerHtml = '<thead>';
-                                var count;
-                                var ti;
-
-
-                                bodyLines.forEach(function (body, i) {
-                                    count = body[0].split(':')[1];
-                                });
-
-                                titleLines.forEach(function (title) {
-                                    ti = title;
-                                });
-
-                               
-                                //innerHtml += '</tbody>';
-
-                                var innerHtml = `<div><div class="tooltip-label-value">value</div><div class="tooltip-value">${count}</div> <div class="tooltip-label-value">document</div><div class="tooltip-value">${ti}</div></div>`;
-                                var tableRoot = tooltipEl.querySelector('table');
-                                tableRoot.innerHTML = innerHtml;
-                            }
-
-                            // `this` will be the overall tooltip
-                            var position = this._chart.canvas.getBoundingClientRect();
-
-                            // Display, position, and set styles for font
-                            tooltipEl.style.opacity = 1;
-                            tooltipEl.style.position = 'absolute';
-                            tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX - 40 + 'px';
-                            tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
-                            tooltipEl.style.fontFamily = tooltipModel._bodyFontFamily;
-                            tooltipEl.style.fontSize = tooltipModel.bodyFontSize + 'px';
-                            tooltipEl.style.fontStyle = tooltipModel._bodyFontStyle;
-                            tooltipEl.style.pointerEvents = 'none';
-                            tooltipEl.style.width = '254px';
-                            tooltipEl.style.backgroundColor = 'white';
-                            tooltipEl.style.borderRadius = '8px';
-                            tooltipEl.style.boxShadow = ' 0 2px 14px 0 rgba(199, 199, 199, 0.5)';
-                            tooltipEl.style.padding = "20px";
-
                         }
                     },
                     legend: {
                         display: true,
                         labels: {
-                            fontColor: 'rgb(0, 0, 0)',
-
+                            color: 'rgb(0, 0, 0)'
                         }
                     }
-                   
                 }
-            }
-           //max = Math.max.apply(Math, response.map(x => x.Count));
-            steps = 10;
-
-            respondCanvas();
+            };
+            respondCanvas(chartData);
+        },
+        error: function (xhr, textStatus, thrownError) {
+            console.error('AJAX error:', xhr);
         }
     });
 };
@@ -233,8 +180,21 @@ function getOrganizationUsersCountData() {
     });
 }
 
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 $(document).ready(function () {
-    $(window).resize(respondCanvas);
+    const debouncedGetDocumentChartData = debounce(getDocumentChartData, 500);
+    $(window).resize(getDocumentChartData);
 
     getDocumentChartData();
     getTotalChartData();

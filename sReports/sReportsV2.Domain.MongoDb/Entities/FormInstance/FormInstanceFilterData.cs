@@ -23,5 +23,7 @@ namespace sReportsV2.Domain.Entities.FormInstance
         public Dictionary<string, string> Languages { get; set; } = new Dictionary<string, string>();
         public Dictionary<string, string> SpecialValues { get; set; } = new Dictionary<string, string>();
         public List<int> PersonnelProjectsIds { get; set; }
+        public List<int> ThesaurusIds { get; set; }
+        public bool DoPatientSemanticQuery { get; set; }
     }
 }

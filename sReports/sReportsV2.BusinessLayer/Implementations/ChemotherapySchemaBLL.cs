@@ -2,6 +2,7 @@
 using ExcelImporter.Importers;
 using Microsoft.EntityFrameworkCore;
 using sReportsV2.BusinessLayer.Interfaces;
+using sReportsV2.Common.Constants;
 using sReportsV2.Common.Exceptions;
 using sReportsV2.Common.Extensions;
 using sReportsV2.DAL.Sql.Interfaces;
@@ -34,7 +35,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IMedicationDoseTypeDAL medicationDoseTypeDAL;
         private readonly IPersonnelDAL userDAL;
         private readonly IUnitDAL unitDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public ChemotherapySchemaBLL(IChemotherapySchemaDAL chemotherapySchemaDAL, ILiteratureReferenceDAL literatureReferenceDAL, IMedicationDAL medicationDAL, IMedicationDoseDAL medicationDoseDAL, IBodySurfaceCalculationFormulaDAL bodySurfaceCalculationFormulaDAL, IRouteOfAdministrationDAL routeOfAdministrationDAL, IMedicationDoseTypeDAL medicationDoseTypeDAL, IPersonnelDAL userDAL, IUnitDAL unitDAL, IMapper mapper)
         {
@@ -47,7 +48,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.medicationDoseTypeDAL = medicationDoseTypeDAL;
             this.userDAL = userDAL;
             this.unitDAL = unitDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public ChemotherapySchemaDataOut GetById(int id)
@@ -55,7 +56,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             ChemotherapySchema chemotherapySchema = chemotherapySchemaDAL.GetById(id);
             if (chemotherapySchema == null) throw new ArgumentNullException(nameof(id));
 
-            ChemotherapySchemaDataOut chemotherapySchemaDataOut = Mapper.Map<ChemotherapySchemaDataOut>(chemotherapySchema);
+            ChemotherapySchemaDataOut chemotherapySchemaDataOut = mapper.Map<ChemotherapySchemaDataOut>(chemotherapySchema);
             SetRouteOfAdministrationForMedications(chemotherapySchemaDataOut);
             return chemotherapySchemaDataOut;
         }
@@ -63,7 +64,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public ResourceCreatedDTO InsertOrUpdate(ChemotherapySchemaDataIn dataIn, UserCookieData userCookieData)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ChemotherapySchema chemotherapySchema = Mapper.Map<ChemotherapySchema>(dataIn);
+            ChemotherapySchema chemotherapySchema = mapper.Map<ChemotherapySchema>(dataIn);
             ChemotherapySchema chemotherapySchemaDb = chemotherapySchemaDAL.GetById(dataIn.Id);
 
             if (chemotherapySchemaDb == null)
@@ -86,7 +87,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public ResourceCreatedDTO UpdateGeneralProperties(EditGeneralPropertiesDataIn dataIn, UserCookieData userCookieData)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ChemotherapySchema chemotherapySchema = Mapper.Map<ChemotherapySchema>(dataIn);
+            ChemotherapySchema chemotherapySchema = mapper.Map<ChemotherapySchema>(dataIn);
             ChemotherapySchema chemotherapySchemaDb = chemotherapySchemaDAL.GetById(dataIn.Id);
             if (chemotherapySchemaDb == null)
             {
@@ -106,7 +107,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public ResourceCreatedDTO UpdateName(EditNameDataIn nameDataIn, UserCookieData userCookieData)
         {
             nameDataIn = Ensure.IsNotNull(nameDataIn, nameof(nameDataIn));
-            ChemotherapySchema chemotherapySchema = Mapper.Map<ChemotherapySchema>(nameDataIn);
+            ChemotherapySchema chemotherapySchema = mapper.Map<ChemotherapySchema>(nameDataIn);
             ChemotherapySchema chemotherapySchemaDb = chemotherapySchemaDAL.GetById(nameDataIn.Id);
             if (chemotherapySchemaDb == null)
             {
@@ -128,7 +129,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public ChemotherapySchemaDataOut UpdateIndications(EditIndicationsDataIn indicationsDataIn, UserCookieData userCookieData)
         {
-            ChemotherapySchema chemotherapySchema = Mapper.Map<ChemotherapySchema>(indicationsDataIn);
+            ChemotherapySchema chemotherapySchema = mapper.Map<ChemotherapySchema>(indicationsDataIn);
             ChemotherapySchema chemotherapySchemaDb = chemotherapySchemaDAL.GetById(indicationsDataIn.ChemotherapySchemaId);
             if (chemotherapySchemaDb == null)
             {
@@ -142,7 +143,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             InsertOrUpdate(chemotherapySchemaDb);
 
-            return Mapper.Map<ChemotherapySchemaDataOut>(chemotherapySchemaDb);
+            return mapper.Map<ChemotherapySchemaDataOut>(chemotherapySchemaDb);
         }
 
         public ChemotherapySchemaResourceCreatedDTO UpdateReference(EditLiteratureReferenceDataIn dataIn, UserCookieData userCookieData)
@@ -151,7 +152,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             IsUniquePMID(dataIn.LiteratureReference.PubMedID, dataIn.LiteratureReference.Id);
 
-            LiteratureReference literatureReference = Mapper.Map<LiteratureReference>(dataIn.LiteratureReference);
+            LiteratureReference literatureReference = mapper.Map<LiteratureReference>(dataIn.LiteratureReference);
             LiteratureReference literatureReferenceDb = literatureReferenceDAL.GetById(literatureReference.LiteratureReferenceId);
 
             if (literatureReferenceDb == null)
@@ -194,14 +195,14 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             Medication medication = medicationDAL.GetById(id);
 
-            MedicationDataOut medicationDataOut = Mapper.Map<MedicationDataOut>(medication);
+            MedicationDataOut medicationDataOut = mapper.Map<MedicationDataOut>(medication);
             return medicationDataOut;
         }
 
         public ResourceCreatedDTO UpdateMedication(MedicationDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            Medication medication = Mapper.Map<Medication>(dataIn);
+            Medication medication = mapper.Map<Medication>(dataIn);
             Medication medicationDb = medicationDAL.GetById(dataIn.Id);
 
             if (medicationDb == null)
@@ -221,7 +222,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public ResourceCreatedDTO UpdateMedicationDose(MedicationDoseDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            MedicationDose medicationDose = Mapper.Map<MedicationDose>(dataIn);
+            MedicationDose medicationDose = mapper.Map<MedicationDose>(dataIn);
             MedicationDose medicationDoseDb = medicationDoseDAL.GetById(dataIn.Id);
 
             if (medicationDoseDb == null)
@@ -241,7 +242,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public EditMedicationDoseInBatchDataOut UpdateMedicationDoseInBatch(EditMedicationDoseInBatchDataIn dataIn)
         {
-            Medication medication = Mapper.Map<Medication>(dataIn);
+            Medication medication = mapper.Map<Medication>(dataIn);
             Medication medicationDb = medicationDAL.GetById(medication.MedicationId);
 
             List<MedicationDose> upcomingMedicationDoses = medicationDb.GetPremedicationsDays();
@@ -266,19 +267,21 @@ namespace sReportsV2.BusinessLayer.Implementations
         public LiteratureReferenceDataOut GetReference(int id)
         {
             LiteratureReference literatureReference = literatureReferenceDAL.GetById(id);
-            return Mapper.Map<LiteratureReferenceDataOut>(literatureReference);
+            return mapper.Map<LiteratureReferenceDataOut>(literatureReference);
         }
 
         public List<BodySurfaceCalculationFormulaDTO> GetFormulas()
         {
-            return Mapper.Map<List<BodySurfaceCalculationFormulaDTO>>(bodySurfaceCalculationFormulaDAL.GetAll());
+            return mapper.Map<List<BodySurfaceCalculationFormulaDTO>>(bodySurfaceCalculationFormulaDAL.GetAll());
         }
 
         public AutocompleteResultDataOut GetRouteOfAdministrationDataForAutocomplete(AutocompleteDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             IQueryable<RouteOfAdministration> filtered = routeOfAdministrationDAL.FilterByName(dataIn.Term);
-            List<AutocompleteDataOut> routeOfAdministrationDataOuts = filtered.OrderBy(x => x.Name).Skip(dataIn.Page * 15).Take(15)
+            List<AutocompleteDataOut> routeOfAdministrationDataOuts = filtered.OrderBy(x => x.Name)
+                .Skip(dataIn.GetHowManyElementsToSkip())
+                .Take(FilterConstants.DefaultPageSize)
                 .Select(x => new AutocompleteDataOut()
                 {
                     id = x.RouteOfAdministrationId.ToString(),
@@ -291,7 +294,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = routeOfAdministrationDataOuts
             };
@@ -301,14 +304,16 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public RouteOfAdministrationDTO GetRouteOfAdministration(int id)
         {
-            return Mapper.Map<RouteOfAdministrationDTO>(routeOfAdministrationDAL.GetById(id));
+            return mapper.Map<RouteOfAdministrationDTO>(routeOfAdministrationDAL.GetById(id));
         }
 
         public AutocompleteResultDataOut GetUnitDataForAutocomplete(AutocompleteDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             IQueryable<Unit> filtered = unitDAL.FilterByName(dataIn.Term);
-            List<AutocompleteDataOut> routeOfAdministrationDataOuts = filtered.OrderBy(x => x.Name).Skip(dataIn.Page * 15).Take(15)
+            List<AutocompleteDataOut> routeOfAdministrationDataOuts = filtered.OrderBy(x => x.Name)
+                .Skip(dataIn.GetHowManyElementsToSkip())
+                .Take(FilterConstants.DefaultPageSize)
                 .Select(x => new AutocompleteDataOut()
                 {
                     id = x.UnitId.ToString(),
@@ -321,7 +326,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = routeOfAdministrationDataOuts
             };
@@ -331,23 +336,23 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public UnitDTO GetUnit(int id)
         {
-            return Mapper.Map<UnitDTO>(unitDAL.GetById(id));
+            return mapper.Map<UnitDTO>(unitDAL.GetById(id));
         }
 
         public List<MedicationPreviewDoseTypeDTO> GetMedicationDoseTypes()
         {
-            return Mapper.Map<List<MedicationPreviewDoseTypeDTO>>(medicationDoseTypeDAL.GetAll());
+            return mapper.Map<List<MedicationPreviewDoseTypeDTO>>(medicationDoseTypeDAL.GetAll());
         }
 
         public PaginationDataOut<ChemotherapySchemaDataOut, DataIn> ReloadTable(ChemotherapySchemaFilterDataIn dataIn)
         {
             Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            ChemotherapySchemaFilter filterData = Mapper.Map<ChemotherapySchemaFilter>(dataIn);
+            ChemotherapySchemaFilter filterData = mapper.Map<ChemotherapySchemaFilter>(dataIn);
             PaginationDataOut<ChemotherapySchemaDataOut, DataIn> result = new PaginationDataOut<ChemotherapySchemaDataOut, DataIn>()
             {
                 Count = (int)chemotherapySchemaDAL.GetAllFilteredCount(filterData),
-                Data = Mapper.Map<List<ChemotherapySchemaDataOut>>(chemotherapySchemaDAL.GetAll(filterData)),
+                Data = mapper.Map<List<ChemotherapySchemaDataOut>>(chemotherapySchemaDAL.GetAll(filterData)),
                 DataIn = dataIn
             };
 
@@ -356,7 +361,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public MedicationDoseTypeDTO GetMedicationDoseType(int id)
         {
-            return Mapper.Map<MedicationDoseTypeDTO>(medicationDoseTypeDAL.GetById(id));
+            return mapper.Map<MedicationDoseTypeDTO>(medicationDoseTypeDAL.GetById(id));
         }
 
         public AutocompleteResultDataOut GetDataForAutocomplete(AutocompleteDataIn dataIn)
@@ -365,7 +370,9 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             var filtered = chemotherapySchemaDAL.FilterByName(dataIn.Term);
             var enumDataOuts = filtered
-                .OrderBy(x => x.Name).Skip(dataIn.Page * 15).Take(15)
+                .OrderBy(x => x.Name)
+                .Skip(dataIn.GetHowManyElementsToSkip())
+                .Take(FilterConstants.DefaultPageSize)
                 .Select(e => new AutocompleteDataOut()
                 {
                     id = e.ChemotherapySchemaId.ToString(),
@@ -379,7 +386,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = enumDataOuts
             };
@@ -392,13 +399,13 @@ namespace sReportsV2.BusinessLayer.Implementations
             chemotherapySchemaDAL.Delete(id);
         }
 
-        public SchemaTableDataOut GetSchemaDefinition(int id, DateTime? firstDay)
+        public SchemaTableDataOut GetSchemaDefinition(int id, DateTime? firstDay, UserCookieData userCookieData)
         {
             ChemotherapySchema chemotherapySchema = chemotherapySchemaDAL.GetSchemaDefinition(id);
 
             if(chemotherapySchema != null)
             {
-                return GetSchemaTableData(chemotherapySchema, firstDay);
+                return GetSchemaTableData(chemotherapySchema, firstDay, userCookieData);
             }
             else
             {
@@ -423,7 +430,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 if(int.TryParse(medication.RouteOfAdministration, out int routeOfAdministrationId))
                 {
                     RouteOfAdministration routeOfAdministration = routeOfAdministrationDAL.GetById(routeOfAdministrationId);
-                    medication.RouteOfAdministrationDTO = Mapper.Map<RouteOfAdministrationDTO>(routeOfAdministration);
+                    medication.RouteOfAdministrationDTO = mapper.Map<RouteOfAdministrationDTO>(routeOfAdministration);
                 }
             }
         }
@@ -433,13 +440,13 @@ namespace sReportsV2.BusinessLayer.Implementations
             chemotherapySchema.Creator = userDAL.GetById(userCookieData.Id);
         }
 
-        private SchemaTableDataOut GetSchemaTableData(ChemotherapySchema chemotherapySchema, DateTime? firstDay)
+        private SchemaTableDataOut GetSchemaTableData(ChemotherapySchema chemotherapySchema, DateTime? firstDay, UserCookieData userCookieData)
         {
             SchemaTableDataOut schemaTableData = new SchemaTableDataOut
             {
-                FirstDay = firstDay ?? DateTime.Now,
+                FirstDay = firstDay ?? DateTimeExtension.GetCurrentDateTime(userCookieData.OrganizationTimeZoneIana),
                 Medications = chemotherapySchema.Medications.Select(i => new SchemaTableMedicationInstanceDataOut() {
-                    Medication = Mapper.Map<SchemaTableMedicationDataOut>(i)
+                    Medication = mapper.Map<SchemaTableMedicationDataOut>(i)
                 }).ToList()
             };
             schemaTableData.SetSchemaDays(true);

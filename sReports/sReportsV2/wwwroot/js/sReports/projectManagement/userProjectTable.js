@@ -9,11 +9,8 @@ function viewProjectForms(event, id) {
 // ----- Reload and Filtering -----
 
 function reloadTable() {
+    let requestObject = applyActionsBeforeServerReloadSimple();
 
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setTableProperties(requestObject);
     requestObject.ProjectType = $('#projectType').find(':selected').attr('id');
 
     callServer({

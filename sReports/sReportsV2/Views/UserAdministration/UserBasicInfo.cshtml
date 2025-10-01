@@ -172,14 +172,14 @@
             {
                 <i class="tab-icon @icon"></i>
             }
-            <span class="user-cell-name">@name</span>
+            <span class="user-cell-name" data-toggle="tooltip" title="@name">@name</span>
         </div>
     }
 
     private void RenderCellValue(string value, string classes, string spanClasses = null)
     {
         <div class="column data-name user-view @classes">
-            <span class="user-cell-value @spanClasses">@(!string.IsNullOrEmpty(value) ? value : "-")</span>
+            <span class="user-cell-value @spanClasses" data-toggle="tooltip" title="@value">@(!string.IsNullOrEmpty(value) ? value : "-")</span>
         </div>
     }
 }

@@ -17,22 +17,22 @@ namespace sReportsV2.BusinessLayer.Implementations
     public class PersonnelTeamRelationBLL : IPersonnelTeamRelationBLL
     {
         private readonly IPersonnelTeamRelationDAL personnelTeamRelationDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public PersonnelTeamRelationBLL(IPersonnelTeamRelationDAL personnelTeamRelationDAL, IMapper mapper)
         {
             this.personnelTeamRelationDAL = personnelTeamRelationDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public PersonnelTeamRelationDataOut GetById(int id)
         {
-            return Mapper.Map<PersonnelTeamRelationDataOut>(personnelTeamRelationDAL.GetById(id));
+            return mapper.Map<PersonnelTeamRelationDataOut>(personnelTeamRelationDAL.GetById(id));
         }
 
         public void InsertOrUpdate(PersonnelTeamRelationDataIn personnelTeamRelationDataIn)
         {
-            PersonnelTeamRelation personnelTeamRelation = Mapper.Map<PersonnelTeamRelation>(personnelTeamRelationDataIn);
+            PersonnelTeamRelation personnelTeamRelation = mapper.Map<PersonnelTeamRelation>(personnelTeamRelationDataIn);
 
             if (personnelTeamRelation.PersonnelTeamRelationId != 0)
             {
@@ -60,11 +60,11 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            PersonnelTeamRelationFilter filter = Mapper.Map<PersonnelTeamRelationFilter>(dataIn);
+            PersonnelTeamRelationFilter filter = mapper.Map<PersonnelTeamRelationFilter>(dataIn);
             PaginationDataOut<PersonnelTeamRelationDataOut, DataIn> result = new PaginationDataOut<PersonnelTeamRelationDataOut, DataIn>()
             {
                 Count = personnelTeamRelationDAL.GetAllEntriesCount(filter),
-                Data = Mapper.Map<List<PersonnelTeamRelationDataOut>>(personnelTeamRelationDAL.GetAll(filter)),
+                Data = mapper.Map<List<PersonnelTeamRelationDataOut>>(personnelTeamRelationDAL.GetAll(filter)),
                 DataIn = dataIn
             };
             return result;

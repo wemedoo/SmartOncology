@@ -1,4 +1,5 @@
-﻿using sReportsV2.BusinessLayer.Components.Interfaces;
+﻿using Microsoft.AspNetCore.Http;
+using sReportsV2.BusinessLayer.Components.Interfaces;
 using sReportsV2.BusinessLayer.Helpers;
 using sReportsV2.Common.Constants;
 using sReportsV2.DTOs.DTOs.FieldInstance.DataIn;
@@ -8,6 +9,7 @@ using sReportsV2.DTOs.Field.DataIn;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace sReportsV2.BusinessLayer.Components.Implementations
 {
@@ -15,6 +17,7 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
     {
         private readonly FieldInstanceDependencyDataIn _dependencyData;
         private readonly Dictionary<ExpressionTokenType, Func<OperandValue, OperandValue, object>> _binaryFunctions;
+        private readonly Dictionary<string, string> _dateFormats;
 
         public LogicalExpressionEvaluator(FieldInstanceDependencyDataIn dependencyData)
         {
@@ -32,6 +35,11 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
                 { ExpressionTokenType.LessOrEqual, (left, right) => left.Less(right) },
                 { ExpressionTokenType.And, (left, right) => left.And(right) },
                 { ExpressionTokenType.Or, (left, right) => left.Or(right) },
+            };
+            this._dateFormats = new Dictionary<string, string>
+            {
+                { FieldTypes.Date, $"{DateTimeConstants.DateFormat}" },
+                { FieldTypes.Datetime, $"{DateTimeConstants.DateFormat} {DateTimeConstants.TimeFormatDisplay}" }
             };
         }
 
@@ -129,10 +137,10 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
 
         public object VisitStringLiteralOperand(ExpressionToken stringLiteral)
         {
-            bool isDate = DateTime.TryParse(stringLiteral.Value, out DateTime parsedDate);
-            if (isDate)
+            bool isDateLiteral = DateTime.TryParseExact(stringLiteral.Value, _dateFormats.Values.ToArray(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateTimme);
+            if (isDateLiteral)
             {
-                return CreaateDateOperandDateValue(stringLiteral.Value);
+                return CreateDateOperandDateValue(stringLiteral.Value);
             }
             else
             {
@@ -166,7 +174,7 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
                 switch (fieldInstanceDataIn.Type)
                 {
                     case FieldTypes.Coded:
-                        fieldInstanceValue = fieldInstanceDataIn.FlatValueLabel;
+                        fieldInstanceValue = fieldInstanceDataIn.FlatValueLabel?.Trim();
                         break;
                     case FieldTypes.Checkbox:
                         string selectedOptionId = this._dependencyData.DependentOnFieldInfos
@@ -188,13 +196,13 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
             return fieldInstanceValue;
         }
 
-        private OperandDateValue CreaateDateOperandDateValue(string dateString)
+        private OperandDateValue CreateDateOperandDateValue(string dateString)
         {
-            if (DateTime.TryParseExact(dateString, $"MM/dd/yyyy {DateConstants.TimeFormatDisplay}", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateTimme))
+            if (DateTime.TryParseExact(dateString, _dateFormats[FieldTypes.Datetime], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDateTimme))
             {
                 return new OperandDateValue(TransformDateInSReportsFormat(parsedDateTimme, true), true);
             }
-            else if (DateTime.TryParseExact(dateString, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+            else if (DateTime.TryParseExact(dateString, _dateFormats[FieldTypes.Date], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
             {
                 return new OperandDateValue(TransformDateInSReportsFormat(parsedDate, false), false);
             }

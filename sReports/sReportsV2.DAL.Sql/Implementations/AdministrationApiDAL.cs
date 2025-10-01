@@ -24,13 +24,13 @@ namespace sReportsV2.SqlDomain.Implementations
             if (administrationApiFilter.ColumnName != null)
             {
                 result = SortTableHelper.OrderByField(result, administrationApiFilter.ColumnName, administrationApiFilter.IsAscending)
-                     .Skip((administrationApiFilter.Page - 1) * administrationApiFilter.PageSize)
+                     .Skip(administrationApiFilter.GetHowManyElementsToSkip())
                      .Take(administrationApiFilter.PageSize);
             }
             else
             {
                 result = result.OrderByDescending(x => x.ResponseTimestamp)
-                     .Skip((administrationApiFilter.Page - 1) * administrationApiFilter.PageSize)
+                     .Skip(administrationApiFilter.GetHowManyElementsToSkip())
                      .Take(administrationApiFilter.PageSize);
             }
 

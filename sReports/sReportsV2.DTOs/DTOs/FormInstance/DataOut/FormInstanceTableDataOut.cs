@@ -46,7 +46,7 @@ namespace sReportsV2.DTOs.FormInstance.DataOut
             return displayValue;
         }
 
-        public string GetDefaultColumnValue(CustomHeaderFieldDataOut customHeaderField, string TimeZoneOffset, string DateFormat)
+        public string GetDefaultColumnValue(CustomHeaderFieldDataOut customHeaderField, string timeZoneOffset, string DateFormat)
         {
             string value = string.Empty;
             if(customHeaderField != null)
@@ -66,7 +66,7 @@ namespace sReportsV2.DTOs.FormInstance.DataOut
                         value = Patient != null ? Patient.GetPatientShortInfoString(DateFormat) : CustomHeaderConstants.Unknown;
                         break;
                     case CustomHeaderConstants.LastUpdate:
-                        value = LastUpdate.ToTimeZoned(TimeZoneOffset, DateFormat);
+                        value = LastUpdate.ToTimeZoned(timeZoneOffset, DateFormat);
                         break;
                     case CustomHeaderConstants.ProjectName:
                         value = Project != null ? Project.ProjectName : string.Empty;

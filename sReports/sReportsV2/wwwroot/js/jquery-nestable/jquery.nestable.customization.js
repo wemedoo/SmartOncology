@@ -1,19 +1,14 @@
 ﻿
 $(document).ready(function () {
     var $plugin = $('<div>').nestable().data('nestable');
-    console.log("plugin: %o", $plugin);
 
     var extensionMethods = {
         reinit: function () {
-            //console.log('reinit: %o', this);
-
             // alias
             var list = this;
 
             // remove expand/collapse controls
             $.each(this.el.find(this.options.itemNodeName), function (k, el) {
-                //console.log('el: %o', $(el));
-
                 list.expandItem($(el));
 
                 // if has <ol> child - remove previously prepended buttons
@@ -86,6 +81,9 @@ $(document).ready(function () {
             let firstLiParent = $(firstNewSibling).parent().closest('li');
 
             if (firstLiParent.length) {
+                if (firstLiParent.attr("data-matrixid"))
+                    return false;
+
                 let layoutStyle = firstLiParent.data('layoutstyle');
                 if (layoutStyle) {
                     let decodedLayoutStyle = decodeURIComponent(layoutStyle);
@@ -94,6 +92,9 @@ $(document).ready(function () {
                     if (layoutStyleObj.layoutType === 'Matrix') {
                         let newFieldId = this.dragElementId;
                         let fieldType = $(`li[data-itemtype="field"][data-id="${newFieldId}"]`).first().data('type');
+
+                        if (decodeURIComponent(firstLiParent.attr("data-matrixtype")) === '"FieldSetMatrix"')
+                            return true;
 
                         if (fieldType != 'radio' && fieldType != 'checkbox')
                            return false;

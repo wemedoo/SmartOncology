@@ -14,6 +14,10 @@ using sReportsV2.HL7.DTO;
 using sReportsV2.Common.Constants;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.Common.Configurations;
+using DocumentFormat.OpenXml.InkML;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using sReportsV2.Common.Extensions;
 
 namespace sReportsV2.HL7.Handlers.IncomingHandlers
 {
@@ -83,7 +87,7 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
         }
         protected Transaction CreateProcedeedMessageLog(int patientId, Encounter procedeedEncounter)
         {
-            TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
+            DateTimeOffset transactionDateTime = new DateTimeOffset(MessageMetadata.TransactionDatetime.Value.ToUniversalTime());
 
             return new Transaction()
             {
@@ -94,7 +98,7 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
                 HL7EventType = MessageMetadata.HL7EventType,
                 SourceSystemCD = MessageMetadata.SourceSystemCD,
                 TransactionDirectionCD = MessageMetadata.TransactionDirectionCD,
-                TransactionDatetime = new DateTimeOffset(MessageMetadata.TransactionDatetime.Value.ToUniversalTime(), timeSpan)
+                TransactionDatetime = transactionDateTime.GetDateTimeByTimeZone(GlobalConfig.GetTimeZoneId())
             };
         }
         protected Patient CreatePatientFromMessage(ADT_A01 msg)
@@ -128,10 +132,12 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
             return patient.EpisodeOfCares?.FirstOrDefault()?.Encounters?.FirstOrDefault();
         }
 
-        protected void CommitTransaction(SReportsContext dbContext, IPatientDAL patientDAL, Patient patientDB, Encounter procedeedEncounter, bool hasToUpdatePatient = true)
+        protected async Task CommitTransaction(SReportsContext dbContext, IPatientDAL patientDAL, Patient patientDB, Encounter procedeedEncounter, bool hasToUpdatePatient = true)
         {
-            using (var dbTran = dbContext.Database.BeginTransaction())
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
             {
+                using var transaction = await dbContext.Database.BeginTransactionAsync();
                 try
                 {
                     if (hasToUpdatePatient)
@@ -139,15 +145,17 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
                         patientDAL.InsertOrUpdate(patientDB, null);
                     }
                     dbContext.Transactions.Add(CreateProcedeedMessageLog(patientDB.PatientId, procedeedEncounter));
-                    dbContext.SaveChanges();
-                    dbTran.Commit();
+
+                    await dbContext.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    dbTran.Rollback();
+                    await transaction.RollbackAsync();
                     throw;
                 }
-            }
+            });
         }
 
         protected Patient GetPatient(IPatientDAL patientDAL, Patient incomingPatient)
@@ -159,6 +167,6 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
             return patientDAL.GetBy(incomingPatient, mrnPatientIdentifier ?? new PatientIdentifier());
         }
 
-        public abstract void Process(SReportsContext dbContext);
+        public abstract Task Process(SReportsContext dbContext);
     }
 }

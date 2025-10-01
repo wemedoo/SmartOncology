@@ -1,23 +1,24 @@
-﻿@using System.Globalization
-@using sReportsV2.DTOs.Common.DTO
+﻿@using System.Globalization;
+@using sReportsV2.DTOs.Common.DTO;
+@using sReportsV2.DTOs.Form.DataOut;
 @using sReportsV2.Common.Constants;
 @using sReportsV2.Common.Extensions;
 
-@model List<ReferralInfoDTO>
+@model FormDataOut
 
 @{
-    bool isEngineModule = ViewBag.IsEngineModule;
     bool chapterIsActive = ViewBag.ActiveChapterId == FormInstanceConstants.ReferralChapter;
+    bool allowCollapsingChapters = ViewBag.CollapseChapters != null;
 }
 
-@if (Model != null && Model.Count > 0)
+@if (Model.ReferrableFields != null && Model.ReferrableFields.Count > 0)
 {
-    <div class="form-accordion hide-arrow" style="display:@(chapterIsActive || !isEngineModule ? "block" : "none"); margin-bottom:15px;" id="@Html.HtmlContainerId("referralChapter", isContainer: true)">
-        <div class="form-accordion-header gray-accordion-header" data-toggle="collapse" data-target="#referralChapter" aria-expanded="false" aria-controls="referralChapter" data-link-id="#@Html.HtmlContainerId("referralChapter", isContainer: false)" onclick="collapseChapter(this)">
-            <img alt="" class="mr-2" style="margin-bottom:3px;" src="/css/img/icons/chapter_green.svg"> @sReportsV2.Cache.Resources.TextLanguage.Summary_From_Source_Documents
+    <div class="form-accordion hide-arrow" style="display:@(chapterIsActive || allowCollapsingChapters ? "block" : "none"); margin-bottom:15px;" id="@Html.HtmlContainerId(FormInstanceConstants.ReferralChapter, isContainer: true)">
+        <div @Html.ChapterInstanceHeaderAttributes(allowCollapsingChapters, chapterIsActive, FormInstanceConstants.ReferralChapter, FormInstanceConstants.ReferralChapter) >
+            @await Html.PartialAsync("~/Views/FormInstance/ChapterHeaderIconAndTitle.cshtml", new ViewDataDictionary(ViewData) { { "AllowChapterCollapse", allowCollapsingChapters }, { "ChapterIsActive", chapterIsActive }, { "ChapterHeaderTitle", sReportsV2.Cache.Resources.TextLanguage.Summary_From_Source_Documents.ToUpper() } })
         </div>
-        <div class="collapse chapter @(chapterIsActive ? "show" : "")" id="referralChapter">
-            @foreach (var referral in Model)
+        <div class="collapse chapter @(chapterIsActive ? "show" : "")" id="@FormInstanceConstants.ReferralChapter">
+            @foreach (var referral in Model.ReferrableFields)
             {
                 if (referral.ReferrableFields != null && referral.ReferrableFields.Count > 0)
                 {
@@ -36,7 +37,7 @@
                                         @sReportsV2.Cache.Resources.TextLanguage.Date
                                     </div>
                                     <div class="summary-element-value">
-                                        @referral.LastUpdate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)
+                                        @referral.LastUpdate.ToDateZoned(ViewBag.DateFormat as string)
                                     </div>
                                 </div>
                                 <div class="summary-element">

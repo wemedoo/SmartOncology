@@ -1,0 +1,5 @@
+﻿@if (ViewBag.AllowChapterCollapse)
+{
+    <img alt="" class="chapter-icon" src="@(!ViewBag.ChapterIsActive ? "/css/img/icons/u_plus.svg" : "/css/img/icons/u_minus.svg")" />
+}
+<span class="chapter-title @(!ViewBag.AllowChapterCollapse ? "padding-left-16" : "")">@ViewBag.ChapterHeaderTitle</span>

@@ -1,0 +1,28 @@
+﻿@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.QueryManagement;
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.QueryManagement }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.QueryManagement
+
+    </div>
+    @await Html.PartialAsync("QueryFilterGroup")
+    <div id="tableContainer">
+    </div>
+</div>
+
+<div id="queryHistory"></div>
+
+@await Html.PartialAsync("AdvancedFilterModal")
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/queryGetAll-bundle.min.js"))

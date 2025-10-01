@@ -1,4 +1,5 @@
-﻿using sReportsV2.Common.SmartOncologyEnums;
+﻿using sReportsV2.Common.Entities;
+using sReportsV2.Common.SmartOncologyEnums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace sReportsV2.SqlDomain.Filter
 {
-    public class ChemotherapySchemaInstanceFilter
+    public class ChemotherapySchemaInstanceFilter : EntityFilter
     {
-        public int Page { get; set; }
-        public int PageSize { get; set; }
         public int PatientId { get; set; }
         public string Indication { get; set; }
         public int? StateCD { get; set; }

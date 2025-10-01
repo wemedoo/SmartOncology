@@ -5,7 +5,6 @@ using sReportsV2.Common.Enums;
 using sReportsV2.Common.Extensions;
 using sReportsV2.Common.Helpers;
 using sReportsV2.Cache.Singleton;
-using sReportsV2.DTOs.CodeEntry.DataOut;
 using sReportsV2.DTOs.Common.DataOut;
 using sReportsV2.DTOs.Common.DTO;
 using sReportsV2.DTOs.DTOs.AccessManagment.DataOut;
@@ -22,6 +21,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.Common.Exceptions;
 using System.Threading.Tasks;
+using sReportsV2.DTOs.User.DTO;
 
 namespace sReportsV2.Controllers
 {
@@ -29,7 +29,13 @@ namespace sReportsV2.Controllers
     {
         private readonly IUserBLL userBLL;
 
-        public UserAdministrationController(IUserBLL userBLL, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public UserAdministrationController(IUserBLL userBLL, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) :
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.userBLL = userBLL;
         }
@@ -47,6 +53,8 @@ namespace sReportsV2.Controllers
         public ActionResult ReloadTable(PersonnelFilterDataIn dataIn)
         {
             dataIn.ActiveOrganization = userCookieData.ActiveOrganization;
+            dataIn.HasAdminRole = HasAdminRole(userCookieData);
+
             var result = userBLL.ReloadTable(dataIn);
             SetPersonnelPositionViewBags();
             ViewBag.UserStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.UserState);
@@ -78,18 +86,18 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         [HttpPost]
         [SReportsModelStateValidate]
-        public ActionResult Create(UserDataIn user)
+        public async Task<ActionResult> Create(UserDataIn user)
         {
-            return CreateOrEdit(user);
+            return await CreateOrEdit(user).ConfigureAwait(false);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Administration)]
         [SReportsAuditLog]
         [HttpPost]
         [SReportsModelStateValidate]
-        public ActionResult Edit(UserDataIn user)
+        public async Task<ActionResult> Edit(UserDataIn user)
         {
-            return CreateOrEdit(user);
+            return await CreateOrEdit(user).ConfigureAwait(false);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.Create, Module = ModuleNames.Administration)]
@@ -195,7 +203,7 @@ namespace sReportsV2.Controllers
         public ActionResult UserProfile(int userId)
         {
             SetReadOnlyAndDisabledViewBag(false);
-            return GetUser(isUserAdministration: false, userId: userId);
+            return GetUser(isUserAdministration: true, userId: userId);
         }
 
         [SReportsAuthorize]
@@ -209,9 +217,9 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         [HttpPost]
         [SReportsModelStateValidate]
-        public ActionResult UpdateUserProfile(UserDataIn user)
+        public async Task<ActionResult> UpdateUserProfile(UserDataIn user)
         {
-            CreateUserResponseResult response = userBLL.Insert(user, userCookieData.ActiveLanguage, GetMedicalDoctorsCodeId());
+            CreateUserResponseResult response = await userBLL.InsertOrUpdate(user, userCookieData.ActiveLanguage);
             bool isEmail = user.Email != null;
             UpdateUserCookieIfNecessary(isEmail, isEmail ? user.Email : user.Username);
             return Json(response);
@@ -239,15 +247,6 @@ namespace sReportsV2.Controllers
             return userBLL.IsEmailValid(email, userId) ? Ok() : BadRequest();
         }
 
-        [HttpGet]
-        public ActionResult GetByName(string searchValue, int organizationId)
-        {
-            searchValue = searchValue.RemoveDiacritics(); // Normalization
-
-            List<UserDataOut> users = this.userBLL.GetUsersByName(searchValue, organizationId);
-            return PartialView("~/Views/User/GetByName.cshtml", users.OrderBy(x => x.FirstName).ToList());
-        }
-
         [HttpPut]
         [Authorize]
         [SReportsAuditLog]
@@ -272,13 +271,15 @@ namespace sReportsV2.Controllers
             return Json(!userBLL.ExistEntity(dataIn));
         }
 
-        [SReportsAuthorize(Permission = PermissionNames.View)]
         [SReportsAuditLog]
-        public ActionResult GetNameAutocompleteData(PersonnelAutocompleteDataIn dataIn)
+        public async Task<ActionResult> GetAutocompleteData(PersonnelAutocompleteDataIn dataIn)
         {
-            dataIn.OrganizationId = userCookieData.ActiveOrganization;
-            var result = userBLL.GetNameForAutocomplete(dataIn);
-            return Json(result);
+            dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
+            if (dataIn.FilterByDoctors)
+            {
+                dataIn.OrganizationId = userCookieData.ActiveOrganization;
+            }
+            return Json(await userBLL.GetAutocompleteData(dataIn).ConfigureAwait(false));
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Administration)]
@@ -327,7 +328,8 @@ namespace sReportsV2.Controllers
             ViewBag.OccupationCategories = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.OccupationCategory);
             ViewBag.Occupations = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Occupation);
             ViewBag.PersonnelSeniorities = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.PersonnelSeniority);
-            ViewBag.MedicalDoctorCodeId = GetMedicalDoctorsCodeId();
+            ViewBag.OccupationSubCategories = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.OccupationSubCategory);
+            ViewBag.MedicalDoctorCodeId = userBLL.GetMedicalDoctorsCodeId();
             ViewBag.Roles = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Role).Where(x => x.IsActive());
             ViewBag.InactiveRoles = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Role).Where(x => x.IsInactive());
             ViewBag.UserStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.UserState);
@@ -352,10 +354,23 @@ namespace sReportsV2.Controllers
             ViewBag.PersonnelPositions = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Role);
         }
 
-        #region CRUD
-        private JsonResult CreateOrEdit(UserDataIn user)
+        private bool HasAdminRole(UserCookieData userCookieData)
         {
-            CreateUserResponseResult response = userBLL.Insert(user, userCookieData.ActiveLanguage, GetMedicalDoctorsCodeId());
+            var requiredRoleIds = new[]
+            {
+                RoleNames.SuperAdministrator,
+                RoleNames.Administrator
+            };
+
+            var userRoleIds = userCookieData.Roles.Select(r => r.Name);
+
+            return RoleHelper.UserHasAnyRole(userRoleIds, requiredRoleIds);
+        }
+
+        #region CRUD
+        private async Task<JsonResult> CreateOrEdit(UserDataIn user)
+        {
+            CreateUserResponseResult response = await userBLL.InsertOrUpdate(user, userCookieData.ActiveLanguage).ConfigureAwait(false);
             UpdateUserCookieIfNecessary(response.Id == userCookieData.Id, user.Email);
             return Json(response);
         }
@@ -382,13 +397,5 @@ namespace sReportsV2.Controllers
             return Json(resourceCreatedDTO);
         }
         #endregion /CRUD
-
-        private int GetMedicalDoctorsCodeId() 
-        {
-            ViewBag.OccupationSubCategories = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.OccupationSubCategory);
-            var occupationSubCategories = ViewBag.OccupationSubCategories as List<CodeDataOut>;
-            return occupationSubCategories.Where(e => e.Thesaurus.Translations
-                .Exists(t => t.PreferredTerm == "Medical Doctors")).Select(x => x.Id).FirstOrDefault();
-        }
     }
 }

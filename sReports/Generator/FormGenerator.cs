@@ -15,8 +15,6 @@ namespace Generator
 {
     public class FormGenerator : ThesaurusCommon
     {
-        private readonly IConfiguration configuration;
-        private readonly SReportsContext dbContext;
         private readonly ThesaurusDAL thesaurusDAL;
         private readonly UserData userData;
         int id = 0;
@@ -24,8 +22,6 @@ namespace Generator
 
         public FormGenerator(IConfiguration configuration, SReportsContext dbContext) 
         {
-            this.configuration = configuration;
-            this.dbContext = dbContext;
             this.thesaurusDAL = new ThesaurusDAL(dbContext, configuration);
         }
 

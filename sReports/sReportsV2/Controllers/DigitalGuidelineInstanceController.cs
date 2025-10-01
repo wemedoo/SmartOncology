@@ -4,16 +4,14 @@ using sReportsV2.DTOs.DigitalGuideline.DataIn;
 using sReportsV2.DTOs.DigitalGuideline.DataOut;
 using sReportsV2.DTOs.DigitalGuidelineInstance.DataIn;
 using sReportsV2.DTOs.DigitalGuidelineInstance.DataOut;
-using sReportsV2.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.Patient;
 using System.Collections.Generic;
-using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.Common.Exceptions;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
 
 namespace sReportsV2.Controllers
 {
@@ -29,8 +27,9 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.formInstanceBLL = formInstanceBLL;
             this.digitalGuidelineInstanceBLL = digitalGuidelineInstanceBLL;
@@ -86,26 +85,24 @@ namespace sReportsV2.Controllers
                 throw new UserAdministrationException(StatusCodes.Status400BadRequest, "Please choose episode of care!");
             }
 
-            GuidelineInstanceViewDataOut data = digitalGuidelineInstanceBLL.ListDigitalGuidelines(episodeOfCareId);
-            return PartialView(data);
+            return PartialView(digitalGuidelineInstanceBLL.ListDigitalGuidelines(episodeOfCareId, userCookieData));
         }
 
         public ActionResult FilterDigitalGuidelines(string title)
         {
-            List<GuidelineDataOut> data = digitalGuidelineBLL.SearchByTitle(title);
-            return PartialView(data);
+            return PartialView("SelectOptionRows", digitalGuidelineBLL.SearchByTitle(title, userCookieData));
         }
 
         public ActionResult ListGuidelineDocuments(int episodeOfCareId)
         {
-            GuidelineInstanceViewDataOut data = digitalGuidelineInstanceBLL.ListDigitalGuidelineDocuments(episodeOfCareId, userCookieData.ActiveOrganization);
+            GuidelineInstanceViewDataOut data = digitalGuidelineInstanceBLL.ListDigitalGuidelineDocuments(episodeOfCareId, userCookieData);
             return PartialView(data);
         }
 
         public ActionResult FilterGuidelineDocuments(int episodeOfCareId, string title)
         {
-            List<FormInstanceDataOut> data = formInstanceBLL.SearchByTitle(episodeOfCareId, title);
-            return PartialView(data);
+            List<AutocompleteOptionDataOut> data = formInstanceBLL.SearchByTitle(episodeOfCareId, title, userCookieData);
+            return PartialView("SelectOptionRows", data);
         }
 
         [HttpPost]
@@ -145,11 +142,10 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize]
         public ActionResult GetConditions(string nodeId, string digitalGuidelineId, string guidelineInstanceId)
         {
-            ViewBag.Conditions = digitalGuidelineInstanceBLL.GetConditions(nodeId, digitalGuidelineId);
             ViewBag.GuidelineId = digitalGuidelineId;
             ViewBag.GuidelineInstanceId = guidelineInstanceId;
             ViewBag.NodeId = nodeId;
-            return PartialView();
+            return PartialView(digitalGuidelineInstanceBLL.GetConditions(nodeId, digitalGuidelineId));
         }
 
         [SReportsAuthorize]

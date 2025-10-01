@@ -3,6 +3,7 @@
 @using sReportsV2.Common.SmartOncologyEnums;
 @using sReportsV2.Common.Constants;
 @using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 
 @model SchemaTableDataOut
 @{
@@ -834,7 +835,7 @@
                             {
                                 <td class="@(day.IsDelayed ? "history-delay-dose" : "") @(Model.Days.Count <= 2 ? "expand" : "")"
                                     data-day-number="@day.DayNumber">
-                                    @day.Date.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)
+                                @day.Date.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)
                                     @if (day.IsDelayed)
                                     {
                                         <div class="delay-icon">
@@ -853,7 +854,7 @@
                                 <td id="@string.Concat("day", '_', day.DayNumber)"
                                     class="dose-date"
                                     data-day-number="@day.DayNumber"
-                                    data-date="@day.Date.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)">
+                                data-date="@day.Date.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)">
                                     <span class="box-style @(day.DayNumber <= 0 ? "orange" : "")">@sReportsV2.Cache.Resources.TextLanguage.Day_lower @day.DayNumber</span>
                                     <div class="delay-icon @(Model != null && Model.Id > 0 ? "" : "d-none")">
                                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -946,7 +947,7 @@
                                                     id="@string.Concat(medication.Id, '_', day.DayNumber)"
                                                     data-medication-name="@medication.Name"
                                                     data-day-number="@day.DayNumber"
-                                                    data-date="@day.Date.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)"
+                                                    data-date="@day.Date.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)"
                                                     data-set="@Model.GetDoseEncoded(dose)"
                                                     data-hasValue="@(Model.HasDose(dose))">
                                                     <input class="input-field-input"

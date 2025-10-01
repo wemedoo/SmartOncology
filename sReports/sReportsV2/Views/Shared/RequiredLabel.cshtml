@@ -1,0 +1,5 @@
+﻿@{
+    string labelId = ViewBag.LabelId;
+}
+
+<div @Html.Raw(string.IsNullOrEmpty(labelId) ? "" : $@"id=""{labelId}""") class="label-required">*</div>

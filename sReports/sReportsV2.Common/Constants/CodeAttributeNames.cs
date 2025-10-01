@@ -27,5 +27,9 @@
         public const string NotVerified = "Not Verified";
         public const string Blocked = "Blocked";
         public const string Archived = "Archived";
+        public const string New = "New";
+        public const string Resolved = "Resolved";
+        public const string Other = "Other";
+        public const string DataValidation = "Data Validation";
     }
 }

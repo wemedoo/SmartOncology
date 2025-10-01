@@ -8,12 +8,10 @@ using sReportsV2.DTOs.DTOs.CodeSetEntry.DataIn;
 using sReportsV2.DTOs.DTOs.CodeSetEntry.DataOut;
 using sReportsV2.DTOs.Pagination;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using sReportsV2.Cache.Resources;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -22,7 +20,13 @@ namespace sReportsV2.Controllers
     public class CodeSetController : BaseController
     {
         private readonly ICodeSetBLL codeSetBLL;
-        public CodeSetController(ICodeSetBLL codeSetBLL, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public CodeSetController(ICodeSetBLL codeSetBLL, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) :
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.codeSetBLL = codeSetBLL;
         }
@@ -70,12 +74,10 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         [SReportsAuthorize(Permission = PermissionNames.CreateCode, Module = ModuleNames.Thesaurus)]
         [HttpPost]
-        public ActionResult ImportAsCSV(IFormFile file, string codesetName, bool applicableInDesigner)
+        public async Task<ActionResult> ImportAsCSV(IFormFile file, string codesetName, bool applicableInDesigner)
         {
-            if(codeSetBLL.ImportFileFromCsv(file, codesetName, applicableInDesigner))
-                return StatusCode(StatusCodes.Status201Created);
-            else
-                return StatusCode(StatusCodes.Status500InternalServerError);
+            await codeSetBLL.ImportFileFromCsv(file, codesetName, applicableInDesigner).ConfigureAwait(false);
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View)]
@@ -108,7 +110,6 @@ namespace sReportsV2.Controllers
         public ActionResult ReloadCodeSets(CodeSetFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            dataIn.CodeSetDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeSetDisplay);
             List<CodeSetDataOut> result = codeSetBLL.GetAllByPreferredTerm(dataIn.CodeSetDisplay);
             return PartialView("~/Views/Code/NomineeAutocomplete.cshtml", result);
         }

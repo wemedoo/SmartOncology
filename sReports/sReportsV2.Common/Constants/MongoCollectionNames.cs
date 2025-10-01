@@ -13,5 +13,6 @@
         public const string FormDistribution = "formdistribution";
         public const string CustomFieldFilter = "customfieldfilter";
         public const string MigrationVersion = "migrationversion";
+        public const string PromptForm = "promptform";
     }
 }

@@ -14,7 +14,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\sReportsV2.Common\sReportsV2.Common.csproj" />
-    <ProjectReference Include="..\sReportsV2.Domain\sReportsV2.DAL.MongoDb.csproj" />
+    <ProjectReference Include="..\sReportsV2.Domain.MongoDb\sReportsV2.Domain.MongoDb.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

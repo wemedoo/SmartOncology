@@ -5,6 +5,8 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
     public class AddFieldSetRepetitionDataIn
     {
         public string FormId { get; set; }  
+        public string ChapterId { get; set; }  
+        public string PageId { get; set; }  
         public string FieldsetId { get; set; }  
         public bool IsLastFieldsetOnPage { get; set; }  
         public int FsNumsInRepetition { get; set; }

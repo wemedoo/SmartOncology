@@ -8,12 +8,12 @@ function changePage(num, e, personnelTeamId) {
 }
 
 function reloadPersonnelTeamTable(pageNum = 1, doShowHidePersonnelTeamTable=true) {
-
     requestObject = createRequestObject(pageNum);
+    var readOnly = $('#readOnly').val();
 
     callServer({
         type: 'GET',
-        url: '/PersonnelTeam/ReloadTable',
+        url: `/PersonnelTeam/ReloadTable?readOnly=${readOnly}`,
         data: requestObject,
         success: function (data) {
             $("#personnelTeamTableContainer").html(data);
@@ -31,7 +31,7 @@ function reloadPersonnelTeamTable(pageNum = 1, doShowHidePersonnelTeamTable=true
 function createRequestObject(pageNumber=1) {
     requestObject = {}
     requestObject.OrganizationId = $('#organizationId').html();
-    requestObject.TeamName = $('#team-name-select2 :selected').text();
+    requestObject.TeamName = getSelectedOptionLabel('team-name-select2');
     requestObject.TeamType = $('#team-type-select2 :selected').val();
     requestObject.Active = $('input[name="active-radio-btn"]:checked').val();
 
@@ -92,13 +92,13 @@ function createSinglePersonnelTeamTableRequest(personnelTeamId, pageNum) {
 
 function showSinglePersonnelTeamTable(event, personnelTeamId, pageNum=1, doTogglePersonnelTeamTabs=true) {
     event.preventDefault();
-
+    var readOnly = $('#readOnly').val();
     request = createSinglePersonnelTeamTableRequest(personnelTeamId, pageNum);
 
     callServer({
         type: 'GET',
         data: request,
-        url: `/PersonnelTeamRelation/GetSinglePersonnelTeam`,
+        url: `/PersonnelTeamRelation/GetSinglePersonnelTeam?readOnly=${readOnly}`,
         success: function (data) {
             $("#single-personnel-team-container").html(data);
             $("#single-personnel-team-container").find('#pageSizeSelector').hide();  // hide paging size selection
@@ -134,16 +134,8 @@ function reloadSinglePersonnelTeamTable(event, personnelTeamId, pageNum = 1) {
 // Switching Views between PersonnelTeamTable and SinglePersonnelTeamTable
 function togglePersonnelTeamTabs() {
     $('#personnel-team-filters-table-container').toggle();
-    $('.organization-tabs').toggle();
+    $('#organization-tabs').toggle();
     $('#top-identifier-line').toggle();
 
     $("#single-personnel-team-container").toggle();
-}
-
-
-// triggered by ViewList / CloseList buttons
-function toggleTeamMembersList() {
-    $('#personnel-team-members-container').toggle();
-    $('#view-list-button').toggle();
-    $('#close-list-button').toggle();
 }

@@ -20,7 +20,13 @@ namespace sReportsV2.Domain.Sql
 
             var configuration = host.Services.GetRequiredService<IConfiguration>();
             var optionsBuilder = new DbContextOptionsBuilder<SReportsContext>();
-            optionsBuilder.UseSqlServer(configuration["Sql"]);
+            optionsBuilder.UseSqlServer(configuration["Sql"], sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+            });
 
             return new SReportsContext(optionsBuilder.Options);
         }

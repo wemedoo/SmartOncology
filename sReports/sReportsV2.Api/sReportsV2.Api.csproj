@@ -24,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\sReportsV2.Common\sReportsV2.Common.csproj" />
-    <ProjectReference Include="..\sReportsV2.Domain\sReportsV2.DAL.MongoDb.csproj" />
+    <ProjectReference Include="..\sReportsV2.DAL.MongoDb\sReportsV2.DAL.MongoDb.csproj" />
   </ItemGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

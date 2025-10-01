@@ -48,12 +48,13 @@ namespace sReportsV2.Domain.Sql.Entities.PersonnelTeamEntities
         {
             foreach (PersonnelTeamOrganizationRelation personnelTeamOrganizationRelations in personnelTeamOrganizationRelationsToCopy)
             {
-                int personnelTeamOrganizationRelationId = PersonnelTeamOrganizationRelations.Find(x => x.OrganizationId == personnelTeamOrganizationRelations.OrganizationId
-                    && x.PersonnelTeamId == this.PersonnelTeamId).PersonnelTeamOrganizationRelationId;
+                int? personnelTeamOrganizationRelationId = PersonnelTeamOrganizationRelations
+                    .Find(x => x.OrganizationId == personnelTeamOrganizationRelations.OrganizationId
+                    && x.PersonnelTeamId == this.PersonnelTeamId)?.PersonnelTeamOrganizationRelationId;
 
-                if (personnelTeamOrganizationRelationId != 0)
+                if (personnelTeamOrganizationRelationId.HasValue)
                 {
-                    var index = PersonnelTeamOrganizationRelations.FindIndex(x => x.PersonnelTeamOrganizationRelationId == personnelTeamOrganizationRelationId);
+                    var index = PersonnelTeamOrganizationRelations.FindIndex(x => x.PersonnelTeamOrganizationRelationId == personnelTeamOrganizationRelationId.Value);
                     PersonnelTeamOrganizationRelations[index].CopyData(personnelTeamOrganizationRelations);
 
                 }

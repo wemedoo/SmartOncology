@@ -1,6 +1,7 @@
 ﻿using sReportsV2.Common.Enums;
 using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.DocumentProperties.DataIn;
+using sReportsV2.DTOs.DTOs.DocumentProperties.DataIn;
 using sReportsV2.DTOs.DTOs.Form.DataIn;
 using sReportsV2.DTOs.Field.DataIn;
 using System;
@@ -21,6 +22,7 @@ namespace sReportsV2.DTOs.Form.DataIn
         public int ThesaurusId { get; set; }
         public DateTime? LastUpdate { get; set; }
         public DocumentPropertiesDataIn DocumentProperties { get; set; }
+        public DocumentLoincPropertiesDataIn DocumentLoincProperties { get; set; }
         public FormEpisodeOfCareDataDataIn EpisodeOfCare { get; set; }
         public bool DisablePatientData { get; set; }
         public string OomniaId { get; set; }

@@ -1,0 +1,72 @@
+﻿@using sReportsV2.DTOs.DTOs.ThesaurusEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Autocomplete;
+@model SkosDataOut
+
+<div class="advanced-filter-item input-margin margin-bottom-0 translations-language">
+    <div >
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.BroaderConcepts
+        </div>
+        <div class="position-relative dropdown-search">
+            <div id="search" class="autocomplete-wrapper">
+                <input autocomplete="off" class="designer-form-input filter-input autocomplete-component" id="searchBroaderConceptByName" name="searchBroaderConceptByName" type="text" @ViewBag.Disabled />
+            </div>
+            <div id="broaderConceptOptions" class="clinical-domain-options autocomplete-options" aria-labelledby="search">
+            </div>
+        </div>
+        @{
+            RenderSelectedOptions("selectedBroaderConcepts", Model.GetChosenThesauruses(Model.BroaderThesaurusIds));
+        }
+    </div>
+</div>
+<div class="advanced-filter-item input-margin margin-bottom-0 translations-language">
+    <div >
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.NarrowerConcepts
+        </div>
+        <div class="position-relative dropdown-search">
+            <div id="search" class="autocomplete-wrapper">
+                <input autocomplete="off" class="designer-form-input filter-input autocomplete-component" id="searchNarrowerConceptByName" name="searchNarrowerConceptByName" type="text" @ViewBag.Disabled />
+            </div>
+            <div id="narrowerConceptOptions" class="clinical-domain-options autocomplete-options" aria-labelledby="search">
+            </div>
+        </div>
+        @{
+            RenderSelectedOptions("selectedNarrowerConcepts", Model.GetChosenThesauruses(Model.NarrowerThesaurusIds));
+        }
+    </div>
+</div>
+<div class="advanced-filter-item input-margin margin-bottom-0 translations-language">
+    <div>
+        <div class="label filter-label">
+            @sReportsV2.Cache.Resources.TextLanguage.Extensions
+        </div>
+        <div class="position-relative dropdown-search">
+            <div id="search" class="autocomplete-wrapper">
+                <input autocomplete="off" class="designer-form-input filter-input autocomplete-component" id="searchExtensionByName" name="searchExtensionByName" type="text" @ViewBag.Disabled />
+            </div>
+            <div id="extensionOptions" class="clinical-domain-options autocomplete-options" aria-labelledby="search">
+            </div>
+        </div>
+        @{
+            RenderSelectedOptions("selectedConceptSchemes", Model.SelectedConceptSchemes, clickAction: false);
+        }
+    </div>
+</div>
+
+@functions {
+    private void RenderSelectedOptions(string containerId, IEnumerable<AutocompleteDataOut> selectedValues, bool clickAction = true)
+    {
+        <div id="@containerId" class="mt-2 selected-concepts scrollable-selected-container">
+            @foreach (AutocompleteDataOut selectedValue in selectedValues)
+            {
+                <div class="selected-concept display-selected-concept @(clickAction ? "click-selected-concept" : "")" data-value="@selectedValue.id">
+                    @selectedValue.text
+                    <i class="fas fa-times clinical-remove selected-autocomplete-remove"></i>
+                </div>
+            }
+        </div>
+        
+    }
+}

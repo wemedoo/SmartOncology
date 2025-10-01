@@ -25,7 +25,7 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Clinical_Domain
                             </div>
-                            <select class="filter-input arrow-select" id="clinicalDomain">
+                            <select class="filter-input arrow-select" id="clinicalDomainCD">
                                 <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
                                 @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.ClinicalDomains, readOnlyMode: true))
                                 {

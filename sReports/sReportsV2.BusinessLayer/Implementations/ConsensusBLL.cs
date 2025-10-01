@@ -30,6 +30,7 @@ using sReportsV2.DTOs.DTOs.User.DataOut;
 using sReportsV2.DTOs.DTOs.FormConsensus.DTO;
 using sReportsV2.Domain.Sql.Entities.OutsideUser;
 using Microsoft.AspNetCore.Http;
+using sReportsV2.Cache.Resources;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -42,7 +43,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IOrganizationDAL organizationDAL;
         private readonly IFormDAL formDAL;
         private readonly IEmailSender emailSender;
-        private readonly IMapper Mapper; 
+        private readonly IMapper mapper; 
         private readonly ICodeDAL codeDAL;
 
         public ConsensusBLL(IConsensusDAL consensusDAL, IConsensusInstanceDAL consensusInstanceDAL, IOutsideUserDAL outsideUserDAL, IPersonnelDAL userDAL, IOrganizationDAL organizationDAL, IFormDAL formDAL, ICodeDAL codeDAL, IEmailSender emailSender, IMapper mapper)
@@ -55,7 +56,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.codeDAL = codeDAL;
             this.consensusInstanceDAL = consensusInstanceDAL;
             this.emailSender = emailSender;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public ResourceCreatedDTO StartNewIteration(string consensusId, string formId, int creatorId)
@@ -108,6 +109,10 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public void StartConsensusFindingProcess(ConsensusFindingProcessDataIn dataIn)
         {
+            if (!consensusDAL.CanStartConsensusFindingProcess(dataIn.ConsensusId))
+            {
+                throw new UserAdministrationException(StatusCodes.Status400BadRequest, TextLanguage.CF_iteration_stop);
+            }
             Consensus consensus = consensusDAL.GetById(dataIn.ConsensusId);
             ShouldConsensusFindingProcessStop(consensus);
             ConsensusIteration iteration = consensus.Iterations.Last();
@@ -137,17 +142,17 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             consensusDAL.Insert(consensus);
 
-            return Mapper.Map<ConsensusDataOut>(consensus);
+            return mapper.Map<ConsensusDataOut>(consensus);
         }
 
         public ConsensusDataOut GetById(string id)
         {
-            return Mapper.Map<ConsensusDataOut>(consensusDAL.GetById(id));
+            return mapper.Map<ConsensusDataOut>(consensusDAL.GetById(id));
         }
 
         public void AddQuestion(ConsensusQuestionDataIn consensusQuestionDataIn)
         {
-            ConsensusQuestion question = Mapper.Map<ConsensusQuestion>(consensusQuestionDataIn);
+            ConsensusQuestion question = mapper.Map<ConsensusQuestion>(consensusQuestionDataIn);
             Consensus consensus = consensusDAL.GetByFormId(consensusQuestionDataIn.FormId);
             ConsensusIteration iteration = consensus.Iterations.Last();
             iteration.Questions.Add(question);
@@ -157,7 +162,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public ResourceCreatedDTO SubmitConsensusInstance(ConsensusInstanceDataIn consensusInstanceDataIn)
         {
-            ConsensusInstance consensusInstance = Mapper.Map<ConsensusInstance>(consensusInstanceDataIn);
+            ConsensusInstance consensusInstance = mapper.Map<ConsensusInstance>(consensusInstanceDataIn);
             if (!consensusDAL.IsLastIterationFinished(consensusInstanceDataIn.ConsensusRef))
             {
                 consensusInstanceDAL.InsertOrUpdate(consensusInstance);
@@ -201,7 +206,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             return new ConsensusUsersDataOut
             {
                 ConsensusOrganizationUserInfoData = GetOrganizationUserInfo(activeOrganization),
-                OrganizationUsersCount = Mapper.Map<List<OrganizationUsersCountDataOut>>(organizationDAL.GetOrganizationUsersCount(null, null)),
+                OrganizationUsersCount = mapper.Map<List<OrganizationUsersCountDataOut>>(organizationDAL.GetOrganizationUsersCount(null, null)),
                 Users = GetInsideUsersByConsensus(consensus),
                 OutsideUsers = GetOutsideUsers(consensusId)
             };
@@ -218,6 +223,75 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
 
             return canSubmit;
+        }
+
+        public ConsensusDataOut GetByFormId(string formId)
+        {
+            return mapper.Map<ConsensusDataOut>(consensusDAL.GetByFormId(formId));
+        }
+
+        public IterationState GetLastIterationState(string consensusId)
+        {
+            return consensusDAL.GetLastIterationState(consensusId);
+        }
+
+        public List<ConsensusUserDataOut> CreateOutsideUser(OutsideUserDataIn outsideUserDataIn)
+        {
+            int userId = outsideUserDAL.InsertOrUpdate(mapper.Map<OutsideUser>(outsideUserDataIn));
+            Consensus consensus = consensusDAL.GetById(outsideUserDataIn.ConsensusRef);
+            if (!consensus.Iterations.Last().OutsideUserIds.Contains(userId))
+            {
+                consensus.Iterations.Last().OutsideUserIds.Add(userId);
+            }
+
+            consensusDAL.Insert(consensus);
+
+            List<ConsensusUserDataOut> users = mapper.Map<List<ConsensusUserDataOut>>(outsideUserDAL.GetAllByIds(consensus.Iterations.Last().OutsideUserIds));
+            return users;
+        }
+
+        public void DeleteConsensusUser(int userId, string consensusId, bool isOutsideUser)
+        {
+            Consensus consensus = consensusDAL.GetById(consensusId);
+            if (isOutsideUser)
+            {
+                consensus.Iterations.Last().OutsideUserIds = consensus.Iterations.Last().OutsideUserIds.Where(x => x != userId).ToList();
+            }
+            else
+            {
+                consensus.Iterations.Last().UserIds = consensus.Iterations.Last().UserIds.Where(x => x != userId).ToList();
+            }
+
+            consensusDAL.Insert(consensus);
+        }
+
+        public ConsensusQuestionnaireDataOut GetQuestionnairePartialCommon(ConsensusInstanceUserDataIn consensusInstanceUserData, int? userId)
+        {
+            ConsensusDataOut consensus = mapper.Map<ConsensusDataOut>(consensusDAL.GetByFormId(consensusInstanceUserData.FormId));
+            if (consensus != null && consensus.Iterations != null)
+            {
+                consensus.Iterations = consensus.Iterations.Where(x => x.Id == consensusInstanceUserData.IterationId).ToList();
+            }
+            ConsensusInstance consensusInstance = null;
+            if (!string.IsNullOrWhiteSpace(consensusInstanceUserData.ConsensusInstanceId))
+            {
+                consensusInstance = consensusInstanceDAL.GetById(consensusInstanceUserData.ConsensusInstanceId);
+                consensus.GetIterationById(consensusInstanceUserData.IterationId).SetQuestionsValue(mapper.Map<List<ConsensusQuestionDataOut>>(consensusInstance.Questions));
+            }
+
+            consensusInstanceUserData.ViewType = consensusInstanceUserData.ViewType ?? EndpointConstants.View;
+            return new ConsensusQuestionnaireDataOut(
+                consensus,
+                consensusInstance,
+                consensusInstanceUserData,
+                consensusInstanceUserData.ShowQuestionnaireType,
+                userId
+                );
+        }
+
+        public ConsensusInstance GetByConsensusAndUserAndIteration(ConsensusInstanceUserDataIn consensusInstanceUser)
+        {
+            return consensusInstanceDAL.GetByConsensusAndUserAndIteration(consensusInstanceUser.ConsensusId, consensusInstanceUser.UserId, consensusInstanceUser.IterationId);
         }
 
         private Consensus CreateConsensusAndStartIteration(string formId, int creatorId)
@@ -277,8 +351,6 @@ namespace sReportsV2.BusinessLayer.Implementations
                     outsideUserDAL.GetAllByIds(dataIn.OutsideUsersIds).ToDictionary(x => x.OutsideUserId, x => x.Email)
                     : userDAL.GetAllByIds(dataIn.UsersIds).ToDictionary(x => x.PersonnelId, x => x.Email);
 
-            string fullFormNameWithVersion = $"{form.Title} {form.Version.GetFullVersionString()}";
-
             foreach (KeyValuePair<int, string> user in users)
             {
                 ConsensusUserMailDTO consensusUserMailDTO = new ConsensusUserMailDTO
@@ -288,7 +360,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                     IterationId = iterationId,
                     User = GetConsensusUserData(user.Key, isOutsideUsers),
                     CustomMessage = dataIn.EmailMessage,
-                    FullFormNameWithVersion = fullFormNameWithVersion
+                    FullFormNameWithVersion = form.GetTitleWithVersion()
                 };
                 string mailContent = EmailHelpers.GetConsensusParticipantEmailContent(consensusUserMailDTO);
                 Task.Run(() => emailSender.SendAsync(new EmailDTO(user.Value, mailContent, $"{EmailSenderNames.SoftwareName} Consensus Finding Process")));
@@ -561,7 +633,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private List<ConsensusUserDataOut> GetOutsideUsers(string consensusId)
         {
             Consensus consensus = consensusDAL.GetById(consensusId);
-            List<ConsensusUserDataOut> outsideUsers = Mapper.Map<List<ConsensusUserDataOut>>(outsideUserDAL.GetAllByIds(consensus.Iterations.Last().OutsideUserIds));
+            List<ConsensusUserDataOut> outsideUsers = mapper.Map<List<ConsensusUserDataOut>>(outsideUserDAL.GetAllByIds(consensus.Iterations.Last().OutsideUserIds));
             return outsideUsers;
         }
 
@@ -579,9 +651,9 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private List<UserDataOut> GetInsideUsersByConsensus(Consensus consensus)
         {
-            List<UserDataOut> users = Mapper.Map<List<UserDataOut>>(userDAL.GetAllByIds(consensus.Iterations.Last().UserIds));
+            List<UserDataOut> users = mapper.Map<List<UserDataOut>>(userDAL.GetAllByIds(consensus.Iterations.Last().UserIds));
             List<int> organizationsIds = GetOrganizationsIds(users);
-            List<OrganizationDataOut> organizations = Mapper.Map<List<OrganizationDataOut>>(organizationDAL.GetByIds(organizationsIds));
+            List<OrganizationDataOut> organizations = mapper.Map<List<OrganizationDataOut>>(organizationDAL.GetByIds(organizationsIds));
             SetOrganizationsForUsers(users, organizations);
 
             return users;

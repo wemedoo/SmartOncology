@@ -1,8 +1,10 @@
 ﻿@using sReportsV2.Common.Constants;
 @using sReportsV2.Common.Extensions;
-
+@using sReportsV2.DTOs.User.DTO;
 @{
-    var userCookieData = ViewBag.UserCookieData;
+    UserCookieData userCookieData = ViewBag.UserCookieData as UserCookieData;
+    var ignoreOrganizationLogo = ViewBag.Env != "Debug";
+    int archivedUserStateCD = ((int?)ViewBag.ArchivedUserStateCD).GetValueOrDefault();
 }
 <nav class="top-bar navbar sticky-top navbar-expand-lg p-0 navbar navbar-expand-lg navbar-light">
     <div class="header-wrapper color-header header-wrapper-height">
@@ -16,7 +18,7 @@
             <a href="~/Home/Index" class="color-text layout-header-group">
                 <img alt="" class="navbar-logo" src="/css/img/icons/oopus-logo.png">
                 <div class="smaragd-logo header-logo">
-                    @if (userCookieData != null)
+                    @if (userCookieData != null && ignoreOrganizationLogo)
                     {
                         <img alt="" class="width-auto" src="@Url.OopusDownloadLink((string)userCookieData.LogoUrl, StorageDirectoryNames.OrganizationLogo)" />
                     }
@@ -64,24 +66,12 @@
                         {
                             <ul class="dropdown-menu dropdown-left dropdown-institutions dropdown-border-radius">
 
-                                @foreach (sReportsV2.DTOs.Organization.OrganizationDataOut organization in userCookieData.Organizations as List
-                                <sReportsV2.DTOs.Organization.OrganizationDataOut>
-                                    )
+                                @foreach (sReportsV2.DTOs.Organization.OrganizationDataOut organization in userCookieData.GetNonArchivedOrganizations(archivedUserStateCD))
                                 {
-                                    if (organization.Id.Equals(userCookieData.ActiveOrganization))
-                                    {
-                                        <li onclick="setActiveOrganization(event, '@organization.Id', '/Home/Index')" class="language active">
-                                            <a class="dropdown-item" href="#">@organization.Name</a>
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <li onclick="setActiveOrganization(event, '@organization.Id', '/Home/Index')" class="language">
-                                            <a class="dropdown-item" href="#">@organization.Name</a>
-                                        </li>
-                                    }
+                                    <li onclick="setActiveOrganization(event, '@organization.Id', '/Home/Index')" class="language @(organization.Id.Equals(userCookieData.ActiveOrganization) ? "active" : "")">
+                                        <a class="dropdown-item" href="#">@organization.Name</a>
+                                    </li>
                                 }
-
                             </ul>
                         }
                     </li>

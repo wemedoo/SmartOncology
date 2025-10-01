@@ -13,7 +13,6 @@
      */
     var hasPointerEvents = (function()
     {
-        console.log("has pointer events?");
         var el    = document.createElement('div'),
             docEl = document.documentElement;
         if (!('pointerEvents' in el.style)) {

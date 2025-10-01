@@ -9,10 +9,9 @@ namespace sReportsV2.BusinessLayer.Interfaces
 {
     public interface IEpisodeOfCareBLL
     {
-        Task<PaginationDataOut<EpisodeOfCareDataOut, EpisodeOfCareFilterDataIn>> GetAllFilteredAsync(EpisodeOfCareFilterDataIn dataIn, UserCookieData userCookieData);
         Task<int> InsertOrUpdateAsync(EpisodeOfCareDataIn episodeOfCareDataIn, UserCookieData userCookieData);
-        Task<EpisodeOfCareDataOut> GetByIdAsync(int episodeOfCareId, string language);
-        Task<List<EpisodeOfCareDataOut>> GetByPatientIdAsync(EpisodeOfCareDataIn episodeOfCare, string language);
+        Task<EpisodeOfCareDataOut> GetByIdAsync(int episodeOfCareId);
+        Task<List<EpisodeOfCareDataOut>> GetByPatientIdAsync(EpisodeOfCareDataIn episodeOfCare);
         Task DeleteAsync(int eocId);
     }
 }

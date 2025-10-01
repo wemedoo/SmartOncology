@@ -5,6 +5,7 @@
         url: `/Form/FilterThesaurusTree`,
         success: function (data) {
             $('#treeThesaurusContainer').html(data);
+            $('#foundIn').trigger('click');
             loadThesaurusTreeStructure();
         },
         error: function (xhr, textStatus, thrownError) {

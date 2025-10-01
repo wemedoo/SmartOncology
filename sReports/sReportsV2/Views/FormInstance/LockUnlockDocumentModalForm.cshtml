@@ -14,10 +14,11 @@
     }
     else
     {
+        bool isFieldSetAction = !string.IsNullOrEmpty(Model.FieldSetInstanceRepetitionId);
         bool isPageAction = !string.IsNullOrEmpty(Model.PageId);
         bool isLockAction = Model.IsLockAction();
         string titlePrefix = isLockAction ? sReportsV2.Cache.Resources.TextLanguage.Lock : sReportsV2.Cache.Resources.TextLanguage.Unlock;
-        string titleSuffix = isPageAction ? sReportsV2.Cache.Resources.TextLanguage.Page : sReportsV2.Cache.Resources.TextLanguage.Chapter;
+        string titleSuffix = isFieldSetAction ? sReportsV2.Cache.Resources.TextLanguage.FieldSet : isPageAction ? sReportsV2.Cache.Resources.TextLanguage.Page : sReportsV2.Cache.Resources.TextLanguage.Chapter;
         arguments[FormInstanceConstants.IsFormInstanceLocking] = "false";
         arguments[FormInstanceConstants.Title] = string.Format("{0} {1}", titlePrefix, titleSuffix);
         arguments[FormInstanceConstants.SubmitTitle] = titlePrefix;
@@ -73,6 +74,7 @@
     {
         @Html.Hidden("ChapterId", model.ChapterId)
         @Html.Hidden("PageId", model.PageId)
+        @Html.Hidden("FieldSetInstanceRepetitionId", model.FieldSetInstanceRepetitionId)
         @Html.Hidden("ActionUrl", model.ActionEndpoint)
         @Html.Hidden("ChapterPageNextState", model.ChapterPageNextState)
     }

@@ -42,14 +42,7 @@ function patientListsEnabled() {
 }
 
 function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setAdvancedFilterBtnStyle(requestObject, ['Given', 'Family', 'BirthDate', 'page', 'pageSize', 'PatientListId', 'PatientListName', 'ListWithSelectedPatients']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
-
+    let requestObject = applyActionsBeforeServerReload(['Given', 'Family', 'BirthDate', 'page', 'pageSize', 'PatientListId', 'PatientListName', 'ListWithSelectedPatients']);
     patientListsDisabled();
     callServer({
         type: 'GET',
@@ -98,7 +91,7 @@ function getFilterParametersObject() {
             addPropertyToObject(result, 'PostalCode', $('#postalCode').val());
         }
         if ($('#entryDatetime').val()) {
-            addPropertyToObject(result, 'EntryDatetime', $('#entryDatetimeDefault').val());
+            addPropertyToObject(result, 'EntryDatetime', toLocaleDateStringIfValue($('#entryDatetimeDefault').val()));
         }
         setPatientListFilter(result);
     }
@@ -147,7 +140,6 @@ function patientTableFilter() {
     $('#advancedId').find('img:first').css('display', 'inline-block');
 
     filterData();
-    //clearFilters();
 }
 
 function mainFilter() {
@@ -161,22 +153,6 @@ function mainFilter() {
     $('#advancedId').find('img:first').css('display', 'none');
 
     filterData();
-    //clearFilters();
-}
-
-function clearFilters() {
-    $('#family').val('');
-    $('#given').val('');
-    $('#birthDate').val('');
-    $('#identifierType').val('');
-    $('#identifierValue').val('');
-    $('#city').val('');
-    $('#country').val('');
-    $('#postalCode').val('');
-    $('#FamilyTemp').val('');
-    $('#GivenTemp').val('');
-    $('#BirthDateTemp').val('');
-    $('#birthDateDefault').val('');
 }
 
 function setPatientListFilter(requestObject) {

@@ -19,7 +19,7 @@
                     data-id="@(Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder)"
                     data-itemtype="form"
                     data-activeversion='@(Model != null ? Model.GetActiveVersionJsonString() : null)'
-                    @(Html.Raw(Model != null ? Model.GetDataAttr() : FormDataOut.GetInitialDataAttributes()))>
+                @(Html.Raw(Model != null ? Model.GetDataAttr() : FormDataOut.GetInitialDataAttributes()))>
                     <div class="form-preview-title-container">
                         <div class="dd-nohandle form-preview-title"
                              title="@(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)"
@@ -29,25 +29,27 @@
                                 @(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)
                             </div>
                             <div class="item-settings-button consensus-hidden">
-                                @{ RenderEditButton(); }
+                                @{
+                                    RenderEditButton();
+                                }
                             </div>
                         </div>
 
                         <div class="btn-container">
-                            @if (userCookieData.UserHasPermission(PermissionNames.ChangeState, ModuleNames.Designer) && Model != null)
+                            @if (userCookieData.UserHasPermission(PermissionNames.ChangeState, ModuleNames.Designer) && Model != null && !readOnly)
                             {
                                 <div id="formStateDropdown" class="dropdown dropdown-select menu-state-status consensus-hidden comments-hidden mr-2">
                                     <div class="btn interactive-design-action-btns" type="button" id="dropdownMenuChangeState" data-toggle="dropdown" aria-expanded="true" title="@sReportsV2.Cache.Resources.TextLanguage.Change_State">
-                                        <i class="fa fa-exchange" aria-hidden="true"></i>
+                                        <i class="fas fa-exchange-alt" aria-hidden="true"></i>
                                         <span>@sReportsV2.Cache.Resources.TextLanguage.Change_State</span>
                                     </div>
                                     <ul class="dropdown-menu dropdown-menu-right menu-state" aria-labelledby="dropdownMenuChangeState">
                                         @foreach (var status in ViewBag.States)
                                         {
                                             <li role="presentation">
-                                                <a role="menuitem" tabindex="-1" class="dropdown-item form-definition-state state-option @(Model.State == status ? "active" : string.Empty)" data-value="@status">
+                                                <a role="menuitem" tabindex="-1" class="dropdown-item form-definition-state @(Model.State == status ? "active" : string.Empty)" data-value="@status">
                                                     <i class="fas fa-square" style="color:@Model.GetStateColor(status)"></i>
-                                                    @sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(status.ToString())
+                                                    <span>@sReportsV2.Cache.Resources.TextLanguage.ResourceManager.GetString(status.ToString())</span>
                                                 </a>
                                             </li>
                                         }
@@ -57,12 +59,12 @@
                             @if (!readOnly)
                             {
                                 <div id="copy-designer-items" class="interactive-design-action-btns btn consensus-hidden comments-hidden mr-2" title="@sReportsV2.Cache.Resources.TextLanguage.Copy_Selected_Elements">
-                                    <i class="fa fa-files-o" aria-hidden="true"></i>
+                                    <i class="fas fa-copy" aria-hidden="true"></i>
                                     <span>@sReportsV2.Cache.Resources.TextLanguage.Copy</span>
                                 </div>
 
                                 <div id="paste-designer-items" class="interactive-design-action-btns btn consensus-hidden comments-hidden mr-2" title="@sReportsV2.Cache.Resources.TextLanguage.Paste_Selected_Elements">
-                                    <i class="fa fa-clipboard" aria-hidden="true"></i>
+                                    <i class="fas fa-clipboard" aria-hidden="true"></i>
                                     <span>@sReportsV2.Cache.Resources.TextLanguage.Paste</span>
                                 </div>
                             }
@@ -90,7 +92,7 @@
                                 @if (userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Designer) && Model != null && Model.WorkflowHistory != null)
                                 {
                                     <div id="formAdministrativeButton" class="interactive-design-action-btns btn comments-hidden consensus-hidden" title="@sReportsV2.Cache.Resources.TextLanguage.Administative_data">
-                                         <i class="fa fa-calendar" aria-hidden="true"></i>
+                                         <i class="fas fa-calendar" aria-hidden="true"></i>
                                         <span>@sReportsV2.Cache.Resources.TextLanguage.Administative_data</span>
                                     </div>
                                 }
@@ -100,11 +102,15 @@
                                 <div class="drag-icon-container comments-hidden consensus-hidden" id="dd-btn" title="@sReportsV2.Cache.Resources.TextLanguage.Drag_and_Drop">
                                     <img alt="" src="/css/img/icons/drag_and_drop_1.svg">
                                 </div>
+
+                                <div class="margin-left-10">
+                                    <button type="button" id="submit-full-form-definition" class="sreports-primary-button">@sReportsV2.Cache.Resources.TextLanguage.Submit</button>
+                                </div>
                             }
                         </div>
 
                     </div>
-                    <ol class="dd-list consensus-hidden">
+                    <ol class="dd-list consensus-hidden form-tree-nestable">
                         @if (Model != null && Model.Chapters.Count > 0)
                         {
                             foreach (var c in Model.Chapters)
@@ -120,9 +126,15 @@
                                                 <span class="comment-target-item" id="@c.Id">  @c.Title </span>
                                                 <div class="icon-container">
                                                     <div class="overlay"></div>
-                                                    @{ RenderCommentButton(c.Id, canAddComment); }
-                                                    @{ RenderEditButton(); }
-                                                    @{ RenderRemoveButton(readOnly); }
+                                                    @{
+                                                        RenderCommentButton(c.Id, canAddComment);
+                                                    }
+                                                    @{
+                                                        RenderEditButton();
+                                                    }
+                                                    @{
+                                                        RenderRemoveButton(readOnly);
+                                                    }
                                                 </div>
                                             </div>
                                         </div>
@@ -163,44 +175,27 @@
                                                 <ol class="drag-container dd-list ol-fieldset">
                                                     @foreach (var ListFs in p.ListOfFieldSets)
                                                     {
-                                                        <li class="drag-and-drop-element dd-item selectable-item selectable-fieldset" @Html.Raw(ListFs[0].GetDataAttr()) data-itemtype="fieldset">
+                                                        <li class="drag-and-drop-element dd-item selectable-item selectable-fieldset" data-itemtype="fieldset" @Html.Raw(ListFs[0].GetDataAttr())>
                                                             <div class="dd-handle custom-dd-handle fieldset-custom-dd-handle">
-
                                                                 @foreach (FormFieldSetDataOut fs in ListFs)
                                                                 {
-                                                                    <div class="d-flex field-set-content">
-                                                                        <div class="field-set-title d-flex">
-                                                                            <div class="drag-item-icon fieldset-drag-item-icon">
-                                                                                <i class="fas fa-arrows-alt"></i>
-                                                                            </div>
-                                                                            <div class="icon-container">
-                                                                                <div class="overlay"></div>
-                                                                                @{
-                                                                                    RenderCommentButton(fs.Id, canAddComment);
-                                                                                }
-                                                                                @{
-                                                                                    RenderEditButton();
-                                                                                }
-                                                                                @{
-                                                                                    RenderRemoveButton(readOnly);
-                                                                                }
-                                                                            </div>
-                                                                            <img alt="" class="field-set-img" src="/css/img/icons/field_set.svg">
-                                                                            <span class="comment-target-item" id="@fs.Id">
-                                                                                @if (fs.IsBold)
-                                                                                {
-                                                                                    <b>@(string.IsNullOrEmpty(fs.Label) ? "Not defined" : fs.Label)</b>
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    @(string.IsNullOrEmpty(fs.Label) ? "Not defined" : fs.Label)
-                                                                                }
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
+                                                                    RenderFieldSetContent(fs, canAddComment, readOnly);
                                                                 }
                                                             </div>
+
                                                             <ol class="drag-container dd-list ol-field">
+                                                                @foreach (FormFieldSetDataOut fs in ListFs)
+                                                                {
+                                                                    if (fs.ListOfFieldSets.Count > 0)
+                                                                    {
+                                                                       @await Html.PartialAsync("~/Views/Form/DragAndDrop/FieldSetMatrixTable.cshtml", fs)
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        RenderDragItem(readOnly, "field", ListFs[0].Fields.Count == 0 ? "block" : "none");
+                                                                    }
+                                                                }
+
                                                                 @foreach (var field in ListFs[0].Fields)
                                                                 {
                                                                     field.IsDisabled = readOnly;
@@ -210,33 +205,12 @@
                                                                     }
                                                                     else
                                                                     {
-                                                                        <li class="drag-and-drop-element dd-item selectable-item selectable-field" @Html.Raw(field.GetDataAttr()) data-itemtype="field">
-                                                                            <div class="dd-handle custom-dd-handle field-custom-dd-handle">
-                                                                                <div class="drag-item-icon field-drag-item-icon">
-                                                                                    <i class="fas fa-arrows-alt"></i>
-                                                                                </div>
-                                                                                <div class="icon-container">
-                                                                                    <div class="overlay"></div>
-                                                                                    @{
-                                                                                        RenderCommentButton(field.Id, canAddComment);
-                                                                                    }
-                                                                                    @{
-                                                                                        RenderEditButton();
-                                                                                    }
-                                                                                    @{
-                                                                                        RenderRemoveButton(readOnly);
-                                                                                    }
-                                                                                </div>
-                                                                                @Html.Raw(controller.RenderPartialViewToString(field.NestableView, field, false, ListFs[0].Id, false))
-                                                                            </div>
-                                                                        </li>
+                                                                        RenderFields(field, ListFs[0].Id, controller, canAddComment, readOnly);
                                                                     }
-                                                                }
-                                                                @{
-                                                                    RenderDragItem(readOnly, "field", ListFs[0].Fields.Count == 0 ? "block" : "none");
                                                                 }
                                                             </ol>
                                                         </li>
+                                                        
                                                     }
                                                     @{
                                                         RenderDragItem(readOnly, "fieldset", p.ListOfFieldSets.Count == 0 ? "block" : "none");
@@ -260,23 +234,16 @@
         </div>
     </div>
 </div>
-@if (!readOnly)
-{
-    <div class="submit-button-container">
-        <button type="button" id="submit-full-form-definition" class="sreports-primary-button comments-hidden consensus-hidden">@sReportsV2.Cache.Resources.TextLanguage.Submit</button>
-    </div>
-}
 
 <script>
     $(document).ready(function (e) {
-
         @if (!readOnly)
         {
             <text>
-            $('#nestableFormPartial').nestable({
-                group: 1,
-                maxDepth: 7
-            });
+                    $('#nestableFormPartial').nestable({
+                        group: 1,
+                        maxDepth: 7
+                    });
             </text>
         }
 
@@ -292,6 +259,7 @@
 </script>
 
 @await Html.PartialAsync("~/Views/Form/DragAndDrop/Helpers/CopyPasteHelper.cshtml")
+@{ RenderHelpModal(); }
 
 @functions {
     private void RenderRemoveButton(bool readOnly)
@@ -299,7 +267,7 @@
         if (!readOnly)
         {
             <div class="remove-button">
-                <img alt="" src="/css/img/icons/remove_simulator.svg" />
+                <img alt="" src="/css/img/icons/remove_simulator.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Remove" />
             </div>
         }
     }
@@ -307,7 +275,7 @@
     private void RenderEditButton()
     {
         <div class="edit-button">
-            <img alt="" src="/css/img/icons/edit_pencil_03.svg" />
+            <img alt="" src="/css/img/icons/edit_pencil_03.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Edit" />
         </div>
     }
 
@@ -329,5 +297,88 @@
                 Drag a @itemType here
             </li>
         }
+    }
+
+    private void RenderFieldSetContent(FormFieldSetDataOut fs, bool canAddComment, bool readOnly, bool isChildFs = false)
+    {
+        var paddingClass = isChildFs ? "padding-left-20" : "";
+        <div class="d-flex field-set-content @paddingClass">
+            <div class="field-set-title d-flex">
+                <div class="drag-item-icon fieldset-drag-item-icon">
+                    <i class="fas fa-arrows-alt"></i>
+                </div>
+                <div class="icon-container">
+                    <div class="overlay"></div>
+                    @{
+                        RenderCommentButton(fs.Id, canAddComment);
+                    }
+                    @{
+                        RenderEditButton();
+                    }
+                    @if (!isChildFs)
+                    {
+                        RenderRemoveButton(readOnly);
+                    }
+                </div>
+                <img alt="" class="field-set-img" src="/css/img/icons/field_set.svg">
+                <span class="comment-target-item" id="@fs.Id">
+                    @if (fs.IsBold)
+                    {
+                        <b>@(string.IsNullOrEmpty(fs.Label) ? "Not defined" : fs.Label)</b>
+                    }
+                    else
+                    {
+                        @(string.IsNullOrEmpty(fs.Label) ? "Not defined" : fs.Label)
+                    }
+                </span>
+            </div>
+        </div>
+    }
+
+    private void RenderFields(FieldDataOut field, string fieldsetId, sReportsV2.Controllers.FormCommonController controller, bool canAddComment, bool readOnly, bool isChildFs = false)
+    {
+        var childClass = isChildFs ? "child-fs-fields" : "";
+        <li class="drag-and-drop-element dd-item selectable-item selectable-field @childClass" data-itemtype="field" data-parentid="@fieldsetId" @Html.Raw(field.GetDataAttr())>
+            <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                <div class="drag-item-icon field-drag-item-icon">
+                    <i class="fas fa-arrows-alt"></i>
+                </div>
+                <div class="icon-container">
+                    <div class="overlay"></div>
+                    @{
+                        RenderCommentButton(field.Id, canAddComment);
+                    }
+                    @{
+                        RenderEditButton();
+                    }
+                    @if(!isChildFs)
+                    {
+                        RenderRemoveButton(readOnly);
+                    }
+                </div>
+                @Html.Raw(controller.RenderPartialViewToString(field.NestableView, field, false, fieldsetId, false))
+            </div>
+        </li>
+    }
+
+    private void RenderHelpModal()
+    {
+        <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="helpModalTitle"></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="helpModalBody">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">@sReportsV2.Cache.Resources.TextLanguage.Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 }

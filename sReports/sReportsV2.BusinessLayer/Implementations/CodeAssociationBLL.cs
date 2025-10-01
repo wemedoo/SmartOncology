@@ -15,19 +15,19 @@ namespace sReportsV2.BusinessLayer.Implementations
     public class CodeAssociationBLL : ICodeAssociationBLL
     {
         private readonly ICodeAssociationDAL codeAssociationDAL;
-        private readonly IMapper Mapper; 
+        private readonly IMapper mapper; 
         public CodeAssociationBLL(ICodeAssociationDAL codeAssociationDAL, IMapper mapper)
         {
             this.codeAssociationDAL = codeAssociationDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
         public PaginationDataOut<CodeAssociationDataOut, DataIn> GetAllFiltered(CodeAssociationFilterDataIn dataIn)
         {
-            CodeAssociationFilter filter = Mapper.Map<CodeAssociationFilter>(dataIn);
+            CodeAssociationFilter filter = mapper.Map<CodeAssociationFilter>(dataIn);
             PaginationDataOut<CodeAssociationDataOut, DataIn> result = new PaginationDataOut<CodeAssociationDataOut, DataIn>()
             {
                 Count = this.codeAssociationDAL.GetAllEntriesCount(filter),
-                Data = Mapper.Map<List<CodeAssociationDataOut>>(this.codeAssociationDAL.GetAll(filter)),
+                Data = mapper.Map<List<CodeAssociationDataOut>>(this.codeAssociationDAL.GetAll(filter)),
                 DataIn = dataIn
             };
 
@@ -38,7 +38,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             associations = Ensure.IsNotNull(associations, nameof(associations));
 
-            List<CodeAssociation> entries = Mapper.Map<List<CodeAssociation>>(associations);
+            List<CodeAssociation> entries = mapper.Map<List<CodeAssociation>>(associations);
             codeAssociationDAL.Insert(entries);
         }
 

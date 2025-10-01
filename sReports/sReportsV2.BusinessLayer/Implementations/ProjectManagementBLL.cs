@@ -37,7 +37,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPersonnelDAL personnelDAL;
         private readonly IFormBLL formBLL;
         private readonly ITrialManagementDAL trialManagementDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         private readonly ICodeDAL codeDAL;
 
         public ProjectManagementBLL(IProjectManagementDAL projectManagementDAL, IPersonnelDAL personnelDAL, IFormBLL formBLL, ITrialManagementDAL trialManagementDAL, ICodeDAL codeDAL, IMapper mapper)
@@ -47,7 +47,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.formBLL = formBLL;
             this.trialManagementDAL = trialManagementDAL;
             this.codeDAL = codeDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public async Task<int> AddDocumentToProject(ProjectDocumentDataIn dataIn)
@@ -57,7 +57,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             if (!string.IsNullOrWhiteSpace(dataIn.FormId) && dataIn.ProjectId > 0)
             {
                 result = await projectManagementDAL
-                    .AddDocumentToProject(Mapper.Map<ProjectDocumentRelation>(dataIn))
+                    .AddDocumentToProject(mapper.Map<ProjectDocumentRelation>(dataIn))
                     .ConfigureAwait(false);
             }
 
@@ -71,7 +71,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             if (dataIn.Count > 0)
             {
                 result = await projectManagementDAL
-                    .AddPatientToProjects(Mapper.Map<List<ProjectPatientRelation>>(dataIn))
+                    .AddPatientToProjects(mapper.Map<List<ProjectPatientRelation>>(dataIn))
                     .ConfigureAwait(false);
             }
 
@@ -85,7 +85,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             if (personnelProjects.Count > 0)
             {
                 result = await projectManagementDAL
-                    .AddPersonnels(Mapper.Map<List<ProjectPersonnelRelation>>(personnelProjects))
+                    .AddPersonnels(mapper.Map<List<ProjectPersonnelRelation>>(personnelProjects))
                     .ConfigureAwait(false);
             }
 
@@ -115,8 +115,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             if (id > 0)
             {
-                ProjectDataOut projectDataOut = Mapper.Map<ProjectDataOut>(await projectManagementDAL.GetByIdAsync(id).ConfigureAwait(false));
-                ClinicalTrialDataOut clinicalTrial = Mapper.Map<ClinicalTrialDataOut>(await trialManagementDAL.GetByProjectId(projectDataOut.ProjectId).ConfigureAwait(false));
+                ProjectDataOut projectDataOut = mapper.Map<ProjectDataOut>(await projectManagementDAL.GetByIdAsync(id).ConfigureAwait(false));
+                ClinicalTrialDataOut clinicalTrial = mapper.Map<ClinicalTrialDataOut>(await trialManagementDAL.GetByProjectId(projectDataOut.ProjectId).ConfigureAwait(false));
                 projectDataOut.ClinicalTrial = clinicalTrial != null ? clinicalTrial : new ClinicalTrialDataOut();
                 projectDataOut.Personnels = new List<UserDataOut>();
 
@@ -148,9 +148,8 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<AutocompleteResultDataOut> GetProjectAutoCompleteTitle(AutocompleteDataIn dataIn, int clinicalTrialTypeId)
         {
-            int pageSize = 10;
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ProjectFilter filter = new ProjectFilter() { ProjectName = dataIn.Term, ProjectType = clinicalTrialTypeId, Page = dataIn.Page, PageSize = pageSize };
+            ProjectFilter filter = new ProjectFilter() { ProjectName = dataIn.Term, ProjectType = clinicalTrialTypeId, Page = dataIn.Page, PageSize = FilterConstants.DefaultPageSize };
             PaginationData<AutoCompleteData> projectsAndCount = await projectManagementDAL.GetProjectAutoCompleteTitleAndCount(filter);
 
             List<AutocompleteDataOut> autocompleteDataDataOuts = projectsAndCount.Data
@@ -164,7 +163,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             AutocompleteResultDataOut result = new AutocompleteResultDataOut()
             {
                 results = autocompleteDataDataOuts,
-                pagination = new AutocompletePaginatioDataOut() { more = projectsAndCount.Count > dataIn.Page * pageSize, }
+                pagination = new AutocompletePaginatioDataOut() { more = dataIn.ShouldLoadMore(projectsAndCount.Count) }
             };
 
             return result;
@@ -184,13 +183,13 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<ProjectDataOut> InsertOrUpdate(ProjectDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            Project project = Mapper.Map<Project>(dataIn);
-            var projectDataOut = Mapper.Map<ProjectDataOut>(await projectManagementDAL.InsertOrUpdate(project));
+            Project project = mapper.Map<Project>(dataIn);
+            var projectDataOut = mapper.Map<ProjectDataOut>(await projectManagementDAL.InsertOrUpdate(project));
 
             if (!string.IsNullOrEmpty(dataIn.ClinicalTrial.ClinicalTrialTitle))
             {
                 dataIn.ClinicalTrial.ProjectId = projectDataOut.ProjectId;
-                projectDataOut.ClinicalTrial = Mapper.Map<ClinicalTrialDataOut>(await trialManagementDAL.InsertOrUpdate(Mapper.Map<ClinicalTrial>(dataIn.ClinicalTrial)));
+                projectDataOut.ClinicalTrial = mapper.Map<ClinicalTrialDataOut>(await trialManagementDAL.InsertOrUpdate(mapper.Map<ClinicalTrial>(dataIn.ClinicalTrial)));
             }
             else if (dataIn.ClinicalTrial.ClinicalTrialId != 0) 
             {
@@ -221,7 +220,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<PaginationDataOut<UserDataOut, DataIn>> ReloadPersonnelTable(ProjectFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ProjectFilter filterData = Mapper.Map<ProjectFilter>(dataIn);
+            ProjectFilter filterData = mapper.Map<ProjectFilter>(dataIn);
             int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
 
             PaginationData<Personnel> personnelsAndCount = await personnelDAL.FilterAndCountPersonnelByProject(filterData, archivedUserStateCD).ConfigureAwait(false);
@@ -229,7 +228,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             PaginationDataOut<UserDataOut, DataIn> result = new PaginationDataOut<UserDataOut, DataIn>()
             {
                 Count = personnelsAndCount.Count,
-                Data = Mapper.Map<List<UserDataOut>>(personnelsAndCount.Data),
+                Data = mapper.Map<List<UserDataOut>>(personnelsAndCount.Data),
                 DataIn = dataIn
             };
             return result;
@@ -238,12 +237,12 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<PaginationDataOut<ProjectDataOut, DataIn>> ReloadTable(ProjectFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ProjectFilter filterData = Mapper.Map<ProjectFilter>(dataIn);
+            ProjectFilter filterData = mapper.Map<ProjectFilter>(dataIn);
 
             PaginationDataOut<ProjectDataOut, DataIn> result = new PaginationDataOut<ProjectDataOut, DataIn>()
             {
                 Count = await projectManagementDAL.GetAllEntriesCountAsync(filterData).ConfigureAwait(false),
-                Data = Mapper.Map<List<ProjectDataOut>>(await projectManagementDAL.GetAllAsync(filterData).ConfigureAwait(false)),
+                Data = mapper.Map<List<ProjectDataOut>>(await projectManagementDAL.GetAllAsync(filterData).ConfigureAwait(false)),
                 DataIn = dataIn
             };
 
@@ -253,12 +252,12 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<PaginationDataOut<ProjectDataOut, DataIn>> ReloadUserProjectTable(ProjectFilterDataIn dataIn, int personnelId)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ProjectFilter filterData = Mapper.Map<ProjectFilter>(dataIn);
+            ProjectFilter filterData = mapper.Map<ProjectFilter>(dataIn);
 
             PaginationDataOut<ProjectDataOut, DataIn> result = new PaginationDataOut<ProjectDataOut, DataIn>()
             {
                 Count = await projectManagementDAL.GetAllUserProjectsCountAsync(filterData, personnelId).ConfigureAwait(false),
-                Data = Mapper.Map<List<ProjectDataOut>>(await projectManagementDAL.GetAllUserProjectsAsync(filterData, personnelId).ConfigureAwait(false)),
+                Data = mapper.Map<List<ProjectDataOut>>(await projectManagementDAL.GetAllUserProjectsAsync(filterData, personnelId).ConfigureAwait(false)),
                 DataIn = dataIn
             };
 

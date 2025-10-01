@@ -8,7 +8,7 @@ namespace sReportsV2.Domain.Sql.Entities.ProjectEntry
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
-        public int ProjectPersonnelRelationId { get; set; }
+        public int ProjectDocumentRelationId { get; set; }
 
         public int? ProjectId { get; set; }
         [ForeignKey("ProjectId")]

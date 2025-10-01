@@ -21,7 +21,7 @@
                 
     <tr data-value="@Model.Id"
     data-version="@Model.RowVersion"
-        data-content="@Model.ToJsonString()"
+        data-content="@Model.ToJsonUrlEncoded()"
         data-readonly="@readOnly.ToJsBoolean()"
         class="contact-entry">
         <td title="@Model.NameGiven" data-property="NameGiven" data-value="@Model.NameGiven" class="custom-td-first">

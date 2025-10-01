@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
+using sReportsV2.BusinessLayer.Components.Interfaces;
 using sReportsV2.BusinessLayer.Interfaces;
 using sReportsV2.Common.Entities.User;
 using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Services.Interfaces;
 using sReportsV2.Domain.Sql.Entities.EpisodeOfCare;
 using sReportsV2.DTOs.EpisodeOfCare;
-using sReportsV2.DTOs.Pagination;
 using sReportsV2.DTOs.User.DTO;
 using sReportsV2.SqlDomain.Interfaces;
 using System.Collections.Generic;
@@ -15,19 +15,19 @@ namespace sReportsV2.BusinessLayer.Implementations
 {
     public class EpisodeOfCareBLL : IEpisodeOfCareBLL
     {
-        private readonly IPatientDAL patientDAL;
         private readonly IEpisodeOfCareDAL episodeOfCareDAL;
         private readonly IEncounterDAL encounterDAL;
         private readonly IFormInstanceDAL formInstanceDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
+        private readonly ISkosConnector skosConnector;
 
-        public EpisodeOfCareBLL(IEpisodeOfCareDAL episodeOfCareDAL, IPatientDAL patientDAL, IEncounterDAL encounterDAL, IFormInstanceDAL formInstanceDAL, IMapper mapper)
+        public EpisodeOfCareBLL(IEpisodeOfCareDAL episodeOfCareDAL, IEncounterDAL encounterDAL, IFormInstanceDAL formInstanceDAL, IMapper mapper, ISkosConnector skosConnector)
         {
-            this.patientDAL = patientDAL;
             this.episodeOfCareDAL = episodeOfCareDAL;
             this.encounterDAL = encounterDAL;
             this.formInstanceDAL = formInstanceDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
+            this.skosConnector = skosConnector;
         }
 
         public async Task DeleteAsync(int eocId)
@@ -36,44 +36,28 @@ namespace sReportsV2.BusinessLayer.Implementations
             await formInstanceDAL.DeleteByEpisodeOfCareIdAsync(eocId);
         }
 
-        public async Task<PaginationDataOut<EpisodeOfCareDataOut, EpisodeOfCareFilterDataIn>> GetAllFilteredAsync(EpisodeOfCareFilterDataIn dataIn, UserCookieData userCookieData)
+        public async Task<EpisodeOfCareDataOut> GetByIdAsync(int episodeOfCareId)
         {
-            dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            EpisodeOfCareFilter filter = GetFilterData(dataIn, userCookieData);
-
-            var countTask = episodeOfCareDAL.GetAllEntriesCountAsync(filter);
-            var dataTask = episodeOfCareDAL.GetAllAsync(filter);
-
-            await Task.WhenAll(countTask, dataTask);
-
-            PaginationDataOut<EpisodeOfCareDataOut, EpisodeOfCareFilterDataIn> result = new PaginationDataOut<EpisodeOfCareDataOut, EpisodeOfCareFilterDataIn>()
+            EpisodeOfCareDataOut episodeOfCareDataOut = mapper.Map<EpisodeOfCareDataOut>(await episodeOfCareDAL.GetByIdAsync(episodeOfCareId));
+            if (episodeOfCareDataOut != null)
             {
-                Count = (int)await countTask,
-                Data = Mapper.Map<List<EpisodeOfCareDataOut>>(await dataTask),
-                DataIn = dataIn
-            };
-
-            return result;
-        }
-
-        public async Task<EpisodeOfCareDataOut> GetByIdAsync(int episodeOfCareId, string language)
-        {
-            if (episodeOfCareId == 0) return null;
-            var eoc = await episodeOfCareDAL.GetByIdAsync(episodeOfCareId);
-            if (eoc == null) return null;
-
-            var episodeOfCareDataOut = Mapper.Map<EpisodeOfCareDataOut>(eoc);
-            episodeOfCareDataOut.NumOfDocuments = await formInstanceDAL.CountAllEOCDocumentsAsync(episodeOfCareDataOut.Id, episodeOfCareDataOut.PatientId);
-            episodeOfCareDataOut.NumOfEncounters = episodeOfCareDataOut.Encounters.Count;
+                episodeOfCareDataOut.NumOfDocuments = await formInstanceDAL.CountAllEOCDocumentsAsync(episodeOfCareDataOut.Id, episodeOfCareDataOut.PatientId);
+                episodeOfCareDataOut.NumOfEncounters = episodeOfCareDataOut.Encounters.Count;
+            }
+            else
+            {
+                episodeOfCareDataOut = new EpisodeOfCareDataOut();
+            }
+            episodeOfCareDataOut.UseSkosData = skosConnector.UseSkosData();
 
             return episodeOfCareDataOut;
         }
 
-        public async Task<List<EpisodeOfCareDataOut>> GetByPatientIdAsync(EpisodeOfCareDataIn episodeOfCare, string language)
+        public async Task<List<EpisodeOfCareDataOut>> GetByPatientIdAsync(EpisodeOfCareDataIn episodeOfCare)
         {
-            EpisodeOfCareFilter filter = Mapper.Map<EpisodeOfCareFilter>(episodeOfCare);
+            EpisodeOfCareFilter filter = mapper.Map<EpisodeOfCareFilter>(episodeOfCare);
             List<EpisodeOfCare> episodeOfCareTask = await episodeOfCareDAL.GetByPatientIdFilteredAsync(filter);
-            List<EpisodeOfCareDataOut> episodesOfCareDataOut = Mapper.Map<List<EpisodeOfCareDataOut>>(episodeOfCareTask);
+            List<EpisodeOfCareDataOut> episodesOfCareDataOut = mapper.Map<List<EpisodeOfCareDataOut>>(episodeOfCareTask);
 
             foreach (var eoc in episodesOfCareDataOut)
             {
@@ -88,24 +72,11 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             episodeOfCareDataIn = Ensure.IsNotNull(episodeOfCareDataIn, nameof(episodeOfCareDataIn));
 
-            EpisodeOfCare episodeOfCare = Mapper.Map<EpisodeOfCare>(episodeOfCareDataIn);
+            EpisodeOfCare episodeOfCare = mapper.Map<EpisodeOfCare>(episodeOfCareDataIn);
             episodeOfCare.OrganizationId = userCookieData.ActiveOrganization;
-            UserData userData = Mapper.Map<UserData>(userCookieData);
+            UserData userData = mapper.Map<UserData>(userCookieData);
 
             return await episodeOfCareDAL.InsertOrUpdateAsync(episodeOfCare, userData).ConfigureAwait(false);
-        }
-
-        private EpisodeOfCareFilter GetFilterData(EpisodeOfCareFilterDataIn dataIn, UserCookieData userCookieData)
-        {
-            EpisodeOfCareFilter result = Mapper.Map<EpisodeOfCareFilter>(dataIn);
-            if (dataIn.IdentifierType.HasValue && !string.IsNullOrEmpty(dataIn.IdentifierValue))
-            {
-                result.FilterByIdentifier = true;
-                result.PatientId = this.patientDAL.GetByIdentifier(new Domain.Sql.Entities.Patient.PatientIdentifier(dataIn.IdentifierType, dataIn.IdentifierValue, null)) != null ? this.patientDAL.GetByIdentifier(new Domain.Sql.Entities.Patient.PatientIdentifier(dataIn.IdentifierType, dataIn.IdentifierValue, null)).PatientId : 0;
-            }
-
-            result.OrganizationId = userCookieData.ActiveOrganization;
-            return result;
         }
     }
 }

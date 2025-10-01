@@ -1,9 +1,11 @@
 ﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.User.DTO;
 
 @{
     string action = ViewContext.RouteData.Values["Action"].ToString();
     string controller = ViewContext.RouteData.Values["Controller"].ToString();
-    var userCookieData = ViewBag.UserCookieData;
+    UserCookieData userCookieData = ViewBag.UserCookieData as UserCookieData;
+    int archivedUserStateCD = ((int?)ViewBag.ArchivedUserStateCD).GetValueOrDefault();
 }
 
 <div class="collapse navbar-collapse" id="navbarNav">
@@ -123,18 +125,9 @@
                     <ul class="dropdown-menu level-1" aria-labelledby="navbarOrganization">
                         @if (userCookieData != null)
                         {
-                            foreach (sReportsV2.DTOs.Organization.OrganizationDataOut organization in userCookieData.Organizations as List
-                                                            <sReportsV2.DTOs.Organization.OrganizationDataOut>
-                                                                )
+                            foreach (sReportsV2.DTOs.Organization.OrganizationDataOut organization in userCookieData.GetNonArchivedOrganizations(archivedUserStateCD))
                             {
-                                if (organization.Id.Equals(userCookieData.ActiveOrganization))
-                                {
-                                    <li onclick="setActiveOrganization(event, '@organization.Id', '/Home/Index')" class="language active"><a class="nav-link" href="#">@organization.Name</a></li>
-                                }
-                                else
-                                {
-                                    <li onclick="setActiveOrganization(event, '@organization.Id', '/Home/Index')" class="language"><a class="nav-link" href="#">@organization.Name</a></li>
-                                }
+                                <li onclick="setActiveOrganization(event, '@organization.Id', '/Home/Index')" class="language @(organization.Id.Equals(userCookieData.ActiveOrganization) ? "active" : "")"><a class="nav-link" href="#">@organization.Name</a></li>
                             }
                         }
                     </ul>

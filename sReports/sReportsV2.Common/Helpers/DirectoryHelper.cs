@@ -1,4 +1,6 @@
-﻿namespace sReportsV2.Common.Helpers
+﻿using System.IO;
+
+namespace sReportsV2.Common.Helpers
 {
     public static class DirectoryHelper
     {
@@ -8,7 +10,15 @@
         {
             get
             {
-                return $@"{ProjectBaseDirectory}\App_Data";
+                return Path.Combine(ProjectBaseDirectory, "App_Data");
+            }
+        }
+
+        public static string AppStartFolder
+        {
+            get
+            {
+                return Path.Combine(ProjectBaseDirectory, "App_Start");
             }
         }
     }

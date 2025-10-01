@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 using sReportsV2.Common.Extensions;
+using sReportsV2.Domain.MongoDb.Entities.FormInstance;
 
 namespace sReportsV2.Domain.Entities.FormInstance
 {
@@ -13,6 +12,14 @@ namespace sReportsV2.Domain.Entities.FormInstance
         public string ValueLabel { get; set; }
         public string FieldInstanceRepetitionId { get; set; }
         public bool IsSpecialValue { get; set; }
+        [BsonIgnoreIfNull]
+        public string ConnectedFieldInstanceRepetitionId { get; set; }
+        [BsonIgnore]
+        public FieldValidationError ValidationError { get; set; }
+
+        public FieldInstanceValue()
+        {
+        }
 
         public FieldInstanceValue(string value)
         {
@@ -37,12 +44,14 @@ namespace sReportsV2.Domain.Entities.FormInstance
             FieldInstanceRepetitionId = GuidExtension.NewGuidStringWithoutDashes();
         }
 
-        public FieldInstanceValue(List<string> values, string valueLabel, string fieldInstanceRepetitionId, bool isSpecialValue)
+        public FieldInstanceValue(List<string> values, string valueLabel, string fieldInstanceRepetitionId, bool isSpecialValue, string connectedFieldInstanceRepetitionId, FieldValidationError fieldValidationError)
         {
             Values = values;
             ValueLabel = valueLabel;
             FieldInstanceRepetitionId = !string.IsNullOrWhiteSpace(fieldInstanceRepetitionId) ? fieldInstanceRepetitionId : GuidExtension.NewGuidStringWithoutDashes();
             IsSpecialValue = isSpecialValue;
+            ConnectedFieldInstanceRepetitionId = connectedFieldInstanceRepetitionId;
+            ValidationError = fieldValidationError;
         }
 
         public string GetValueLabelOrValue()

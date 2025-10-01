@@ -12,6 +12,7 @@
 @model FormDataOut
 
 @ScriptHelper.RenderStylesheet(Url.Content("/css/nestable.min.css"))
+@ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"), "", "")
 
 <div class="designer-main-content position-relative">
     <canvas id="designerCanvas">
@@ -56,7 +57,7 @@
 
 @Html.Raw(ScriptHelper.RenderBundle("js/dragAndDrop-bundle.min.js"))
 @Html.Raw(ScriptHelper.RenderBundle("js/form-common-bundle.min.js"))
-@Html.Raw(ScriptHelper.RenderScript("https://cdn.tiny.cloud/1/vx3ljr86fkwhagchor89xd6fitmgvd5vziwkkvx6jt1uzuhs/tinymce/5/tinymce.min.js", "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/tinymce-5/tinymce.min.js"), "", ""))
 <script src="~/js/libs/ckeditor-4.14.0/ckeditor.js"></script>
 <script src="~/js/libs/ckeditor-4.14.0/adapters/jquery.js"></script>
 

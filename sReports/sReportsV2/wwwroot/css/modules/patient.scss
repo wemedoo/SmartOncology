@@ -77,7 +77,7 @@ $color-green-primary: #1c94a3;
 
 .patient-container {
     border-right: 1px solid $hr-color;
-    margin-left: -27px;
+    margin-left: -22px;
     background: $eoc-background-color;
     padding-left: 8px;
     display: block;
@@ -244,7 +244,7 @@ $color-green-primary: #1c94a3;
 }
 
 .eoc-document {
-    margin-right: -57px;
+    margin-right: -52px;
     background: $eoc-background-color;
     min-height: calc(100vh - 159px);
     padding-left: 12px;
@@ -1136,16 +1136,6 @@ $color-green-primary: #1c94a3;
     margin-right: 10px;
 }
 
-.gray-accordion-header {
-    color: black !important;
-    background-color: $background-div-document !important;
-    font-weight: 600;
-
-    &::after {
-        color: black !important;
-    }
-}
-
 .add-btn-div {
     text-align: right;
     margin-right: 10px;
@@ -1360,6 +1350,11 @@ $color-green-primary: #1c94a3;
 .dots-eoc {
     margin-left: 0px;
     width: 45px;
+
+    .view-svg-size {
+        height: unset;
+        margin-right: 10px;
+    }
 }
 
 .show-encounters-button {
@@ -1878,7 +1873,7 @@ $large-desktop: 1824px;
     border-top: 1px solid #DFDFDF
 }
 
-.ecnounter-dropdown-menu {
+.expand-dropdown-menu {
     min-width: max-content;
 }
 
@@ -2001,159 +1996,26 @@ $large-desktop: 1824px;
     top: 116px;
 }
 
-.single-document-item {
-    padding: 27px 34px 23px 34px;
-    border: dashed 1px #bababa;
-    border-radius: 14px;
-    margin-top: 12px;
-    margin-right: 12px;
-    display: inline-block;
-    width: calc(25% - 16px);
-    cursor: pointer;
-    vertical-align: top;
-    background-color: white;
-
-    .icon {
-        background-image: url("img/icons/doc_silver.svg");
-        background-repeat: no-repeat;
-        width: 31px;
-        height: 40px;
+.patient-list-checkbox-label {
+    i {
+        top: 0.25rem;
     }
 
-    > .title {
-        padding-top: 11px;
-        padding-bottom: 28px;
-        border-radius: 14px;
-        font-weight: 700;
-        color: $color-green-primary;
-        height: 170px;
-        font-size: 14px;
-    }
-
-    &:hover:not(.add-new-document-item-button), &.active {
-        background-color: $color-green-primary;
-        color: white;
-        border: solid 1px $color-green-primary;
-
-        > .title {
-            color: white;
-        }
-
-        .icon {
-            background-image: url("img/icons/doc_white.svg");
-        }
-
-        .select-button {
-            background-image: url("img/icons/arrow_select_white.svg");
-            background-position-x: 60px;
-            background-position-y: 6px;
-
-            &.view {
-                background-position-x: 52px;
-                background-position-y: 7px;
-            }
-        }
-
-        .datetime {
-            color: white;
-        }
-    }
-
-    &.active {
-        .unselect {
-            display: block;
-            background-image: url("img/icons/arrow_select_white.svg");
-            background-repeat: no-repeat;
-        }
-
-        .select-button:not(.unselect) {
-            background-image: url("img/icons/arrow_select_white.svg");
-            background-repeat: no-repeat;
-            display: none;
-        }
-    }
-
-    &.add-new-document-item-button {
-        border: dashed 1px $color-green-primary;
-        background-color: #ebfdff;
-
-        .icon {
-            width: 42px;
-            background-image: url("img/icons/browse.svg");
-        }
-
-        > .title {
-            color: $color-green-primary;
-            height: 191px;
-        }
-    }
-
-    .icon-wrapper {
-        display: flex;
-        align-items: center;
-
-        .datetime {
-            font-weight: 700;
-            color: $color-green-primary;
-            margin-left: 10px;
-            font-size: 13px;
-        }
+    span {
+        margin-left: 10px;
+        margin-top: 5px;
+        padding-top: 3px;
     }
 }
 
-.suggested-forms {
-    padding-top: 40px;
-    display: block;
-    vertical-align: top;
+.delete-btn-document-encounter {
+    margin-top: 19px;
+    margin-bottom: auto;
+    color: #B8B8B8;
+    margin-left: 5px;
+    font-size: 13px;
 
-    .suggested-forms-container {
-        padding-top: 14px;
-        padding-bottom: 40px;
-    }
-
-    .single-pinned-item {
-        @extend .single-document-item;
-        position: relative;
-
-
-        .icon {
-            background-size: cover;
-            height: 41px;
-            background-image: url("img/icons/pinned_doc.svg");
-        }
-
-        .pinned-icon {
-            position: absolute;
-            right: 15px;
-            top: 27px;
-            background-image: url("img/icons/pinned_red.svg");
-            width: 30px;
-            height: 30px;
-            background-repeat: no-repeat;
-        }
-
-        .select-button {
-            //background-position-x: 27px;
-        }
-
-        &:hover:not(.add-new-document-item-button), &.active {
-            .icon {
-                background-image: url("img/icons/pinned_doc_white.svg");
-            }
-
-            .select-button {
-                //background-position-x: 34px;
-            }
-        }
-
-        .icon {
-            background-image: url("img/icons/pinned_doc.svg");
-        }
-    }
-
-    > .title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #000000;
+    &:hover {
+        color: #6f6b6b;
     }
 }

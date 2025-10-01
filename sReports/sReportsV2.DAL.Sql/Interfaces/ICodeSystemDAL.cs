@@ -8,7 +8,7 @@ namespace sReportsV2.DAL.Sql.Interfaces
     {
         int GetAllCount();
         void InsertOrUpdate(CodeSystem codeSystem);
-        void InsertMany(List<CodeSystem> codeSystems);
+        int InsertMany(List<CodeSystem> codeSystems);
         List<CodeSystem> GetAll();
         CodeSystem GetBySAB(string SAB);
         CodeSystem GetByValue(string value);

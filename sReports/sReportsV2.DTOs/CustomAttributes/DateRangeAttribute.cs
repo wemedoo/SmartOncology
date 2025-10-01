@@ -13,16 +13,29 @@ namespace sReportsV2.DTOs.CustomAttributes
         {
             if (value != null)
             {
-                var period = (PeriodDTO)validationContext.ObjectInstance;
-                var startDate = period.StartDate;
-                var endDate = (DateTime)value;
-                if(startDate > endDate)
+                if(!DateRangeValid(validationContext.ObjectInstance, value))
                 {
                     return new ValidationResult(GetErrorMessage());
                 }
             }
 
             return ValidationResult.Success;
+        }
+
+        private bool DateRangeValid(object objectInstance, object endDateTimeValue)
+        {
+            if (objectInstance is PeriodDTO period)
+            {
+                return period.StartDate <= (DateTime)endDateTimeValue;
+            }
+            else if (objectInstance is PeriodOffsetDTO periodOffset)
+            {
+                return periodOffset.StartDate <= (DateTimeOffset)endDateTimeValue;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

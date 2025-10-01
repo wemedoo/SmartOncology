@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
 using System.Linq;
+using sReportsV2.DTOs.ThesaurusEntry.DataOut;
 
 namespace sReportsV2.DTOs.EpisodeOfCare
 {
@@ -19,17 +20,17 @@ namespace sReportsV2.DTOs.EpisodeOfCare
         public string OrganizationRef { get; set; }
         public int Status { get; set; }
         public int Type { get; set; }
-        public string DiagnosisCondition { get; set; }
-        public string DiagnosisRank { get; set; }
+        public int? DiagnosisConditionId { get; set; }
         public PeriodDTO Period { get; set; }
         public List<DiagnosticReportDataOut> DiagnosticReports { get; set; }
         public PatientDataOut Patient { get; set; }
         public DateTimeOffset? LastUpdate { get; set; }
         public List<EncounterDataOut> Encounters { get; set; }
         public PersonnelTeamDataOut PersonnelTeam { get; set; }
+        public ThesaurusEntryDataOut DiagnosisCondition { get; set; }
         public int NumOfDocuments { get; set; }
         public int NumOfEncounters { get; set; }
-
+        public bool UseSkosData { get; set; }
         public string ConvertTypeCDToDisplayName(List<CodeDataOut> episodeOfCaresTypes, string language)
         {
             return episodeOfCaresTypes.Find(x => x.Id == this.Type)?.Thesaurus?.GetPreferredTermByTranslationOrDefault(language) ?? String.Empty;

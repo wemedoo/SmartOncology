@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace sReportsV2.DTOs.Common.DTO
 {
@@ -14,6 +10,7 @@ namespace sReportsV2.DTOs.Common.DTO
         public string Subject { get; set; }
         public Dictionary<string, Stream> Attachments { get; set; }
         public bool IsCsv { get; set; }
+        public string UserTimezone { get; set; }
 
         public EmailDTO(string emailAddress, string body, string subject)
         {

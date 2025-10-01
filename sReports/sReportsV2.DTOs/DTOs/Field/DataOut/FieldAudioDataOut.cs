@@ -5,7 +5,7 @@ using sReportsV2.Common.Extensions;
 
 namespace sReportsV2.DTOs.Field.DataOut
 {
-    public class FieldAudioDataOut : FieldStringDataOut, IBinaryFieldDataOut
+    public partial class FieldAudioDataOut : FieldStringDataOut
     {
         [JsonIgnore]
         public override string PartialView { get; } = "~/Views/Form/Fields/FieldAudio.cshtml";
@@ -13,20 +13,14 @@ namespace sReportsV2.DTOs.Field.DataOut
         [JsonIgnore]
         public override string NestableView { get; } = "~/Views/Form/DragAndDrop/NestableFields/NestableAudioField.cshtml";
 
-        public bool ExcludeGUIDPartFromName => false;
-
-        public string RemoveClass => "audio-file-remove";
-
-        public string BinaryType => Type;
-
         public override string GetLabel()
         {
             return this.FullLabel;
         }
 
-        protected override string FormatDisplayValue(FieldInstanceValueDataOut fieldInstanceValue, string valueSeparator)
+        public override bool CanBeConnectedField()
         {
-            return fieldInstanceValue.FirstValue.GetFileNameFromUri();
+            return false;
         }
     }
 }

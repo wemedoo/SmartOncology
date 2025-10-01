@@ -7,11 +7,11 @@
             <div class="label filter-label">
                 @sReportsV2.Cache.Resources.TextLanguage.Patient
             </div>
-            <div id="dropdownSearch" class="position-relative dropdown-search">
-                <div id="patient-search">
-                    <input autocomplete="off" class="designer-form-input filter-input" id="patientSearch" name="Patient" type="text" @ViewBag.Disabled />
+            <div class="position-relative dropdown-search">
+                <div id="patient-search" class="autocomplete-wrapper">
+                    <input autocomplete="off" class="designer-form-input filter-input autocomplete-component" id="patientSearch" name="Patient" type="text" @ViewBag.Disabled />
                 </div>
-                <div id="patientOptions" class="patient-options" aria-labelledby="patient-search">
+                <div id="patientOptions" class="patient-options autocomplete-options" aria-labelledby="patient-search">
                 </div>
             </div>
             <div id="selected-patients" class="clinical-domain-container">
@@ -38,7 +38,10 @@
             {
                 InputAttributes = new Dictionary<object, object> { 
                     { "class", "filter-input" }, 
-                    { "id", "BirthDateTemp" }
+                    { "id", "BirthDateTemp" },
+                    { "name", "BirthDateTemp" },
+                    { "data-preventfuturedates", true },
+                    { "data-date-validation", true }
                 },
                 InputBtnAttributes = new Dictionary<object, object> { 
                     { "class", "date-img" }, 

@@ -1,10 +1,11 @@
-﻿using sReportsV2.Cache.Resources;
+﻿using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using sReportsV2.Cache.Resources;
 using sReportsV2.DTOs.Common;
 using System;
 using System.Linq;
-using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc;
+using System.Text;
 
 namespace sReportsV2.Common.Extensions
 {
@@ -71,6 +72,24 @@ namespace sReportsV2.Common.Extensions
         {
             urlHelper = Ensure.IsNotNull(urlHelper, nameof(urlHelper));
             return string.IsNullOrEmpty(url) ? string.Empty : urlHelper.Action("Download", "Blob", new BinaryMetadataDataIn { ResourceId = url.GetResourceNameFromUri(), Domain = domain});
+        }
+
+        public static IHtmlContent ChapterInstanceHeaderAttributes(this IHtmlHelper helper, bool allowChapterCollapse, bool chapterIsActive, string elementId, string targetId)
+        {
+            string dataToggle = allowChapterCollapse ? "collapse" : string.Empty;
+            string onClick = allowChapterCollapse ? "changeChapterAction(event, this, false)" : "return false;";
+            string ariaExpanded = chapterIsActive ? "true" : "false";
+            string allowCollapseClass = allowChapterCollapse ? "chapter-hover" : "chapter-non-collapse";
+            string chapterActiveClass = chapterIsActive ? "chapter-active" : "";
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine($@"class=""position-relative enc-form-instance-header display-flex {allowCollapseClass} {chapterActiveClass}""");
+            stringBuilder.AppendLine($@"data-link-id=""#{helper.HtmlContainerId(elementId, isContainer: false)}""");
+            stringBuilder.AppendLine($@"data-toggle=""{dataToggle}""");
+            stringBuilder.AppendLine($@"onclick=""{onClick}""");
+            stringBuilder.AppendLine($@"aria-expanded=""{ariaExpanded}""");
+            stringBuilder.AppendLine($@"data-target=""#{targetId}""");
+            stringBuilder.AppendLine($@"aria-controls=""{targetId}""");
+            return helper.Raw(stringBuilder);
         }
     }
 }

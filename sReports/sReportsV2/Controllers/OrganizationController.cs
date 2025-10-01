@@ -17,27 +17,27 @@ using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using sReportsV2.BusinessLayer.Implementations;
-using sReportsV2.DTOs.DTOs.Patient.DataIn;
-using sReportsV2.SqlDomain.Implementations;
+using System.Linq;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
 
 namespace sReportsV2.Controllers
 {
     public class OrganizationController : BaseController
     {
         private readonly IOrganizationBLL organizationBLL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public OrganizationController(IOrganizationBLL organizationBLL, 
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
             IMapper mapper, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.organizationBLL = organizationBLL;
-            this.Mapper = mapper;
+            this.mapper = mapper;
         }
 
         #region CRUD
@@ -175,22 +175,6 @@ namespace sReportsV2.Controllers
             return PartialView("OrganizationEntryTable", result);
         }
 
-        public ActionResult GetOrganizationTelecoms(int organizationId)
-        {
-            var result = organizationBLL.GetOrganizationForEdit(organizationId);
-            SetOrganizationViewBags();
-            ViewBag.ReadOnly = false;
-            return PartialView("OrganizationTelecoms", result);
-        }
-
-        public ActionResult GetOrganizationIdentifiers(int organizationId)
-        {
-            var result = organizationBLL.GetOrganizationForEdit(organizationId);
-            SetOrganizationViewBags();
-            ViewBag.ReadOnly = false;
-            return PartialView("OrganizationIdentifierTable", result.Identifiers);
-        }
-
         [SReportsAuthorize]
         public ActionResult ReloadOrgCommunicationTable(OrganizationFilterDataIn dataIn)
         {
@@ -223,12 +207,19 @@ namespace sReportsV2.Controllers
         public ActionResult GetOrganizationValues(OrganizationFilterDataIn dataIn)
         {
             var result = organizationBLL.ReloadTable(dataIn);
-            return PartialView("OrganizationValues", result.Data);
+            return PartialView(
+                "~/Views/Form/DragAndDrop/CustomFields/AutocompleteValues.cshtml",
+                new CustomAutocompleteDataOut()
+                {
+                    ComponentName = "organization",
+                    Options = result.Data.ToDictionary(x => x.Id.ToString(), x => x.Name),
+                }
+            );
         }
 
         public ActionResult GetUsersByOrganizationCount()
         {
-            return PartialView(Mapper.Map<List<OrganizationUsersCountDataOut>>(organizationBLL.GetOrganizationUsersCount(null, null)));
+            return PartialView(mapper.Map<List<OrganizationUsersCountDataOut>>(organizationBLL.GetOrganizationUsersCount(null, null)));
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Administration)]

@@ -493,6 +493,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add edge.
+        /// </summary>
+        public static string Add_edge {
+            get {
+                return ResourceManager.GetString("Add edge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add List.
         /// </summary>
         public static string Add_List {
@@ -615,6 +624,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Add_new_page {
             get {
                 return ResourceManager.GetString("Add new page", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add node.
+        /// </summary>
+        public static string Add_node {
+            get {
+                return ResourceManager.GetString("Add node", resourceCulture);
             }
         }
         
@@ -1708,6 +1726,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Arrows.
+        /// </summary>
+        public static string Arrows {
+            get {
+                return ResourceManager.GetString("Arrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Art therapy.
         /// </summary>
         public static string Art_therapy {
@@ -2284,6 +2311,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bezier.
+        /// </summary>
+        public static string Bezier {
+            get {
+                return ResourceManager.GetString("Bezier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bulgarian.
         /// </summary>
         public static string bg {
@@ -2694,6 +2730,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Breton {
             get {
                 return ResourceManager.GetString("Breton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Broader Concepts.
+        /// </summary>
+        public static string BroaderConcepts {
+            get {
+                return ResourceManager.GetString("BroaderConcepts", resourceCulture);
             }
         }
         
@@ -4219,6 +4264,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code Value Management.
+        /// </summary>
+        public static string CodeValueManagement {
+            get {
+                return ResourceManager.GetString("CodeValueManagement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Coding and Classification System.
         /// </summary>
         public static string CodingClassificationSystem {
@@ -4260,6 +4314,15 @@ namespace sReportsV2.Cache.Resources {
         public static string CombinedPurposeForReferralAndReporting {
             get {
                 return ResourceManager.GetString("CombinedPurposeForReferralAndReporting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commands.
+        /// </summary>
+        public static string Commands {
+            get {
+                return ResourceManager.GetString("Commands", resourceCulture);
             }
         }
         
@@ -4575,6 +4638,15 @@ namespace sReportsV2.Cache.Resources {
         public static string ConfirmPassword {
             get {
                 return ResourceManager.GetString("ConfirmPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected.
+        /// </summary>
+        public static string Connected {
+            get {
+                return ResourceManager.GetString("Connected", resourceCulture);
             }
         }
         
@@ -5416,6 +5488,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dashboard.
+        /// </summary>
+        public static string Dashboard {
+            get {
+                return ResourceManager.GetString("Dashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data Capture Chart.
         /// </summary>
         public static string Data_Capture_Chart {
@@ -5430,6 +5511,15 @@ namespace sReportsV2.Cache.Resources {
         public static string DataCaptureEngine {
             get {
                 return ResourceManager.GetString("DataCaptureEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Data File (JSON).
+        /// </summary>
+        public static string DataFile {
+            get {
+                return ResourceManager.GetString("DataFile", resourceCulture);
             }
         }
         
@@ -5533,6 +5623,24 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Days Open.
+        /// </summary>
+        public static string DaysOpen {
+            get {
+                return ResourceManager.GetString("DaysOpen", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Days Since Last Change.
+        /// </summary>
+        public static string DaysSinceLastChange {
+            get {
+                return ResourceManager.GetString("DaysSinceLastChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to German.
         /// </summary>
         public static string de {
@@ -5592,6 +5700,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Deceased_DateTime {
             get {
                 return ResourceManager.GetString("Deceased DateTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decision.
+        /// </summary>
+        public static string Decision {
+            get {
+                return ResourceManager.GetString("Decision", resourceCulture);
             }
         }
         
@@ -6452,6 +6569,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Document (PDF).
+        /// </summary>
+        public static string DocumentPdf {
+            get {
+                return ResourceManager.GetString("DocumentPdf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Document properties.
         /// </summary>
         public static string DocumentProperties {
@@ -6902,6 +7028,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Node Information.
+        /// </summary>
+        public static string Edit_Node_Information {
+            get {
+                return ResourceManager.GetString("Edit Node Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit Role.
         /// </summary>
         public static string Edit_Role {
@@ -6961,6 +7096,15 @@ namespace sReportsV2.Cache.Resources {
         public static string EditEOC {
             get {
                 return ResourceManager.GetString("EditEOC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Form Instance.
+        /// </summary>
+        public static string EditFormInstance {
+            get {
+                return ResourceManager.GetString("EditFormInstance", resourceCulture);
             }
         }
         
@@ -7802,6 +7946,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        public static string Event {
+            get {
+                return ResourceManager.GetString("Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Every {0} has unique question.
         /// </summary>
         public static string Every_Question {
@@ -7874,6 +8027,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export.
+        /// </summary>
+        public static string Export {
+            get {
+                return ResourceManager.GetString("Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export to Patholink format.
         /// </summary>
         public static string Export_Patholink {
@@ -7892,11 +8054,38 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export menu.
+        /// </summary>
+        public static string ExportMenu {
+            get {
+                return ResourceManager.GetString("ExportMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export to Questionnaire.
+        /// </summary>
+        public static string ExportToQuestionnaire {
+            get {
+                return ResourceManager.GetString("ExportToQuestionnaire", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export to text format.
         /// </summary>
         public static string ExportToTxt {
             get {
                 return ResourceManager.GetString("ExportToTxt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extensions.
+        /// </summary>
+        public static string Extensions {
+            get {
+                return ResourceManager.GetString("Extensions", resourceCulture);
             }
         }
         
@@ -8306,6 +8495,24 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field Id.
+        /// </summary>
+        public static string FieldId {
+            get {
+                return ResourceManager.GetString("FieldId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field Matrix.
+        /// </summary>
+        public static string FieldMatrix {
+            get {
+                return ResourceManager.GetString("FieldMatrix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field Number.
         /// </summary>
         public static string FieldNumber {
@@ -8396,6 +8603,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Field Set Matrix.
+        /// </summary>
+        public static string FieldSetMatrix {
+            get {
+                return ResourceManager.GetString("FieldSetMatrix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field Text.
         /// </summary>
         public static string FieldText {
@@ -8410,6 +8626,15 @@ namespace sReportsV2.Cache.Resources {
         public static string FieldTextarea {
             get {
                 return ResourceManager.GetString("FieldTextarea", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field Type.
+        /// </summary>
+        public static string FieldType {
+            get {
+                return ResourceManager.GetString("FieldType", resourceCulture);
             }
         }
         
@@ -8446,6 +8671,15 @@ namespace sReportsV2.Cache.Resources {
         public static string File {
             get {
                 return ResourceManager.GetString("File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File type.
+        /// </summary>
+        public static string FileType {
+            get {
+                return ResourceManager.GetString("FileType", resourceCulture);
             }
         }
         
@@ -8828,6 +9062,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Archive.
+        /// </summary>
+        public static string FormDefinitionState_Archive {
+            get {
+                return ResourceManager.GetString("FormDefinitionState_Archive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Design.
         /// </summary>
         public static string FormDefinitionState_Design {
@@ -8927,7 +9170,7 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Form {0} doesn´t exist on Database.
+        ///   Looks up a localized string similar to Form {0} doesn´t exist in database.
         /// </summary>
         public static string FormNotExists {
             get {
@@ -9791,6 +10034,24 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Health Care Worker.
+        /// </summary>
+        public static string Health_Care_Worker {
+            get {
+                return ResourceManager.GetString("Health_Care_Worker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Health Care Workers.
+        /// </summary>
+        public static string Health_Care_Workers {
+            get {
+                return ResourceManager.GetString("Health_Care_Workers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Health Counselling.
         /// </summary>
         public static string Health_Counselling {
@@ -9994,6 +10255,15 @@ namespace sReportsV2.Cache.Resources {
         public static string HideHiddenFields {
             get {
                 return ResourceManager.GetString("HideHiddenFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hierarchy.
+        /// </summary>
+        public static string Hierarchy {
+            get {
+                return ResourceManager.GetString("Hierarchy", resourceCulture);
             }
         }
         
@@ -10628,6 +10898,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Image File (PNG).
+        /// </summary>
+        public static string ImageFile {
+            get {
+                return ResourceManager.GetString("ImageFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Immunization.
         /// </summary>
         public static string Immunization {
@@ -11006,6 +11285,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Instruction.
+        /// </summary>
+        public static string Instruction {
+            get {
+                return ResourceManager.GetString("Instruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Insurance company.
         /// </summary>
         public static string InsuranceCompany {
@@ -11200,6 +11488,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Inupiaq {
             get {
                 return ResourceManager.GetString("Inupiaq", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Uploaded pdf is in invalid format!.
+        /// </summary>
+        public static string InvalidUploadedPdfFormat {
+            get {
+                return ResourceManager.GetString("InvalidUploadedPdfFormat", resourceCulture);
             }
         }
         
@@ -12194,15 +12491,6 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Logo url.
-        /// </summary>
-        public static string LogoUrl {
-            get {
-                return ResourceManager.GetString("LogoUrl", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Log Out.
         /// </summary>
         public static string Logout {
@@ -12550,6 +12838,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Matrix {
             get {
                 return ResourceManager.GetString("Matrix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matrix type.
+        /// </summary>
+        public static string MatrixType {
+            get {
+                return ResourceManager.GetString("MatrixType", resourceCulture);
             }
         }
         
@@ -13157,6 +13454,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing Value.
+        /// </summary>
+        public static string MissingValue {
+            get {
+                return ResourceManager.GetString("MissingValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Mixed information presentation and collection.
         /// </summary>
         public static string MixedInformationPresentationAndCollection {
@@ -13450,6 +13756,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Name {
             get {
                 return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Narrower Concepts.
+        /// </summary>
+        public static string NarrowerConcepts {
+            get {
+                return ResourceManager.GetString("NarrowerConcepts", resourceCulture);
             }
         }
         
@@ -13932,15 +14247,6 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No result found.
-        /// </summary>
-        public static string No_result_found {
-            get {
-                return ResourceManager.GetString("No result found", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No Trial Found !.
         /// </summary>
         public static string No_Trial_Found {
@@ -14000,6 +14306,24 @@ namespace sReportsV2.Cache.Resources {
         public static string NoGenerateNewLanguage {
             get {
                 return ResourceManager.GetString("NoGenerateNewLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nominator Code Set Name.
+        /// </summary>
+        public static string NominatorCodeSetName {
+            get {
+                return ResourceManager.GetString("NominatorCodeSetName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nominator Code Set Number.
+        /// </summary>
+        public static string NominatorCodeSetNumber {
+            get {
+                return ResourceManager.GetString("NominatorCodeSetNumber", resourceCulture);
             }
         }
         
@@ -14072,6 +14396,15 @@ namespace sReportsV2.Cache.Resources {
         public static string None {
             get {
                 return ResourceManager.GetString("None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-selectable.
+        /// </summary>
+        public static string NonSelectable {
+            get {
+                return ResourceManager.GetString("NonSelectable", resourceCulture);
             }
         }
         
@@ -16283,11 +16616,29 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Patient Query Window.
+        /// </summary>
+        public static string PatientQueryWindow {
+            get {
+                return ResourceManager.GetString("PatientQueryWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Patients.
         /// </summary>
         public static string Patients {
             get {
                 return ResourceManager.GetString("Patients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please submit General Info before proceeding.
+        /// </summary>
+        public static string PatientTabTooltip {
+            get {
+                return ResourceManager.GetString("PatientTabTooltip", resourceCulture);
             }
         }
         
@@ -17651,6 +18002,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please provide an answer or select one of the possible reasons why the query is raised..
+        /// </summary>
+        public static string ProvideAnAnwerWhyTheQueryIsRaised {
+            get {
+                return ResourceManager.GetString("ProvideAnAnwerWhyTheQueryIsRaised", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Provider number.
         /// </summary>
         public static string Provider_number {
@@ -17930,6 +18290,69 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Queries.
+        /// </summary>
+        public static string Queries {
+            get {
+                return ResourceManager.GetString("Queries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query.
+        /// </summary>
+        public static string Query {
+            get {
+                return ResourceManager.GetString("Query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query Date.
+        /// </summary>
+        public static string QueryDate {
+            get {
+                return ResourceManager.GetString("QueryDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query Management.
+        /// </summary>
+        public static string QueryManagement {
+            get {
+                return ResourceManager.GetString("QueryManagement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query Reason.
+        /// </summary>
+        public static string QueryReason {
+            get {
+                return ResourceManager.GetString("QueryReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Query Text.
+        /// </summary>
+        public static string QueryText {
+            get {
+                return ResourceManager.GetString("QueryText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Question.
+        /// </summary>
+        public static string Question {
+            get {
+                return ResourceManager.GetString("Question", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Quick Access.
         /// </summary>
         public static string Quick_Access {
@@ -18029,6 +18452,24 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Raised By.
+        /// </summary>
+        public static string RaisedBy {
+            get {
+                return ResourceManager.GetString("RaisedBy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Raise New Query.
+        /// </summary>
+        public static string RaiseNewQuery {
+            get {
+                return ResourceManager.GetString("RaiseNewQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Readonly.
         /// </summary>
         public static string Readonly {
@@ -18061,6 +18502,15 @@ namespace sReportsV2.Cache.Resources {
         public static string ReadyForReview {
             get {
                 return ResourceManager.GetString("ReadyForReview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reason.
+        /// </summary>
+        public static string Reason {
+            get {
+                return ResourceManager.GetString("Reason", resourceCulture);
             }
         }
         
@@ -18106,6 +18556,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Recruitment_Status {
             get {
                 return ResourceManager.GetString("Recruitment Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Redo.
+        /// </summary>
+        public static string Redo {
+            get {
+                return ResourceManager.GetString("Redo", resourceCulture);
             }
         }
         
@@ -18236,7 +18695,7 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression setttings.
+        ///   Looks up a localized string similar to Regular expression settings.
         /// </summary>
         public static string Regular_Expression_Settings {
             get {
@@ -18740,6 +19199,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Result.
+        /// </summary>
+        public static string Result {
+            get {
+                return ResourceManager.GetString("Result", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resulting Doctor.
         /// </summary>
         public static string ResultingDoctor {
@@ -18799,6 +19267,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Rheumatology {
             get {
                 return ResourceManager.GetString("Rheumatology", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rich Text Paragraph.
+        /// </summary>
+        public static string Rich_Text_Paragraph {
+            get {
+                return ResourceManager.GetString("Rich Text Paragraph", resourceCulture);
             }
         }
         
@@ -19488,6 +19965,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Selectable.
+        /// </summary>
+        public static string Selectable {
+            get {
+                return ResourceManager.GetString("Selectable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select all organization to which user belongs.
         /// </summary>
         public static string SelectAllOrganizationUser {
@@ -19704,6 +20190,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Send Update.
+        /// </summary>
+        public static string SendUpdate {
+            get {
+                return ResourceManager.GetString("SendUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Seniority.
         /// </summary>
         public static string Seniority {
@@ -19767,38 +20262,20 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Session Interruption.
-        /// </summary>
-        public static string SessionBreak {
-            get {
-                return ResourceManager.GetString("SessionBreak", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your session stands out for.
-        /// </summary>
-        public static string SessionExpiration {
-            get {
-                return ResourceManager.GetString("SessionExpiration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Choose &quot;Continue&quot; to continue with work or choose &quot;Logout&quot; to end your session.Session will break automaticly after 60s..
-        /// </summary>
-        public static string SessionInfo {
-            get {
-                return ResourceManager.GetString("SessionInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Set number of documents to generate.
         /// </summary>
         public static string SetNumberOfDocumentsToGenerate {
             get {
                 return ResourceManager.GetString("SetNumberOfDocumentsToGenerate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string Settings {
+            get {
+                return ResourceManager.GetString("Settings", resourceCulture);
             }
         }
         
@@ -19880,6 +20357,15 @@ namespace sReportsV2.Cache.Resources {
         public static string sg {
             get {
                 return ResourceManager.GetString("sg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shapes.
+        /// </summary>
+        public static string Shapes {
+            get {
+                return ResourceManager.GetString("Shapes", resourceCulture);
             }
         }
         
@@ -20703,6 +21189,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Statement.
+        /// </summary>
+        public static string Statement {
+            get {
+                return ResourceManager.GetString("Statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to State University Hospital.
         /// </summary>
         public static string StateUniversityHospital {
@@ -21153,6 +21648,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to System Administration &amp; Resources.
+        /// </summary>
+        public static string SystemAdministrationAndResources {
+            get {
+                return ResourceManager.GetString("SystemAdministrationAndResources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to System full name.
         /// </summary>
         public static string SystemFullName {
@@ -21374,6 +21878,15 @@ namespace sReportsV2.Cache.Resources {
         public static string Tax_ID_number {
             get {
                 return ResourceManager.GetString("Tax ID number", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Taxi.
+        /// </summary>
+        public static string Taxi {
+            get {
+                return ResourceManager.GetString("Taxi", resourceCulture);
             }
         }
         
@@ -21747,6 +22260,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Thesaurus ID.
+        /// </summary>
+        public static string Thesaurus_ID {
+            get {
+                return ResourceManager.GetString("Thesaurus_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Thesaurus entries.
         /// </summary>
         public static string ThesaurusEntries {
@@ -21932,15 +22454,6 @@ namespace sReportsV2.Cache.Resources {
         public static string To_ {
             get {
                 return ResourceManager.GetString("To_", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to To Be Replaced With External Ontology Term.
-        /// </summary>
-        public static string ToBeReplacedWithExternalOntologyTerm {
-            get {
-                return ResourceManager.GetString("ToBeReplacedWithExternalOntologyTerm", resourceCulture);
             }
         }
         
@@ -22504,6 +23017,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unbundled Bezier.
+        /// </summary>
+        public static string Unbundled_Bezier {
+            get {
+                return ResourceManager.GetString("Unbundled Bezier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Uncurated.
         /// </summary>
         public static string Uncurated {
@@ -22518,6 +23040,24 @@ namespace sReportsV2.Cache.Resources {
         public static string UnderseaAndHyperbaricMedicine {
             get {
                 return ResourceManager.GetString("UnderseaAndHyperbaricMedicine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Undo.
+        /// </summary>
+        public static string Undo {
+            get {
+                return ResourceManager.GetString("Undo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unidirectional.
+        /// </summary>
+        public static string Unidirectional {
+            get {
+                return ResourceManager.GetString("Unidirectional", resourceCulture);
             }
         }
         
@@ -22648,6 +23188,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Update graph.
+        /// </summary>
+        public static string Update_graph {
+            get {
+                return ResourceManager.GetString("Update graph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updated.
         /// </summary>
         public static string Updated {
@@ -22689,6 +23238,15 @@ namespace sReportsV2.Cache.Resources {
         public static string UploadFile {
             get {
                 return ResourceManager.GetString("UploadFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upload Logo.
+        /// </summary>
+        public static string UploadLogo {
+            get {
+                return ResourceManager.GetString("UploadLogo", resourceCulture);
             }
         }
         
@@ -23184,6 +23742,24 @@ namespace sReportsV2.Cache.Resources {
         public static string ViewEOC {
             get {
                 return ResourceManager.GetString("ViewEOC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Project Data.
+        /// </summary>
+        public static string ViewProjectData {
+            get {
+                return ResourceManager.GetString("ViewProjectData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View Role.
+        /// </summary>
+        public static string ViewRole {
+            get {
+                return ResourceManager.GetString("ViewRole", resourceCulture);
             }
         }
         
@@ -23764,6 +24340,15 @@ namespace sReportsV2.Cache.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Zhuang.
+        /// </summary>
+        public static string za {
+            get {
+                return ResourceManager.GetString("za", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Chinese.
         /// </summary>
         public static string zh {
@@ -23778,6 +24363,24 @@ namespace sReportsV2.Cache.Resources {
         public static string Zhuang {
             get {
                 return ResourceManager.GetString("Zhuang", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Zoom In.
+        /// </summary>
+        public static string ZoomIn {
+            get {
+                return ResourceManager.GetString("ZoomIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Zoom Out.
+        /// </summary>
+        public static string ZoomOut {
+            get {
+                return ResourceManager.GetString("ZoomOut", resourceCulture);
             }
         }
         

@@ -39,7 +39,7 @@ namespace sReportsV2.HL7.Components
             }
             catch (Exception ex)
             {
-                LogHelper.Error($"Error while sending data to HL7 server ({MllpServerIP}:{MllpServerPort}), error: {ex.Message}");
+                LogHelper.Error($"Error while sending data to HL7 server ({MllpServerIP}:{MllpServerPort}), error: {ex.GetExceptionStackMessages()}");
                 throw;
             }
             finally

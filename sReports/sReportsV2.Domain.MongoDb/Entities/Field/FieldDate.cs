@@ -13,19 +13,9 @@ namespace sReportsV2.Domain.Entities.FieldEntity
 {
     [BsonIgnoreExtraElements]
     [BsonDiscriminator(FieldTypes.Date)]
-    public class FieldDate : FieldString
+    public partial class FieldDate : FieldString
     {
         public override string Type { get; set; } = FieldTypes.Date;
         public bool PreventFutureDates { get; set; }
-
-        protected override int GetMissingValueCodeSetId()
-        {
-            return (int)CodeSetList.MissingValueDate;
-        }
-
-        protected override string GetDisplayValue(FieldInstanceValue fieldInstanceValue)
-        {
-            return base.GetDisplayValue(fieldInstanceValue).RenderDate();
-        }
     }
 }

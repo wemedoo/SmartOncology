@@ -4,9 +4,7 @@ namespace sReportsV2.Domain.Sql.Entities.Patient
 {
     public class PatientByNameSearchFilter : EntityFilter
     {
-        public string SearchValue { get; set; }
-        public bool ComplexSearch { get; set; }
+        public string Name { get; set; }
         public int OrganizationId { get; set; }
-
     }
 }

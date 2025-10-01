@@ -25,7 +25,7 @@
         {
             @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) {
             { "level1", sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "linkLevel1", "/ProjectManagement/GetAll" },
-            { "level2", projectTitle }, { "linkLevel2", "/ProjectManagement/Edit?projectId=" + projectId },
+            { "level2", projectTitle }, { "linkLevel2", "/ProjectManagement/Edit?projectId=" + projectId + "&activeTab=TrialDocuments" },
             { "level3", ViewBag.FilterFormInstanceDataIn.Title != null ? ViewBag.FilterFormInstanceDataIn.Title : "" }, { "activeLevel", 3 } })
         }
     }
@@ -90,42 +90,12 @@ else
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.Content
                 </div>
-                <input type="text" class="filter-input" id="ContentTemp" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')">
+                <input type="text" class="filter-input" id="content" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')">
             </div>
-
-            @*<div class="advanced-filter-item margin-right-10 advanced-max-width">
-                    <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.User
-                    </div>
-                    <div id="dropdownSearch" class="position-relative dropdown-search">
-                        <div id="user-search">
-                            <input autocomplete="off" class="designer-form-input filter-input" id="user" name="User" type="text" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')" @ViewBag.Disabled />
-                        </div>
-                        <div id="userOptions" class="user-options" aria-labelledby="user-search">
-                        </div>
-                    </div>
-                    <div id="selected-users" class="clinical-domain-container">
-                    </div>
-                </div>
-
-                <div class="advanced-filter-item margin-right-10 advanced-max-width">
-                    <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Patient
-                    </div>
-                    <div id="dropdownSearch" class="position-relative dropdown-search">
-                        <div id="patient-search">
-                            <input autocomplete="off" class="designer-form-input filter-input" id="patient" name="Patient" type="text" onkeydown="pressButtonOnEnterKey(event, 'submit-filter-button')" @ViewBag.Disabled />
-                        </div>
-                        <div id="patientOptions" class="patient-options" aria-labelledby="patient-search">
-                        </div>
-                    </div>
-                    <div id="selected-patients" class="clinical-domain-container">
-                    </div>
-                </div>*@
 
             <div class="border-0 margin-top-15" style="margin-right:10px;">
                 <div class="button-wrapper-filter button-filter">
-                    <button id="submit-filter-button" class="btn btn-filter-primary w-100 h-100 float-right" onclick="singleDocumentFilter()">  @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+                    <button id="submit-filter-button" class="btn btn-filter-primary w-100 h-100 float-right" onclick="mainFilter()">  @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
                 </div>
             </div>
         </div>
@@ -135,13 +105,12 @@ else
     <div id="tableContainer"></div>
 </div>
 
-<div id="temporalFormInstanceDiv" hidden>
-
-</div>
-
+@await Html.PartialAsync("~/Views/Shared/CreateFormInstanceAutomatically.cshtml")
 @await Html.PartialAsync("~/Views/File/PdfUpload.cshtml")
 <script>
-    var filter = @Html.Raw(Json.Serialize(ViewBag.FilterFormInstanceDataIn));
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterFormInstanceDataIn));
+    var filter = undefined;
 </script>
 @Html.Raw(ScriptHelper.RenderBundle("js/getAllByFormThesaurus-bundle.min.js"))
 @Html.Raw(ScriptHelper.RenderBundle("js/createFormInstanceAutomatically-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderBundle("js/formEngine-bundle.min.js"))

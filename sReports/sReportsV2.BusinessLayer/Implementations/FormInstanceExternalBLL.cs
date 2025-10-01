@@ -29,6 +29,12 @@ using RestSharp.Authenticators;
 using sReportsV2.BusinessLayer.Helpers;
 using sReportsV2.DAL.Sql.Sql;
 using sReportsV2.DTOs.Common.DataOut;
+using sReportsV2.DTOs.DTOs.Fhir.DataIn;
+using System.Threading.Tasks;
+using sReportsV2.Common.Extensions;
+using Newtonsoft.Json;
+using sReportsV2.DTOs.DTOs.FormInstance.DTO;
+using Hl7.FhirPath.Sprache;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -220,9 +226,16 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             if (lockAction.IsLocked)
             {
-                asyncRunner.Run<IFormInstanceBLL>((standaloneFormInstanceBLL) =>
+                if (!string.IsNullOrEmpty(GetOomniaApiUrl()))
+                {
+                    asyncRunner.Run<IFormInstanceBLL>((standaloneFormInstanceBLL) =>
                     standaloneFormInstanceBLL.PassDataToOomniaApi(lockAction, userCookieData)
-                );
+                    );
+                }
+                else
+                {
+                    LogHelper.Warning("Invoking external data transfer, but no url is defined");
+                }
             }
         }
 
@@ -246,7 +259,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             catch (System.Exception ex)
             {
-                LogHelper.Error(@"Pass Data to Oomnia error: " + ex.Message);
+                LogHelper.Error(@"Pass Data to Oomnia error: " + ex.GetExceptionStackMessages());
                 LogHelper.Error(@"Pass Data to Oomnia error, stack trace: " + ex.StackTrace);
             }
         }
@@ -262,7 +275,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                             {
                                 Body = body,
                                 BaseUrl = GetOomniaApiUrl(),
-                                Endpoint = "save-documents-from-sreports",
+                                Endpoint = "save-documents-from-esource",
                                 ApiName = "OOMNIA",
                                 HeaderParameters = new Dictionary<string, string> { { "Authorization", $"Bearer {GetOomniaApiToken()}" } }
                             },
@@ -290,7 +303,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             FormInstance formInstance = formInstanceDAL.GetById(lockAction.FormInstanceId);
             Form formDefinition = formDAL.GetForm(formInstance.FormDefinitionId);
-            OrganizationDataOut organization = Mapper.Map<OrganizationDataOut>(organizationDAL.GetById(formInstance.OrganizationId));
+            OrganizationDataOut organization = mapper.Map<OrganizationDataOut>(organizationDAL.GetById(formInstance.OrganizationId));
 
             string externalOrganizationId = GetOomniaExternalId(
                 organization.Identifiers, 
@@ -319,7 +332,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             FormInstance formInstance = formInstanceDAL
                     .GetById(lockAction.FormInstanceId, GetOomniaApiProperties());
-            PatientDataOut patient = Mapper.Map<PatientDataOut>(patientDAL.GetById(formInstance.PatientId));
+            PatientDataOut patient = mapper.Map<PatientDataOut>(patientDAL.GetById(formInstance.PatientId));
             List<IdentifierDataOut> patientIdentifiers = patient?.Identifiers;
 
             string participantId = GetOomniaExternalId(
@@ -333,7 +346,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private void SetFields(FormInstance formInstance, Form formDefinition, PassFormInstanceToOomniaApiDTO passFormInstanceToOomniaApiDTO, LockActionToOomniaApiDTO lockAction)
         {
-            IEnumerable<FieldSet> fieldSets = GetFieldSets(lockAction, formDefinition);
+            IEnumerable<FieldSet> fieldSets = GetFieldSets(lockAction, formDefinition, formInstance);
             IDictionary<string, bool> repetitiveFieldSetStatuses = fieldSets.ToDictionary(x => x.Id, x => x.IsRepetitive);
             IDictionary<string, Field> fieldDefinitions =
                 fieldSets
@@ -389,19 +402,25 @@ namespace sReportsV2.BusinessLayer.Implementations
             return SingletonDataContainer.Instance.GetCodeSystems().Find(c => c.Label == ResourceTypes.OomniaExternalId)?.Id;
         }
 
-        private IEnumerable<FieldSet> GetFieldSets(LockActionToOomniaApiDTO lockAction, Form form)
+        private IEnumerable<FieldSet> GetFieldSets(LockActionToOomniaApiDTO lockAction, Form form, FormInstance formInstance)
         {
-            if (!string.IsNullOrEmpty(lockAction.PageId))
+            if (!string.IsNullOrEmpty(lockAction.FieldSetInstanceRepetitionId))
             {
-                return form.GetFieldSetIdsInPage(lockAction.ChapterId, lockAction.PageId);
+                string fieldSetId = formInstance.FieldInstances
+                    .Find(fI => fI.FieldSetInstanceRepetitionId == lockAction.FieldSetInstanceRepetitionId).FieldSetId;
+                return form.GetListOfFieldSetsByFieldSetId(fieldSetId);
+            }
+            else if (!string.IsNullOrEmpty(lockAction.PageId))
+            {
+                return form.GetFieldSetsInPage(lockAction.ChapterId, lockAction.PageId);
             }
             else if (!string.IsNullOrEmpty(lockAction.ChapterId))
             {
-                return form.GetFieldSetIdsInChapter(lockAction.ChapterId);
+                return form.GetFieldSetsInChapter(lockAction.ChapterId);
             }
             else
             {
-                return new List<FieldSet>();
+                return form.GetAllFieldSets();
             }
         }
 
@@ -534,6 +553,463 @@ namespace sReportsV2.BusinessLayer.Implementations
         }
 
         #endregion /OOMNIA API
+
+        #region AI Extraction
+        public async Task<bool> GenerateAIDataExtraction(DataExtractionDataIn dataExtractionDataIn, UserCookieData userCookieData)
+        {
+            dataExtractionDataIn = Ensure.IsNotNull(dataExtractionDataIn, nameof(dataExtractionDataIn));
+            Ensure.IsNotNullOrWhiteSpace(dataExtractionDataIn.FormInstanceId, nameof(dataExtractionDataIn.FormInstanceId));
+            Ensure.IsNotNullOrWhiteSpace(dataExtractionDataIn.FieldInstanceIdWithDataToExtract, nameof(dataExtractionDataIn.FieldInstanceIdWithDataToExtract));
+
+            FormInstance formInstance = await this.GetByIdAsync(dataExtractionDataIn.FormInstanceId);
+            string fileName = formInstance
+                .FieldInstances
+                .SelectMany(fI => fI.FieldInstanceValues)
+                .FirstOrDefault(fIV => fIV.FieldInstanceRepetitionId == dataExtractionDataIn.FieldInstanceIdWithDataToExtract)
+                ?.Values
+                ?.FirstOrDefault();
+
+            if (fileName != null)
+            {
+                SetFieldInstances(GetResponseContent(fileName), formInstance);
+                this.InsertOrUpdateAsync(formInstance, formInstance.GetCurrentFormInstanceStatus(userCookieData?.Id), userCookieData);
+            }
+
+            return true;
+        }
+
+        private string GetResponseContent(string fileName)
+        {
+            string responseContent = null;
+            if (fileName.EndsWith("PdfFromPhoto1"))
+            {
+                responseContent = @"{
+                    ""advice_following_discharge"": {
+                        ""follow_up_information"": ""Follow up with Dr. Rasesh Pothiwala after 30 days with prior appointment"",
+                        ""recommended_advice"": [
+                            ""Regular medication & follow up""
+                        ],
+                        ""recommended_diet"": ""Low fat diet""
+                    },
+                    ""discharge_diagnosis"": {
+                        ""main_diagnosis"": [
+                        ],
+                        ""other_diagnosis"": [
+                        ]
+                    },
+                    ""discharge_summary"": {
+                        ""admission_date"": null,
+                        ""admission_time"": null,
+                        ""admitting_doctor"": ""Dr. Rasesh Pothiwala"",
+                        ""age"": null,
+                        ""discharge_date"": null,
+                        ""patient_number"": null,
+                        ""sex"": null
+                    },
+                    ""hospital_course"": {
+                        ""discharge_status"": ""Stable haemodynamic condition"",
+                        ""laboratory_test_results"": null,
+                        ""vital_signs"": {
+                            ""diastolic_blood_pressure"": null,
+                            ""pulse"": null,
+                            ""systolic_blood_pressure"": null
+                        }
+                    },
+                    ""medical_history"": {
+                        ""comorbidities"": [
+                        ],
+                        ""symptoms_progression"": [
+                        ]
+                    },
+                    ""medication_at_discharge"": {
+                        ""medications"": [
+                            {
+                                ""dose"": ""75"",
+                                ""form"": ""Tablet"",
+                                ""frequency"": ""1-0-1"",
+                                ""name"": ""Clavix (Clopidogrel)""
+                            },
+                            {
+                                ""dose"": ""75"",
+                                ""form"": ""Tablet"",
+                                ""frequency"": ""0-1-0"",
+                                ""name"": ""Ecosprin (Aspirin)""
+                            },
+                            {
+                                ""dose"": ""80"",
+                                ""form"": ""Tablet"",
+                                ""frequency"": ""0-0-1"",
+                                ""name"": ""Lipicure (Atorvastatin)""
+                            },
+                            {
+                                ""dose"": ""40 mg"",
+                                ""form"": ""Tablet"",
+                                ""frequency"": ""1-0-1"",
+                                ""name"": ""Pantodac (Pantoprazole)""
+                            },
+                            {
+                                ""dose"": null,
+                                ""form"": ""Tablet"",
+                                ""frequency"": ""0-1-0"",
+                                ""name"": ""FDSON MP (Folic acid + methylcobalamine + Pyridoxin)""
+                            },
+                            {
+                                ""dose"": ""5 mg"",
+                                ""form"": ""Tablet"",
+                                ""frequency"": ""Sublingual if chest pain (SOS)"",
+                                ""name"": ""Sorbitrate (Isosorbide Dinitrate)""
+                            }
+                        ]
+                    },
+                    ""medication_during_hospitalization"": {
+                        ""medications"": [
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""Efforlin""
+                            },
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""Taxim""
+                            },
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""Heparin""
+                            },
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""NS""
+                            },
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""Tirofiban""
+                            },
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""Cort S""
+                            },
+                            {
+                                ""form"": ""Injection"",
+                                ""name"": ""Clexane""
+                            },
+                            {
+                                ""form"": ""Tablet"",
+                                ""name"": ""Droxyl""
+                            },
+                            {
+                                ""form"": ""Tablet"",
+                                ""name"": ""Clavix""
+                            },
+                            {
+                                ""form"": ""Tablet"",
+                                ""name"": ""Ecosprin""
+                            },
+                            {
+                                ""form"": ""Tablet"",
+                                ""name"": ""Lipicure""
+                            },
+                            {
+                                ""form"": ""Tablet"",
+                                ""name"": ""Pantodac""
+                            },
+                            {
+                                ""form"": ""Tablet"",
+                                ""name"": ""FDSON MP""
+                            }
+                        ]
+                    },
+                    ""other_consultations"": {
+                        ""consultations_with_specialists"": [
+                        ]
+                    },
+                    ""principal_diagnosis_at_admission"": {
+                        ""main_diagnosis"": [
+                        ]
+                    },
+                    ""procedure_surgeries"": {
+                        ""procedure_dates"": [
+                        ],
+                        ""procedures"": [
+                        ]
+                    },
+                    ""reason_for_admission"": {
+                        ""reasons"": [
+                        ]
+                    }
+                }";
+            } 
+            else if (fileName.EndsWith("PdfFromPhoto2"))
+            {
+                responseContent = @"{
+                    ""advice_following_discharge"": {
+                        ""follow_up_information"": null,
+                        ""recommended_advice"": [
+                        ],
+                        ""recommended_diet"": null
+                    },
+                    ""discharge_diagnosis"": {
+                        ""main_diagnosis"": [
+                            ""Acute Coronary Syndrome"",
+                            ""Coronary Artery Disease - Single Vessel Disease"",
+                            ""Successful Denovo stenting of LCX lesion done using 1 DES""
+                        ],
+                        ""other_diagnosis"": [
+                            ""None""
+                        ]
+                    },
+                    ""discharge_summary"": {
+                        ""admission_date"": ""18/05/2019"",
+                        ""admission_time"": ""12:01 AM"",
+                        ""admitting_doctor"": ""Dr. DIRECT . HOSPITAL"",
+                        ""age"": ""38 Years 11 Months 7 Days"",
+                        ""discharge_date"": ""20/05/2019"",
+                        ""patient_number"": ""5461233"",
+                        ""sex"": ""Male""
+                    },
+                    ""hospital_course"": {
+                        ""discharge_status"": ""patient is being discharged in stable haemodynamic condition"",
+                        ""laboratory_test_results"": ""Pre angio profile were normal"",
+                        ""vital_signs"": {
+                            ""diastolic_blood_pressure"": ""70"",
+                            ""pulse"": ""70/min"",
+                            ""systolic_blood_pressure"": ""110""
+                        }
+                    },
+                    ""medical_history"": {
+                        ""comorbidities"": [
+                            ""nondiabetic"",
+                            ""normotensive""
+                        ],
+                        ""symptoms_progression"": [
+                            ""complaints of chest pain 13 hours prior to admission which eventually worsened""
+                        ]
+                    },
+                    ""medication_at_discharge"": {
+                        ""medications"": [
+                        ]
+                    },
+                    ""medication_during_hospitalization"": {
+                        ""medications"": [
+                            {
+                                ""form"": ""Inj"",
+                                ""name"": ""Avil""
+                            }
+                        ]
+                    },
+                    ""other_consultations"": {
+                        ""consultations_with_specialists"": [
+                            ""None""
+                        ]
+                    },
+                    ""principal_diagnosis_at_admission"": {
+                        ""main_diagnosis"": [
+                            ""Acute Coronary Syndrome""
+                        ]
+                    },
+                    ""procedure_surgeries"": {
+                        ""procedure_dates"": [
+                            ""18/05/19"",
+                            ""18/05/19""
+                        ],
+                        ""procedures"": [
+                            ""Coronary Angiography"",
+                            ""Denovo stenting of LCX lesion with 1 DES""
+                        ]
+                    },
+                    ""reason_for_admission"": {
+                        ""reasons"": [
+                            ""Patient was admitted in Sterling Hospital for further cardiac management.""
+                        ]
+                    }
+                }";
+            }
+            else
+            {
+                responseContent = @"{
+                    ""discharge_summary"": {
+                        ""sex"": ""Male"",
+                        ""age"": ""38 Years 11 Months 7 Days"",
+                        ""patient_number"": ""5461233"",
+                        ""admission_date"": ""18/05/2019"",
+                        ""admission_time"": ""12:01 AM"",
+                        ""discharge_date"": ""20/05/2019"",
+                        ""admitting_doctor"": ""Dr. DIRECT, HOSPITAL""
+                    },
+                    ""principal_diagnosis_at_admission"": {
+                        ""main_diagnosis"": [
+                            ""Acute Coronary Syndrome""
+                        ]
+                    },
+                    ""discharge_diagnosis"": {
+                        ""main_diagnosis"": [
+                            ""Acute Coronary Syndrome"",
+                            ""Coronary Artery Disease - Single Vessel Disease"",
+                            ""Successful Denovo stenting of LCX lesion done using 1 DES""
+                        ],
+                        ""other_diagnosis"": [
+                            ""None""
+                        ]
+                    },
+                    ""other_consultations"": {
+                        ""consultations_with_specialists"": [
+                            ""None""
+                        ]
+                    },
+                    ""procedure_surgeries"": {
+                        ""procedures"": [
+                            ""Coronary Angiography"",
+                            ""Denovo stenting of LCX lesion with 1 DES""
+                        ],
+                        ""procedure_dates"": [
+                            ""18/05/19"",
+                            ""18/05/19""
+                        ]
+                    },
+                    ""medical_history"": {
+                        ""comorbidities"": [
+                            ""nondiabetic"",
+                            ""normotensive""
+                        ],
+                        ""symptoms_progression"": [
+                            ""complaints of chest pain 13 hours prior to admission which eventually worsened""
+                        ]
+                    },
+                    ""reason_for_admission"": {
+                        ""reasons"": [
+                            ""Patient was admitted in Sterling Hospital for further cardiac management.""
+                        ]
+                    },
+                    ""hospital_course"": {
+                        ""vital_signs"": {
+                            ""pulse"": ""70/min"",
+                            ""systolic_blood_pressure"": 110,
+                            ""diastolic_blood_pressure"": 70
+                        },
+                        ""laboratory_test_results"": ""Pre angio profile were normal"",
+                        ""discharge_status"": ""stable haemodynamic condition""
+                    },
+                    ""medication_during_hospitalization"": {
+                        ""medications"": [
+                            {
+                                ""name"": ""Avil"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Effcorlin"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Taxim"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Heparin"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""NS"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Tirofiban"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Cort S"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Clexane"",
+                                ""form"": ""Inj""
+                            },
+                            {
+                                ""name"": ""Droxyl"",
+                                ""form"": ""Tab""
+                            },
+                            {
+                                ""name"": ""Clavix"",
+                                ""form"": ""Tab""
+                            },
+                            {
+                                ""name"": ""Ecosprin"",
+                                ""form"": ""Tab""
+                            },
+                            {
+                                ""name"": ""Lipicure"",
+                                ""form"": ""Tab""
+                            },
+                            {
+                                ""name"": ""Pantodac"",
+                                ""form"": ""Tab""
+                            },
+                            {
+                                ""name"": ""FDSON MP"",
+                                ""form"": ""Tab""
+                            }
+                        ]
+                    },
+                    ""advice_following_discharge"": {
+                        ""recommended_advice"": [
+                            ""Regular medication & follow up""
+                        ],
+                        ""recommended_diet"": ""Low fat diet"",
+                        ""follow_up_information"": ""Follow up with Dr. Rasesh Pothiwala after 30 days with prior appointment""
+                    },
+                    ""medication_at_discharge"": {
+                        ""medications"": [
+                            {
+                                ""name"": ""Clavix (Clopidogrel)"",
+                                ""form"": ""Tab"",
+                                ""dose"": ""75"",
+                                ""frequency"": ""1-0-1""
+                            },
+                            {
+                                ""name"": ""Ecosprin (Aspirin)"",
+                                ""form"": ""Tab"",
+                                ""dose"": ""75"",
+                                ""frequency"": ""0-1-0""
+                            },
+                            {
+                                ""name"": ""Lipicure (Atorvastatin)"",
+                                ""form"": ""Tab"",
+                                ""dose"": ""80"",
+                                ""frequency"": ""0-0-1""
+                            },
+                            {
+                                ""name"": ""Pantodac (Pantoprazole)"",
+                                ""form"": ""Tab"",
+                                ""dose"": ""40 mg"",
+                                ""frequency"": ""1-0-1""
+                            },
+                            {
+                                ""name"": ""FDSON MP (Folic acid + methylcobalamine + Pyridoxin)"",
+                                ""form"": ""Tab"",
+                                ""dose"": null,
+                                ""frequency"": ""0-1-0""
+                            },
+                            {
+                                ""name"": ""Sorbitrate (Isosorbide Dinitrate)"",
+                                ""form"": ""Tab"",
+                                ""dose"": ""5 mg"",
+                                ""frequency"": ""Sublingual if chest pain (SOS)""
+                            }
+                        ]
+                    }
+                }";
+            }
+            
+            return responseContent;
+        }
+
+        private void SetFieldInstances(string responseBody, FormInstance formInstance)
+        {
+            Form form = formDAL.GetForm(formInstance.FormDefinitionId);
+            AIResponseBody deserializedResponse = JsonConvert.DeserializeObject<AIResponseBody>(responseBody);
+            if (deserializedResponse != null)
+            {
+                new AIResponseParser(form.GetAllFieldSets(), formInstance, deserializedResponse).HandleResponse();
+            }
+        }
+        #endregion /AI Extraction
 
         private RestResponse GetResponse(Common.Entities.RestRequestData restRequestData, SReportsContext sReportsContext, IAuthenticator authenticator=null)
         {

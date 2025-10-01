@@ -143,12 +143,12 @@ function getContactFromFormForTable() {
 
     contactEntity["ContactRelationship"] = {
         value: $("#contactRelationship").val(),
-        display: $('#contactRelationship').find(":selected").text()
+        display: getSelectedOptionLabel('contactRelationship')
     };
 
     contactEntity["Gender"] = {
         value: $("#contactGender").val(),
-        display: $('#contactGender').find(":selected").text()
+        display: getSelectedOptionLabel('contactGender')
     };
 
     return contactEntity;

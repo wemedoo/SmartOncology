@@ -18,7 +18,7 @@ namespace sReportsV2.Domain.Entities.FormInstance
             CreatedOn = DateTime.Now;
         }
 
-        public FormInstanceStatus(ChapterPageInstanceStatus chapterPageInstanceStatus)
+        public FormInstanceStatus(ChapterPageFieldSetInstanceStatus chapterPageInstanceStatus)
         {
             Status = chapterPageInstanceStatus.IsLocked() ? FormState.Locked : FormState.Unlocked;
             CreatedById = chapterPageInstanceStatus.CreatedById.Value;

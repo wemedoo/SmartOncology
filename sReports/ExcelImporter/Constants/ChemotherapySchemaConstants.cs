@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ExcelImporter.Constants
+﻿namespace ExcelImporter.Constants
 {
     public static class ChemotherapySchemaConstants
     {
+        public const string ChemotheraphyFolder = "ChemotherapyData";
         public const string ChemOncAdditionalDataFile = "Chem_Onc_Additional_Data";
         public const string RouteOfAdministrationSheet = "Route of administration";
         public const string BodySurfaceCalculationFormulaSheet = "Body surface calc. formula";
@@ -22,6 +17,9 @@ namespace ExcelImporter.Constants
         public const string ShortName = "Short name";
         public const string FdaCode = "FDA code";
         public const string NciConceptId = "NCI concept ID";
+
+        public const string BasicDataSheet = "Basic Data";
+        public const string ChemotherapySchemaImportFile = "Chemotherapy_Schema_Import";
 
         public const string Intervals = "Intervals";
 

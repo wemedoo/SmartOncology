@@ -9,6 +9,8 @@ using sReportsV2.DTOs.ThesaurusEntry.DataIn;
 using System;
 using Microsoft.AspNetCore.Mvc;
 using sReportsV2.Common.Enums;
+using sReportsV2.Common.Helpers;
+using System.Threading.Tasks;
 
 namespace sReportsV2.Controllers
 {
@@ -23,13 +25,13 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuthorize(Module = ModuleNames.Thesaurus, Permission = PermissionNames.Update)]
-        public ActionResult MergeThesauruses(ThesaurusMergeDataIn thesaurusMergeDataIn)
+        public async Task<ActionResult> MergeThesauruses(ThesaurusMergeDataIn thesaurusMergeDataIn)
         {
             var thesaurusMergeStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ThesaurusMergeState);
             int? pendingStateCD = thesaurusMergeStates?.Find(x => x.Thesaurus.Translations.Exists(m => m.PreferredTerm == CodeAttributeNames.Pending))?.Id;
             thesaurusMergeDataIn = Ensure.IsNotNull(thesaurusMergeDataIn, nameof(thesaurusMergeDataIn));
             thesaurusMergeDataIn.StateCD = pendingStateCD;
-            thesaurusEntryBLL.MergeThesauruses(thesaurusMergeDataIn, Mapper.Map<UserData>(userCookieData));
+            await thesaurusEntryBLL.MergeThesauruses(thesaurusMergeDataIn, mapper.Map<UserData>(userCookieData)).ConfigureAwait(false);
             RefreshCache(thesaurusMergeDataIn.TargetId, ModifiedResourceType.Thesaurus);
             return Ok();
         }
@@ -39,19 +41,19 @@ namespace sReportsV2.Controllers
         public ActionResult MergeThesaurusOccurences()
         {
             Log.Information($"MergeThesaurusOccurences has been started");
-            _asyncRunner.Run<IThesaurusEntryBLL>((thesaurusEntryBLL) =>
+            _asyncRunner.Run<IThesaurusEntryBLL>(async (thesaurusEntryBLL) =>
             {
-                MergeThesaurusOccurencesAction(thesaurusEntryBLL);
+                await MergeThesaurusOccurencesAction(thesaurusEntryBLL).ConfigureAwait(false);
             });
             return Json("Merge Process of thesaurus occurences has been started! Administration team will let you know when the operation is finished.");
         }
 
       
-        private void MergeThesaurusOccurencesAction(IThesaurusEntryBLL thesaurusEntryBLLObject)
+        private async Task MergeThesaurusOccurencesAction(IThesaurusEntryBLL thesaurusEntryBLLObject)
         {
             try
             {
-                int numOfUpdatedEntries = thesaurusEntryBLLObject.MergeThesaurusOccurences(userCookieData);
+                int numOfUpdatedEntries = await thesaurusEntryBLLObject.MergeThesaurusOccurences(userCookieData).ConfigureAwait(false);
                 if (numOfUpdatedEntries > 0)
                 {
                     RefreshCache();
@@ -60,7 +62,7 @@ namespace sReportsV2.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "MergeThesaurusOccurrences thrown an error: {Message}", ex.Message);
+                Log.Error(ex, "MergeThesaurusOccurrences thrown an error: {Message}", ex.GetExceptionStackMessages());
             }
         }
     }

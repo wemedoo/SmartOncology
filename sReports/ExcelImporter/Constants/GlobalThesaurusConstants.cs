@@ -8,6 +8,7 @@ namespace ExcelImporter.Constants
 {
     public static class GlobalThesaurusConstants
     {
+        public const string FolderName = "GlobalThesaurus";
         public const string FileName = "ThesaurusMetaData_SmartOncology";
         public const string Sheet = "Tabelle1";
 

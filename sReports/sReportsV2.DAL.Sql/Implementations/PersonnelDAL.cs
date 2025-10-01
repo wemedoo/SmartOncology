@@ -36,10 +36,32 @@ namespace sReportsV2.DAL.Sql.Implementations
                 .Include("Organizations.Organization")
                 .Include(x => x.PersonnelConfig)
                 .Include(x => x.PersonnelAcademicPositions)
-                .Include(x => x.PersonnelIdentifiers)
                 .Include(x => x.PersonnelOccupation)
                 .Include(x => x.PersonnelPositions)
+                .Include(x => x.PersonnelIdentifiers)
                 .FirstOrDefault(x => x.PersonnelId == id);
+        }
+
+        public Personnel GetWithHistoryById(int id)
+        {
+            var personnel = context.Personnel
+                .FirstOrDefault(x => x.PersonnelId == id);
+
+            if (personnel != null)
+            {
+                var historicalPasswords = context.Personnel
+                    .TemporalAll()
+                    .Where(x => x.PersonnelId == id)
+                    .OrderByDescending(x => EF.Property<DateTime>(x, "EntryDatetime"))
+                    .Select(x => x.Password)
+                    .ToList();
+
+                personnel.PasswordHistory = historicalPasswords
+                    .Where(p => p != personnel.Password)
+                    .ToList();
+            }
+
+            return personnel;
         }
 
         public async Task<PersonnelIdentifier> GetById(QueryEntityParam<PersonnelIdentifier> queryEntityParams)
@@ -235,19 +257,6 @@ namespace sReportsV2.DAL.Sql.Implementations
             IncrementOrganizationsUserCount(user.GetOrganizationRefs().Where(x => !dbUser.GetOrganizationRefs().Contains(x)).ToList(), 1);
         }
 
-        public void UpdateUsersCountForAllOrganization(int? archivedUserStateCD)
-        {
-            var organizationIds = GetOrganizationIds();
-            Dictionary<int, int> numOfUsersPerOrganization = MapNumOfUsersPerOrganization(organizationIds, archivedUserStateCD);
-
-            foreach (var organization in context.Organizations.WhereEntriesAreActive())
-            {
-                organization.NumOfUsers = numOfUsersPerOrganization[organization.OrganizationId];
-            }
-
-            context.SaveChanges();
-        }
-
         public void UpdatePassword(Personnel user, string newPassword)
         {
             Personnel userDb = GetById(user.PersonnelId);
@@ -271,23 +280,25 @@ namespace sReportsV2.DAL.Sql.Implementations
                    .ToList();
         }
 
-        public IQueryable<AutoCompleteUserData> GetUsersFilteredByName(string searchValue, int organizationId, int? archivedUserStateCD)
+        public async Task<List<AutoCompleteUserData>> FilterForAutocomplete(PersonnelAutocompleteFilter personnelAutocompleteFilter)
         {
             var personnelQuery = context.Personnel
                 .WhereEntriesAreActive()
                 .Where(x =>
-                        (searchValue.Contains(" ") && (x.FirstName.ToLower() + " " + x.LastName.ToLower()).Contains(searchValue.ToLower()))
-                        || (searchValue.Contains(" ") && (x.LastName.ToLower() + " " + x.FirstName.ToLower()).Contains(searchValue.ToLower()))
-                        || (!searchValue.Contains(" ") && (x.FirstName.ToLower().Contains(searchValue.ToLower()) || x.LastName.ToLower().Contains(searchValue.ToLower())))
+                (x.IsDoctor == personnelAutocompleteFilter.FilterByDoctors || !personnelAutocompleteFilter.FilterByDoctors) &&
+                        (personnelAutocompleteFilter.Name.Contains(" ") && (x.FirstName.ToLower() + " " + x.LastName.ToLower()).Contains(personnelAutocompleteFilter.Name.ToLower()))
+                        || (personnelAutocompleteFilter.Name.Contains(" ") && (x.LastName.ToLower() + " " + x.FirstName.ToLower()).Contains(personnelAutocompleteFilter.Name.ToLower()))
+                        || (!personnelAutocompleteFilter.Name.Contains(" ") && (x.FirstName.ToLower().Contains(personnelAutocompleteFilter.Name.ToLower()) || x.LastName.ToLower().Contains(personnelAutocompleteFilter.Name.ToLower())))
                 );
 
-            if (organizationId != 0)
+            if (personnelAutocompleteFilter.OrganizationId != 0)
             {
-                personnelQuery = personnelQuery.Where(x => x.Organizations.Any(y => y.OrganizationId == organizationId && y.StateCD != archivedUserStateCD));
+                personnelQuery = personnelQuery.Where(x => x.Organizations.Any(y => y.OrganizationId == personnelAutocompleteFilter.OrganizationId && y.StateCD != personnelAutocompleteFilter.ArchivedUserStateId));
             }
 
-            return personnelQuery
-                .Select(x => new AutoCompleteUserData { PersonnelId = x.PersonnelId, FirstName = x.FirstName, LastName = x.LastName, UserName = x.Username });
+            return await personnelQuery
+                .OrderBy(x => x.FirstName)
+                .Select(x => new AutoCompleteUserData(x)).ToListAsync();
         }
 
         public List<PersonnelView> GetAll(PersonnelFilter userFilter, int? archivedUserStateCD)
@@ -297,13 +308,13 @@ namespace sReportsV2.DAL.Sql.Implementations
             if (userFilter.ColumnName != null)
             {
                 result = SortTableHelper.OrderByField(result, userFilter.ColumnName, userFilter.IsAscending)
-                     .Skip((userFilter.Page - 1) * userFilter.PageSize)
+                     .Skip(userFilter.GetHowManyElementsToSkip())
                      .Take(userFilter.PageSize);
             }
             else
             {
                 result = result.OrderBy(x => x.PersonnelId)
-                     .Skip((userFilter.Page - 1) * userFilter.PageSize)
+                     .Skip(userFilter.GetHowManyElementsToSkip())
                      .Take(userFilter.PageSize);
             }
 
@@ -356,8 +367,8 @@ namespace sReportsV2.DAL.Sql.Implementations
             var personnel = context.Personnel
                 .Include(x => x.PersonnelIdentifiers)
                 .WhereEntriesAreActive()
-                .ToList()
-                ;
+                .ToList();
+
             return personnel
                 .Find(p =>
                 personnelIdentifiers.Exists(i => 
@@ -369,27 +380,6 @@ namespace sReportsV2.DAL.Sql.Implementations
                     )
                 )
                 ?.PersonnelId;
-        }
-
-        public IQueryable<Personnel> FilterForAutocomplete(PersonnelAutocompleteFilter personnelAutocompleteFilter, int? archivedUserStateCD)
-        {
-            string name = personnelAutocompleteFilter.Name;
-
-            IQueryable<Personnel> query =
-                context.Personnel
-                    .WhereEntriesAreActive()
-                    .Where(x =>
-                         (x.IsDoctor == personnelAutocompleteFilter.FilterByDoctors || !personnelAutocompleteFilter.FilterByDoctors)
-                        && x.Organizations.Any(y => y.OrganizationId == personnelAutocompleteFilter.OrganizationId && y.StateCD != archivedUserStateCD)
-                        );
-
-            if (!string.IsNullOrWhiteSpace(name))
-                query = query.Where(x => 
-                    x.FirstName.ToLower().Contains(name.ToLower()) 
-                        || x.LastName.ToLower().Contains(name.ToLower())
-                );
-
-            return query;
         }
 
         public void InsertOrUpdatePersonnelOccupation(Personnel user, PersonnelOccupation personnelOccupation)
@@ -498,6 +488,31 @@ namespace sReportsV2.DAL.Sql.Implementations
             return new PaginationData<Personnel>(count, await query.ToListAsync().ConfigureAwait(false));
         }
 
+        public async Task CommitUserTransaction(Personnel userDb, PersonnelOccupation personnelOccupation)
+        {
+            var strategy = context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await context.Database.BeginTransactionAsync();
+                try
+                {
+                    this.InsertOrUpdate(userDb);
+
+                    if (personnelOccupation != null)
+                    {
+                        this.InsertOrUpdatePersonnelOccupation(userDb, personnelOccupation);
+                    }
+
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
+        }
+
         private IQueryable<Personnel> ApplyOrderByAndPaging(EntityFilter filter, IQueryable<Personnel> query)
         {
             if (!string.IsNullOrWhiteSpace(filter.ColumnName))
@@ -525,7 +540,7 @@ namespace sReportsV2.DAL.Sql.Implementations
                 query = query.OrderBy(x => x.PersonnelId);
             }
 
-            query = query.Skip((filter.Page - 1) * filter.PageSize).Take(filter.PageSize);
+            query = query.Skip(filter.GetHowManyElementsToSkip()).Take(filter.PageSize);
             return query;
         }
 
@@ -543,23 +558,6 @@ namespace sReportsV2.DAL.Sql.Implementations
                 .FirstOrDefault(x => x.PersonnelOccupationId == id);
         }
 
-        private List<int> GetOrganizationIds()
-        {
-            return context.Organizations
-                .WhereEntriesAreActive()
-                .Select(x => x.OrganizationId).ToList();
-        }
-
-        private Dictionary<int, int> MapNumOfUsersPerOrganization(List<int> organizationIds, int? archivedUserStateCD)
-        {
-            Dictionary<int, int> numOfUsersPerOrganization = new Dictionary<int, int>();
-            foreach (var organizationId in organizationIds)
-            {
-                numOfUsersPerOrganization[organizationId] = GetAllByActiveOrganization(organizationId, archivedUserStateCD).Count();
-            }
-            return numOfUsersPerOrganization;
-        }
-
         private void IncrementOrganizationsUserCount(List<int> organizationIds, int value)
         {
             foreach (var organization in context.Organizations.Where(x => organizationIds.Contains(x.OrganizationId)))
@@ -573,50 +571,86 @@ namespace sReportsV2.DAL.Sql.Implementations
         private IQueryable<PersonnelView> GetPersonnelFiltered(PersonnelFilter filterData, int? archivedUserStateCD)
         {
             int activeOrganizationFilter = filterData.ShowUnassignedUsers ? -1 : filterData.ActiveOrganization;
-            string organizationIdFilter = PrepareSearchWordForComplexProperty(filterData.OrganizationId.HasValue ? filterData.OrganizationId.Value.ToString() : string.Empty);
             string roleIdFilter = PrepareSearchWordForComplexProperty(filterData.RoleCD.HasValue ? filterData.RoleCD.Value.ToString() : string.Empty);
             string personnelIdentifierFilter = PrepareSearchWordForComplexProperty(PrepareIdentifierSearchWord(filterData));
             string personnelAddressLikePattern = PrepareAddressSearchLikePattern(filterData);
             bool isEmptyAddressFilter = IsEmptyAddressFilter(filterData);
 
-            IQueryable<PersonnelView> query = GetAllByActiveOrganization(activeOrganizationFilter, archivedUserStateCD)
+            IQueryable<PersonnelView> query = GetAllByActiveOrganization(activeOrganizationFilter, archivedUserStateCD, filterData.HasAdminRole)
                 .Where(u =>
                     (filterData.Family == null || u.LastName.ToLower().Contains(filterData.Family.ToLower()))
                     && (filterData.Given == null || u.FirstName.ToLower().Contains(filterData.Given.ToLower()))
                     && (filterData.BusinessEmail == null || filterData.BusinessEmail == u.Email)
-                    && (filterData.Username == null || filterData.Username == u.Username)
+                    && (filterData.Username == null || u.Username.ToLower().Contains(filterData.Username.ToLower()))
                     && (filterData.PersonnelTypeCD == null || filterData.PersonnelTypeCD == u.PersonnelTypeCD)
                     && (filterData.BirthDate == null || filterData.BirthDate == u.DayOfBirth)
-                    && (string.IsNullOrEmpty(organizationIdFilter) || u.PersonnelOrganizationIds.Contains(organizationIdFilter))
-                    && (string.IsNullOrEmpty(roleIdFilter) || u.PersonnelPositionIds.Contains(roleIdFilter))
-                    && (string.IsNullOrEmpty(personnelIdentifierFilter) || u.PersonnelIdentifiers.Contains(personnelIdentifierFilter))
+                    && (filterData.OrganizationId == null || filterData.OrganizationId == u.OrganizationId)
+                    && (string.IsNullOrEmpty(roleIdFilter) || (u.PersonnelPositionIds != null && u.PersonnelPositionIds.Contains(roleIdFilter)))
+                    && (string.IsNullOrEmpty(personnelIdentifierFilter) || (u.PersonnelIdentifiers != null && u.PersonnelIdentifiers.Contains(personnelIdentifierFilter)))
                     && (isEmptyAddressFilter || EF.Functions.Like(u.PersonnelAddresses, personnelAddressLikePattern))
-                )
-            ;
+                );
 
             return query;
         }
 
-        private IQueryable<PersonnelView> GetAllByActiveOrganization(int activeOrganization, int? archivedUserStateCD)
+        private IQueryable<PersonnelView> GetAllByActiveOrganization(int activeOrganization, int? archivedUserStateCD, bool hasAdminRole)
         {
             IQueryable<PersonnelView> queryable = context.PersonnelViews;
+
             if (activeOrganization > 0)
             {
-                return queryable
-                    .WhereEntriesAreActive()
-                    .Where(x => x.OrganizationId == activeOrganization && x.StateCD != archivedUserStateCD
-                );
+                return hasAdminRole
+                    ? GetDistinctPersonnelAcrossOrganizations(queryable, archivedUserStateCD)
+                    : GetPersonnelByOrganization(queryable, activeOrganization, archivedUserStateCD);
             }
-            else
-            {
-                return queryable
-                     .WhereEntriesAreActive()
-                     .AsEnumerable()
-                     .GroupBy(x => x.PersonnelId)
-                     .Where(group => group.All(n => n.StateCD == archivedUserStateCD || n.StateCD == null))
-                     .Select(group => group.FirstOrDefault())
-                     .AsQueryable();
-            }
+
+            return GetArchivedOnlyPersonnel(queryable, archivedUserStateCD);
+        }
+
+        private IQueryable<PersonnelView> GetDistinctPersonnelAcrossOrganizations(IQueryable<PersonnelView> source, int? archivedUserStateCD)
+        {
+            var activeQuery = source.WhereEntriesAreActive();
+
+            var validPersonnelIds = activeQuery
+                .GroupBy(x => x.PersonnelId)
+                .Where(g => g.Any(n => n.StateCD != archivedUserStateCD && n.StateCD != null))
+                .Select(g => g.Key);
+
+            var selected = activeQuery
+                .Where(x => validPersonnelIds.Contains(x.PersonnelId))
+                .GroupBy(x => x.PersonnelId)
+                .Select(g => new
+                {
+                    PersonnelId = g.Key,
+                    MinOrganizationId = g.Min(x => x.OrganizationId)
+                });
+
+            var result = from p in activeQuery
+                         join s in selected
+                         on new { p.PersonnelId, p.OrganizationId }
+                         equals new { s.PersonnelId, OrganizationId = s.MinOrganizationId }
+                         select p;
+
+            return result;
+        }
+
+        private IQueryable<PersonnelView> GetPersonnelByOrganization(IQueryable<PersonnelView> source, int organizationId, int? archivedUserStateCD)
+        {
+            return source
+                .WhereEntriesAreActive()
+                .Where(x => x.OrganizationId == organizationId && x.StateCD != archivedUserStateCD);
+        }
+
+        private IQueryable<PersonnelView> GetArchivedOnlyPersonnel(IQueryable<PersonnelView> source, int? archivedUserStateCD)
+        {
+            var validPersonnelIds = source
+                .GroupBy(x => x.PersonnelId)
+                .Where(g => g.All(n => n.StateCD == archivedUserStateCD || n.StateCD == null))
+                .Select(g => g.Key);
+
+            return source
+                .WhereEntriesAreActive()
+                .Where(x => validPersonnelIds.Contains(x.PersonnelId));
         }
 
         private string PrepareIdentifierSearchWord(PersonnelFilter userFilter)

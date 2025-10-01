@@ -41,7 +41,6 @@ function reloadTable(filterData) {
         url: `/FieldInstanceHistory/ReloadData`,
         data: filterData,
         success: function (data) {
-            console.log("History retrieved");
             $("#form-instance-history-container").html(data);
             $('#formInstanceHistoryModal').modal('show');
             initializeFieldInstanceHistorySelect2();
@@ -79,9 +78,7 @@ function getPageSize() {
 }
 
 $(document).on('change', '.pageSizeSelector', function () {
-
-    pageNum = $('.page-item.active').find('.pagination-item-num').text();
-    reloadTable(getFilter(pageNum ?? 1));
+    reloadTable(getFilter());
 });
 
 

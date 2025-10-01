@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using sReportsV2.BusinessLayer.Interfaces;
-using sReportsV2.Common.CustomAttributes;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.Domain.Services.Implementations;
 using sReportsV2.Domain.Services.Interfaces;
@@ -8,12 +7,6 @@ using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.Pagination;
 using sReportsV2.DTOs.ThesaurusEntry;
 using sReportsV2.DTOs.ThesaurusEntry.DataOut;
-using System.Collections.Generic;
-using sReportsV2.DTOs.Common.DTO;
-using sReportsV2.Common.Entities.User;
-using sReportsV2.Common.Constants;
-using sReportsV2.DTOs.O4CodeableConcept.DataIn;
-using sReportsV2.Common.Enums;
 using System;
 using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
@@ -22,20 +15,39 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.DTOs.DTOs.ThesaurusEntry.DataOut;
+using System.Threading.Tasks;
+using sReportsV2.Common.CustomAttributes;
+using sReportsV2.Common.Constants;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
+using sReportsV2.DTOs.Common.DTO;
+using System.Collections.Generic;
+using sReportsV2.Common.Enums;
+using sReportsV2.DTOs.Autocomplete;
+using System.Linq;
+using sReportsV2.Common.Entities.User;
+using sReportsV2.DTOs.O4CodeableConcept.DataIn;
 
 namespace sReportsV2.Controllers
 {
     public partial class ThesaurusEntryController : BaseController
     {
-        private readonly IFormDAL formService;
+        private readonly IFormBLL formBLL;
         private readonly IThesaurusEntryBLL thesaurusEntryBLL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
-        public ThesaurusEntryController(IThesaurusEntryBLL thesaurusEntryBLL, IAsyncRunner asyncRunner, IMapper mapper, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public ThesaurusEntryController(IThesaurusEntryBLL thesaurusEntryBLL,
+            IAsyncRunner asyncRunner, 
+            IMapper mapper, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService,
+            IFormBLL formBLL) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
-            this.formService = new FormDAL();
+            this.formBLL = formBLL;
             this.thesaurusEntryBLL = thesaurusEntryBLL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Thesaurus)]
@@ -60,6 +72,47 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuthorize]
+        public ActionResult GetExtensions(string name, List<AutocompleteDataOut> allConceptSchemes)
+        {
+            name = name ?? string.Empty;
+            return PartialView(
+                "~/Views/Form/DragAndDrop/CustomFields/AutocompleteValues.cshtml",
+                new CustomAutocompleteDataOut()
+                {
+                    ComponentName = "extension",
+                    Options = allConceptSchemes.Where(x => x.text.ToLower().StartsWith(name.ToLower())).ToDictionary(x => x.id, x => x.text)
+                }
+            );
+        }
+
+        [SReportsAuthorize]
+        public ActionResult GetNarrowerConcepts(string name)
+        {
+            return PartialView(
+                "~/Views/Form/DragAndDrop/CustomFields/AutocompleteValues.cshtml",
+                new CustomAutocompleteDataOut()
+                {
+                    ComponentName = "narrowerConcept",
+                    Options = thesaurusEntryBLL.GetAutocompleteData(name, userCookieData.ActiveLanguage),
+                }
+            );
+        }
+
+        [SReportsAuthorize]
+        public ActionResult GetBroaderConcepts(string name)
+        {
+            return PartialView(
+                "~/Views/Form/DragAndDrop/CustomFields/AutocompleteValues.cshtml",
+                new CustomAutocompleteDataOut()
+                {
+                    ComponentName = "broaderConcept",
+                    Options = thesaurusEntryBLL.GetAutocompleteData(name, userCookieData.ActiveLanguage),
+                }
+            );
+        }
+
+
+        [SReportsAuthorize]
         public ActionResult ThesaurusProperties(int? o4mtid)
         {
             ThesaurusEntryDataOut viewModel = this.thesaurusEntryBLL.GetThesaurusDataOut(o4mtid.Value);
@@ -81,13 +134,12 @@ namespace sReportsV2.Controllers
 
         [Authorize]
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Thesaurus)]
-        public ActionResult GetReviewTree(ThesaurusReviewFilterDataIn filter)
+        public async Task<ActionResult> GetReviewTree(ThesaurusReviewFilterDataIn filter)
         {
-            sReportsV2.Domain.Sql.Entities.ThesaurusEntry.ThesaurusEntry thesaurus = thesaurusEntryBLL.GetById(filter.Id);
+            ThesaurusEntryDataOut thesaurus = await thesaurusEntryBLL.GetById(filter.Id).ConfigureAwait(false);
 
-            ViewBag.O4MTId = thesaurus.ThesaurusEntryId;
+            ViewBag.O4MTId = thesaurus.Id;
             ViewBag.Id = filter.Id;
-            ViewBag.CurrentThesaurus = thesaurus;
             ViewBag.FilterData = filter;
             ViewBag.PreferredTerm = thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage);
 
@@ -95,18 +147,18 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuthorize]
-        public ActionResult GetThesaurusInfo(int id)
+        public async Task<ActionResult> GetThesaurusInfo(int id)
         {
             ViewBag.ThesaurusStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ThesaurusState);
-            return PartialView("ThesaurusInfo", Mapper.Map<ThesaurusEntryDataOut>(thesaurusEntryBLL.GetById(id)));
+            return PartialView("ThesaurusInfo", await thesaurusEntryBLL.GetById(id).ConfigureAwait(false));
         }
 
         [SReportsAuthorize]
-        public ActionResult ReloadReviewTree(ThesaurusReviewFilterDataIn filter)
+        public async Task<ActionResult> ReloadReviewTree(ThesaurusReviewFilterDataIn filter)
         {
-            sReportsV2.Domain.Sql.Entities.ThesaurusEntry.ThesaurusEntry thesaurus = thesaurusEntryBLL.GetById(filter.Id);
+            ThesaurusEntryDataOut thesaurus = await thesaurusEntryBLL.GetById(filter.Id).ConfigureAwait(false);
 
-            ViewBag.O4MTId = thesaurus.ThesaurusEntryId;
+            ViewBag.O4MTId = thesaurus.Id;
             ViewBag.PreferredTerm = string.IsNullOrWhiteSpace(filter.PreferredTerm) ? thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage) : filter.PreferredTerm;
             ViewBag.Id = filter.Id;
             ViewBag.FilterData = filter;
@@ -115,29 +167,29 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuthorize(Permission = PermissionNames.Create, Module = ModuleNames.Thesaurus)]
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
             ViewBag.CodeSystems = SingletonDataContainer.Instance.GetCodeSystems();
             ViewBag.ThesaurusStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ThesaurusState);
-            return View(EndpointConstants.Edit);
+            return View(EndpointConstants.Edit, await thesaurusEntryBLL.GetDefaultViewModel().ConfigureAwait(false));
         }
 
         //done
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Thesaurus)]
-        public ActionResult Edit(int thesaurusEntryId)
+        public Task<ActionResult> Edit(int thesaurusEntryId)
         {
             return GetThesaurusEditById(thesaurusEntryId);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Thesaurus)]
-        public ActionResult View(int thesaurusEntryId)
+        public Task<ActionResult> View(int thesaurusEntryId)
         {
             return GetThesaurusEditById(thesaurusEntryId);
         }
 
         //done
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Thesaurus)]
-        public ActionResult EditByO4MtId(int id)
+        public Task<ActionResult> EditByO4MtId(int id)
         {
             SetReadOnlyAndDisabledViewBag(true);
 
@@ -149,9 +201,8 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         [SReportsAuthorize(Permission = PermissionNames.Create, Module = ModuleNames.Thesaurus)]
         [SReportsModelStateValidate]
-        public ActionResult Create(ThesaurusEntryDataIn thesaurusEntryDTO)
+        public Task<ActionResult> Create(ThesaurusEntryDataIn thesaurusEntryDTO)
         {
-            thesaurusEntryDTO = Ensure.IsNotNull(thesaurusEntryDTO, nameof(thesaurusEntryDTO));
             return CreateOrEdit(thesaurusEntryDTO);
         }
 
@@ -159,9 +210,8 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Thesaurus)]
         [SReportsModelStateValidate]
-        public ActionResult Edit(ThesaurusEntryDataIn thesaurusEntryDTO)
+        public Task<ActionResult> Edit(ThesaurusEntryDataIn thesaurusEntryDTO)
         {
-            thesaurusEntryDTO = Ensure.IsNotNull(thesaurusEntryDTO, nameof(thesaurusEntryDTO));
             return CreateOrEdit(thesaurusEntryDTO);
         }
 
@@ -169,7 +219,7 @@ namespace sReportsV2.Controllers
         [HttpPost]
         [SReportsAuditLog]
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Designer)]
-        public ActionResult CreateByPreferredTerm(string preferredTerm, string description)
+        public async Task<ActionResult> CreateByPreferredTerm(string preferredTerm, string description)
         {
             ThesaurusEntry thesaurusEntry = new ThesaurusEntry()
             {
@@ -178,7 +228,7 @@ namespace sReportsV2.Controllers
             };
             thesaurusEntry.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, preferredTerm, description);
 
-            ResourceCreatedDTO result = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(thesaurusEntry), Mapper.Map<UserData>(userCookieData));
+            ResourceCreatedDTO result = await thesaurusEntryBLL.CreateThesaurus(mapper.Map<ThesaurusEntryDataIn>(thesaurusEntry), mapper.Map<UserData>(userCookieData)).ConfigureAwait(false);
             RefreshCache(int.Parse(result.Id), ModifiedResourceType.Thesaurus);
 
             return Json(result);
@@ -189,9 +239,9 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.Delete, Module = ModuleNames.Thesaurus)]
         [HttpDelete]
         [SReportsAuditLog]
-        public ActionResult Delete(int thesaurusEntryId)
+        public async Task<ActionResult> Delete(int thesaurusEntryId)
         {
-            thesaurusEntryBLL.TryDelete(thesaurusEntryId);
+            await thesaurusEntryBLL.TryDelete(thesaurusEntryId).ConfigureAwait(false);
             return NoContent();
         }
 
@@ -215,19 +265,10 @@ namespace sReportsV2.Controllers
             return Json("Code deleted");
         }
 
-        /* public ActionResult LoadTranslations()
-         {
-             UserData userData = Mapper.Map<UserData>(userCookieData);
-             ParserThesaurusTranslation.ParseAndUpdateThesaurus(userData);
-
-             return new HttpStatusCodeResult(HttpStatusCode.NoContent);
-         }*/
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Thesaurus)]
-        public ActionResult ThesaurusMoreContent(int id)
+        public async Task<ActionResult> ThesaurusMoreContent(int id)
         {
-            ThesaurusEntryDataOut viewModel = Mapper.Map<ThesaurusEntryDataOut>(thesaurusEntryBLL.GetById(id));
-
-            return PartialView("ThesaurusMoreContent", viewModel);
+            return PartialView("ThesaurusMoreContent", await thesaurusEntryBLL.GetById(id).ConfigureAwait(false));
         }
 
 
@@ -252,134 +293,191 @@ namespace sReportsV2.Controllers
             return PartialView(viewModel);
         }
 
-        /*public ActionResult PopulateThesaurusEntriesFromForm(string formId)
+        [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Thesaurus)]
+        public async Task<ActionResult> ExportSkos(int thesaurusEntryId)
         {
-            List<Form> forms;
-            if (string.IsNullOrEmpty(formId))
-            {
-                forms = formService.GetAll(null);
-            }
-            else
-            {
-                forms = formService.GetByFormIdsList(new List<string>() { formId });
-            }
-            foreach (Form f in forms)
-            {
-                ThesaurusEntry thesaurusEntry = new ThesaurusEntry()
-                {
-                    Translations = new List<ThesaurusEntryTranslation>()
-                };
-                thesaurusEntry.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, f.Title, string.Empty);
-                var formResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(thesaurusEntry), Mapper.Map<UserData>(userCookieData));
-                f.ThesaurusId = int.Parse(formResult.Id);
+            ThesaurusEntryDataOut entity = thesaurusEntryBLL.GetThesaurusDataOut(thesaurusEntryId);
+            var result = await thesaurusEntryBLL.ExportSkos(thesaurusEntryId).ConfigureAwait(false);
+            SetFileNameInResponse(entity.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage), "json");
+            return Json(result);
+        }
 
-                foreach (FormChapter c in f.Chapters)
-                {
-                    ThesaurusEntry cThesaurus = new ThesaurusEntry()
-                    {
-                        Translations = new List<ThesaurusEntryTranslation>()
-                    };
-                    cThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, c.Title, c.Description);
-                    var chapterResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(cThesaurus), Mapper.Map<UserData>(userCookieData));
-                    c.ThesaurusId = int.Parse(chapterResult.Id);
+        //public ActionResult PopulateThesaurusEntriesFromForm(string formId)
+        //{
+        //    List<Form> forms;
+        //    if (!string.IsNullOrEmpty(formId))
+        //    {
+        //        forms = formService.GetByFormIdsList(new List<string>() { formId });
 
-                    foreach (FormPage p in c.Pages)
-                    {
-                        ThesaurusEntry pThesaurus = new ThesaurusEntry()
-                        {
-                            Translations = new List<ThesaurusEntryTranslation>()
-                        };
-                        pThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, p.Title, p.Description);
-                        var pResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(pThesaurus), Mapper.Map<UserData>(userCookieData));
-                        p.ThesaurusId = int.Parse(pResult.Id);
+        //        foreach (Form f in forms)
+        //        {
+        //            ThesaurusEntry thesaurusEntry = new ThesaurusEntry()
+        //            {
+        //                Translations = new List<ThesaurusEntryTranslation>()
+        //            };
+        //            thesaurusEntry.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, f.Title, string.Empty);
 
-                        foreach (List<FieldSet> listOfFS in p.ListOfFieldSets)
-                        {
-                            foreach (FieldSet fieldSet in listOfFS)
-                            {
-                                ThesaurusEntry fieldSetThesaurus = new ThesaurusEntry()
-                                {
-                                    Translations = new List<ThesaurusEntryTranslation>()
-                                };
-                                fieldSetThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, fieldSet.Label, fieldSet.Description);
-                                var fieldSetResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(fieldSetThesaurus), Mapper.Map<UserData>(userCookieData));
-                                fieldSet.ThesaurusId = int.Parse(fieldSetResult.Id);
+        //            var formTitle = thesaurusEntryBLL.GetByPreferredTerm(f.Title);
+        //            if (formTitle != null)
+        //            {
+        //                f.ThesaurusId = formTitle.ThesaurusEntryId;
+        //            }
+        //            else
+        //            {
+        //                var formResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(thesaurusEntry), Mapper.Map<UserData>(userCookieData));
+        //                f.ThesaurusId = int.Parse(formResult.Id);
+        //            }
 
-                                foreach (Field field in fieldSet.Fields)
-                                {
-                                    ThesaurusEntry fieldThesaurus = new ThesaurusEntry()
-                                    {
-                                        Translations = new List<ThesaurusEntryTranslation>()
-                                    };
-                                    fieldThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, field.Label, field.Description);
-                                    var fieldResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(fieldThesaurus), Mapper.Map<UserData>(userCookieData));
-                                    field.ThesaurusId = int.Parse(fieldResult.Id);
+        //            foreach (FormChapter c in f.Chapters)
+        //            {
+        //                ThesaurusEntry cThesaurus = new ThesaurusEntry()
+        //                {
+        //                    Translations = new List<ThesaurusEntryTranslation>()
+        //                };
+        //                cThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, c.Title, c.Description);
 
-                                    if (field is FieldSelectable)
-                                    {
-                                        FieldSelectable fieldSelectable = field as FieldSelectable;
-                                        foreach (FormFieldValue formFieldValue in fieldSelectable.Values)
-                                        {
-                                            ThesaurusEntry formFieldValueThesaurus = new ThesaurusEntry()
-                                            {
-                                                Translations = new List<ThesaurusEntryTranslation>()
-                                            };
-                                            formFieldValueThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, formFieldValue.Label, string.Empty);
-                                            var fieldValueResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(formFieldValueThesaurus), Mapper.Map<UserData>(userCookieData));
-                                            formFieldValue.ThesaurusId = int.Parse(fieldValueResult.Id);
-                                        }
-                                    }
-                                }
-                            }
 
-                        }
-                    }
-                }
-                formService.InsertOrUpdate(f, Mapper.Map<UserData>(userCookieData));
-            }
-            return null;
-        }*/
+        //                var chapterTitle = thesaurusEntryBLL.GetByPreferredTerm(c.Title);
+        //                if (chapterTitle != null)
+        //                {
+        //                    c.ThesaurusId = chapterTitle.ThesaurusEntryId;
+        //                }
+        //                else
+        //                {
+        //                    var chapterResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(cThesaurus), Mapper.Map<UserData>(userCookieData));
+        //                    c.ThesaurusId = int.Parse(chapterResult.Id);
+        //                }
 
-        private PaginationDataOut<ThesaurusEntryDataOut, DataIn> GetReviewTreeDataOut(ThesaurusReviewFilterDataIn filter, sReportsV2.Domain.Sql.Entities.ThesaurusEntry.ThesaurusEntry thesaurus)
+        //                foreach (FormPage p in c.Pages)
+        //                {
+        //                    ThesaurusEntry pThesaurus = new ThesaurusEntry()
+        //                    {
+        //                        Translations = new List<ThesaurusEntryTranslation>()
+        //                    };
+        //                    pThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, p.Title, p.Description);
+
+        //                    var pageTitle = thesaurusEntryBLL.GetByPreferredTerm(p.Title);
+        //                    if (pageTitle != null)
+        //                    {
+        //                        p.ThesaurusId = pageTitle.ThesaurusEntryId;
+        //                    }
+        //                    else
+        //                    {
+        //                        var pResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(pThesaurus), Mapper.Map<UserData>(userCookieData));
+        //                        p.ThesaurusId = int.Parse(pResult.Id);
+        //                    }
+
+        //                    foreach (List<FieldSet> listOfFS in p.ListOfFieldSets)
+        //                    {
+        //                        foreach (FieldSet fieldSet in listOfFS)
+        //                        {
+        //                            ThesaurusEntry fieldSetThesaurus = new ThesaurusEntry()
+        //                            {
+        //                                Translations = new List<ThesaurusEntryTranslation>()
+        //                            };
+        //                            fieldSetThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, fieldSet.Label, fieldSet.Description);
+
+        //                            var fieldSetTitle = thesaurusEntryBLL.GetByPreferredTerm(fieldSet.Label);
+        //                            if (fieldSetTitle != null)
+        //                            {
+        //                                fieldSet.ThesaurusId = fieldSetTitle.ThesaurusEntryId;
+        //                            }
+        //                            else
+        //                            {
+        //                                var fieldSetResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(fieldSetThesaurus), Mapper.Map<UserData>(userCookieData));
+        //                                fieldSet.ThesaurusId = int.Parse(fieldSetResult.Id);
+        //                            }
+        //                            foreach (Field field in fieldSet.Fields)
+        //                            {
+        //                                ThesaurusEntry fieldThesaurus = new ThesaurusEntry()
+        //                                {
+        //                                    Translations = new List<ThesaurusEntryTranslation>()
+        //                                };
+        //                                fieldThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, field.Label, field.Description);
+
+        //                                var fieldTitle = thesaurusEntryBLL.GetByPreferredTerm(field.Label);
+        //                                if (fieldTitle != null)
+        //                                {
+        //                                    field.ThesaurusId = fieldTitle.ThesaurusEntryId;
+        //                                }
+        //                                else
+        //                                {
+        //                                    var fieldResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(fieldThesaurus), Mapper.Map<UserData>(userCookieData));
+        //                                    field.ThesaurusId = int.Parse(fieldResult.Id);
+        //                                }
+
+        //                                if (field is FieldSelectable fieldSelectable)
+        //                                {
+        //                                    foreach (FormFieldValue formFieldValue in fieldSelectable.Values)
+        //                                    {
+        //                                        ThesaurusEntry formFieldValueThesaurus = new ThesaurusEntry()
+        //                                        {
+        //                                            Translations = new List<ThesaurusEntryTranslation>()
+        //                                        };
+        //                                        formFieldValueThesaurus.SetPrefferedTermAndDescriptionForLang(userCookieData.ActiveLanguage, formFieldValue.Label, string.Empty);
+
+        //                                        var formFieldValueTitle = thesaurusEntryBLL.GetByPreferredTerm(formFieldValue.Label);
+        //                                        if (formFieldValueTitle != null)
+        //                                        {
+        //                                            formFieldValue.ThesaurusId = formFieldValueTitle.ThesaurusEntryId;
+        //                                        }
+        //                                        else
+        //                                        {
+        //                                            var fieldValueResult = thesaurusEntryBLL.CreateThesaurus(Mapper.Map<ThesaurusEntryDataIn>(formFieldValueThesaurus), Mapper.Map<UserData>(userCookieData));
+        //                                            formFieldValue.ThesaurusId = int.Parse(fieldValueResult.Id);
+        //                                        }
+        //                                    }
+        //                                }
+        //                            }
+        //                        }
+
+        //                    }
+        //                }
+        //            }
+        //            formService.InsertOrUpdate(f, Mapper.Map<UserData>(userCookieData));
+        //        }
+        //    }
+        //    return null;
+        //}
+
+        private PaginationDataOut<ThesaurusEntryDataOut, DataIn> GetReviewTreeDataOut(ThesaurusReviewFilterDataIn filter, ThesaurusEntryDataOut thesaurus)
         {
             PaginationDataOut<ThesaurusEntryDataOut, DataIn> result = thesaurusEntryBLL.GetReviewTreeDataOut(filter, thesaurus, userCookieData);
-            ViewBag.Thesaurus = Mapper.Map<ThesaurusEntryDataOut>(thesaurus);
+            ViewBag.Thesaurus = thesaurus;
             ViewBag.ThesaurusStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ThesaurusState);
 
             return result;
         }
 
-        private ActionResult GetThesaurusEditById(int thesaurusEntryId)
+        private async Task<ActionResult> GetThesaurusEditById(int thesaurusEntryId)
         {
             if (!thesaurusEntryBLL.ExistsThesaurusEntry(thesaurusEntryId))
             {
                 return NotFound();
             }
 
-            sReportsV2.Domain.Sql.Entities.ThesaurusEntry.ThesaurusEntry thesaurusEntry = thesaurusEntryBLL.GetById(thesaurusEntryId);
-            ThesaurusEntryDataOut viewModel = Mapper.Map<ThesaurusEntryDataOut>(thesaurusEntry);
-            thesaurusEntryBLL.SetThesaurusVersions(thesaurusEntry, viewModel);
-
+            ThesaurusEntryDataOut viewModel = await thesaurusEntryBLL.GetById(thesaurusEntryId, userCookieData).ConfigureAwait(false);
 
             ViewBag.CodeSystems = SingletonDataContainer.Instance.GetCodeSystems();
-            ViewBag.TotalAppeareance = formService.GetThesaurusAppereanceCount(thesaurusEntry.ThesaurusEntryId, string.Empty, userCookieData.ActiveOrganization);
+            ViewBag.TotalAppeareance = formBLL.GetThesaurusAppereanceCount(viewModel.Id, string.Empty, userCookieData.ActiveOrganization);
             ViewBag.VersionTypes = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.VersionType);
             ViewBag.ThesaurusStates = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ThesaurusState);
 
             return View(EndpointConstants.Edit, viewModel);
         }
 
-        private ActionResult CreateOrEdit(ThesaurusEntryDataIn thesaurusEntryDTO)
+        private async Task<ActionResult> CreateOrEdit(ThesaurusEntryDataIn thesaurusEntryDTO)
         {
+            thesaurusEntryDTO = Ensure.IsNotNull(thesaurusEntryDTO, nameof(thesaurusEntryDTO));
             if (thesaurusEntryDTO.Translations.Count > 0)
                 thesaurusEntryDTO.Translations = DecodePreferredTerm(thesaurusEntryDTO.Translations);
 
-            ResourceCreatedDTO result = thesaurusEntryBLL.CreateThesaurus(thesaurusEntryDTO, Mapper.Map<UserData>(userCookieData));
+            ResourceCreatedDTO result = await thesaurusEntryBLL.CreateThesaurus(thesaurusEntryDTO, mapper.Map<UserData>(userCookieData)).ConfigureAwait(false);
             RefreshCache(int.Parse(result.Id), ModifiedResourceType.Thesaurus);
             return Json(result);
         }
 
-        private List<ThesaurusEntryTranslationDataIn> DecodePreferredTerm(List<ThesaurusEntryTranslationDataIn> translations) 
+        private List<ThesaurusEntryTranslationDataIn> DecodePreferredTerm(List<ThesaurusEntryTranslationDataIn> translations)
         {
             foreach (var translation in translations)
             {

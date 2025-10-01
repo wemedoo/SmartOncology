@@ -25,5 +25,7 @@ namespace sReportsV2.DTOs.FormInstance
         public int? ActivePageLeftScroll { get; set; }
         public string ActivePageId { get; set; }
         public int OrganizationId { get; set; }
+        public List<int> ThesaurusIds { get; set; }
+        public bool DoPatientSemanticQuery { get; set; }
     }
 }

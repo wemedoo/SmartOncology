@@ -1,7 +1,8 @@
 ﻿using sReportsV2.Common.Enums;
+using sReportsV2.Common.Enums.DocumentPropertiesEnums;
+using sReportsV2.DTOs.Common;
 using System;
 using System.Collections.Generic;
-using sReportsV2.Common.Enums.DocumentPropertiesEnums;
 
 namespace sReportsV2.DTOs.Form
 {
@@ -39,5 +40,10 @@ namespace sReportsV2.DTOs.Form
 
         public List<string> Ids { get; set; } = new List<string>();
         public bool HideInvalidDocuments { get; set; }
+
+        public void WorkOnlyWithValidForms()
+        {
+            this.HideInvalidDocuments = true;
+        }
     }
 }

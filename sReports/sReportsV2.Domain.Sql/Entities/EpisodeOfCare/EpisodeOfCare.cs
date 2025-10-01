@@ -8,10 +8,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using sReportsV2.Common.Extensions;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 
 namespace sReportsV2.Domain.Sql.Entities.EpisodeOfCare
 {
-    public class EpisodeOfCare : EntitiesBase.Entity
+    public class EpisodeOfCare : EntitiesBase.Entity, IReplaceThesaurusEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
@@ -27,13 +28,11 @@ namespace sReportsV2.Domain.Sql.Entities.EpisodeOfCare
         public int TypeCD { get; set; }
         [ForeignKey("TypeCD")]
         public Code Type { get; set; }
-        public string DiagnosisCondition { get; set; }
-        // IMPORTANT: DiagnosisRole values are Thesaurus FK, It will be: 1) removed permanently or 2) migrate to Code (CodesetId=6 -> Code DiagnosisRole)
-        public int DiagnosisRole { get; set; }
-        public string DiagnosisRank { get; set; }
+        [ForeignKey("DiagnosisConditionId")]
+        public ThesaurusEntry.ThesaurusEntry DiagnosisCondition { get; set; }
+        public int? DiagnosisConditionId { get; set; }
         public PeriodDatetime Period { get; set; }
         public string Description { get; set; }
-        public List<EpisodeOfCareWorkflow> WorkflowHistory { get; set; }
         public int? PersonnelTeamId { get; set; }
         [ForeignKey("PersonnelTeamId")]
         public PersonnelTeam PersonnelTeam { get; set; }
@@ -44,16 +43,19 @@ namespace sReportsV2.Domain.Sql.Entities.EpisodeOfCare
         {
             this.StatusCD = episodeOfCare.StatusCD;
             this.TypeCD = episodeOfCare.TypeCD;
-            this.DiagnosisCondition = episodeOfCare.DiagnosisCondition;
-            this.DiagnosisRole = episodeOfCare.DiagnosisRole;
-            this.DiagnosisRank = episodeOfCare.DiagnosisRank;
             this.Description = episodeOfCare.Description;
+            this.DiagnosisConditionId = episodeOfCare.DiagnosisConditionId;
             this.Period = new PeriodDatetime()
             {
                 Start = episodeOfCare.Period.Start,
                 End = episodeOfCare.Period.End
             };
             this.PersonnelTeamId = episodeOfCare.PersonnelTeamId;
+        }
+
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
+        {
+            this.DiagnosisConditionId = this.DiagnosisConditionId.ReplaceThesaurus(thesaurusMerge);
         }
 
         public override void Delete(DateTimeOffset? activeTo = null, bool setLastUpdateProperty = true, string organizationTimeZone = null)
@@ -64,30 +66,6 @@ namespace sReportsV2.Domain.Sql.Entities.EpisodeOfCare
                 encounter.Delete(activeToDate);
 
             this.ActiveTo = activeTo ?? DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone(organizationTimeZone);
-        }
-
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
-        {
-            this.DiagnosisRole = this.DiagnosisRole == oldThesaurus ? newThesaurus : this.DiagnosisRole;
-        }
-
-        public void SetWorkflow(UserData user)
-        {
-            if (this.WorkflowHistory == null)
-            {
-                this.WorkflowHistory = new List<EpisodeOfCareWorkflow>();
-            }
-
-            this.WorkflowHistory.Add(
-                    new EpisodeOfCareWorkflow()
-                    {
-                        DiagnosisCondition = this.DiagnosisCondition,
-                        DiagnosisRole = this.DiagnosisRole,
-                        PersonnelId = user.Id,
-                        StatusCD = this.StatusCD,
-                        Submited = DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone()
-                    }
-                );
         }
 
         public Encounter.Encounter AddNewOrUpdateOldEntriesFromHL7(Encounter.Encounter upcomingEncounter)

@@ -1,5 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using sReportsV2.Domain.Sql;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace sReportsV2.Domain.Entities.Distribution
 {
-    public class FormDistribution : Entity
+    public class FormDistribution : Entity, IReplaceThesaurusEntity
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -18,15 +20,15 @@ namespace sReportsV2.Domain.Entities.Distribution
         public string VersionId { get; set; }
         public List<FormFieldDistribution> Fields { get; set; }
 
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
         {
-            this.ThesaurusId = this.ThesaurusId == oldThesaurus ? newThesaurus : this.ThesaurusId;
+            this.ThesaurusId = this.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
 
             if (this.Fields != null)
             {
                 foreach (FormFieldDistribution field in this.Fields)
                 {
-                    field.ThesaurusId = field.ThesaurusId == oldThesaurus ? newThesaurus : field.ThesaurusId;
+                    field.ThesaurusId = field.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
                     if (field.ValuesAll != null)
                     {
                         foreach (var val in field.ValuesAll)
@@ -37,7 +39,7 @@ namespace sReportsV2.Domain.Entities.Distribution
                                 {
                                     if (v != null)
                                     {
-                                        v.ThesaurusId = v.ThesaurusId == oldThesaurus ? newThesaurus : v.ThesaurusId;
+                                        v.ThesaurusId = v.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
                                     }
                                 }
                             }

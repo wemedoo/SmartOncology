@@ -195,7 +195,6 @@ namespace sReportsV2.UMLS.Classes
             var bulkedThesauruses = thesaurusDAL.GetLastBulkInserted(thesauruses.Count);
             translationDAL.InsertMany(thesauruses, bulkedThesauruses, configuration);
             o4codeableConceptDAL.InsertMany(thesauruses, bulkedThesauruses, configuration);
-            administrativeDataDAL.InsertMany(thesauruses, bulkedThesauruses);
             administrativeDataDAL.InsertManyVersions(thesauruses, bulkedThesauruses);
         }
         #endregion /MRCONSO
@@ -300,7 +299,7 @@ namespace sReportsV2.UMLS.Classes
 
         private void HandleException(Exception ex, string fileName)
         {
-            LogHelper.Error($"The file ({fileName}) could not be read, exception message: {ex.Message}");
+            LogHelper.Error($"The file ({fileName}) could not be read, exception message: {ex.GetExceptionStackMessages()}");
             LogHelper.Error(ex.StackTrace);
         }
 
@@ -318,6 +317,11 @@ namespace sReportsV2.UMLS.Classes
                 {
                     Value = ResourceTypes.CountryCodingSystem,
                     Label = "ISO 3166 Codes for the representation of names of countries and their subdivisions"
+                },
+                new CodeSystem()
+                {
+                    Value = ResourceTypes.DefaultSkosConceptSchema,
+                    Label = ResourceTypes.DefaultSkosConceptSchema
                 }
             };
             List<CodeSystem> codingSystemsToAdd = new List<CodeSystem>();

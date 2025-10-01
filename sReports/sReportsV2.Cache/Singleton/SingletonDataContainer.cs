@@ -9,13 +9,16 @@ using sReportsV2.Domain.Sql.Entities.Common;
 using sReportsV2.DTOs;
 using sReportsV2.DTOs.CodeEntry.DataOut;
 using sReportsV2.DTOs.CodeSystem;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
 using sReportsV2.DTOs.DTOs.CodeAliases.DataOut;
 using sReportsV2.DTOs.DTOs.SmartOncology.Enum.DataOut;
 using sReportsV2.DTOs.ThesaurusEntry.DataOut;
 using sReportsV2.DTOs.ThesaurusEntry.DTO;
+using sReportsV2.LoincParser.LoincParser;
 using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace sReportsV2.Cache.Singleton
@@ -34,6 +37,7 @@ namespace sReportsV2.Cache.Singleton
         private List<SmartOncologyEnumDataOut> smartOncologyEnums = new List<SmartOncologyEnumDataOut>();
         private List<CodeSystemDataOut> codeSystems = new List<CodeSystemDataOut>();
         private readonly List<EnumDTO> patientLanguages = new List<EnumDTO>();
+        private Dictionary<string, List<LoincPropertyAutocompleteDataOut>> loincDatasource = new Dictionary<string, List<LoincPropertyAutocompleteDataOut>>();
         #endregion /Pre-defined data
 
         #region Singleton methods
@@ -95,7 +99,7 @@ namespace sReportsV2.Cache.Singleton
                     codes.Add(codeFromDb);
                     break;
                 case ModifiedResourceType.Alias:
-                    CodeAliasViewDataOut cachedAlias = aliases.Find(a => a.AliasId == resourceId.Value);
+                    CodeAliasViewDataOut cachedAlias = aliases.Find(a => a != null && a.AliasId == resourceId.Value);
                     if (cachedAlias != null)
                     {
                         aliases.Remove(cachedAlias);
@@ -124,6 +128,11 @@ namespace sReportsV2.Cache.Singleton
         public List<CodeSystemDataOut> GetCodeSystems()
         {
             return this.codeSystems;
+        }
+
+        public Dictionary<string, List<LoincPropertyAutocompleteDataOut>> GetLoincDatasource()
+        {
+            return this.loincDatasource;
         }
 
         #endregion /Getters of Non-Code entities
@@ -174,6 +183,14 @@ namespace sReportsV2.Cache.Singleton
                 ).ToList();
         }
 
+        public List<CodeDataOut> GetFilteredCodesByCodeSetId(int codeSetId, int? selectedId = null)
+        {
+            return GetCodes()
+              .Where(x =>
+                  x.CodeSetId == codeSetId && x.IsActive()
+              ).ToList();
+        }
+
         public int? GetCodeId(int codeSetId, string preferredTerm, string language = LanguageConstants.EN)
         {
             return GetCode(codeSetId, preferredTerm, language)?.Id;
@@ -203,8 +220,8 @@ namespace sReportsV2.Cache.Singleton
         public string GetOutboundAlias(int? codeId, string system)
         {
             return aliases
-                .Find(al => al.CodeId == codeId.GetValueOrDefault() && al.System == system)
-                ?.OutboundAlias;
+               .Find(al => al != null && al.CodeId == codeId.GetValueOrDefault() && al.System == system)
+               ?.OutboundAlias;
         }
 
 
@@ -316,6 +333,7 @@ namespace sReportsV2.Cache.Singleton
             PopulateLanguages();
             PopulatePatientLanguages();
             PopulateSmartOncologyEnums();
+            PopulateLoincDataSource();
         }
 
         private void PopulateLanguages()
@@ -330,6 +348,11 @@ namespace sReportsV2.Cache.Singleton
             {
                 patientLanguages.Add(new EnumDTO() { Label = lang.ToString(), Value = lang.GetLangAttribute().Iso6391 });
             }
+        }
+
+        private void PopulateLoincDataSource()
+        {
+            this.loincDatasource = new DocumentPropertiesTurtleParser().GetLoincDatasource();
         }
 
         private void PopulateCodeSystems(IMapper mapper, ICodeSystemDAL codeSystemDAL)
@@ -359,11 +382,13 @@ namespace sReportsV2.Cache.Singleton
 
         private void PopulateSmartOncologyEnums()
         {
-            var presentationStage = GetEnumsFromExcel(SmartOncologyEnumNames.sReportsVocabularyFileName, SmartOncologyEnumNames.DiagnosesSheet, SmartOncologyEnumNames.PresentationStage);
-            var anatomy = GetEnumsFromExcel(SmartOncologyEnumNames.sReportsVocabularyFileName, SmartOncologyEnumNames.DiagnosesSheet, SmartOncologyEnumNames.Anatomy);
-            var morphology = GetEnumsFromExcel(SmartOncologyEnumNames.sReportsVocabularyFileName, SmartOncologyEnumNames.DiagnosesSheet, SmartOncologyEnumNames.Morphology);
-            var therapeuticContext = GetEnumsFromExcel(SmartOncologyEnumNames.sReportsVocabularyFileName, SmartOncologyEnumNames.TherapyCategorizationSheet, SmartOncologyEnumNames.TherapeuticContext);
-            var chemotherapyType = GetEnumsFromExcel(SmartOncologyEnumNames.ChemotherapyCompendiumFileName, SmartOncologyEnumNames.ChemotherapySchemasSheet, SmartOncologyEnumNames.ChemotherapyType);
+            string vocabularyFileName = Path.Combine(SmartOncologyEnumNames.ChemotheraphyFolder, SmartOncologyEnumNames.SReportsVocabularyFileName);
+            string compandiumFileName = Path.Combine(SmartOncologyEnumNames.ChemotheraphyFolder, SmartOncologyEnumNames.ChemotherapyCompendiumFileName);
+            var presentationStage = GetEnumsFromExcel(vocabularyFileName, SmartOncologyEnumNames.DiagnosesSheet, SmartOncologyEnumNames.PresentationStage);
+            var anatomy = GetEnumsFromExcel(vocabularyFileName, SmartOncologyEnumNames.DiagnosesSheet, SmartOncologyEnumNames.Anatomy);
+            var morphology = GetEnumsFromExcel(vocabularyFileName, SmartOncologyEnumNames.DiagnosesSheet, SmartOncologyEnumNames.Morphology);
+            var therapeuticContext = GetEnumsFromExcel(vocabularyFileName, SmartOncologyEnumNames.TherapyCategorizationSheet, SmartOncologyEnumNames.TherapeuticContext);
+            var chemotherapyType = GetEnumsFromExcel(compandiumFileName, SmartOncologyEnumNames.ChemotherapySchemasSheet, SmartOncologyEnumNames.ChemotherapyType);
 
             List<SmartOncologyEnumDataOut> newEnums = new List<SmartOncologyEnumDataOut>();
             newEnums.AddRange(presentationStage);

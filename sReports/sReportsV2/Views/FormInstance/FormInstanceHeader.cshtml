@@ -36,10 +36,10 @@
                 <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="Form Instance @sReportsV2.Cache.Resources.TextLanguage.View" onmouseover="changeImageSrc('form_instance_view')" onmouseout="changeImageSrc('form_instance_view', true)" style="display: none" onclick="switchFormInstanceViewMode('@FormInstanceViewMode.RegularView', @isPatientModule.ToJsBoolean(), true, @readOnly.ToJsBoolean())">
                     <img alt="" id="formInstanceView" src="/css/img/icons/form_instance_view.svg" />
                 </div>
-                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="Synoptic @sReportsV2.Cache.Resources.TextLanguage.View" onmouseover="changeImageSrc('synoptic_view')" onmouseout="changeImageSrc('synoptic_view', true)" onclick="switchFormInstanceViewMode('@FormInstanceViewMode.SynopticView', @isPatientModule.ToJsBoolean(), true, @readOnly.ToJsBoolean())">
+                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="Synoptic @sReportsV2.Cache.Resources.TextLanguage.View" onmouseover="changeImageSrc('synoptic_view')" onmouseout="changeImageSrc('synoptic_view', true)" onclick="switchFormInstanceViewMode('@FormInstanceViewMode.SynopticView', @isPatientModule.ToJsBoolean(), true, @readOnly.ToJsBoolean(), true)">
                     <img alt="" id="synopticViewImage" src="/css/img/icons/synoptic_view.svg" />
                 </div>
-                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.Version_History" onmouseover="changeImageSrc('audit_trail')" onmouseout="changeImageSrc('audit_trail', true)" onclick="showFormInstanceHistory('@(ViewBag.formInstanceId != null ? ViewBag.formInstanceId : "")')">
+                <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.History_of_changes" onmouseover="changeImageSrc('audit_trail')" onmouseout="changeImageSrc('audit_trail', true)" onclick="showFormInstanceHistory('@(ViewBag.formInstanceId != null ? ViewBag.formInstanceId : "")')">
                     <img alt="" id="auditTrailImage" src="/css/img/icons/audit_trail.svg" />
                 </div>
                 <div class="form-instance-view-mode" data-toggle="tooltip" data-placement="bottom" title="@sReportsV2.Cache.Resources.TextLanguage.DownloadPdf Synoptic" onmouseover="changeImageSrc('download_synoptic')" onmouseout="changeImageSrc('download_synoptic', true)" onclick="downloadSynopticPdf('@Model.Title')" style="display: none">
@@ -49,9 +49,3 @@
         </div>
     }
 }
-
-<script>
-    $(document).ready(function () {
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>

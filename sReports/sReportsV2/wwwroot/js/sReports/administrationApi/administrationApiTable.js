@@ -1,12 +1,5 @@
 ﻿function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setAdvancedFilterBtnStyle(requestObject, ['ScreeningNumber', 'HttpStatusCode', 'RequestContains', 'ShowOnlyUnsuccessful', 'page', 'pageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
-
+    let requestObject = applyActionsBeforeServerReload(['ScreeningNumber', 'HttpStatusCode', 'RequestContains', 'ShowOnlyUnsuccessful', 'page', 'pageSize']);
     if (!requestObject.Page) {
         requestObject.Page = 1;
     }
@@ -28,7 +21,7 @@ function getFilterParametersObject() {
     let requestObject = {};
 
     if (defaultFilter) {
-        requestObject = defaultFilter;
+        requestObject = getDefaultFilter();
         defaultFilter = null;
     } else {
         addPropertyToObject(requestObject, 'ApiRequestDirection', $('#apiRequestDirection').val());
@@ -39,12 +32,6 @@ function getFilterParametersObject() {
         addPropertyToObject(requestObject, 'RequestTimestampFrom', toLocaleDateStringIfValue($('#requestTimestampFrom').val()));
         addPropertyToObject(requestObject, 'RequestTimestampTo', toLocaleDateStringIfValue($('#requestTimestampTo').val()));
         addPropertyToObject(requestObject, 'ShowOnlyUnsuccessful', $('#showOnlyUnsuccessful').is(':checked'));
-    }
-    if (requestObject['RequestTimestampFrom']) {
-        addPropertyToObject(requestObject, 'RequestTimestampFrom', toValidTimezoneFormat(requestObject['RequestTimestampFrom']));
-    }
-    if (requestObject['RequestTimestampTo']) {
-        addPropertyToObject(requestObject, 'RequestTimestampTo', toValidTimezoneFormat(requestObject['RequestTimestampTo']));
     }
 
     return requestObject;
@@ -96,8 +83,8 @@ function loadApiRequestAndResponse() {
         try {
             json = JSON.parse($(this).attr('data-content'));
         } catch (e) {
-            console.log('error while parsing api object');
-            console.log('error: ' + e);
+            logError('error while parsing api object');
+            logError('error: ' + e);
         }
         if (json) {
             let previewApiContentContainer = new JSONEditor(this, {

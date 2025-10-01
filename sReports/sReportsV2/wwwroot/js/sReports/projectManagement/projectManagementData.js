@@ -1,11 +1,10 @@
 ﻿$(document).ready(function () {
     validateProjects();
-    triggerTimeOnChange("#projectDataForm");
-    saveInitialTrialFormData("#trialDataForm");
+    saveInitialSecondFormData("#trialDataForm");
     saveInitialFormData("#projectDataForm");
 });
 
-addUnsavedTrialChangesEventHandler("#projectDataForm", "#trialDataForm");
+addUnsavedSecondFormChangesEventHandler("#projectDataForm", "#trialDataForm");
 
 function validateProjects() {
     destroyValidator();
@@ -57,17 +56,13 @@ $("#trialTitle").on('change', function () {
 
 // -----
 
-function trySubmitClinicalTrial(event, id, tabToSwitchTo = null) {
-    event.preventDefault();
-    event.stopPropagation();
-    if ($('#trialDataForm').valid()) {
-        checkUniqueTitleAndSubmit(event, id, tabToSwitchTo);
-    }
-}
+function trySubmitClinicalTrial(e, id, callback) {
+    e.preventDefault();
+    e.stopPropagation();
 
-function checkUniqueTitleAndSubmit(event, id, tabToSwitchTo = null) {
-    submitClinicalTrial(event, id, tabToSwitchTo);
-    saveInitialFormData("#projectDataForm");
+    if ($('#trialDataForm').valid()) {
+        submitClinicalTrial(id, callback);
+    }
 }
 
 function checkUniqueTitle(title) {
@@ -97,7 +92,7 @@ function checkUniqueTitle(title) {
     return isTitleUnique;
 }
 
-function submitClinicalTrial(event, id, tabToSwitchTo = null) {
+function submitClinicalTrial(id, callback) {
     updateDisabledOptions(false);
     var request = {};
     if ($('#projectDataForm').valid()) {
@@ -115,11 +110,12 @@ function submitClinicalTrial(event, id, tabToSwitchTo = null) {
                 data: request,
                 success: function (data, textStatus, xhr) {
                     updateDisabledOptions(true);
+                    saveInitialFormData("#projectDataForm");
+                    saveInitialSecondFormData("#trialDataForm");
                     if ($('#projectId').val() > 0) {
                         toastr.success("Project updated successfully!");
-                        if (tabToSwitchTo) {
-                            switchTab(tabToSwitchTo);
-                        }
+                        updateProjectHeader(request.ProjectName);
+                        executeCallback(callback);
                     }
                     else {
                         toastr.success("Project created successfully!");
@@ -127,7 +123,6 @@ function submitClinicalTrial(event, id, tabToSwitchTo = null) {
                             window.location.href = `/ProjectManagement/Edit?projectId=${data}`;
                         }, 1000); 
                     }
-                    saveInitialTrialFormData("#trialDataForm");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     handleResponseError(xhr);
@@ -135,6 +130,11 @@ function submitClinicalTrial(event, id, tabToSwitchTo = null) {
             });
         }
     }
+}
+
+function updateProjectHeader(projectName) {
+    $('.breadcrumb-active').find('a').text(projectName);
+    $('#project-header-name').text(projectName);
 }
 
 function getClinicalTrial() {
@@ -174,3 +174,11 @@ function clearTrialData() {
     $("#userId").val('');
     $("#trialId").val(0);
 }
+
+$('.text-with-limit').on('keyup', function (e) {
+    let targetId = e.target.id;
+    let maxLength = $(`#${targetId}`).attr('maxLength');
+    let charCount = $(`#${targetId}`).val().length;
+
+    $(`#${targetId}`).siblings('.label').find('.char-limit-text').html(`${charCount}/${maxLength}`);
+});

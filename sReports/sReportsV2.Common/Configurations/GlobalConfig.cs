@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using sReportsV2.Common.Constants;
 
 namespace sReportsV2.Common.Configurations
 {
@@ -13,7 +13,7 @@ namespace sReportsV2.Common.Configurations
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public static string GetUserOffset(string organizationTimeZone = null, bool isOffsetForFormInstance = false)
+        public static string GetTimeZoneId(string organizationTimeZoneId = null)
         {
             var httpContext = _httpContextAccessor?.HttpContext;
             var userData = httpContext?.Session?.GetString("userData");
@@ -27,30 +27,16 @@ namespace sReportsV2.Common.Configurations
                     string timeZoneId = userDataObject.OrganizationTimeZone.ToString();
                     if (!string.IsNullOrEmpty(timeZoneId))
                     {
-                        return GetOffsetValue(timeZoneId, isOffsetForFormInstance);
+                        return timeZoneId;
                     }
                 }
             }
-            else if (!string.IsNullOrEmpty(organizationTimeZone))
+            else if (!string.IsNullOrEmpty(organizationTimeZoneId))
             {
-                return GetOffsetValue(organizationTimeZone, isOffsetForFormInstance);
+                return organizationTimeZoneId;
             }
 
-            return "00:00";
-        }
-
-        private static string GetOffsetValue(string timeZoneId, bool isOffsetForFormInstance)
-        {
-            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-            TimeSpan offset = timeZone.BaseUtcOffset;
-            if (isOffsetForFormInstance)
-                return (offset >= TimeSpan.Zero ? "+" : "-") + offset.ToString("hh\\:mm");
-            else
-            {
-                if (offset == TimeSpan.Zero)
-                    return offset.ToString("hh\\:mm");
-                return (offset > TimeSpan.Zero ? "" : "-") + offset.ToString("hh\\:mm");
-            }
+            return DateTimeConstants.UTCTimeZone;
         }
     }
 }

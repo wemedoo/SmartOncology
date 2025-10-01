@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace sReportsV2.Common.Extensions
 {
@@ -15,6 +16,11 @@ namespace sReportsV2.Common.Extensions
                     yield return element;
                 }
             }
+        }
+
+        public static string GetGraphDbQueryHeader(this IDictionary<string, string> namespaces)
+        {
+            return string.Join('\n', namespaces.Select(x => $"PREFIX {x.Key}: <{x.Value}>"));
         }
     }
 }

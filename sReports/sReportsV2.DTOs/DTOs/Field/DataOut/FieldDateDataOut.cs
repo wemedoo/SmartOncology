@@ -6,7 +6,7 @@ using sReportsV2.Common.Enums;
 
 namespace sReportsV2.DTOs.Field.DataOut
 {
-    public class FieldDateDataOut : FieldStringDataOut
+    public partial class FieldDateDataOut : FieldStringDataOut
     {
         [JsonIgnore]
         public override string PartialView { get; } = "~/Views/Form/Fields/FieldDate.cshtml";
@@ -20,11 +20,6 @@ namespace sReportsV2.DTOs.Field.DataOut
         public override bool CanBeInDependencyFormula()
         {
             return true;
-        }
-
-        protected override string FormatDisplayValue(FieldInstanceValueDataOut fieldInstanceValue, string valueSeparator)
-        {
-            return fieldInstanceValue.FirstValue.RenderDate();
         }
 
         protected override int GetMissingValueCodeSetId()

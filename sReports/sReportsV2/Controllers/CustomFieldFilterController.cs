@@ -2,15 +2,12 @@
 using sReportsV2.Common.Constants;
 using sReportsV2.Common.CustomAttributes;
 using sReportsV2.Domain.Entities.CustomFieldFilters;
-using sReportsV2.Domain.FieldFilters.Enum;
 using sReportsV2.Domain.Services.Interfaces;
-using sReportsV2.DTOs.DTOs.Field.DataIn.Custom;
 using sReportsV2.DTOs.DTOs.Field.DataOut.Custom;
 using sReportsV2.DTOs.FormInstance;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.BusinessLayer.Interfaces;
@@ -20,19 +17,20 @@ namespace sReportsV2.Controllers
 {
     public class CustomFieldFilterController : BaseController
     {
-        private readonly ICustomFieldFilterDAL customFieldFilterDAL;
-        private readonly IMapper Mapper;
+        private readonly ICustomFieldFilterBLL customFieldFilterBLL;
+        private readonly IMapper mapper;
 
-        public CustomFieldFilterController(ICustomFieldFilterDAL customFieldFilterDAL, 
+        public CustomFieldFilterController(ICustomFieldFilterBLL customFieldFilterBLL, 
             IMapper mapper, 
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) :
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
-            this.customFieldFilterDAL = customFieldFilterDAL;
-            Mapper = mapper;
+            this.customFieldFilterBLL = customFieldFilterBLL;
+            this.mapper = mapper;
         }
 
         [HttpPost]
@@ -53,14 +51,14 @@ namespace sReportsV2.Controllers
             //dataIn.CustomFieldFiltersDataIn = fieldFiltersDataIn;
             //formInstanceFilterDataIn = dataIn;
 
-            List<CustomFieldFilterData> customFieldFiltersData = Mapper.Map<List<CustomFieldFilterData>>(formInstanceFilterDataIn.CustomFieldFiltersDataIn);
+            List<CustomFieldFilterData> customFieldFiltersData = mapper.Map<List<CustomFieldFilterData>>(formInstanceFilterDataIn.CustomFieldFiltersDataIn);
 
             CustomFieldFilterGroup dataToSave = new CustomFieldFilterGroup() { 
                 CustomFieldFiltersData = customFieldFiltersData, 
                 FormDefinitonId = formInstanceFilterDataIn.FormId, 
                 OverallOperator = formInstanceFilterDataIn.FieldFiltersOverallOperator 
             };
-            string writtenFilterId = customFieldFilterDAL.InsertOrUpdateCustomFieldFilter(dataToSave);
+            string writtenFilterId = customFieldFilterBLL.InsertOrUpdateCustomFieldFilter(dataToSave);
 
             return Content(writtenFilterId); // temporary for debug
         }
@@ -68,9 +66,9 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Engine)]
         public ActionResult LoadCustomFieldFiltersByFormId(string formDefinitionId)
         {
-            List<CustomFieldFilterGroup> customFieldFilterGroups = customFieldFilterDAL.GetCustomFieldFiltersByFormId(formDefinitionId);
+            List<CustomFieldFilterGroup> customFieldFilterGroups = customFieldFilterBLL.GetCustomFieldFiltersByFormId(formDefinitionId);
 
-            List<CustomFieldFilterDataOut> dataOut = Mapper.Map<List<CustomFieldFilterDataOut>>(customFieldFilterGroups);
+            List<CustomFieldFilterDataOut> dataOut = mapper.Map<List<CustomFieldFilterDataOut>>(customFieldFilterGroups);
 
             StringBuilder textBuilder = new StringBuilder();
             foreach (var d in dataOut)

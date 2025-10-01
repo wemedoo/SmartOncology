@@ -1,16 +1,18 @@
-﻿using sReportsV2.DTOs.Common;
-using sReportsV2.DTOs.Common.DTO;
+﻿using sReportsV2.DTOs.Common.DTO;
 using sReportsV2.DTOs.CustomAttributes;
 using sReportsV2.DTOs.DTOs.Patient.DataIn;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace sReportsV2.DTOs.Patient
 {
     public class PatientDataIn
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        [Display(Name = "Given Name")]
+        [Required]
+        public string GivenName { get; set; }
         public string FamilyName { get; set; }
         public string Gender { get; set; }
         public int? GenderCD { get; set; }

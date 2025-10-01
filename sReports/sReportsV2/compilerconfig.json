@@ -94,5 +94,17 @@
   {
     "outputFile": "wwwroot/css/components/scroll-list.css",
     "inputFile": "wwwroot/css/components/scroll-list.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/libs/fonts/nunito-sans.css",
+    "inputFile": "wwwroot/css/libs/fonts/nunito-sans.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/libs/fonts/inter.css",
+    "inputFile": "wwwroot/css/libs/fonts/inter.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/modules/patient-query.css",
+    "inputFile": "wwwroot/css/modules/patient-query.scss"
   }
 ]

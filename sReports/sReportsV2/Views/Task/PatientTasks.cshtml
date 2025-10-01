@@ -67,7 +67,7 @@
                             <p class="forminstance-title margin-bottom-unset" data-form-instance-title="@Model.Tasks[i].TaskTypeCD" id="task-@Model.Tasks[i].TaskId" title="@Model.Tasks[i].TaskTypeCD">
                                 @taskTypeLabel
                             </p>
-                            <p class="forminstance-title margin-top-bottom-unset">@sReportsV2.Cache.Resources.TextLanguage.StartDate: @Model.Tasks[i].TaskStartDateTime.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</p>
+                            <p class="forminstance-title margin-top-bottom-unset">@sReportsV2.Cache.Resources.TextLanguage.StartDate: @Model.Tasks[i].TaskStartDateTime.ToDateZoned(ViewBag.DateFormat as string)</p>
                             <p class="forminstance-title last-task-margin">@sReportsV2.Cache.Resources.TextLanguage.TaskStatus: @taskStatusLabel</p>
                         </div>
                         <div class="edit-view-icons-div flex">
@@ -92,7 +92,7 @@
                         </div>
                         <div class="row patient-info-div">
                             <p class="col-7 patient-info">@sReportsV2.Cache.Resources.TextLanguage.StartDate</p>
-                            <p class="col-5 left blue">@Model.Tasks[i].TaskStartDateTime.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</p>
+                            <p class="col-5 left blue">@Model.Tasks[i].TaskStartDateTime.ToDateZoned(ViewBag.DateFormat as string)</p>
                         </div>
                     </div>
                 </div>

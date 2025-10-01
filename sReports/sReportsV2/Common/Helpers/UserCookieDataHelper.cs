@@ -16,7 +16,7 @@ namespace sReportsV2.Common.Helpers
 {
     public static class UserCookieDataHelper
     {
-        public static UserCookieData PrepareUserCookie(IServiceProvider serviceProvider, bool isEmail, string identifier, bool shouldResetOrganizations)
+        public static UserCookieData PrepareUserCookie(IServiceProvider serviceProvider, bool isEmail, string identifier)
         {
             var mapper = serviceProvider.GetService<IMapper>();
             var personnelDAL = serviceProvider.GetService<IPersonnelDAL>();
@@ -32,10 +32,6 @@ namespace sReportsV2.Common.Helpers
             if (personnelEntity == null) throw new ArgumentNullException(nameof(identifier));
             
             UserCookieData userCookieData = mapper.Map<UserCookieData>(personnelEntity);
-            if (shouldResetOrganizations)
-            {
-                userCookieData.Organizations = null;
-            }
             userCookieData.PositionPermissions = mapper.Map<List<PositionPermissionDataOut>>(personnelDAL.GetPermissions(personnelEntity.PersonnelId));
             //IMPORTANT NOTE: Add for the purposes of #2849
             SetCustomProperties(userCookieData);

@@ -10,7 +10,7 @@
 <head>
     @ScriptHelper.RenderHeadMetadata(true)
     <title>Choose active organization - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
-    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/font-awesome-5.15.4/css/all.min.css"))
     @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/bootstrap-4.3.1/bootstrap.min.css"))
     <link href="/css/login.css?v=@version" rel="stylesheet">
     <link href="/css/login.min.css?v=@version" rel="stylesheet">
@@ -45,5 +45,6 @@
     @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/bootstrap-4.3.1/bootstrap.min.js"), "", ""));
     @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/userLogin/user.js"), "", ""))
     @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/sReports.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/track-user-inactivity.js"), "", ""))
 </body>
 </html>

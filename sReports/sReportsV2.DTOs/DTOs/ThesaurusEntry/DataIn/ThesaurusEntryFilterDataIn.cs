@@ -7,7 +7,6 @@ namespace sReportsV2.DTOs.ThesaurusEntry
         public int Id { get; set; }
         public string PreferredTerm { get; set; }
         public string Synonym { get; set; }
-        public string SimilarTerm { get; set; }
         public string Abbreviation { get; set; }
         public string UmlsCode { get; set; }
         public string UmlsName { get; set; }

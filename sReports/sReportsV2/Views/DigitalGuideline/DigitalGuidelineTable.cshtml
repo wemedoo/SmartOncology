@@ -8,14 +8,14 @@
     bool hasDeletePerm = userCookieData.UserHasPermission(PermissionNames.Delete, ModuleNames.ClinicalPathway);
 }
 
-<div class="table-responsive filter-border">
+<div class="table-responsive overflow-unset">
     <table class="table table-striped table-border">
         <thead class="color-header">
             <tr class="table-header-row">
-                <th id="Title" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Title')">@sReportsV2.Cache.Resources.TextLanguage.Title</th>
-                <th id="Version" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Version')">@sReportsV2.Cache.Resources.TextLanguage.Version</th>
-                <th id="EntryDatetime" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('EntryDatetime')">@sReportsV2.Cache.Resources.TextLanguage.EntryDateTime</th>
-                <th id="LastUpdate" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('LastUpdate')">@sReportsV2.Cache.Resources.TextLanguage.LastUpdate</th>
+                <th id="Title" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Title')">@sReportsV2.Cache.Resources.TextLanguage.Title.ToUpper()</th>
+                <th id="Version" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('Version')">@sReportsV2.Cache.Resources.TextLanguage.Version.ToUpper()</th>
+                <th id="EntryDatetime" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('EntryDatetime')">@sReportsV2.Cache.Resources.TextLanguage.EntryDateTime.ToUpper()</th>
+                <th id="LastUpdate" class="sort-arrow" style="border-bottom: unset;border-top: unset;" onclick="sortTable('LastUpdate')">@sReportsV2.Cache.Resources.TextLanguage.LastUpdate.ToUpper()</th>
 
                 <th style="border-bottom: unset;border-top: unset;"></th>
             </tr>
@@ -55,11 +55,7 @@
     </table>
     @if (Model.Data.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
     @if (Model.Data.Count > 0)
     {

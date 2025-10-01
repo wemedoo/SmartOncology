@@ -1,9 +1,6 @@
 ﻿using sReportsV2.Common.CustomAttributes;
-using sReportsV2.Cache.Singleton;
 using sReportsV2.DTOs.EpisodeOfCare;
 using System.Linq;
-using System.Net;
-using sReportsV2.Common.Enums;
 using sReportsV2.BusinessLayer.Interfaces;
 using sReportsV2.Common.Constants;
 using System.Collections.Generic;
@@ -11,7 +8,6 @@ using sReportsV2.Common.Extensions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -25,8 +21,9 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.episodeOfCareBLL = episodeOfCareBLL;
         }
@@ -52,6 +49,7 @@ namespace sReportsV2.Controllers
 
         [SReportsAuthorize(Permission = PermissionNames.AddEpisodeOfCare, Module = ModuleNames.Patients)]
         [SReportsAuditLog]
+        [SReportsModelStateValidate]
         [HttpPost]
         public async Task<ActionResult> Create(EpisodeOfCareDataIn episodeOfCare)
         {
@@ -60,6 +58,7 @@ namespace sReportsV2.Controllers
 
         [SReportsAuthorize(Permission = PermissionNames.UpdateEpisodeOfCare, Module = ModuleNames.Patients)]
         [SReportsAuditLog]
+        [SReportsModelStateValidate]
         [HttpPost]
         public async Task<ActionResult> Edit(EpisodeOfCareDataIn episodeOfCare)
         {
@@ -80,7 +79,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.ViewEpisodeOfCare, Module = ModuleNames.Patients)]
         public async Task<ActionResult> EditFromEOC(int episodeOfCareId)
         {
-            EpisodeOfCareDataOut episodeOfCareDataOut = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId, userCookieData.ActiveLanguage)
+            EpisodeOfCareDataOut episodeOfCareDataOut = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId)
                 .ConfigureAwait(false);
             SetEpisodeOfCareAndEncounterViewBags();
 
@@ -111,7 +110,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.ViewEpisodeOfCare, Module = ModuleNames.Patients)]
         public async Task<ActionResult> EncounterData(int episodeOfCareId, bool isReadOnlyViewMode)
         {
-            EpisodeOfCareDataOut episodeOfCareDataOut = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId, userCookieData.ActiveLanguage)
+            EpisodeOfCareDataOut episodeOfCareDataOut = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId)
                 .ConfigureAwait(false);
             SetEpisodeOfCareAndEncounterViewBags();
             SetReadOnlyAndDisabledViewBag(isReadOnlyViewMode);
@@ -126,7 +125,7 @@ namespace sReportsV2.Controllers
         public async Task<ActionResult> ReloadEOCFromPatient(EpisodeOfCareDataIn episodeOfCare, bool isReadOnlyViewMode)
         {
             episodeOfCare = Ensure.IsNotNull(episodeOfCare, nameof(episodeOfCare));
-            List<EpisodeOfCareDataOut> episodesOfCareDataOut = await episodeOfCareBLL.GetByPatientIdAsync(episodeOfCare, userCookieData.ActiveLanguage)
+            List<EpisodeOfCareDataOut> episodesOfCareDataOut = await episodeOfCareBLL.GetByPatientIdAsync(episodeOfCare)
                 .ConfigureAwait(false);
             SetEpisodeOfCareViewBags();
             SetReadOnlyAndDisabledViewBag(isReadOnlyViewMode);
@@ -142,7 +141,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.ViewEpisodeOfCare, Module = ModuleNames.Patients)]
         public async Task<ActionResult> GetActiveBreadcrumbValue(int episodeOfCareId, int? encounterId = null)
         {
-            var episodeOfCareDataOut = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId, userCookieData.ActiveLanguage).ConfigureAwait(false);
+            var episodeOfCareDataOut = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId).ConfigureAwait(false);
             SetEpisodeOfCareAndEncounterViewBags();
 
             return Json(episodeOfCareDataOut.ConvertEOCAndEncounterTypeCDToDisplayName(ViewBag.EpisodeOfCareTypes, ViewBag.EncounterTypes, userCookieData.ActiveLanguage, encounterId));
@@ -159,7 +158,7 @@ namespace sReportsV2.Controllers
 
         private async Task<ActionResult> GetEditViewEpisodeOfCare(int episodeOfCareId, bool isReadOnlyViewMode)
         {
-            var data = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId, userCookieData.ActiveLanguage);
+            var data = await episodeOfCareBLL.GetByIdAsync(episodeOfCareId);
             SetEpisodeOfCareViewBags();
             SetReadOnlyAndDisabledViewBag(isReadOnlyViewMode);
             return PartialView("AddEocModal", data);

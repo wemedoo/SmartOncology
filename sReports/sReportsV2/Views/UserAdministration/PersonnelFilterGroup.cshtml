@@ -34,7 +34,7 @@
                 @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.PersonnelPositions, readOnlyMode: true))
                 {
                     var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
-                    <option id="RoleId_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.RoleCD == option.Id ? "selected" : "")>@optionName</option>
+                    <option id="@option.Id" data-display="@optionName" @(ViewBag.FilterData.RoleCD == option.Id ? "selected" : "")>@optionName</option>
                 }
             </select>
         </div>
@@ -42,7 +42,7 @@
             <div class="label filter-label">
                 @sReportsV2.Cache.Resources.TextLanguage.Organization
             </div>
-            <select class="filter-input arrow-select" id="OrganizationTempId">
+            <select class="filter-input arrow-select" id="organizationTempId">
                 <option value=""></option>
             </select>
         </div>

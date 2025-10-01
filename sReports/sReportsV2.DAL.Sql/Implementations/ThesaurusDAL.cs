@@ -10,6 +10,7 @@ using sReportsV2.Common.Helpers;
 using sReportsV2.Common.Constants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace sReportsV2.SqlDomain.Implementations
 {
@@ -40,6 +41,7 @@ namespace sReportsV2.SqlDomain.Implementations
         {
             return context.Thesauruses
                 .Include(x => x.Codes)
+                .Include(x => x.Translations)
                 .Where(x => ids.Contains(x.ThesaurusEntryId)).ToList();
         }
 
@@ -53,7 +55,7 @@ namespace sReportsV2.SqlDomain.Implementations
         {
             return this.GetFilteredQuery(filterDataIn)
                       .OrderBy(x => x.ThesaurusEntryId)
-                      .Skip((filterDataIn.Page - 1) * filterDataIn.PageSize)
+                      .Skip(filterDataIn.GetHowManyElementsToSkip())
                       .Take(filterDataIn.PageSize)
                       .ToList(); 
         }
@@ -123,7 +125,6 @@ namespace sReportsV2.SqlDomain.Implementations
                 .Count();
         }
 
-        //Import thesaurus from UMLS section
         public void InsertMany(List<ThesaurusEntry> thesauruses)
         {
             DataTable thesaurusesTable = new DataTable();
@@ -133,9 +134,7 @@ namespace sReportsV2.SqlDomain.Implementations
             thesaurusesTable.Columns.Add(new DataColumn("ActiveTo", typeof(DateTimeOffset)));
             thesaurusesTable.Columns.Add(new DataColumn("LastUpdate", typeof(DateTimeOffset)));
             thesaurusesTable.Columns.Add(new DataColumn("PreferredLanguage", typeof(string)));
-            thesaurusesTable.Columns.Add(new DataColumn("AdministrativeDataId", typeof(int)));
 
-            int i = 1;
             foreach (var thesaurus in thesauruses)
             {
                 DataRow thesaurusRow = thesaurusesTable.NewRow();
@@ -145,9 +144,7 @@ namespace sReportsV2.SqlDomain.Implementations
                 thesaurusRow["ActiveTo"] = thesaurus.ActiveTo;
                 thesaurusRow["LastUpdate"] = DBNull.Value;
                 thesaurusRow["PreferredLanguage"] = thesaurus.PreferredLanguage;
-                thesaurusRow["AdministrativeDataId"] = i;
                 thesaurusesTable.Rows.Add(thesaurusRow);
-                i++;
             }
 
             string connection = configuration["Sql"];
@@ -164,7 +161,6 @@ namespace sReportsV2.SqlDomain.Implementations
             objbulk.ColumnMappings.Add("ActiveTo", "ActiveTo");
             objbulk.ColumnMappings.Add("LastUpdate", "LastUpdate");
             objbulk.ColumnMappings.Add("PreferredLanguage", "PreferredLanguage");
-            objbulk.ColumnMappings.Add("AdministrativeDataId", "AdministrativeDataId");
 
             con.Open();
             objbulk.WriteToServer(thesaurusesTable);
@@ -225,11 +221,11 @@ namespace sReportsV2.SqlDomain.Implementations
                 result = SortByField(result, filterData);
             else if (filterData.PreferredTerm != null && filterData.IsSearchTable)
                 result = result.OrderBy(x => x.PreferredTerm)
-                    .Skip((filterData.Page - 1) * filterData.PageSize)
+                    .Skip(filterData.GetHowManyElementsToSkip())
                     .Take(filterData.PageSize);
             else
                 result = result.OrderByDescending(x => x.ThesaurusEntryId)
-                    .Skip((filterData.Page - 1) * filterData.PageSize)
+                    .Skip(filterData.GetHowManyElementsToSkip())
                     .Take(filterData.PageSize);
 
             return result.ToList();
@@ -254,7 +250,7 @@ namespace sReportsV2.SqlDomain.Implementations
         {
             return !string.IsNullOrWhiteSpace(preferredTerm) ? this.GetAllSimilarQuery(filter, preferredTerm, language, productionStateCD)
                 .OrderByDescending(x => x.EntryDatetime)
-                .Skip((filter.Page - 1) * filter.PageSize)
+                .Skip(filter.GetHowManyElementsToSkip())
                 .Take(filter.PageSize)
                 .ToList() : new List<ThesaurusEntry>();
         }
@@ -295,23 +291,6 @@ namespace sReportsV2.SqlDomain.Implementations
                 .ToList();
         }
 
-        public List<string> GetAll(string language, string searchValue, int page)
-        {
-            return context.Thesauruses
-                .Include(x => x.Translations)
-                .Include(x => x.AdministrativeData)
-                .Include(x => x.Codes)
-                .Include(x => x.AdministrativeData.VersionHistory)
-                .WhereEntriesAreActive()
-                .Where(z => z.Translations
-                    .Any(y => y.Language.Equals(language) && y.PreferredTerm.Contains(searchValue)))
-                .OrderBy(x => x.ThesaurusEntryId)
-                .Skip(page).Take(10)
-                .AsEnumerable()
-                .Select(m => m.GetPreferredTermByActiveLanguage(language))
-                .ToList();
-        }
-
         public int GetThesaurusIdThatHasCodeableConcept(string codeValue)
         {
             return context.O4CodeableConcepts.Where(x => x.Value == codeValue && !x.IsDeleted)
@@ -329,10 +308,18 @@ namespace sReportsV2.SqlDomain.Implementations
             return context.ThesaurusEntryTranslations.Where(translation => translation.PreferredTerm == preferredTerm).Select(translation => translation.ThesaurusEntryId).FirstOrDefault();
         }
 
+        public async Task<List<FormThesaurusReportView>> GetFormThesaurusReportView(List<int> thesaurusIds)
+        {
+            return await context.FormThesaurusReportViews
+                .Where(ftr => thesaurusIds.Contains(ftr.ThesaurusEntryId))
+                .OrderBy(ftr => ftr.ThesaurusEntryId)
+                .ToListAsync();
+        }
+
         private IQueryable<ThesaurusEntryView> SortByField(IQueryable<ThesaurusEntryView> result, ThesaurusEntryFilterData filterData)
         {
             return SortTableHelper.OrderByField(result, filterData.ColumnName, filterData.IsAscending)
-                  .Skip((filterData.Page - 1) * filterData.PageSize)
+                  .Skip(filterData.GetHowManyElementsToSkip())
                   .Take(filterData.PageSize);
         }
     }

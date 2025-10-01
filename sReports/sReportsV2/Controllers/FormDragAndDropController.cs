@@ -17,8 +17,6 @@ using sReportsV2.DTOs.CodeEntry.DataOut;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sReportsV2.Cache.Resources;
-using System;
-using System.Linq;
 
 namespace sReportsV2.Controllers
 {
@@ -38,7 +36,7 @@ namespace sReportsV2.Controllers
         public ActionResult CreateDragAndDropFormPartial([ModelBinder(typeof(JsonNetModelBinder))] FormDataIn formDataIn)
         {
             SetFormDragAndDropPartialViewBags(formDataIn.IsReadOnlyViewMode);
-            return PartialView("~/Views/Form/DragAndDrop/DragAndDropFormPartial.cshtml", Mapper.Map<FormDataOut>(formDataIn));
+            return PartialView("~/Views/Form/DragAndDrop/DragAndDropFormPartial.cshtml", mapper.Map<FormDataOut>(formDataIn));
         }
 
         [SReportsAuditLog]
@@ -46,7 +44,7 @@ namespace sReportsV2.Controllers
         [HttpPost]
         public ActionResult CreateFormTreeNestable([ModelBinder(typeof(JsonNetModelBinder))] FormDataIn formDataIn)
         {
-            return PartialView("~/Views/Form/DragAndDrop/FormTreeNestable.cshtml", Mapper.Map<FormDataOut>(formDataIn));
+            return PartialView("~/Views/Form/DragAndDrop/FormTreeNestable.cshtml", mapper.Map<FormDataOut>(formDataIn));
         }
       
         [SReportsAuditLog]
@@ -72,33 +70,12 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuditLog]
-        [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Designer)]
-        public ActionResult GetViewEditResponse(FormRequestDataIn request)
-        {
-            request = Ensure.IsNotNull(request, nameof(request));
-            Form form = this.formBLL.GetFormByThesaurusAndLanguageAndVersionAndOrganization(request.ThesaurusId, userCookieData.ActiveOrganization, userCookieData.ActiveLanguage, request.VersionId);
-            if (form == null)
-            {
-                return NotFound(TextLanguage.FormNotExists, request.ThesaurusId.ToString());
-            }
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
-            ViewBag.Consensus = Mapper.Map<ConsensusDataOut>(consensusDAL.GetByFormId(form.Id));
-            ViewBag.ActiveTab = request.ActiveTab;
-            SetDiagnosisRoleAndEoCTypesViewBag();
-            SetViewBagCommentsParameters(request.TaggedCommentId);
-            SetViewBagAndMakeResetAndNeSectionHidden();
-            return View("~/Views/Form/DragAndDrop/Create.cshtml", GetFormDataOut(form));
-        }
-
-        [SReportsAuditLog]
         [Authorize]
         [HttpPost]
         public ActionResult GetFormTree([ModelBinder(typeof(JsonNetModelBinder))] FormDataIn formDataIn)
         {
-            SetViewBagPreviewTypeParameters(formDataIn.IsReadOnlyViewMode);
-            SetViewBagCommentsParameters();
-            SetViewBagAndMakeResetAndNeSectionHidden();
-            return PartialView("~/Views/Form/DragAndDrop/FormTreeContainer.cshtml", Mapper.Map<FormDataOut>(formDataIn));
+            SetFormDragAndDropPartialViewBags(formDataIn.IsReadOnlyViewMode);
+            return PartialView("~/Views/Form/DragAndDrop/FormTreeContainer.cshtml", mapper.Map<FormDataOut>(formDataIn));
         }
 
         [SReportsAuditLog]
@@ -108,10 +85,10 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             ViewBag.NullFlavors = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.NullFlavor);
 
-            int formInstancesCount = (dataIn != null && dataIn.Id != "formIdPlaceHolder") ? formInstanceDAL.CountByDefinition(dataIn.Id) : -1;
+            int formInstancesCount = (dataIn != null && dataIn.Id != "formIdPlaceHolder") ? formInstanceBLL.CountByDefinition(dataIn.Id) : -1;
             ViewBag.NotUpdateableField = (formInstancesCount > 0);
             ViewBag.ClinicalDomains = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalDomain);
 
@@ -120,15 +97,6 @@ namespace sReportsV2.Controllers
 
             return PartialView("~/Views/Form/DragAndDrop/FormGeneralInfoTabs.cshtml", await formBLL.GetFormForGeneralInfoAsync(dataIn).ConfigureAwait(false));
         }
-
-        // This endpoint is NOT in use
-        /*[SReportsAuditLog]
-        [SReportsAuthorize]
-        [HttpPost]
-        public ActionResult GetFormPreview([ModelBinder(typeof(JsonNetModelBinder))] FormDataIn dataIn)
-        {
-            return PartialView("~/Views/Form/DragAndDrop/FormPartialPreview.cshtml", Mapper.Map<FormDataOut>(dataIn));
-        }*/
 
         [SReportsAuditLog]
         [SReportsAuthorize]
@@ -145,7 +113,7 @@ namespace sReportsV2.Controllers
         public ActionResult GetChapterInfoForm([ModelBinder(typeof(JsonNetModelBinder))] FormChapterDataIn chapter)
         {
             SetViewBagPreviewTypeParameters(chapter.IsReadOnlyViewMode);
-            return PartialView("~/Views/Form/DragAndDrop/ChapterInfoForm.cshtml", Mapper.Map<FormChapterDataOut>(chapter));
+            return PartialView("~/Views/Form/DragAndDrop/ChapterInfoForm.cshtml", mapper.Map<FormChapterDataOut>(chapter));
         }
 
         [SReportsAuditLog]
@@ -154,7 +122,7 @@ namespace sReportsV2.Controllers
         public ActionResult GetPageInfoForm([ModelBinder(typeof(JsonNetModelBinder))] FormPageDataIn page)
         {
             SetViewBagPreviewTypeParameters(page.IsReadOnlyViewMode);
-            return PartialView("~/Views/Form/DragAndDrop/PageInfoForm.cshtml", Mapper.Map<FormPageDataOut>(page));
+            return PartialView("~/Views/Form/DragAndDrop/PageInfoForm.cshtml", mapper.Map<FormPageDataOut>(page));
         }
 
 
@@ -164,7 +132,9 @@ namespace sReportsV2.Controllers
         public ActionResult GetFieldSetInfoForm([ModelBinder(typeof(JsonNetModelBinder))] FormFieldSetDataIn fieldset)
         {
             SetViewBagPreviewTypeParameters(fieldset.IsReadOnlyViewMode);
-            return PartialView("~/Views/Form/DragAndDrop/FieldSetInfoForm.cshtml", Mapper.Map<FormFieldSetDataOut>(fieldset));
+            ViewBag.SelectedFieldSets = formBLL.GetFieldSetsByFieldLabels(fieldset.FormId, fieldset);
+            
+            return PartialView("~/Views/Form/DragAndDrop/FieldSetInfoForm.cshtml", mapper.Map<FormFieldSetDataOut>(fieldset));
         }
 
         [SReportsAuditLog]
@@ -174,10 +144,12 @@ namespace sReportsV2.Controllers
         {
             SetViewBagPreviewTypeParameters(fieldDataIn.IsReadOnlyViewMode);
             SetNullFlavorsViewBag(fieldDataIn.FormId);
-            FormDataOut form = Mapper.Map<FormDataOut>(formBLL.GetFormById(fieldDataIn.FormId));
-            FieldDataOut model = Mapper.Map<FieldDataOut>(fieldDataIn);
+            FormDataOut form = mapper.Map<FormDataOut>(formBLL.GetFormById(fieldDataIn.FormId));
+            FieldDataOut model = mapper.Map<FieldDataOut>(fieldDataIn);
             model.AddMissingPropertiesInDependency(form);
-            ViewBag.FieldSet = form.GetFieldSet(fieldDataIn.FieldSetId);
+            var result = form.GetFieldSet(fieldDataIn.FieldSetId);
+            ViewBag.FieldSet = result.FieldSet;
+            ViewBag.IsNested = result.FoundInNested;
             ViewBag.Form = form;
             return PartialView("~/Views/Form/DragAndDrop/FieldInfoTabs.cshtml", model);
         }
@@ -189,7 +161,7 @@ namespace sReportsV2.Controllers
         {
             fieldDataIn = Ensure.IsNotNull(fieldDataIn, nameof(fieldDataIn));
             SetViewBagPreviewTypeParameters(fieldDataIn.IsReadOnlyViewMode);
-            var dataOut = Mapper.Map<FieldDataOut>(fieldDataIn);
+            var dataOut = mapper.Map<FieldDataOut>(fieldDataIn);
             SetNullFlavorsViewBag(fieldDataIn.FormId);
 
             switch (fieldDataIn.Type)
@@ -222,8 +194,13 @@ namespace sReportsV2.Controllers
                     return PartialView("~/Views/Form/DragAndDrop/CustomFields/TextFieldForm.cshtml", dataOut);
                 case FieldTypes.Coded:
                     return PartialView("~/Views/Form/DragAndDrop/CustomFields/CodedFieldForm.cshtml", dataOut);
+                case FieldTypes.Connected:
+                    ViewBag.Form = mapper.Map<FormDataOut>(formBLL.GetFormById(fieldDataIn.FormId));
+                    return PartialView("~/Views/Form/DragAndDrop/CustomFields/ConnectedFieldForm.cshtml", dataOut);
                 case FieldTypes.Paragraph:
                     return PartialView("~/Views/Form/DragAndDrop/CustomFields/ParagraphFieldForm.cshtml", dataOut);
+                case FieldTypes.RichTextParagraph:
+                    return PartialView("~/Views/Form/DragAndDrop/CustomFields/RichTextParagraphFieldForm.cshtml", dataOut);
                 case FieldTypes.Link:
                     return PartialView("~/Views/Form/DragAndDrop/CustomFields/LinkFieldForm.cshtml", dataOut);
                 case FieldTypes.Audio:
@@ -243,14 +220,14 @@ namespace sReportsV2.Controllers
         public ActionResult GetFieldValueInfoForm([ModelBinder(typeof(JsonNetModelBinder))] FormFieldValueDataIn fieldValueDataIn)
         {
             SetViewBagPreviewTypeParameters(fieldValueDataIn.IsReadOnlyViewMode);
-            return PartialView("~/Views/Form/DragAndDrop/FieldValueInfoForm.cshtml", Mapper.Map<FormFieldValueDataOut>(fieldValueDataIn));
+            return PartialView("~/Views/Form/DragAndDrop/FieldValueInfoForm.cshtml", mapper.Map<FormFieldValueDataOut>(fieldValueDataIn));
         }
 
         [HttpPost]
         public ActionResult GetCalculativeTree([ModelBinder(typeof(JsonNetModelBinder))] CalculativeTreeDataIn dataIn)
         {
             SetViewBagPreviewTypeParameters(dataIn.IsReadOnlyViewMode);
-            return PartialView(dataIn.Data);
+            return PartialView(dataIn.CalculationFields);
         }
 
         [SReportsAuditLog]
@@ -258,7 +235,30 @@ namespace sReportsV2.Controllers
         public ActionResult AddDependentOnField(DependentOnFieldInfoDataIn dataIn)
         {
             SetReadOnlyAndDisabledViewBag(false);
-            return PartialView("~/Views/Form/DragAndDrop/Dependency/DependentOnFieldInfo.cshtml", Mapper.Map<DependentOnFieldInfoDataOut>(dataIn));
+            return PartialView("~/Views/Form/DragAndDrop/Dependency/DependentOnFieldInfo.cshtml", mapper.Map<DependentOnFieldInfoDataOut>(dataIn));
+        }
+
+        [SReportsAuthorize(Module = ModuleNames.Designer, Permission = PermissionNames.View)]
+        public ActionResult GetLoincDataSource()
+        {
+            return Json(SingletonDataContainer.Instance.GetLoincDatasource());
+        }
+
+        private ActionResult GetViewEditResponse(FormRequestDataIn request)
+        {
+            request = Ensure.IsNotNull(request, nameof(request));
+            Form form = this.formBLL.GetFormByThesaurusAndLanguageAndVersionAndOrganization(request.ThesaurusId, userCookieData.ActiveOrganization, userCookieData.ActiveLanguage, request.VersionId);
+            if (form == null)
+            {
+                return NotFound(TextLanguage.FormNotExists, request.ThesaurusId.ToString());
+            }
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.Consensus = consensusBLL.GetByFormId(form.Id);
+            ViewBag.ActiveTab = request.ActiveTab;
+            SetDiagnosisRoleAndEoCTypesViewBag();
+            SetViewBagCommentsParameters(request.TaggedCommentId);
+            SetViewBagAndMakeResetAndNeSectionHidden();
+            return View("~/Views/Form/DragAndDrop/Create.cshtml", GetFormDataOut(form));
         }
 
         private void SetViewBagPreviewTypeParameters(bool readOnly)

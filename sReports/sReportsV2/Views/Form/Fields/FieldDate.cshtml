@@ -77,6 +77,7 @@
         {
             InputAttributes = new Dictionary<object, object> {
                         { "class", "field-date-input form-element-field " + (isRepetitive ? "text" : "") },
+                        { "skip-blur", true},
                         { "id", string.Format("field-id-{0}", fieldInstanceRepetitionId)},
                         { "data-parent-field", ".datetime-picker-container" },
                         { "data-preventfuturedates", preventFutureDates },

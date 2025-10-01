@@ -35,7 +35,7 @@ namespace sReportsV2.MapperProfiles
             }
             catch (Exception ex)
             {
-                LogHelper.Error("Error while setting created by property, error message: " + ex.Message);
+                LogHelper.Error("Error while setting created by property, error message: " + ex.GetExceptionStackMessages());
             }
         }
     }

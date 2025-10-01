@@ -15,6 +15,7 @@
         $(element).attr('data-organizationIds', encodeURIComponent(JSON.stringify(getOrganizationIds())));
         setFormVersion(element);
         setDocumentProperties(element);
+        setDocumentLoincProperties(element);
         setEpisodeOfCareProperties(element);
 
         updateTreeItemTitle(element, title);
@@ -71,7 +72,6 @@ $(document).on('blur', '.version', function (e) {
     let activeVersion = getDataProperty(element, 'activeversion');
     let minorVersion = $('#versionMinor').val();
     let majorVersion = $('#versionMajor').val();
-    console.log(activeVersion);
     if (activeVersion && Object.keys(activeVersion).length > 2 &&( minorVersion != activeVersion.Minor || majorVersion != activeVersion.Major)) {
         $('#versionWarning').show();
     } else {
@@ -100,7 +100,7 @@ $(document).on('change', '#generalPurpose', function () {
 });
 
 $(document).on('change', '#clinicalContext', function () {
-    $('#documentFollowUpSelect').attr('selectedIndex', 0);
+    $('#followUp').attr('selectedIndex', 0);
 
     if (this.value === "FollowUp") {
         $('#documentFollowUp').removeClass('d-none');
@@ -180,7 +180,7 @@ function setScopeOfValidity(documentProperties) {
 
 function setClinicalContext(documentProperties) {
     let clinicalContext = $('#clinicalContext').val();
-    let followUp = $('#documentFollowUpSelect').val();
+    let followUp = $('#followUp').val();
 
     if (clinicalContext) {
         documentProperties['clinicalContext'] = documentProperties['clinicalContext'] || {};

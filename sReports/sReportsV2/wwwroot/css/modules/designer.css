@@ -136,6 +136,13 @@
     display: none;
   }
 }
+.extract-data-btn.file-extract {
+  bottom: -5px;
+}
+.extract-data-btn.file-instance-extract {
+  bottom: -8px;
+  right: 50px;
+}
 
 .dependency-configuration-content {
   padding-bottom: 20px;
@@ -643,12 +650,6 @@ div[id*=replayComment] {
 }
 
 /*END COMMENT SECTION*/
-.state-option.active {
-  font-weight: bold;
-  background-color: white;
-  color: black;
-}
-
 .comment-replay-color {
   color: #9365ab;
 }
@@ -1480,15 +1481,17 @@ div[id*=replayComment] {
   margin-top: 20px;
 }
 
-.form-definition-state-disable {
-  cursor: not-allowed;
-  opacity: 0.5;
-  text-decoration: none;
-}
-
 .form-definition-state {
   cursor: pointer;
   white-space: nowrap;
+}
+.form-definition-state.active {
+  font-weight: bold;
+  background-color: white;
+  color: black;
+}
+.form-definition-state span {
+  margin-left: 5px;
 }
 
 .menu-state {
@@ -1761,4 +1764,278 @@ div[id*=replayComment] {
   right: 0px;
   top: 0;
   padding-top: 2px;
+}
+
+.expand-dropdown-menu .relocate-img {
+  margin-top: 6px;
+}
+
+.remove-options {
+  padding-top: 8px;
+  margin-left: 4.5px;
+}
+
+.hide-repetitive {
+  display: none !important;
+}
+
+.matrix-container {
+  overflow-x: auto;
+  max-width: 100%;
+  position: relative;
+  border-left: 1px solid #CED4DA;
+}
+
+.matrix-container::-webkit-scrollbar-thumb {
+  background: #A5A5A5;
+}
+
+.matrix-container::-webkit-scrollbar {
+  height: 10px;
+}
+
+.matrix-container::-webkit-scrollbar-track {
+  background: #F0F1F1 !important;
+}
+
+.matrix-table {
+  border-collapse: collapse;
+  position: relative;
+  table-layout: fixed;
+  border: 1px solid #CED4DA;
+  border-right-width: 0px;
+  border-left-width: 0px;
+  width: 100%;
+}
+
+.matrix-table th,
+.matrix-table td {
+  border-right: 1px solid #CED4DA;
+  width: 120px;
+  position: relative;
+  padding: unset;
+}
+
+.matrix-table tr {
+  border-bottom: 1px solid #ccc;
+}
+
+.matrix-table td:last-child {
+  border-right-width: 0px;
+}
+
+.matrix-table th:first-child {
+  pointer-events: none;
+}
+
+.matrix-table th:last-child {
+  border-right-width: 0px;
+}
+
+.matrix-table tfoot tr.add-row-row td.sticky-column {
+  background-color: transparent !important;
+}
+
+.add-row-row td {
+  border: none;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.remove-btn {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  padding: 2px 5px;
+  font-size: 12px;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  padding: 5px 15px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-column-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #CED4DA;
+  padding-left: 14px;
+  padding-right: 14px;
+  position: sticky;
+}
+
+.add-column-btn {
+  border-top: 1px solid #CED4DA;
+  border-bottom: 1px solid #CED4DA;
+  border-left: 1px solid #CED4DA;
+  border-right: none;
+  border-radius: 0;
+  width: 40px;
+  padding: 5px 10px;
+}
+
+.matrix-cell {
+  padding: 10px 32px 10px 16px;
+  font-size: 14px;
+  color: black !important;
+  text-align: center;
+  min-width: 120px;
+  text-overflow: ellipsis;
+}
+
+.remove-fieldset {
+  content: url("/css/img/icons/remove_icon.svg");
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+
+.colspan-row {
+  width: 100% !important;
+  text-align: center;
+  display: table-cell !important;
+}
+
+.add-opt-button {
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.cursor-default {
+  pointer-events: none;
+}
+
+.fieldset-dropdown {
+  position: absolute;
+  float: right;
+  right: 65px;
+  top: -20px;
+  cursor: pointer;
+}
+
+.field-dropdown {
+  position: absolute;
+  float: right;
+  right: -120px;
+  top: 0px;
+  cursor: pointer;
+}
+
+.matrix-fieldset-menu {
+  padding: 8px;
+  position: absolute;
+  z-index: 1000;
+  width: fit-content;
+}
+.matrix-fieldset-menu .btns-group {
+  width: 100%;
+}
+
+.column-zoom-input {
+  height: 40px;
+  min-width: 300px;
+  border: 1px solid #1C94A3;
+  padding: 8px;
+  border-radius: 4px;
+  outline: none;
+  font-size: 14px;
+  text-overflow: ellipsis;
+}
+
+.fs-matrix-table {
+  border-collapse: collapse;
+  position: relative;
+  table-layout: fixed;
+  width: 100%;
+  border: 1px solid #CED4DA;
+  border-right-width: 0px;
+  border-left-width: 0px;
+}
+
+.fs-matrix-table tr {
+  border-bottom: 1px solid #ccc;
+}
+
+.fs-matrix-table th,
+.fs-matrix-table td {
+  border-right: 1px solid #CED4DA;
+  width: 120px;
+  position: relative;
+  padding: unset;
+}
+
+.fs-matrix-table th:first-child {
+  pointer-events: none;
+}
+
+.padding-5 {
+  padding: 5px;
+}
+
+.fs-column-input {
+  border: none;
+  outline: none;
+  background: none;
+  width: 100%;
+  line-height: 19px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.edit-matrix-button {
+  position: absolute;
+  right: 30px;
+  top: 5px;
+  z-index: 100;
+  cursor: pointer;
+}
+
+.border-bottom-matrix {
+  border-bottom: 1px solid #CED4DA;
+}
+
+.sticky-column {
+  position: sticky !important;
+  left: 0;
+  z-index: 101;
+  background-color: #fff !important;
+  display: block;
+}
+
+.loinc-configuration-section {
+  display: flex;
+  margin: 20px 5px;
+}
+
+#helpModalBody {
+  font-family: sans-serif, Arial, Verdana, "Trebuchet MS", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+#helpModalBody ul {
+  list-style-type: disc !important;
+}
+
+.jsoneditor-dragarea, .jsoneditor-contextmenu {
+  pointer-events: none;
 }

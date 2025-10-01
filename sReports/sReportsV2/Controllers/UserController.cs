@@ -2,7 +2,6 @@
 using sReportsV2.Common.Extensions;
 using sReportsV2.DTOs.Common.DataOut;
 using sReportsV2.DTOs.User.DataIn;
-using System.Security.Claims;
 using sReportsV2.DTOs.Autocomplete;
 using System.Linq;
 using Serilog;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.AspNetCore.Authentication.Google;
 using sReportsV2.Common.Enums;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Collections.Generic;
 using sReportsV2.Common.Constants;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.Common.Helpers;
@@ -29,15 +27,15 @@ namespace sReportsV2.Controllers
         protected IOrganizationBLL organizationBLL;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AccountService _accountService;
-        private readonly IConfiguration Configuration;
+        private readonly IConfiguration configuration;
 
         public UserController(IUserBLL userBLL, IOrganizationBLL organizationBLL, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, AccountService accountService)
         {
             this.userBLL = userBLL;
             this.organizationBLL = organizationBLL;
-            _httpContextAccessor = httpContextAccessor;
-            _accountService = accountService;
-            Configuration = configuration;
+            this._httpContextAccessor = httpContextAccessor;
+            this._accountService = accountService;
+            this.configuration = configuration;
         }
         [HttpGet]
         [ResponseCache(NoStore = true, Duration = 0)]
@@ -57,8 +55,8 @@ namespace sReportsV2.Controllers
             }
 
             ViewBag.IsLogin = isLogin;
-            ViewBag.ReturnUrl = returnUrl != "/User/Logout" ? returnUrl : "/";
-            string loginView = Configuration["LoginViewName"];
+            ViewBag.ReturnUrl = returnUrl != "/User/Logout" ? returnUrl : ResourceTypes.DefaultEndpoint;
+            string loginView = configuration["LoginViewName"];
 
             return View(loginView);
         }
@@ -99,7 +97,7 @@ namespace sReportsV2.Controllers
                     return View("~/Views/User/ChooseActiveOrganization.cshtml");
                 }
 
-                await _accountService.SignInUserAsync(userDataOut.GetClaims());
+                await _accountService.SignInUserAsync(userDataOut.GetClaims(), userDataOut.Email);
 
                 if (userDataOut.HasToChooseActiveOrganization)
                 {
@@ -132,13 +130,21 @@ namespace sReportsV2.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task Logout()
+        public async Task<ActionResult> Logout(string returnUrl = ResourceTypes.DefaultEndpoint)
         {
             if (User.Identity.IsAuthenticated)
             {
                 await SignOutAsync();    
             }
-            Response.Redirect(Url.Action("Index", Configuration["DefaultController"], null));
+
+            if (configuration.IsSReportsRunning())
+            {
+                return RedirectToAction("Login", new { returnUrl });
+            }
+            else
+            {
+                return RedirectToAction("Index", configuration["DefaultController"]);
+            }
         }
 
         [HttpGet]
@@ -155,7 +161,7 @@ namespace sReportsV2.Controllers
         }
 
         [AllowAnonymous]
-        public IActionResult SignInExternal(string providerName, string returnUrl = "/")
+        public IActionResult SignInExternal(string providerName, string returnUrl = ResourceTypes.DefaultEndpoint)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -165,14 +171,14 @@ namespace sReportsV2.Controllers
             }
             else
             {
-                return RedirectToAction("Index", Configuration["DefaultController"]);
+                return RedirectToAction("Index", configuration["DefaultController"]);
             }
             
         }
         
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> SignInExternalCallback(string providerName, string returnUrl = "/")
+        public async Task<IActionResult> SignInExternalCallback(string providerName, string returnUrl = ResourceTypes.DefaultEndpoint)
         {
             var authenticateResult = await HttpContext.AuthenticateAsync();
             if (!authenticateResult.Succeeded)
@@ -187,22 +193,6 @@ namespace sReportsV2.Controllers
             await _accountService.SignExternalUser(User, sourceCD, activeStatusCD);
 
             return LocalRedirect(returnUrl);
-        }
-
-        public ActionResult GetAutocompleteData(int organizationId, AutocompleteDataIn dataIn)
-        {
-            dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            var userDataOuts = userBLL.GetUsersByName(dataIn.Term, organizationId);
-
-            var autocompleteDataOuts = userDataOuts
-                .Select(x => new AutocompleteDataOut()
-                {
-                    id = x.Id.ToString(),
-                    text = x.FirstName + " " + x.LastName
-                })
-                .ToList();
-
-            return Json(new AutocompleteResultDataOut() { results = autocompleteDataOuts });
         }
 
         private void AddError()

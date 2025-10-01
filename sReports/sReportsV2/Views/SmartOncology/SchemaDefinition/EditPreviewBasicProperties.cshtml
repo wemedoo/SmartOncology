@@ -1,6 +1,7 @@
 ﻿@using System.Globalization
 @using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchema.DataOut;
 @using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
 @model ChemotherapySchemaDataOut
 @{
     bool preview = ViewBag.Preview != null && ViewBag.Preview;
@@ -106,7 +107,7 @@
                         </p>
                         <p class="schema-text reference-item">@sReportsV2.Cache.Resources.TextLanguage.Reference: @reference.ShortReferenceNotation</p>
                         <p class="schema-text reference-item">Doi: @reference.DOI</p>
-                        <p class="schema-text reference-item">@sReportsV2.Cache.Resources.TextLanguage.Publish_date: @(reference.PublicationDate.HasValue ? reference.PublicationDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")</p>
+                        <p class="schema-text reference-item">@sReportsV2.Cache.Resources.TextLanguage.Publish_date: @reference.PublicationDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)</p>
                     </div>
                 }
             }

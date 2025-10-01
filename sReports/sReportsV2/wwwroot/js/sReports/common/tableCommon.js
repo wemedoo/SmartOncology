@@ -9,7 +9,8 @@ var defaultFilter;
 var columnName;
 var switchcount = 0;
 var isAscending = null;
-var isThesaurusFilterTable = false;
+var isModalTable = false;
+var isPathwayModule = false;
 var isCustomState = false;
 var tableContainer = null;
 
@@ -30,6 +31,37 @@ $(document).on('keypress', '.filter-item input', function (e) {
         reloadTable();
     }
 });
+
+function applyActionsBeforeServerReload(excludeAdvancedPropertyList, customizeTags = true, tableArguments = undefined) {
+    hideAdvancedFilterModal();
+    if (!customizeTags) {
+        setFilterTagsFromUrl();
+    }
+    setFilterFromUrl();
+    let requestObject = getFilterParametersObject();
+    if (customizeTags) {
+        setFilterTagsFromObj(requestObject);
+    }
+    setAdvancedFilterBtnStyle(requestObject, excludeAdvancedPropertyList);
+    checkUrlPageParams();
+    setTableProperties(requestObject, tableArguments);
+
+    return requestObject;
+}
+
+function applyActionsBeforeServerReloadSimple(applyFiltersFromUrl = true, checkPageParams = false, tableArguments = undefined, requestedTable = '') {
+    if (applyFiltersFromUrl) {
+        setFilterFromUrl();
+    }
+    let requestObject = getFilterParametersObject(requestedTable);
+    setFilterTagsFromObj(requestObject, requestedTable);
+    if (checkPageParams) {
+        checkUrlPageParams();
+    }
+    setTableProperties(requestObject, tableArguments);
+
+    return requestObject
+}
 
 function resetTableCommonVariables() {
     columnName = null;
@@ -80,38 +112,19 @@ function changePage(num,e, url, container, pageNumIdentifier, preventPushHistory
 
     currentPage = num;
 
-    if (isThesaurusFilterTable)
-        reloadThesaurusTable();
+    if (isModalTable)
+        reloadModalTable();
     else
         reloadTable();
-}
-
-function getFilterUrlParams(filter) {
-    let result = "";
-    for (const property in filter) {
-         result = result.concat(`&${property}=${filter[property]}`);
-    }
-
-    return result;
 }
 
 function filterData() {
     if (inputsAreInvalid()) {
         return;
     }
-    setDatetimeFieldsIfNotAlreadySet();
     pushState();
     currentPage = 1;
     reloadTable();
-}
-
-function setDatetimeFieldsIfNotAlreadySet() {
-    $(".date-helper").each(function () {
-        handleDateHelper($(this));
-    });
-    $(".time-helper").each(function () {
-        handleTimePartChange(this);
-    });
 }
 
 function addPropertyToObject(object, name, value) {
@@ -145,15 +158,20 @@ $(document).on('change', '.pageSizeSelector', function (e) {
     tableContainer = $(e.target).data('container');
 
     try {
-        if (!isThesaurusFilterTable)
+        if (isPathwayModule) {
             pushState();
+        }
+        else {
+            if (!isModalTable)
+                pushState();
+        }
 
     } catch (error) {
         pushStateWithoutFilter(1);
     }
 
-    if (isThesaurusFilterTable)
-        reloadThesaurusTable();
+    if (isModalTable)
+        reloadModalTable();
     else
         reloadTable(true);
 
@@ -194,7 +212,11 @@ function getDefaultFilter(){
     if (defaultFilter) {
         Object.keys(defaultFilter).forEach(x => {
             if (defaultFilter[x]) {
-                result[x] = defaultFilter[x];
+                let value = defaultFilter[x];
+                if (isDateTimeFilter(x)) {
+                    value = toValidTimezoneFormat(value);
+                }
+                result[x] = value;
             }
         });
     }
@@ -261,7 +283,6 @@ function thesaurusMoreModal(event, id) {
 
 
 function pushState() {
-    console.log('push state');
     if (!preventPushStateWhenReload) {
         let urlPageParams;
         if (isCustomState)

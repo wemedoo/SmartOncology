@@ -1,4 +1,5 @@
-@using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Constants;
 @using sReportsV2.DTOs.DTOs.SmartOncology.HistorySheet.DataOut;
 @model HistorySheetDataOut
 @{
@@ -7,20 +8,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @await Html.PartialAsync("CommonMetaHeadData")
+    @ScriptHelper.RenderHeadMetadata()
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>Oopus</title>
+    <title>@EmailSenderNames.SoftwareName</title>
     <meta name="description" content="">
 
     <!-- Bootstrap CDN -->
     @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/bootstrap-4.3.1/bootstrap.min.css"))
 
     <!-- Font awesome CDN -->
-    @ScriptHelper.RenderStylesheet("//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css", "sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/font-awesome-5.15.4/css/all.min.css"))
 
     <!-- jqueryUI -->
-    @ScriptHelper.RenderStylesheet("//ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/jquery-ui-1.13.2/themes/base/jquery-ui.css"))
 
     <!-- Custom CSS -->
     @ScriptHelper.RenderStylesheet(Url.Content("~/css/open-oncology/scss/style.css"), "", "")
@@ -732,9 +733,9 @@
 
 
     <!-- jquery CDN -->
-    @Html.Raw(ScriptHelper.RenderScript(Url.Content("//code.jquery.com/jquery-2.2.4.js"), "sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=", "anonymous"))
-    @Html.Raw(ScriptHelper.RenderScript(Url.Content("//code.jquery.com/ui/1.12.1/jquery-ui.min.js"), "sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=", "anonymous"))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("/js/libs/jquery-3.7.1/jquery-3.7.1.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("/js/libs/jquery-ui-1.13.2/jquery-ui-1.13.2.js"), "", ""))
     <!-- bootstrap CDN -->
-    @Html.Raw(ScriptHelper.RenderScript(Url.Content("//cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"), "sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns", "anonymous"))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("/js/libs/bootstrap-4.3.1/bootstrap.bundle.min.js"), "", ""))
 </body>
 </html>

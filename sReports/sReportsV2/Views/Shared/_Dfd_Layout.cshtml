@@ -4,10 +4,9 @@
 <head>
     @ScriptHelper.RenderHeadMetadata()
     <title>@ViewBag.Title - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
-    @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
+    @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/font-awesome-5.15.4/css/all.min.css"))
     @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"))
-    @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css")
-    @ScriptHelper.RenderStylesheet("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap")
+    @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/select2-4.0.10/dist/css/select2.min.css"))
     @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
     @Html.Raw(ScriptHelper.RenderBundle("css/styles.min.css"))
 </head>
@@ -46,9 +45,10 @@
         var simplifiedApp;
     </script>
     @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js"), "", ""))
-    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/ajv/6.10.2/ajv.bundle.js", "", ""))
-    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js", "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/ajv-6.10.2/ajv.bundle.js"), "", ""))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/select2-4.0.10/dist/js/select2.min.js"), "", ""))
 
+    @RenderSection("scripts", required: false)
     @RenderSection("scripts", required: false)
 </body>
 </html>

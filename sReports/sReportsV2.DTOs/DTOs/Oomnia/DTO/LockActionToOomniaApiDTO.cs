@@ -5,6 +5,7 @@
         public string FormInstanceId { get; set; }
         public string ChapterId { get; set; }
         public string PageId { get; set; }
+        public string FieldSetInstanceRepetitionId { get; set; }
         public bool IsLocked { get; set; }
     }
 }

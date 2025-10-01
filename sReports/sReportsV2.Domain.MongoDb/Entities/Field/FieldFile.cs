@@ -7,13 +7,9 @@ namespace sReportsV2.Domain.Entities.FieldEntity
 {
     [BsonIgnoreExtraElements]
     [BsonDiscriminator(FieldTypes.File)]
-    public class FieldFile : FieldString
+    public partial class FieldFile : FieldString
     {
         public override string Type { get; set; } = FieldTypes.File;
-
-        protected override string FormatPatholinkValue(string selectedOptionId)
-        {
-            return this.FieldInstanceValues.FirstOrDefault()?.GetFirstValue().GetFileNameFromUri();
-        }
+        public bool DataExtractionEnabled { get; set; }
     }
 }

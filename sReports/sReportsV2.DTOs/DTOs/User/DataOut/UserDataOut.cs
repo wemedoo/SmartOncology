@@ -106,11 +106,6 @@ namespace sReportsV2.DTOs.Common.DataOut
             return claims;
         }
 
-        public bool IsRoleChecked(int roleId)
-        {
-            return PersonnelPossitions.Contains(roleId);
-        }
-
         public IEnumerable<string> RenderUserRoleNames(string activeLanguage, List<CodeDataOut> allRoles)
         {
             return allRoles.Where(x => PersonnelPossitions.Contains(x.Id)).Select(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage));
@@ -130,6 +125,11 @@ namespace sReportsV2.DTOs.Common.DataOut
         {
             CodeDataOut occupationCode = occupations?.Where(x => x.Id == PersonnelOccupation?.OccupationCD)?.FirstOrDefault();
             return occupationCode != null ? occupationCode.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
+        }
+
+        public bool IsQuickRegisteredUser()
+        {
+            return string.IsNullOrEmpty(Email);
         }
     }
 }

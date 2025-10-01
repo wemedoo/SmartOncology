@@ -29,7 +29,7 @@
                             <div class="label-padd">
                                 <label class="ctcae-label">Date:</label>
                             </div>
-                        <input type="date" class="unstyled rectangle padd-left ctcae-calendar" id="date" name="date" value="@(Model != null && Model.Date != null ? Model.Date.Value.ToString(DateConstants.UTCDatePartFormat) : DateTime.Now.ToString(DateConstants.UTCDatePartFormat) )" />
+                        <input type="date" class="unstyled rectangle padd-left ctcae-calendar" id="date" name="date" value="@(Model != null && Model.Date != null ? Model.Date.Value.ToString(DateTimeConstants.UTCDatePartFormat) : DateTime.Now.ToString(DateTimeConstants.UTCDatePartFormat) )" />
                         </div>
 
                         <div class="align-left padd-top-button">

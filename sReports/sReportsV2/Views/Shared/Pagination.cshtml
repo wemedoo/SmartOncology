@@ -4,7 +4,7 @@
     int endVal = Model.DataIn.Page + 2;
     int totalPages = (int)Math.Ceiling((double)Model.Count / Model.DataIn.PageSize);
     bool preventPushHistoryState = ViewBag.PreventPushHistoryState ?? false;
-
+    IList<int> pageSizes = new List<int> { 5, 10, 15, 20, 50, 100 };
     //Customize Pagination
     bool showPageSizeSelector = ViewBag.ShowPageSizeSelector ?? true;
     string customChangePageJSFunc = !string.IsNullOrWhiteSpace(ViewBag.CustomChangePageJSFunc) ? ViewBag.CustomChangePageJSFunc : null;
@@ -22,64 +22,9 @@
 @if (showPageSizeSelector)
 {
     <select id="pageSizeSelector" class="pageSizeSelector" data-container="@ViewBag.Container" data-no-color-change="true">
-        @if (Model.DataIn.PageSize == 5)
+        @foreach (int pageSize in pageSizes)
         {
-            <option value="5" selected>5</option>
-
-        }
-        else
-        {
-            <option value="5">5</option>
-
-        }
-        @if (Model.DataIn.PageSize == 10)
-        {
-            <option value="10" selected>10</option>
-        }
-        else
-        {
-            <option value="10">10</option>
-
-        }
-        @if (Model.DataIn.PageSize == 15)
-        {
-            <option value="15" selected>15</option>
-
-        }
-        else
-        {
-            <option value="15">15</option>
-
-        }
-        @if (Model.DataIn.PageSize == 20)
-        {
-            <option value="20" selected>20</option>
-
-        }
-        else
-        {
-            <option value="20">20</option>
-
-        }
-        @if (Model.DataIn.PageSize == 50)
-        {
-            <option value="50" selected>50</option>
-
-        }
-        else
-        {
-            <option value="50">50</option>
-
-        }
-        @if (Model.DataIn.PageSize == 100)
-        {
-            <option value="100" selected>100</option>
-
-        }
-        else
-        {
-            <option value="100">100</option>
-
+            <option value="@pageSize" @(Model.DataIn.PageSize == pageSize ? "selected" : "")>@pageSize</option>
         }
     </select>
 }
@@ -87,9 +32,10 @@
 @if (!string.IsNullOrWhiteSpace(customChangePageJSFunc))
 {
     <ul class="pagination">
-        <li class="@(Model.DataIn.Page == 1 ? "disabled" : "")">
-
-            <a class="pagination-item" href="#" @if (Model.DataIn.Page != 1) { <text> onclick="@(customChangePageJSFunc)(@Model.DataIn.Page - 1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))" </text> }><img alt="" class="angle-size" src="/css/img/icons/left-angle.png"></a>
+        <li><a class="pagination-item @(Model.DataIn.Page == 1 ? "disabled" : "")" href="#" @if (Model.DataIn.Page != 1)
+            {
+                <text> onclick="@(customChangePageJSFunc)(@Model.DataIn.Page - 1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState ? "true" : null))" </text>
+            }><img alt="" class="angle-size" src="/css/img/icons/left-angle.png"></a>
         </li>
         <li><a class="pagination-item" href="#" onclick="@(customChangePageJSFunc)(1, event, '@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))"><img alt="" class="double-angle-size" src="/css/img/icons/double-left.png"></a></li>
 
@@ -101,9 +47,10 @@
         }
         <li><a class="pagination-item" href="#" onclick="@(customChangePageJSFunc)(@totalPages, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))"><img alt="" class="double-angle-size" src="/css/img/icons/double-right.png"></a></li>
 
-        <li class="@((Model.DataIn.Page == totalPages) ? "disabled" : "")">
-
-            <a class="pagination-item" href="#" @if (Model.DataIn.Page != totalPages) { <text> onclick="@(customChangePageJSFunc)(@Model.DataIn.Page+1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))" </text> }><img alt="" class="angle-size" src="/css/img/icons/right-angle.png"></a>
+        <li><a class="pagination-item @((Model.DataIn.Page == totalPages) ? "disabled" : "")" href="#" @if (Model.DataIn.Page != totalPages)
+            {
+                <text> onclick="@(customChangePageJSFunc)(@Model.DataIn.Page+1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState ? "true" : null))" </text>
+            }><img alt="" class="angle-size" src="/css/img/icons/right-angle.png"></a>
         </li>
     </ul>
 
@@ -111,9 +58,10 @@
 else
 {
     <ul class="pagination">
-        <li class="@(Model.DataIn.Page == 1 ? "disabled" : "")">
-
-            <a class="pagination-item" href="#" @if (Model.DataIn.Page != 1) { <text> onclick="changePage(@Model.DataIn.Page-1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))" </text> }><img alt="" class="angle-size" src="/css/img/icons/left-angle.png"></a>
+        <li><a class="pagination-item @(Model.DataIn.Page == 1 ? "disabled" : "")" href="#" @if (Model.DataIn.Page != 1)
+            {
+                <text> onclick="changePage(@Model.DataIn.Page-1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState ? "true" : null))" </text>
+            }><img alt="" class="angle-size" src="/css/img/icons/left-angle.png"></a>
         </li>
         <li><a class="pagination-item" href="#" onclick="changePage(1, event, '@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))"><img alt="" class="double-angle-size" src="/css/img/icons/double-left.png"></a></li>
 
@@ -125,9 +73,10 @@ else
         }
         <li><a class="pagination-item" href="#" onclick="changePage(@totalPages, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))"><img alt="" class="double-angle-size" src="/css/img/icons/double-right.png"></a></li>
 
-        <li class="@((Model.DataIn.Page == totalPages) ? "disabled" : "")">
-
-            <a class="pagination-item" href="#" @if (Model.DataIn.Page != totalPages) { <text> onclick="changePage(@Model.DataIn.Page+1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState? "true" : null))" </text> }><img alt="" class="angle-size" src="/css/img/icons/right-angle.png"></a>
+        <li><a class="pagination-item @((Model.DataIn.Page == totalPages) ? "disabled" : "")" href="#" @if (Model.DataIn.Page != totalPages)
+            {
+                <text> onclick="changePage(@Model.DataIn.Page+1, event,'@ViewBag.Url', '@ViewBag.Container','@ViewBag.PageNumIdentifier', @(preventPushHistoryState ? "true" : null))" </text>
+            }><img alt="" class="angle-size" src="/css/img/icons/right-angle.png"></a>
         </li>
     </ul>
 

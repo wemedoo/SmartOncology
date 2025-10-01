@@ -8,20 +8,32 @@ namespace sReportsV2.Domain.Entities.FormInstance
         public string FormInstanceId { get; set; }
         public string ChapterId { get; set; }
         public string PageId { get; set; }
+        public string FieldSetInstanceRepetitionId { get; set; }
         public int? CreateById { get; set; }
-        public ChapterPageState NextState { get; set; }
+        public ChapterPageFieldSetState NextState { get; set; }
         public DateTime LastUpdate { get; set; }
         public bool IsSigned { get; set; }
         public PropagationType? ActionType { get; set; }
 
-        public bool IsPageAction()
+        public void SetPartialLockPropagationType()
         {
-            return !string.IsNullOrEmpty(PageId);
+            if (!string.IsNullOrEmpty(FieldSetInstanceRepetitionId))
+            {
+                ActionType = PropagationType.FieldSet;
+            }
+            else if (!string.IsNullOrEmpty(PageId))
+            {
+                ActionType = PropagationType.Page;
+            } 
+            else if (!string.IsNullOrEmpty(ChapterId))
+            {
+                ActionType = PropagationType.Chapter;
+            }
         }
 
         public bool IsLockAction()
         {
-            return NextState == ChapterPageState.Locked;
+            return NextState == ChapterPageFieldSetState.Locked;
         }
 
         public FormInstancePartialLock() { }
@@ -29,7 +41,7 @@ namespace sReportsV2.Domain.Entities.FormInstance
         public FormInstancePartialLock(FormState formInstanceNextState)
         {
             this.ActionType = sReportsV2.Common.Enums.PropagationType.FormInstance;
-            this.NextState = formInstanceNextState == FormState.Locked ? ChapterPageState.Locked : ChapterPageState.DataEntryOnGoing;
+            this.NextState = formInstanceNextState == FormState.Locked ? ChapterPageFieldSetState.Locked : ChapterPageFieldSetState.DataEntryOnGoing;
             this.IsSigned = true;
         }
     }

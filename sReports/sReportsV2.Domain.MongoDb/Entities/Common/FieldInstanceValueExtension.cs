@@ -13,6 +13,11 @@ namespace sReportsV2.Domain.Entities.Common
             return fieldInstanceValues?.FirstOrDefault()?.GetFirstValue();
         }
 
+        public static string GetFieldInstanceRepetitionId(this List<FieldInstanceValue> fieldInstanceValues)
+        {
+            return fieldInstanceValues?.FirstOrDefault()?.FieldInstanceRepetitionId;
+        }
+
         public static bool HasAnyFieldInstanceValue(this List<FieldInstanceValue> fieldInstanceValues)
         {
             return fieldInstanceValues != null && fieldInstanceValues.Count > 0;

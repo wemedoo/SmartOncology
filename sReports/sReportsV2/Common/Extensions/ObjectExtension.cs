@@ -40,10 +40,7 @@ namespace sReportsV2.Common.Extensions
                 }
                 else
                 {
-                    var settings = new JsonSerializerSettings();
-                    settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                    settings.Formatting = Formatting.None;
-                    appendValue = System.Net.WebUtility.UrlEncode(Newtonsoft.Json.JsonConvert.SerializeObject(value, settings));
+                    appendValue = System.Net.WebUtility.UrlEncode(value.JsonSerialize(true, true));
                 }
                 
                 if(string.IsNullOrWhiteSpace(appendValue))
@@ -115,32 +112,6 @@ namespace sReportsV2.Common.Extensions
             }
             
             return stringBuilder.ToString();
-        }
-
-        public static string ToJsonString(this object entity)
-        {
-            entity = Ensure.IsNotNull(entity, nameof(entity));
-            try
-            {
-                return System.Net.WebUtility.UrlEncode(JsonConvert.SerializeObject(entity));
-            }
-            catch (Exception)
-            {
-                return string.Empty;
-            }
-        }
-
-        public static string JsonSerialize(this object entity)
-        {
-            entity = Ensure.IsNotNull(entity, nameof(entity));
-            try
-            {
-                return JsonConvert.SerializeObject(entity);
-            }
-            catch (Exception)
-            {
-                return string.Empty;
-            }
         }
 
         public static List<CodeDataOut> FilterDataSource(this List<CodeDataOut> allCodes, bool? readOnlyMode = null, int? selectedCodeId = null)

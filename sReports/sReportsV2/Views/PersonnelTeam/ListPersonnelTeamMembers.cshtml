@@ -46,7 +46,6 @@
 
     <script>
         $(document).ready(function () {
-
             var placeholder = "-";
 
             $(".new-team-member-name-select2").initSelect2(
@@ -56,10 +55,10 @@
                         allowClear: false,
                         minimumResultsForSearch: 5,
                         width: '100%',
-                        url: `/User/GetAutocompleteData?organizationId=${$('#id').val()}`
+                        url: `/UserAdministration/GetAutocompleteData?organizationId=${$('#id').val()}`
                     }
                 )
             );
-
+        });
     </script>
 }

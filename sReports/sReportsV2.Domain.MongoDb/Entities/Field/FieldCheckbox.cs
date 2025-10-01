@@ -8,6 +8,5 @@ namespace sReportsV2.Domain.Entities.FieldEntity
     public class FieldCheckbox : FieldSelectable
     {
         public override string Type { get; set; } = FieldTypes.Checkbox;
-        public override bool IsDistributiveField() => true;
     }
 }

@@ -26,7 +26,7 @@
     List<UserDataOut> personnels = Model != null && Model.Data != null ? Model.Data : new List<UserDataOut>();
 }
 
-<div class="table-responsive trial-table-container">
+<div class="table-responsive overflow-unset trial-table-container">
     <table class="table table-striped table-border">
         <thead class="color-header-important trial-head">
             <tr class="table-header-row">
@@ -52,7 +52,7 @@
 
             @foreach (UserDataOut personnel in personnels)
             {
-                <tr id="row-@personnel.Id@(insideModal? "-modal" : "")" class="table-content-row row-patient-preview row-shown">
+                <tr id="row-@personnel.Id@(insideModal? "-modal" : "")" class="table-content-row row-patient-preview row-shown tr-no-action">
                     <td class="trial-row-organizations">@personnel.GetorganizationListFormatted()</td>
                     <td class="trial-row-teams"> @personnel.GetPersonnelTeamNamesFormatted() </td>
                     <td class="trial-row-occupation"> @personnel.GetPersonnelOccupation(activeLanguage, occupations) </td>
@@ -102,11 +102,7 @@
     </table>
     @if (personnels.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
     @if (personnels.Count > 0)
     {

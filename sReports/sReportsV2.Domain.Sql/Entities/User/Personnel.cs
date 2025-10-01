@@ -1,5 +1,4 @@
-﻿using sReportsV2.Common.Enums;
-using sReportsV2.Domain.Sql.Entities.PersonnelTeamEntities;
+﻿using sReportsV2.Domain.Sql.Entities.PersonnelTeamEntities;
 using sReportsV2.Domain.Sql.Entities.Common;
 using sReportsV2.Domain.Sql.EntitiesBase;
 using System;
@@ -9,11 +8,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using sReportsV2.Common.Constants;
 using sReportsV2.Domain.Sql.Entities.PatientList;
+using sReportsV2.Common.Extensions;
 
 namespace sReportsV2.Domain.Sql.Entities.User
 {
     [Table("Personnel")]
-    public class Personnel : Entity, IEditChildEntries<PersonnelIdentifier>, IEditChildEntries<PersonnelAddress>, IEditChildEntries<PersonnelAcademicPosition>
+    public class Personnel : Entity, IEditChildEntries<PersonnelIdentifier>, IEditChildEntries<PersonnelAddress>, IEditChildEntries<PersonnelAcademicPosition>, IEditChildEntries<PersonnelPosition>
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
@@ -31,6 +31,8 @@ namespace sReportsV2.Domain.Sql.Entities.User
         public string PersonalEmail { get; set; }
         public string ContactPhone { get; set; }
         public bool IsDoctor { get; set; }
+        [NotMapped]
+        public List<string> PasswordHistory { get; set; } = new List<string>();
 
         [Column("PrefixCD")]
         public int? PrefixCD { get; set; }
@@ -63,7 +65,7 @@ namespace sReportsV2.Domain.Sql.Entities.User
             LastName = lastName;
         }
 
-        public Personnel(string username, string password, string salt, string email, string firstName, string lastName, DateTime? dayOfBirth, int? activeOrganizationId = null) : this(firstName, lastName)
+        public Personnel(string username, string password, string salt, string email, string firstName, string lastName, DateTime? dayOfBirth, int? activeOrganizationId = null, int? superAdministratorPositionId = null) : this(firstName, lastName)
         {
             Salt = salt;
             DayOfBirth = dayOfBirth;
@@ -74,8 +76,19 @@ namespace sReportsV2.Domain.Sql.Entities.User
             {
                 ActiveOrganizationId = activeOrganizationId,
                 ActiveLanguage = LanguageConstants.EN,
-                TimeZoneOffset = "Europe/Belgrade"
+                TimeZoneOffset = DateTimeExtension.DefaultTimezone
             };
+            if (superAdministratorPositionId.HasValue)
+            {
+                PersonnelPositions = new List<PersonnelPosition>
+                {
+                    new PersonnelPosition
+                    {
+                        PositionCD = superAdministratorPositionId,
+                        CreatedBy = this
+                    }
+                };
+            }
         }
 
         public List<PersonnelOrganization> GetNonArchivedOrganizations(int? archivedUserStateCD)
@@ -122,6 +135,7 @@ namespace sReportsV2.Domain.Sql.Entities.User
             CopyEntries(user.PersonnelIdentifiers);
             CopyEntries(user.PersonnelAdresses);
             CopyEntries(user.PersonnelAcademicPositions);
+            CopyEntries(user.PersonnelPositions);
         }
 
         public void CopyPersonnelOccupationId(int personnelOccupationId)
@@ -129,68 +143,14 @@ namespace sReportsV2.Domain.Sql.Entities.User
             this.PersonnelOccupationId = personnelOccupationId;
         }
 
-        public void SetPersonnelConfig(string activeLanguage)
-        {
-            if (this.PersonnelConfig == null)
-            {
-                this.PersonnelConfig = new PersonnelConfig();
-            }
-            this.PersonnelConfig.ActiveLanguage = activeLanguage;
-        }
-
-        public void UpdateRoles(List<int> newSelectedRoles)
-        {
-            if (RolesHaveChanged(newSelectedRoles))
-            {
-                AddUserRoles(newSelectedRoles);
-                RemoveUserRoles(newSelectedRoles);
-            }
-        }
-
         public string GetFirstAndLastName()
         {
             return this.FirstName + " " + this.LastName;
         }
 
-        private bool RolesHaveChanged(List<int> newRoles)
+        public string GetActiveOrganizationTimeZoneId()
         {
-            return !newRoles.SequenceEqual(GetPersonnelPositionIds());
-        }
-
-        private List<int> GetPersonnelPositionIds()
-        {
-            return PersonnelPositions.Where(x => x.IsActive()).Select(x => x.PositionCD.GetValueOrDefault()).ToList();
-        }
-
-        private void AddUserRoles(List<int> newPersonnelPosittions)
-        {
-            if (newPersonnelPosittions != null)
-            {
-                foreach (var personnelPositionId in newPersonnelPosittions)
-                {
-                    PersonnelPosition personnelPosition = PersonnelPositions.Find(x => x.PositionCD == personnelPositionId && x.IsActive());
-                    if (personnelPosition == null)
-                    {
-                        PersonnelPositions.Add(new PersonnelPosition()
-                        {
-                            PersonnelId = PersonnelId,
-                            PositionCD = personnelPositionId
-                        });
-                    }
-                }
-            }
-        }
-
-        private void RemoveUserRoles(List<int> newPersonnelPosittions)
-        {
-            foreach (PersonnelPosition personnelPosition in PersonnelPositions.Where(x => x.IsActive()))
-            {
-                int roleCD = newPersonnelPosittions.Find(x => x == personnelPosition.PositionCD);
-                if (roleCD == 0)
-                {
-                    personnelPosition.Delete();
-                }
-            }
+            return PersonnelConfig?.ActiveOrganization?.GetOrganizationTimeZoneId();
         }
 
         #region Edit Child entries
@@ -304,6 +264,39 @@ namespace sReportsV2.Domain.Sql.Entities.User
                 if (personelAcademicPosition.PersonnelAcademicPositionId == 0)
                 {
                     PersonnelAcademicPositions.Add(personelAcademicPosition);
+                }
+            }
+        }
+
+        public void CopyEntries(List<PersonnelPosition> upcomingEntries)
+        {
+            if (upcomingEntries != null)
+            {
+                DeleteExistingRemovedEntries(upcomingEntries);
+                AddNewOrUpdateOldEntries(upcomingEntries);
+            }
+        }
+
+        public void DeleteExistingRemovedEntries(List<PersonnelPosition> upcomingEntries)
+        {
+            foreach (PersonnelPosition personnelPosition in PersonnelPositions.Where(x => x.IsActive()))
+            {
+                bool remainingIdentifier = upcomingEntries.Exists(x => x.PositionCD == personnelPosition.PositionCD);
+                if (!remainingIdentifier)
+                {
+                    personnelPosition.Delete();
+                }
+            }
+        }
+
+        public void AddNewOrUpdateOldEntries(List<PersonnelPosition> upcomingEntries)
+        {
+            foreach (PersonnelPosition upcomingPersonnelPosition in upcomingEntries)
+            {
+                bool exists = PersonnelPositions.Exists(x => x.PositionCD == upcomingPersonnelPosition.PositionCD && x.IsActive());
+                if (!exists)
+                {
+                    PersonnelPositions.Add(upcomingPersonnelPosition);
                 }
             }
         }

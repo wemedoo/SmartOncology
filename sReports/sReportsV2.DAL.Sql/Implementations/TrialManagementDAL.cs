@@ -133,7 +133,7 @@ namespace sReportsV2.SqlDomain.Implementations
         private IQueryable<ClinicalTrial> ApplyPagingByFilter(TrialManagementFilter filter, IQueryable<ClinicalTrial> query)
         {
             return query
-                .Skip((filter.Page - 1) * filter.PageSize)
+                .Skip(filter.GetHowManyElementsToSkip())
                 .Take(filter.PageSize); 
         }
 

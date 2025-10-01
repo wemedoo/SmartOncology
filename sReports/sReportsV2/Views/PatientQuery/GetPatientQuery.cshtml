@@ -1,0 +1,25 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = @sReportsV2.Cache.Resources.TextLanguage.PatientQueryWindow;
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.PatientQueryWindow }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        @sReportsV2.Cache.Resources.TextLanguage.PatientQueryWindow
+    </div>
+    @await Html.PartialAsync("PatientQueryFilterGroup")
+    <div id="tableContainer">
+    </div>
+</div>
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/patientQuery-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/vis-network-10.0.1/vis-network.js"), "", ""))

@@ -74,8 +74,12 @@ namespace sReportsV2.Domain.DatabaseMigrationScripts
                     return new M_202405231138_DeleteFromInstanceForInactiveEncounters(sReportsContext);
                 case 19:
                     return new M_202405281348_MigrateStorageReferences(configuration, sReportsContext);
+                case 20:
+                    return new M_202501281135_RemovePropertiesFromEntities();
+                case 21:
+                    return new M_202521071219_CreateIndexes();
                 case MongoMigrationsConstants.LastVersion:
-                    return new M_202405281348_MigrateStorageReferences(configuration, sReportsContext);
+                    return new M_202521071219_CreateIndexes();
                 default:
                     return null ;
             }

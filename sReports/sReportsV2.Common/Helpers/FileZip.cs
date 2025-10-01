@@ -38,7 +38,7 @@ namespace sReportsV2.Common.Helpers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error: " + ex.Message);
+                LogHelper.Error("Error: " + ex.GetExceptionStackMessages());
             }
         }
 

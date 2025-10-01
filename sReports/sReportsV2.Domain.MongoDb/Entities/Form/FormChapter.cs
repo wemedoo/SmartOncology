@@ -1,15 +1,16 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using sReportsV2.Domain.Entities.Common;
-using sReportsV2.Domain.Entities.CustomFHIRClasses;
 using sReportsV2.Domain.Entities.FieldEntity;
+using sReportsV2.Domain.MongoDb.Entities.Base;
+using sReportsV2.Domain.Sql;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 
 namespace sReportsV2.Domain.Entities.Form
 {
     [BsonIgnoreExtraElements]
-    public class FormChapter
+    public class FormChapter : IFormThesaurusEntity
     {
-        public O4CodeableConcept Code { get; set; }
         public string Id { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
@@ -55,6 +56,8 @@ namespace sReportsV2.Domain.Entities.Form
             return result;
         }
 
+        #region Thesaurus Methods
+
         public List<int> GetAllThesaurusIds()
         {
             List<int> thesaurusList = new List<int>();
@@ -75,17 +78,18 @@ namespace sReportsV2.Domain.Entities.Form
                 page.Title = entries.Find(x => x.ThesaurusEntryId.Equals(page.ThesaurusId))?.GetPreferredTermByTranslationOrDefault(language, activeLanguage);
                 page.Description = entries.Find(x => x.ThesaurusEntryId.Equals(page.ThesaurusId))?.GetDefinitionByTranslationOrDefault(language, activeLanguage);
                 page.GenerateTranslation(entries, language, activeLanguage);
-            }  
-        }
-
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
-        {
-            this.ThesaurusId = this.ThesaurusId == oldThesaurus ? newThesaurus : this.ThesaurusId;
-            foreach (FormPage page in this.Pages)
-            {
-                page.ReplaceThesauruses(oldThesaurus, newThesaurus);
             }
         }
 
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
+        {
+            this.ThesaurusId = this.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
+            foreach (FormPage page in this.Pages)
+            {
+                page.ReplaceThesauruses(thesaurusMerge);
+            }
+        }
+
+        #endregion /Thesaurus Methods
     }
 }

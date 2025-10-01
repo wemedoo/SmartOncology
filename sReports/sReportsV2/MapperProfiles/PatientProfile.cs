@@ -59,7 +59,7 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(dest => dest.Gender, opt => opt.Ignore())
                   .IgnoreAllNonExisting()
                   .ForMember(o => o.PatientId, opt => opt.MapFrom(src => src.Id))
-                  .ForMember(o => o.NameGiven, opt => opt.MapFrom(src => src.Name))
+                  .ForMember(o => o.NameGiven, opt => opt.MapFrom(src => src.GivenName))
                   .ForMember(o => o.NameFamily, opt => opt.MapFrom(src => src.FamilyName))
                   .ForMember(o => o.PatientContacts, opt => opt.MapFrom(src => src.Contacts))
                   .ForMember(o => o.BirthDate, opt => opt.MapFrom(src => src.BirthDate))

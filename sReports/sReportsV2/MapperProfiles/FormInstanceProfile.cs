@@ -48,19 +48,6 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.ProjectId, opt => opt.MapFrom(src => src.ProjectId))
                 .ForMember(d => d.FieldsToDisplay, opt => opt.MapFrom(src => src.FieldsToDisplay));
 
-            CreateMap<FormInstance, FormInstanceDataOut>()
-            .IgnoreAllNonExisting()
-            .ForMember(d => d.EntryDatetime, opt => opt.MapFrom(src => src.EntryDatetime))
-            .ForMember(d => d.Id, opt => opt.MapFrom(src => src.Id.ToString()))
-            .ForMember(d => d.FormDefinitionId, opt => opt.MapFrom(src => src.FormDefinitionId))
-            .ForMember(d => d.LastUpdate, opt => opt.MapFrom(src => src.LastUpdate))
-            .ForMember(d => d.EntryDatetime, opt => opt.MapFrom(src => src.EntryDatetime))
-            .ForMember(d => d.Title, opt => opt.MapFrom(src => src.Title))
-            .ForMember(d => d.Language, opt => opt.MapFrom(src => src.Language))
-            .ForMember(d => d.Version, opt => opt.MapFrom(src => src.Version))
-            .ForMember(d => d.Referrals, opt => opt.Ignore())
-            .ReverseMap();
-
             CreateMap<FormInstance, FormDataOut>()
             .ForMember(dest => dest.WorkflowHistory, opt => opt.Ignore())
             .IgnoreAllNonExisting()
@@ -95,10 +82,11 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.Title, opt => opt.MapFrom(src => src.Title))
                 .ReverseMap();
 
-            CreateMap<FormInstanceCovidFilter, FormInstanceCovidFilterDataIn>()
-                .ReverseMap();
-
             CreateMap<FormInstanceMetadata, FormInstanceMetadataDataOut>();
+
+            CreateMap<FormInstance, FormInstanceMetadataDataOut>()
+                .ForMember(d => d.FormInstanceId, opt => opt.MapFrom(src => src.Id))
+                ;
 
             CreateMap<FormInstancePartialLockOrUnlockDataIn, FormInstancePartialLock>()
                 .IgnoreAllNonExisting()

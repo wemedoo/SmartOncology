@@ -78,7 +78,7 @@ namespace sReportsV2.SqlDomain.Implementations
         {
             IQueryable<ChemotherapySchemaInstance> result = GetChemotherapySchemaInstancesFiltered(chemotherapySchemaInstanceFilter);
             result = result.OrderByDescending(x => x.EntryDatetime)
-                .Skip((chemotherapySchemaInstanceFilter.Page - 1) * chemotherapySchemaInstanceFilter.PageSize)
+                .Skip(chemotherapySchemaInstanceFilter.GetHowManyElementsToSkip())
                 .Take(chemotherapySchemaInstanceFilter.PageSize);
 
             return result.ToList();

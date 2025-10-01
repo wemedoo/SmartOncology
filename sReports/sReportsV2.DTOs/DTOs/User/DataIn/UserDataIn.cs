@@ -16,7 +16,7 @@ namespace sReportsV2.DTOs.User.DataIn
         public string Email { get; set; }
         public string PersonalEmail { get; set; }
         public string ContactPhone { get; set; }
-        public List<int> Roles { get; set; } = new List<int>();
+        public List<PersonnelPositionDataIn> PersonnelPositions { get; set; } = new List<PersonnelPositionDataIn>();
         public int? PrefixCD { get; set; }
         public int? PersonnelTypeCD { get; set; }
         public string MiddleName { get; set; }

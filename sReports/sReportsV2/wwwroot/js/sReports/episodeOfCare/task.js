@@ -14,8 +14,6 @@ function showTaskModal(event, id, readOnly = false, reloadTaskTable = false) {
             $('#addTaskModal').html(data);
             $('#addTaskModal').modal('show');
             document.getElementById('reloadTaskTable').value = reloadTaskTable;
-            if (taskId != 0)
-                reloadCodeSetChildren("taskType");
         },
         error: function (xhr, ajaxOptions, thrownError) {
             handleResponseError(xhr, true);
@@ -41,9 +39,9 @@ function submitTaskForm() {
         request['TaskClassCD'] = $("#taskClass").val();
         request['TaskDescription'] = $("#taskDescription").val();
         request['TaskEntityId'] = $("#taskEntityId").val();
-        request['TaskStartDateTime'] = calculateDateTimeWithOffset("#taskStartDateTime");
-        request['TaskEndDateTime'] = calculateDateTimeWithOffset("#taskEndDateTime");
-        request['ScheduledDateTime'] = calculateDateTimeWithOffset("#scheduledDateTime");
+        request['TaskStartDateTime'] = calculateDateWithOffset("#taskStartDateTime");
+        request['TaskEndDateTime'] = calculateDateWithOffset("#taskEndDateTime");
+        request['ScheduledDateTime'] = calculateDateWithOffset("#scheduledDateTime");
   
         callServer({
             type: 'POST',

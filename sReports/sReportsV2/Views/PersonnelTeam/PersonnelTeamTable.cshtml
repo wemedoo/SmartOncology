@@ -63,11 +63,11 @@
                                             {
                                                 <div class="dropdown-item" onclick="showSinglePersonnelTeamTable(event, @personnelTeam.PersonnelTeamId)"><img alt="" class="edit-svg-size" src="/css/img/icons/eye_fill_gray.svg">@sReportsV2.Cache.Resources.TextLanguage.View</div>
                                             }
-                                            @if (hasCreateUpdatePerm)
+                                            @if (hasCreateUpdatePerm && !ViewBag.ReadOnly)
                                             {
                                                 <div class="dropdown-item" onclick="showEditPersonnelTeamModal(event,'@personnelTeam.PersonnelTeamId')"><img alt="" class="edit-svg-size" src="/css/img/icons/edit.svg">@sReportsV2.Cache.Resources.TextLanguage.Edit</div>
                                             }
-                                            @if (hasDeletePerm)
+                                            @if (hasDeletePerm && !ViewBag.ReadOnly)
                                             {
                                                 <div class="dropdown-item" onclick="showDeletePersonnelTeamModal(event,'@personnelTeam.PersonnelTeamId')"><img alt="" class="edit-svg-size" src="/css/img/icons/remove.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove</div>
                                             }

@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using sReportsV2.Common.Configurations;
 using System;
 
 namespace sReportsV2

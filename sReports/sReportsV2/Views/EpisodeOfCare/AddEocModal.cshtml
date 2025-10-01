@@ -8,11 +8,12 @@
 
 @{
     bool readOnly = ViewBag.ReadOnly;
-    string title = readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewEOC : Model != null ? @sReportsV2.Cache.Resources.TextLanguage.EditEOC : @sReportsV2.Cache.Resources.TextLanguage.NewEoc;
+    bool isEdit = Model.Id != 0;
+    string title = readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewEOC : isEdit ? @sReportsV2.Cache.Resources.TextLanguage.EditEOC : @sReportsV2.Cache.Resources.TextLanguage.NewEoc;
 }
 
 <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content modal-content-advanced eoc-content" id="addeoc-content">
+    <div class="modal-content modal-content-advanced @(Model.UseSkosData ? "" : "eoc-content")" id="addeoc-content">
         <div class="modal-body modal-body-advanced overh">
             <div class="float-right filter-eoc-close-btn">
                 <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
@@ -22,8 +23,8 @@
                     <p class="title-p">@title</p>
                 </div>
                 <div class="d-flex margin-top-20 margin-bottom-17">
-                    <input type="hidden" id="editEocId" value="@(Model != null ? Model.Id.ToString() : "")">
-                    <div class="advanced-filter-item filter-item country-select-input">
+                    <input type="hidden" id="editEocId" value="@Model.Id">
+                    <div class="advanced-filter-item filter-item">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.EpisodeOfCareType
                         </div>
@@ -35,11 +36,11 @@
                                 bool selectedTypesExists = false;
                                 foreach (var episodeOfCareType in filteredEpisodeOfCareTypes)
                                 {
-                                    bool isSelected = Model != null && episodeOfCareType.Id == Model.Type;
+                                    bool isSelected = isEdit && episodeOfCareType.Id == Model.Type;
                                     selectedTypesExists |= isSelected;
                                     @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareType, false, isSelected))
                                 }
-                                if (Model != null && Model.Type != 0 && !selectedTypesExists)
+                                if (isEdit && Model.Type != 0 && !selectedTypesExists)
                                 {
                                     ViewBag.SelectedId = Model.Type;
                                     @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareTypes.Find(x => x.Id == Model.Type), true, true))
@@ -47,7 +48,7 @@
                             }
                         </select>
                     </div>
-                    <div class="advanced-filter-item filter-item country-select-input">
+                    <div class="advanced-filter-item filter-item">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.Status
                         </div>
@@ -59,11 +60,11 @@
                                 bool selectedStatusExists = false;
                                 foreach (var episodeOfCareStatus in filteredEpisodeOfCareStatuses)
                                 {
-                                    bool isSelected = Model != null && episodeOfCareStatus.Id == Model.Status;
+                                    bool isSelected = isEdit && episodeOfCareStatus.Id == Model.Status;
                                     selectedStatusExists |= isSelected;
                                     @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareStatus, false, isSelected))
                                 }
-                                if (Model != null && Model.Status != 0 && !selectedStatusExists)
+                                if (isEdit && Model.Status != 0 && !selectedStatusExists)
                                 {
                                     ViewBag.SelectedId = Model.Status;
                                     @await Html.PartialAsync("~/Views/Shared/SelectOption.cshtml", Tuple.Create(episodeOfCareStatuses.Find(x => x.Id == Model.Status), true, true))
@@ -84,7 +85,7 @@
                                                 { "id", "periodStartDate" },
                                                 { "name", "periodStartDate" },
                                                 { @ViewBag.Disabled, null},
-                                                { "value", Model != null && Model.Period.StartDate != null ? Model.Period.StartDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                                { "value", isEdit ? Model.Period.StartDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" },
                                                 { "required", null}
                                             },
                                 InputBtnAttributes = new Dictionary<object, object> {
@@ -105,7 +106,7 @@
                                                 { "id", "periodEndDate" },
                                                 { "name", "periodEndDate" },
                                                 { @ViewBag.Disabled, null},
-                                                { "value", Model != null && Model.Period.EndDate != null ? Model.Period.EndDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                                { "value", isEdit ? Model.Period.EndDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" }
                                     },
                                 InputBtnAttributes = new Dictionary<object, object> {
                                                 { "class", "date-img eoc-form-date-img" },
@@ -122,19 +123,34 @@
                             @sReportsV2.Cache.Resources.TextLanguage.CareTeam
                         </div>
                         <select id="careteam-name-select2" class="filter-input" name="newCareTeamNameSelect2" @ViewBag.Disabled>
-                            @if (Model != null && Model.PersonnelTeam != null)
+                            @if (Model.PersonnelTeam != null)
                             {
                                 <option selected value="@Model.PersonnelTeam.PersonnelTeamId">@Model.PersonnelTeam.Name</option>
                             }
                         </select>
                     </div>
                 </div>
-
+                @if (Model.UseSkosData)
+                {
+                    <div class="d-flex margin-top-20 margin-bottom-17">
+                        <div class="advanced-filter-item filter-item country-select-input">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Condition
+                            </div>
+                            <select id="diagnosisConditionId" class="filter-input" name="diagnosisConditionId" @ViewBag.Disabled>
+                                @if (Model.DiagnosisCondition != null)
+                                {
+                                    <option selected value="@Model.DiagnosisCondition.Id">@Model.DiagnosisCondition.GetPreferredTermByTranslationOrDefault(LanguageConstants.EN)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
                 <div class="filter-item advanced-filter-item margin-bottom-17">
                     <div class="label filter-label">
                         @sReportsV2.Cache.Resources.TextLanguage.Description
                     </div>
-                    <input type="text" class="filter-input descinput" id="description" value="@(Model != null && Model.Description != null ? Model.Description : sReportsV2.Cache.Resources.TextLanguage.EditEOC)" @ViewBag.Disabled>
+                    <input type="text" class="filter-input descinput" id="description" value="@(Model.Description != null ? Model.Description : sReportsV2.Cache.Resources.TextLanguage.EditEOC)" @ViewBag.Disabled>
                 </div>
 
                 <div class="button-partial">
@@ -160,7 +176,15 @@
     $(document).ready(function () {
 
         var placeholder = "-";
-
+        $("#diagnosisConditionId").initSelect2(
+             getSelect2Object(
+                 {
+                     placeholder: placeholder,
+                     url: `/PatientQuery/GetAutocompleteData`,
+                     templateResult: formatSkosResult
+                 }
+             )
+         );
         $("#careteam-name-select2").initSelect2(
             getSelect2Object(
                 {

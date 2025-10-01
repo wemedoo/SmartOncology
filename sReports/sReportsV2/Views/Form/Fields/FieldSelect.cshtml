@@ -7,7 +7,7 @@
     string fieldSetId = ViewBag.FieldSetId;
     var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(0);
 }
-<fieldset @Html.Raw(Model.DependentAttributes) class="form-select-field form-element form-select field-set-content @Model.ShowHiddenFieldsClass"  >
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-select field-set-content @Model.ShowHiddenFieldsClass"  >
     <div class="field-group">
         <div for="@Model.Id" class="filter-label form-label-size d-inline-block">
             @Html.Raw(Model.FullLabel)

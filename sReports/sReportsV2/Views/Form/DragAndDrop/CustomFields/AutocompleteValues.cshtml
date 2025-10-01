@@ -1,0 +1,9 @@
+﻿@using sReportsV2.DTOs.DTOs.Autocomplete.DataOut
+@model CustomAutocompleteDataOut
+
+@foreach (KeyValuePair<string, string> autocompleteValue in Model.Options)
+{
+    <div class="option" data-value="@autocompleteValue.Key" onclick="optionClicked(event, '@autocompleteValue.Key', '@System.Net.WebUtility.HtmlEncode(autocompleteValue.Value)', '@Model.ComponentName')">
+        @autocompleteValue.Value
+    </div>
+}

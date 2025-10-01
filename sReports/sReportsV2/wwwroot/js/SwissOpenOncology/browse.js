@@ -5,9 +5,8 @@
 });
 
 function reloadTable() {
-    let filter = getFilterParametersObject();
-    checkUrlPageParams();
-    setTableProperties(filter, {pageSize: 20, doOrdering: false});
+    hideAdvancedFilterModal();
+    let filter = applyActionsBeforeServerReloadSimple(false, true, { pageSize: 20, doOrdering: false });
 
     callServer({
         type: "get",
@@ -21,6 +20,10 @@ function reloadTable() {
             handleResponseError(xhr);
         }
     });
+}
+
+function getFilterParametersObjectForDisplay(filterObject) {
+    return filterObject;
 }
 
 $('#search').keypress(function (e) {
@@ -46,7 +49,7 @@ function getFilterParametersObject() {
     let requestObject = {};
 
     if (defaultFilter) {
-        requestObject = defaultFilter;
+        requestObject = getDefaultFilter();
         defaultFilter = null;
     } else {
         addPropertyToObject(requestObject, 'Term', $('#searchModal').val());
@@ -60,7 +63,6 @@ function getFilterParametersObject() {
 }
 
 function advanceFilter() {
-    hideAdvancedFilterModal();
     filterData();
 }
 

@@ -1,4 +1,6 @@
-﻿.smaragd-logo {
+﻿$color-green-primary: #1c94a3;
+
+.smaragd-logo {
     color: darkgreen;
     font-weight: 600;
 
@@ -28,4 +30,255 @@
 
 .width-auto {
     width: auto !important
+}
+
+.single-document-item {
+    padding: 27px 34px 23px 34px;
+    border: dashed 1px #bababa;
+    border-radius: 14px;
+    margin-top: 12px;
+    margin-right: 12px;
+    display: inline-block;
+    width: calc(25% - 16px);
+    cursor: pointer;
+    vertical-align: top;
+    background-color: white;
+
+    .icon {
+        background-image: url("img/icons/doc_silver.svg");
+        background-repeat: no-repeat;
+        width: 31px;
+        height: 40px;
+    }
+
+    > .title {
+        padding-top: 11px;
+        padding-bottom: 28px;
+        border-radius: 14px;
+        font-weight: 700;
+        color: $color-green-primary;
+        height: 170px;
+        font-size: 14px;
+    }
+
+    &:hover:not(.add-new-document-item-button), &.active {
+        background-color: $color-green-primary;
+        color: white;
+        border: solid 1px $color-green-primary;
+
+        > .title {
+            color: white;
+        }
+
+        .icon {
+            background-image: url("img/icons/doc_white.svg");
+        }
+
+        .select-button {
+            background-image: url("img/icons/arrow_select_white.svg");
+            background-position-x: 60px;
+            background-position-y: 6px;
+
+            &.view {
+                background-position-x: 52px;
+                background-position-y: 7px;
+            }
+        }
+
+        .datetime {
+            color: white;
+        }
+    }
+
+    &.active {
+        .unselect {
+            display: block;
+            background-image: url("img/icons/arrow_select_white.svg");
+            background-repeat: no-repeat;
+        }
+
+        .select-button:not(.unselect) {
+            background-image: url("img/icons/arrow_select_white.svg");
+            background-repeat: no-repeat;
+            display: none;
+        }
+    }
+
+    &.add-new-document-item-button {
+        border: dashed 1px $color-green-primary;
+        background-color: #ebfdff;
+
+        .icon {
+            width: 42px;
+            background-image: url("img/icons/browse.svg");
+        }
+
+        > .title {
+            color: $color-green-primary;
+            height: 191px;
+        }
+    }
+
+    .icon-wrapper {
+        display: flex;
+        align-items: center;
+
+        .datetime {
+            font-weight: 700;
+            color: $color-green-primary;
+            margin-left: 10px;
+            font-size: 13px;
+        }
+    }
+}
+
+.content-container {
+    display: flex;
+
+    .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #000000;
+    }
+
+    .referrals-container {
+        width: 45%;
+        border-right: solid 1px #e0e0e0;
+        padding-right: 20px;
+
+        .referrals-list {
+            max-height: calc(100vh - 256px);
+            overflow: auto;
+        }
+
+        .single-referral-item {
+            @extend .single-document-item;
+            margin-top: 15px;
+            margin-right: 15px;
+            display: inline-block;
+            width: calc(50% - 10px);
+
+            &:nth-child(even) {
+                margin-right: 0;
+            }
+
+            &:hover, &.active {
+                .select-button {
+                    &.unselect {
+                        background-position-x: 76px;
+                    }
+                }
+            }
+        }
+    }
+
+    .guideline-content {
+        margin-left: 0px !important;
+        width: 100% !important;
+    }
+
+    .forms-container {
+        width: calc(55% - 20px);
+        margin-left: 20px;
+
+        .forms-container-list {
+            margin-top: 20px;
+            overflow: auto;
+            max-height: calc(100vh - 316px);
+        }
+
+        .guidelines-container-list {
+            margin-top: 20px;
+            overflow: auto;
+            max-height: calc(100vh - 443px);
+        }
+
+        .input-container {
+            width: 400px;
+            position: relative;
+
+            .search-icon {
+                position: absolute;
+                right: 9px;
+                top: 6px;
+                cursor: pointer;
+            }
+        }
+
+        .single-form-list-element {
+            padding: 15px 87px 15px 43px;
+            position: relative;
+            border: solid 1px #e0e0e0;
+            border-bottom: none;
+            cursor: pointer;
+
+            &:last-child {
+                border-bottom: solid 1px #e0e0e0;
+            }
+
+            border-radius: 3px;
+            font-size: 14px;
+            color: #000000;
+
+            .pin-icon {
+                position: absolute;
+                left: 19px;
+                top: 15px;
+                cursor: pointer;
+                height: 20px;
+                width: 20px;
+                background-repeat: no-repeat;
+                background-position-y: 4px;
+                background-image: url("img/icons/pinned_silver.svg");
+
+                &.pinned {
+                    background-image: url("img/icons/pinned_red.svg");
+                }
+            }
+
+            .select-button {
+                position: absolute;
+                right: 19px;
+                top: 15px;
+                font-size: 14px;
+                cursor: pointer;
+            }
+
+            .title {
+                font-size: 14px
+            }
+
+            &:hover, &.active {
+                background-color: $color-green-primary;
+
+                .select-button {
+                    background-image: url("img/icons/arrow_select_white.svg");
+                    color: white;
+                    background-position-y: 6px;
+                    background-position-x: 60px;
+                    background-repeat: no-repeat;
+
+                    &.unselect {
+                        background-position-x: 76px;
+                    }
+                }
+
+                .title {
+                    color: white;
+                }
+            }
+
+            &.active {
+                background-color: $color-green-primary;
+
+                .unselect {
+                    display: block;
+                }
+
+                .select-button:not(.unselect) {
+                    display: none;
+                }
+            }
+        }
+    }
 }

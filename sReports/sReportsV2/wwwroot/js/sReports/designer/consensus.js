@@ -15,14 +15,18 @@ function deactivateConsensusMode() {
     const thesaurusId = urlParams.get('thesaurusId');
     const versionId = urlParams.get('versionId');
     if (thesaurusId && versionId) {
-        window.location.href = `/Form/Edit?thesaurusId=${thesaurusId}&versionId=${versionId}`;
+        if (readOnly) {
+            window.location.href = `/Form/View?thesaurusId=${thesaurusId}&versionId=${versionId}`;
+        } else {
+            window.location.href = `/Form/Edit?thesaurusId=${thesaurusId}&versionId=${versionId}`;
+        }
     }
 }
 
 function activateConsensusMode() {
     $("#consensusBtn").addClass('active pressed');
     hideNonConsensusContainers();
-    $('#formPreviewContainer').addClass('w-100');
+    $('#formPreviewContainer').addClass('w-100 consensus-mode');
     loadConsensusPartial();
 }
 
@@ -45,7 +49,7 @@ function loadConsensusTree() {
     });
 }
 
-$(".consensus-checkbox").click(function () {
+$(document).on("click", ".consensus-checkbox", function () {
     let currentValue = $(this).is(':checked');
     let siblings;
     if ($(this).attr('name') === 'Form') {
@@ -453,27 +457,17 @@ function getUserFromModal() {
     return user;
 }
 
-function deleteOutsideUser(id) {
+function deleteConsensusUser(id, isOutsideUser) {
+    let consensusUserType = isOutsideUser ? 'Outside' : 'Inside';
     callServer({
         method: 'post',
-        url: `/FormConsensus/DeleteOutsideUser?userId=${id}&consensusId=${$("#consensusId").val()}`,
-        success: function (data) {
-            $(`#${id}`).remove();
-            updateNumberOfSelectedUsers();
+        data: {
+            userId: id,
+            consensusId: $("#consensusId").val()
         },
-        error: function (xhr, textStatus, thrownError) {
-            handleResponseError(xhr);
-        }
-    });
-
-}
-
-function deleteInsideUser(id) {
-    callServer({
-        method: 'post',
-        url: `/FormConsensus/DeleteInsideUser?userId=${id}&consensusId=${$("#consensusId").val()}`,
+        url: `/FormConsensus/Delete${consensusUserType}User`,
         success: function (data) {
-            $(`#${id}`).remove();
+            $(`#users${consensusUserType}System`).find(`#${id}`).remove();
             updateNumberOfSelectedUsers();
         },
         error: function (xhr, textStatus, thrownError) {

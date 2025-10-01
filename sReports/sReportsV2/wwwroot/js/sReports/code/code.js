@@ -3,7 +3,6 @@ var isValidFromOrToChanged = false;
 
 $(document).ready(function () {
     $('[data-toggle="tooltip"]').tooltip();
-    triggerTimeOnChange("#idCodes");
 });
 
 addUnsavedChangesEventHandler("#codeSetsForm");
@@ -18,6 +17,7 @@ function reloadCodeSetGroup(reloadCode) {
             $("#codeSetsGroupId").html(data);
             if (reloadCode)
                 reloadTable();
+            saveInitialFormData("#codeSetsForm");
             saveInitialCodeFormData("#idCodes");
         },
         error: function (xhr, textStatus, thrownError) {
@@ -29,17 +29,17 @@ function reloadCodeSetGroup(reloadCode) {
 function createCodeEntry() {
     activeThesaurus = 0;
     var codeSetDisplay = encodeURIComponent($('#codeSetDisplay').val());
-    window.location.href = `/Code/Create?CodeSetId=${$('#codeSetId').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+    window.location.href = `/Code/Create?CodeSetId=${$('#codeSetId').val()}&CodeSetDisplay=${codeSetDisplay}`;
 }
 
 function cancelCode() {
     var codeSetDisplay = encodeURIComponent($('#thesaurusSearchInputCode').val());
-    if (!compareForms("#idCodes")) {
+    if (!compareCodeForms("#idCodes")) {
         saveInitialFormData("#idCodes");
-        window.location.href = `/Code/GetAll?CodeSetId=${$('#newCodeSetNumberForCode').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
     } else {
-        window.location.href = `/Code/GetAll?CodeSetId=${$('#newCodeSetNumberForCode').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+        saveInitialFormData("#codeSetsForm");
     }
+    window.location.href = `/Code/GetAll?CodeSetId=${$('#newCodeSetNumberForCode').val()}&CodeSetDisplay=${codeSetDisplay}`;
 }
 
 function populateCodeValueName(thesaurusId, preferredTerm) {
@@ -47,15 +47,13 @@ function populateCodeValueName(thesaurusId, preferredTerm) {
     $('body').removeClass('no-scrollable');
     document.getElementById("codeValueDisplay").value = preferredTerm;
     $("#codeValueDisplay").attr('data-value', thesaurusId);
-    if ($('#idCodes').valid()) {
-        console.log('The form is valid');
-    }
 }
 
 $(document).on('keyup', '#codeValueDisplay', function (e) {
     if (e.which !== enter) {
-        document.getElementById("codeValueDisplay").setAttribute('value', null);
-        isInvalidCodeThesaurus = true;
+        let codeValueDisplay = document.getElementById("codeValueDisplay");
+        codeValueDisplay.setAttribute('value', null);
+        isInvalidCodeThesaurus = !codeValueDisplay.hasAttribute("data-value");
     }
 });
 
@@ -89,9 +87,9 @@ function submitCodeForm(isSaveAndClose, isEdit) {
                 }
                 saveInitialCodeFormData("#idCodes");
                 if (isSaveAndClose)
-                    toastr.options.onHidden = function () { window.location.href = `/Code/GetAll?CodeSetId=${codeSetId}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`; }
+                    toastr.options.onHidden = function () { window.location.href = `/Code/GetAll?CodeSetId=${codeSetId}&CodeSetDisplay=${codeSetDisplay}`; }
                 else {
-                    toastr.options.onHidden = function () { window.location.href = `/Code/Edit?CodeId=${data.codeId}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${codeSetId}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`; }
+                    toastr.options.onHidden = function () { window.location.href = `/Code/Edit?CodeId=${data.codeId}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${codeSetId}&CodeSetDisplay=${codeSetDisplay}`; }
                 }
                 toastr.success("Success");
             },
@@ -104,7 +102,7 @@ function submitCodeForm(isSaveAndClose, isEdit) {
 
 function isValidCodeThesaurus() {
     resetValidation($("#idCodes"));
-    return document.getElementById("codeValueDisplay").getAttribute("value") !== null && !isInvalidCodeThesaurus;
+    return document.getElementById("codeValueDisplay").getAttribute("value") === null || isInvalidCodeThesaurus;
 }
 
 $(document).ready(function () {
@@ -166,7 +164,7 @@ function editCodeValues(e, id, codeDisplay) {
 
         if (!isTargetExcluded || $(e.target).hasClass('editCodeSet')) {
             const codeSetId = $('#codeSetNumberForCode').val();
-            const url = `/Code/Edit?CodeId=${id}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${codeSetId}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+            const url = `/Code/Edit?CodeId=${id}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${codeSetId}&CodeSetDisplay=${codeSetDisplay}`;
             window.location.href = url;
         }
     }

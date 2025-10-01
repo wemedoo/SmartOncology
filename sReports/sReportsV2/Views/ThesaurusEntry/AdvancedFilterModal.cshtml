@@ -54,9 +54,8 @@
                                 <option value=""> @sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
                                 @foreach (var option in ObjectExtension.FilterDataSource(states, readOnlyMode: true).Take(4))
                                 {
-                                    <option id="@option.Id" @(ViewBag.FilterData != null && ViewBag.FilterData.StateCD != null && ViewBag.FilterData.StateCD == option.Id ? "selected" : "")>
-                                        @option.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage)
-                                    </option>
+                                    var optionName = @option.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage);
+                                    <option data-display="@optionName" value="@option.Id" id="StateCD_@option.Id" @(ViewBag.FilterData != null && ViewBag.FilterData.StateCD != null && ViewBag.FilterData.StateCD == option.Id ? "selected" : "")>@optionName</option>
                                 }
                             </select>
                         </div>

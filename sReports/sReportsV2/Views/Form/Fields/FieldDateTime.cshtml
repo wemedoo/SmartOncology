@@ -97,6 +97,7 @@
                    {
                        InputAttributes = new Dictionary<object, object> {
                     { "class", "date-helper d-inline-block border-0 date-width field-date-input " },
+                    { "skip-blur", true},
                     { "data-parent-field", ".datetime-picker-container" },
                     { "data-preventfuturedates", preventFutureDates },
                     { "id", string.Format("field-id-{0}", fieldInstanceRepetitionId) },
@@ -106,29 +107,32 @@
                     }
                    })
                 <input type="text"
-                       class="date-time-local d-none form-element-field"
-                       value="@repetitiveValue"
+                class="date-time-local d-none form-element-field"
+                value="@repetitiveValue"
                 @Html.Raw(Model.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter))
                 @html.ReadOnly(objectModel.IsReadonly || isChapterReadonly) />
                 <div class="field-date-btn img-wrapper @(isSpecialValue ? "pe-none" : "")">
                     <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @html.DateTimeDisabled(objectModel.IsDisabled)>
                 </div>
             </div>
-            <div class="time-wrapper w-35 input-border">
-                <input type="text"
-                       placeholder="@DateConstants.TimeFormatDisplay"
-                       id="time-field-id-@fieldInstanceRepetitionId"
-                       class="time-part time-helper d-inline-block border-0 field-time-input"
-                       data-capture="true"
-                       value="@(!isSpecialValue ? time : "")"
-                       style="width:90%;"
-                       data-parent-field=".datetime-picker-container"
-                       name="@fieldInstanceRepetitionId"
-                @html.Disabled(objectModel.IsDisabled || isSpecialValue || isSpecialValue) />
-                <div class="field-time-btn clock-wrapper @(isSpecialValue ? "pe-none" : "")">
-                    <i class="fas fa-clock" @html.TimeDisabled(objectModel.IsDisabled || isSpecialValue)></i>
-                </div>
-            </div>
+            @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+            {
+                InputAttributes = new Dictionary<object, object> {
+                    { "class", "time-helper d-inline-block border-0 field-time-input" },
+                    { "value", !isSpecialValue ? time : "" },
+                    { "data-capture", "true" },
+                    { "id", $"time-field-id-{fieldInstanceRepetitionId}"},
+                    { "style", "width:90%;"},
+                    { "data-parent-field", ".datetime-picker-container"},
+                    { "name", fieldInstanceRepetitionId},
+                    { @html.Disabled(objectModel.IsDisabled || isSpecialValue), null }
+                    },
+                InputBtnAttributes = new Dictionary<object, object>
+                    {
+                        {"readOnly", objectModel.IsDisabled || isSpecialValue},
+                        {"class", $"field-time-btn {string.Format("{0}", isSpecialValue ? "pe-none" : "")}"}
+                    }
+           })
         </div>
     }
 }

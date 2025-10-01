@@ -3,21 +3,48 @@
 @model sReportsV2.DTOs.DTOs.Field.DataOut.IBinaryFieldDataOut;
 
 @{
-    bool isReadOnly = ViewBag.IsReadonly;
+    bool isReadOnly = ViewBag.ReadOnly;
     bool isChapterReadonly = ViewBag.IsChapterReadonly;
     bool specialValue = ViewBag.SpecialValue;
     string repetitiveValue = specialValue ? "" : ViewBag.RepetitiveValue;
     string displayFileName = @repetitiveValue.GetFileNameFromUri(Model.ExcludeGUIDPartFromName);
     string displayFileNameDecoded = System.Net.WebUtility.UrlDecode(displayFileName);
+    string extractFieldInstanceRepetitionId = ViewBag.ExtractFieldInstanceRepetitionId;
 }
 
-<div class="file-name-div" style="display:@(string.IsNullOrEmpty(repetitiveValue) || specialValue ? "none" : "")">
-    <i class="fas fa-check file-check"></i>
-    <div class="file-name-text" onclick="downloadBinary(event, @Model.ExcludeGUIDPartFromName.ToJsBoolean(), '@Model.BinaryType')" data-guid-name="@repetitiveValue.GetResourceNameFromUri()" title="@displayFileNameDecoded">
-        @displayFileNameDecoded
+<div class="flex position-relative">
+    <div class="file-name-div" style="display:@(string.IsNullOrEmpty(repetitiveValue) || specialValue ? "none" : "")">
+        <i class="fas fa-check file-check"></i>
+        <div class="file-name-text" onclick="downloadBinary(event, @Model.ExcludeGUIDPartFromName.ToJsBoolean(), '@Model.BinaryType', @isReadOnly.ToJsBoolean())" data-guid-name="@repetitiveValue.GetResourceNameFromUri()">
+            <div>@displayFileNameDecoded</div>
+        </div>
+        @if (!string.IsNullOrEmpty(ViewBag.extractFieldInstanceRepetitionId))
+        {
+            <div type="button" class="btn extract-data-btn float-right mt-2 file-instance-extract" onclick="saveFormInstanceAndExtractAIData(event, '@extractFieldInstanceRepetitionId')">
+                <img alt="" class="" src="/css/img/icons/extract_data.svg">
+                <span class="extract-data-span"> @sReportsV2.Cache.Resources.TextLanguage.Extract_Data </span>
+            </div>
+        }
+
+        @if (!isReadOnly)
+        {
+            <a class="download-predefined @Model.RemoveClass"
+               onclick="downloadBinary(event, @Model.ExcludeGUIDPartFromName.ToJsBoolean(), '@Model.BinaryType')"
+               data-guid-name="@repetitiveValue.GetResourceNameFromUri()"
+               title="@sReportsV2.Cache.Resources.TextLanguage.Download"
+               data-toggle="tooltip">
+                <img src="~/css/img/icons/download_file.svg" alt="Download" width="24" height="24" />
+            </a>
+        }
+
+        @if (!(isReadOnly || isChapterReadonly))
+        {
+            <a class="remove-predefined ml-auto @Model.RemoveClass" 
+                onclick="removeBinary(event, '@Model.BinaryType')" 
+                title="@sReportsV2.Cache.Resources.TextLanguage.Delete" 
+                data-toggle="tooltip">
+                <img src="~/css/img/icons/delete_file.svg" alt="Delete" width="24" height="24" />
+            </a>
+        }
     </div>
-    @if (!(isReadOnly || isChapterReadonly))
-    {
-        <a class="remove-predefined ml-auto @Model.RemoveClass" onclick="removeBinary(event, '@Model.BinaryType')" aria-label="Remove binary type"></a>
-    }
 </div>

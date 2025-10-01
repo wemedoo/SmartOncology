@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using sReportsV2.Common.Constants;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace sReportsV2.Common.Helpers
@@ -18,13 +19,14 @@ namespace sReportsV2.Common.Helpers
 
         private static void LoadBundleConfig()
         {
-            var json = System.IO.File.ReadAllText($@"{DirectoryHelper.ProjectBaseDirectory}\App_Start\bundleconfig.json");
+            var json = System.IO.File.ReadAllText(Path.Combine(DirectoryHelper.AppStartFolder, "bundleconfig.json"));
             _bundles = JsonConvert.DeserializeObject<List<BundleConfig>>(json);
         }
 
         public static IHtmlContent RenderBundle(string outputFileName, string integrity = "", string crossorigin = "")
         {
             var bundle = _bundles.Find(b => b.OutputFileName == outputFileName);
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             if (IsCssBundle(outputFileName))
             {
@@ -39,7 +41,7 @@ namespace sReportsV2.Common.Helpers
             {
                 var scripts = bundle.InputFiles.Select(url =>
                 {
-                    return $"<script type=\"text/javascript\" src=\"/{url}\" integrity=\"{integrity}\" crossorigin=\"{crossorigin}\"></script>";
+                    return $"<script type=\"text/javascript\" src=\"/{url}?v={version}\" integrity=\"{integrity}\" crossorigin=\"{crossorigin}\"></script>";
                 });
 
                 return new HtmlString(string.Join("\n", scripts));
@@ -59,8 +61,11 @@ namespace sReportsV2.Common.Helpers
 
         public static IHtmlContent RenderStylesheet(string href, string integrity = null, string crossorigin = null)
         {
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var versionedHref = $"{href}?v={version}";
+
             var linkTag = new TagBuilder("link");
-            linkTag.Attributes.Add("href", href);
+            linkTag.Attributes.Add("href", versionedHref);
             linkTag.Attributes.Add("rel", "stylesheet");
 
             if (!string.IsNullOrEmpty(integrity))
@@ -84,6 +89,7 @@ namespace sReportsV2.Common.Helpers
                 @"<meta charset=""utf-8"">",
                 $@"<meta name=""viewport"" content=""{viewport}"">",
                 $@"<meta name=""author"" content=""{ResourceTypes.CompanyAuthor}"">",
+                $@"<meta name=""robots"" content=""noindex, nofollow"">"
             };
 
             return new HtmlString(string.Join("\n", tags));

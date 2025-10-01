@@ -26,18 +26,19 @@ namespace sReportsV2.Controllers
     public class EncounterController : BaseController
     {
         private readonly IEncounterBLL encounterBLL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public EncounterController(IEncounterBLL encounterBLL, 
             IMapper mapper,             
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.encounterBLL = encounterBLL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         [SReportsAuthorize(Permission = PermissionNames.AddDocument, Module = ModuleNames.Patients)]
@@ -53,17 +54,16 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuthorize(Permission = PermissionNames.AddDocument, Module = ModuleNames.Patients)]
-        public async Task<ActionResult> ListForms(string condition)
+        public async Task<ActionResult> ListForms(string searchName)
         {
-            var result = await encounterBLL.ListForms(condition, userCookieData).ConfigureAwait(false);
-            return PartialView(result);
-        }
+            return PartialView("SelectOptionRows", await encounterBLL.ListForms(searchName, userCookieData).ConfigureAwait(false));
+        } 
 
         [SReportsAuthorize(Permission = PermissionNames.AddDocument, Module = ModuleNames.Patients)]
         public async Task<ActionResult> GetSuggestedForms()
         {
             var suggestedForms = await encounterBLL.GetSuggestedForms(userCookieData.SuggestedForms).ConfigureAwait(false);
-            return PartialView("SuggestedForms", Mapper.Map<List<FormDataOut>>(suggestedForms));
+            return PartialView("SuggestedForms", mapper.Map<List<FormDataOut>>(suggestedForms));
         }
 
         [SReportsAuthorize(Permission = PermissionNames.RemoveEncounter, Module = ModuleNames.Patients)]
@@ -132,7 +132,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.ViewEncounter, Module = ModuleNames.Patients)]
         public ActionResult GetAll(EncounterFilterDataIn dataIn)
         {
-            ViewBag.Genders = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Gender);
+            SetGenderTypesToViewBag();
             SetEpisodeOfCareAndEncounterViewBags();
             ViewBag.FilterData = dataIn;
             return View();
@@ -169,7 +169,7 @@ namespace sReportsV2.Controllers
 
         private void PopulateGenders(EncounterFilterDataIn dataIn)
         {
-            ViewBag.Genders = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Gender);
+            SetGenderTypesToViewBag();
             string activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
             foreach (CodeDataOut genderCode in ViewBag.Genders)
             {

@@ -5,11 +5,14 @@ using sReportsV2.Domain.Services.Interfaces;
 using sReportsV2.DTOs.Common.DTO;
 using sReportsV2.DTOs.DigitalGuideline.DataIn;
 using sReportsV2.DTOs.DigitalGuideline.DataOut;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
 using sReportsV2.DTOs.Pagination;
 using sReportsV2.DTOs.ThesaurusEntry.DataOut;
+using sReportsV2.DTOs.User.DTO;
 using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace sReportsV2.BusinessLayer.Implementations
@@ -18,13 +21,13 @@ namespace sReportsV2.BusinessLayer.Implementations
     {
         private readonly IDigitalGuidelineDAL digitalGuidelineDAL;
         private readonly IThesaurusDAL thesaurusDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public DigitalGuidelineBLL(IDigitalGuidelineDAL digitalGuidelineDAL, IThesaurusDAL thesaurusDAL, IMapper mapper)
         {
             this.digitalGuidelineDAL = digitalGuidelineDAL;
             this.thesaurusDAL = thesaurusDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public void Delete(string id, DateTime lastUpdate)
@@ -35,19 +38,33 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<GuidelineDataOut> GetById(string id)
         {
             var data = await this.digitalGuidelineDAL.GetByIdAsync(id).ConfigureAwait(false);
-            GuidelineDataOut dataOut = Mapper.Map<GuidelineDataOut>(data);
+            GuidelineDataOut dataOut = mapper.Map<GuidelineDataOut>(data);
 
             return dataOut;
         }
 
         public PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn> GetAll(GuidelineFilterDataIn dataIn)
         {
-            GuidelineFilter filter = Mapper.Map<GuidelineFilter>(dataIn);
+            GuidelineFilter filter = mapper.Map<GuidelineFilter>(dataIn);
 
             PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn> result = new PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn>()
             {
                 Count = this.digitalGuidelineDAL.GetAllCount(filter),
-                Data = Mapper.Map<List<GuidelineDataOut>>(this.digitalGuidelineDAL.GetAll(filter)),
+                Data = mapper.Map<List<GuidelineDataOut>>(this.digitalGuidelineDAL.GetAll(filter)),
+                DataIn = dataIn
+            };
+
+            return result;
+        }
+
+        public PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn> GetVersionHistory(GuidelineFilterDataIn dataIn)
+        {
+            GuidelineFilter filter = mapper.Map<GuidelineFilter>(dataIn);
+
+            PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn> result = new PaginationDataOut<GuidelineDataOut, GuidelineFilterDataIn>()
+            {
+                Count = this.digitalGuidelineDAL.GetAllCount(filter),
+                Data = mapper.Map<List<GuidelineDataOut>>(this.digitalGuidelineDAL.GetAllByThesaurus(filter)),
                 DataIn = dataIn
             };
 
@@ -56,18 +73,15 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public GuidelineElementDataDataOut PreviewNode(GuidelineElementDataDataIn dataIn)
         {
-            GuidelineElementDataDataOut data = Mapper.Map<GuidelineElementDataDataOut>(dataIn);
-            if (dataIn.Thesaurus != null)
-            {
-                data.Thesaurus = Mapper.Map<ThesaurusEntryDataOut>(this.thesaurusDAL.GetById(dataIn.Thesaurus.Id));
-            }
+            GuidelineElementDataDataOut data = mapper.Map<GuidelineElementDataDataOut>(dataIn);
+            data.Thesaurus = mapper.Map<ThesaurusEntryDataOut>(this.thesaurusDAL.GetById(dataIn.ThesaurusId));
 
             return data;
         }
 
-        public async Task<ResourceCreatedDTO> InsertOrUpdate(GuidelineDataIn dataIn)
+        public async Task<ResourceCreatedDTO> InsertOrUpdate(GuidelineDataIn dataIn, int userId)
         {
-            Guideline guideline = await this.digitalGuidelineDAL.InsertOrUpdateAsync(Mapper.Map<Guideline>(dataIn)).ConfigureAwait(false);
+            Guideline guideline = await this.digitalGuidelineDAL.InsertOrUpdateAsync(mapper.Map<Guideline>(dataIn), userId).ConfigureAwait(false);
 
             return new ResourceCreatedDTO()
             {
@@ -76,10 +90,9 @@ namespace sReportsV2.BusinessLayer.Implementations
             };
         }
 
-        public List<GuidelineDataOut> SearchByTitle(string title)
+        public List<AutocompleteOptionDataOut> SearchByTitle(string title, UserCookieData userCookieData)
         {
-            List<Guideline> result = digitalGuidelineDAL.SearchByTitle(title);
-            return Mapper.Map<List<GuidelineDataOut>>(result);
+            return digitalGuidelineDAL.SearchByTitle(title).Select(x => new AutocompleteOptionDataOut(x, userCookieData)).ToList();
         }
     }
 }

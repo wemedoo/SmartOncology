@@ -3,7 +3,7 @@ using sReportsV2.Common.CustomAttributes;
 
 namespace sReportsV2.DTOs.Field.DataOut
 {
-    public class FieldParagraphDataOut : FieldStringDataOut
+    public partial class FieldParagraphDataOut : FieldStringDataOut
     {
         [JsonIgnore]
         public override string PartialView { get; } = "~/Views/Form/Fields/FieldParagraph.cshtml";
@@ -19,9 +19,9 @@ namespace sReportsV2.DTOs.Field.DataOut
             return this.Paragraph;
         }
 
-        public override string GetChildFieldInstanceCssSelector(string fieldInstanceRepetitionId)
+        public override bool CanBeConnectedField()
         {
-            return $"#{fieldInstanceRepetitionId}";
+            return false;
         }
     }
 }

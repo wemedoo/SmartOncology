@@ -6,10 +6,12 @@
 @using sReportsV2.DTOs.CodeEntry.DataOut;
 
 @{
-    var activeFromDate = Model != null && Model.ProjectStartDateTime != null ? Model.ProjectStartDateTime.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "";
-    var activeFromTime = Model != null && Model.ProjectStartDateTime != null ? Model.ProjectStartDateTime.Value.ToString("HH:mm") : "";
-    var activeToDate = Model != null && Model.ProjectEndDateTime != null ? Model.ProjectEndDateTime.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "";
-    var activeToTime = Model != null && Model.ProjectEndDateTime != null ? Model.ProjectEndDateTime.Value.ToString("HH:mm") : "";
+    var activeFromDate = Model != null ? Model.ProjectStartDateTime.ToDateZoned(ViewBag.DateFormat as string): "";
+    var activeFrom = Model != null && Model.ProjectStartDateTime.HasValue ? Model.ProjectStartDateTime.Value.ToString("s"): "";
+    var activeFromTime = Model != null && Model.ProjectStartDateTime != null ? Model.ProjectStartDateTime.Value.GetTimePart() : "";
+    var activeToDate = Model != null ? Model.ProjectEndDateTime.ToDateZoned(ViewBag.DateFormat as string) : "";
+    var activeToTime = Model != null && Model.ProjectEndDateTime != null ? Model.ProjectEndDateTime.Value.GetTimePart() : "";
+    var activeTo = Model != null && Model.ProjectEndDateTime.HasValue ? Model.ProjectEndDateTime.Value.ToString("s"): "";
     var userCookieData = ViewBag.UserCookieData;
     bool hasUpdatePerm = userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.ProjectManagement);
     bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault() || !hasUpdatePerm;
@@ -75,21 +77,23 @@
                                              { !readOnly ? "onClick" : "", !readOnly ? "showDatePicker(event)" : "" }
                                          },
                          })
-                        <input type="text" class="date-time-local d-none form-element-field" value="@(activeFromDate + "T" + activeFromTime)" />
+                        <input type="text" class="date-time-local d-none form-element-field" value="@activeFrom" />
                     </div>
                     <div class="advanced-filter-item input-margin w-35 padding-top-21">
-                        <div class="time-wrapper input-border w-100 h-100">
-                            <input type="text"
-                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                   name="activeFromTime"
-                                   id="activeFromTime"
-                                   class="time-part time-helper d-inline-block border-0 field-time-input time-input-padding left-align-placeholder"
-                                   value="@activeFromTime"
-                                   data-parent-field=".datetime-picker-container" @disabled />
-                            <div class="field-time-btn clock-wrapper">
-                                <i class="fas fa-clock" @(!readOnly ? "onClick=openDateTimeTimePicker(event)" : "")></i>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                       {
+                           FullWidthHeight = true,
+                           InputAttributes = new Dictionary<object, object> {
+                            { "class", "time-helper d-inline-block border-0 field-time-input time-input-padding left-align-placeholder" },
+                            { "value", activeFromTime },
+                            { "id", "activeFromTime"},
+                            { "name", "activeFromTime"},
+                            { "data-range-valid-form-id", "projectDataForm"},
+                            { "data-parent-field", ".datetime-picker-container"},
+                            { @disabled, null}
+                            },
+                           InputBtnAttributes = new Dictionary<object, object> { { "readOnly", readOnly } }
+                       })
                     </div>
                 </div>
             </div>
@@ -116,21 +120,24 @@
                                              { !readOnly ? "onClick" : "", !readOnly ? "showDatePicker(event)" : "" }
                                          },
                          })
-                        <input type="text" class="date-time-local d-none form-element-field" value="@(activeToDate + "T" + activeToTime)" />
+                        <input type="text" class="date-time-local d-none form-element-field" value="@activeTo" />
                     </div>
                     <div class="advanced-filter-item input-margin w-35 padding-top-21">
-                        <div class="time-wrapper input-border w-100 h-100" id="activeToTimeWrapper">
-                            <input type="text"
-                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                   name="activeToTime"
-                                   id="activeToTime"
-                                   class="time-part time-helper d-inline-block border-0 field-time-input time-input-padding left-align-placeholder"
-                                   value="@activeToTime"
-                                   data-parent-field=".datetime-picker-container" @disabled />
-                            <div class="field-time-btn clock-wrapper">
-                                <i class="fas fa-clock" @(!readOnly ? "onClick=openDateTimeTimePicker(event)" : "")></i>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                       {
+                           FullWidthHeight = true,
+                           ContainerId = "activeToTimeWrapper",
+                           InputAttributes = new Dictionary<object, object> {
+                            { "class", "time-helper d-inline-block border-0 field-time-input time-input-padding left-align-placeholder" },
+                            { "value", activeToTime },
+                            { "id", "activeToTime"},
+                            { "name", "activeToTime"},
+                            { "data-range-valid-form-id", "projectDataForm"},
+                            { "data-parent-field", ".datetime-picker-container"},
+                            { @disabled, null}
+                            },
+                           InputBtnAttributes = new Dictionary<object, object> { { "readOnly", readOnly } }
+                       })
                     </div>
                 </div>
             </div>

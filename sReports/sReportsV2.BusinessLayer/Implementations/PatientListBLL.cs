@@ -27,27 +27,27 @@ namespace sReportsV2.BusinessLayer.Implementations
     {
         private readonly IPatientListDAL patientListDAL;
         private readonly IPersonnelDAL personnelDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         private readonly ICodeDAL codeDAL;
 
         public PatientListBLL(IPatientListDAL patientListDAL, IPersonnelDAL personnelDAL, IMapper mapper, ICodeDAL codeDAL)
         {
             this.patientListDAL = patientListDAL;
             this.personnelDAL = personnelDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
             this.codeDAL = codeDAL;
         }
 
         public async Task<PaginationDataOut<PatientListDTO, PatientListFilterDataIn>> GetAll(PatientListFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            PatientListFilter patientListFilter = Mapper.Map<PatientListFilter>(dataIn);
+            PatientListFilter patientListFilter = mapper.Map<PatientListFilter>(dataIn);
 
             PaginationData<PatientList> patientListPagination = await patientListDAL.GetAllByFilter(patientListFilter).ConfigureAwait(false);
   
             return new PaginationDataOut<PatientListDTO, PatientListFilterDataIn>
             {
-                Data = Mapper.Map<List<PatientListDTO>>(patientListPagination.Data),
+                Data = mapper.Map<List<PatientListDTO>>(patientListPagination.Data),
                 Count = patientListPagination.Count,
                 DataIn = dataIn
             };
@@ -57,7 +57,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             if (id != null && id > 0)
             {
-                return Mapper.Map<PatientListDTO>(await patientListDAL.GetByIdAsync((int)id).ConfigureAwait(false));
+                return mapper.Map<PatientListDTO>(await patientListDAL.GetByIdAsync((int)id).ConfigureAwait(false));
             }
             return null;
         }
@@ -65,10 +65,10 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<PatientListDTO> Create(PatientListDTO patientListDTO)
         {
             patientListDTO = Ensure.IsNotNull(patientListDTO, nameof(patientListDTO));
-            PatientList patientList = Mapper.Map<PatientList>(patientListDTO);
+            PatientList patientList = mapper.Map<PatientList>(patientListDTO);
             patientList.SetActiveFromAndToDatetime();
             AddCreatorToPersonnelRelations(patientList);
-            return Mapper.Map<PatientListDTO>(
+            return mapper.Map<PatientListDTO>(
                 await patientListDAL.Create(patientList).ConfigureAwait(false));
         }
 
@@ -76,8 +76,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             patientListDTO = Ensure.IsNotNull(patientListDTO, nameof(patientListDTO));
             
-            return Mapper.Map<PatientListDTO>( 
-                await patientListDAL.Edit(Mapper.Map<PatientList>(patientListDTO)).ConfigureAwait(false));
+            return mapper.Map<PatientListDTO>( 
+                await patientListDAL.Edit(mapper.Map<PatientList>(patientListDTO)).ConfigureAwait(false));
         }
 
         public async Task Delete(int? id)
@@ -92,8 +92,8 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             if(patientListPersonnelRelationDTO.PersonnelId > 0 && patientListPersonnelRelationDTO.PatientListId > 0)
             {
-                return Mapper.Map<PatientListPersonnelRelationDTO>(
-                    await patientListDAL.AddPersonnelRelation(Mapper.Map<PatientListPersonnelRelation>(patientListPersonnelRelationDTO)).ConfigureAwait(false));
+                return mapper.Map<PatientListPersonnelRelationDTO>(
+                    await patientListDAL.AddPersonnelRelation(mapper.Map<PatientListPersonnelRelation>(patientListPersonnelRelationDTO)).ConfigureAwait(false));
             }
             return patientListPersonnelRelationDTO;
         }
@@ -102,8 +102,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             if(patientListPersonnelRelationDTOs != null && patientListPersonnelRelationDTOs.Count > 0 && patientListPersonnelRelationDTOs.TrueForAll(x => x.PatientListId > 0 && x.PersonnelId > 0))
             {
-                return Mapper.Map<List<PatientListPersonnelRelationDTO>>(
-                    await patientListDAL.AddPersonnelRelations(Mapper.Map<List<PatientListPersonnelRelation>>(patientListPersonnelRelationDTOs)).ConfigureAwait(false));
+                return mapper.Map<List<PatientListPersonnelRelationDTO>>(
+                    await patientListDAL.AddPersonnelRelations(mapper.Map<List<PatientListPersonnelRelation>>(patientListPersonnelRelationDTOs)).ConfigureAwait(false));
             }
             return patientListPersonnelRelationDTOs;
         }
@@ -118,9 +118,8 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<AutocompleteResultDataOut> GetAutoCompleteName(AutocompleteDataIn dataIn)
         {
-            int pageSize = 10;
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            EntityFilter filter = new EntityFilter() { Page = dataIn.Page, PageSize = pageSize };
+            EntityFilter filter = new EntityFilter() { Page = dataIn.Page, PageSize = FilterConstants.DefaultPageSize };
             PaginationData<AutoCompleteData> patientListsAndCount = await patientListDAL.GetTrialAutoCompleteNameAndCount(dataIn.Term, filter);
 
             List<AutocompleteDataOut> autocompleteDataDataOuts = patientListsAndCount.Data
@@ -134,7 +133,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             AutocompleteResultDataOut result = new AutocompleteResultDataOut()
             {
                 results = autocompleteDataDataOuts,
-                pagination = new AutocompletePaginatioDataOut() { more = patientListsAndCount.Count > dataIn.Page * pageSize, }
+                pagination = new AutocompletePaginatioDataOut() { more = dataIn.ShouldLoadMore(patientListsAndCount.Count) }
             };
 
             return result;
@@ -143,14 +142,14 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<PaginationDataOut<UserDataOut, DataIn>> ReloadPersonnelTable(PatientListFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            PatientListFilter filter = Mapper.Map<PatientListFilter>(dataIn);
+            PatientListFilter filter = mapper.Map<PatientListFilter>(dataIn);
             int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
 
             PaginationData<Personnel> personnelPagination = await personnelDAL.GetAllPatientListPersonnelsAndCount(filter, archivedUserStateCD);
 
             return new PaginationDataOut<UserDataOut, DataIn>
             {
-                Data = Mapper.Map<List<UserDataOut>>(personnelPagination.Data),
+                Data = mapper.Map<List<UserDataOut>>(personnelPagination.Data),
                 Count = personnelPagination.Count,
                 DataIn = dataIn
             };
@@ -159,7 +158,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task AddPatientRelations(PatientListPatientRelationDTO patientListPatientRelationDTO)
         {
             patientListPatientRelationDTO = Ensure.IsNotNull(patientListPatientRelationDTO, nameof(patientListPatientRelationDTO));
-            PatientListPatientRelation patientListPatientRelation = Mapper.Map<PatientListPatientRelation>(patientListPatientRelationDTO);
+            PatientListPatientRelation patientListPatientRelation = mapper.Map<PatientListPatientRelation>(patientListPatientRelationDTO);
             if (patientListPatientRelation.PatientListId > 0 && patientListPatientRelation.PatientId > 0)
             {
                 await patientListDAL.AddPatientRelation(patientListPatientRelation);
@@ -169,7 +168,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task RemovePatientRelation(PatientListPatientRelationDTO patientListPatientRelationDTO)
         {
             patientListPatientRelationDTO = Ensure.IsNotNull(patientListPatientRelationDTO, nameof(patientListPatientRelationDTO));
-            PatientListPatientRelation patientListPatientRelation = Mapper.Map<PatientListPatientRelation>(patientListPatientRelationDTO);
+            PatientListPatientRelation patientListPatientRelation = mapper.Map<PatientListPatientRelation>(patientListPatientRelationDTO);
             if (patientListPatientRelation.PatientListId > 0 && patientListPatientRelation.PatientId > 0)
             {
                 await patientListDAL.RemovePatientRelation(patientListPatientRelation);
@@ -180,7 +179,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             var patientIds = patients.Select(x => x.Id).Distinct();
             Dictionary<int, IEnumerable<int>> patientsAndLists = await patientListDAL.GetListsContainingPatients(patientIds).ConfigureAwait(false);
-            List<PatientListDTO> listWithSelectedPatients = Mapper.Map<List<PatientListDTO>>(
+            List<PatientListDTO> listWithSelectedPatients = mapper.Map<List<PatientListDTO>>(
                 (await patientListDAL.GetAllByFilter(new PatientListFilter() { PersonnelId = activePersonnelId, Page = 1, PageSize = 30, ListWithSelectedPatients = true}).ConfigureAwait(false))
                 .Data);
 

@@ -51,13 +51,5 @@ namespace sReportsV2.DTOs.Field.DataOut
         {
             return true;
         }
-
-        private void AddAttributeIfNotNull(List<string> attributes, string attributeName, object value)
-        {
-            if (value != null)
-            {
-                attributes.Add($"{attributeName}={value}");
-            }
-        }
     }
 }

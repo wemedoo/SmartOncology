@@ -1,13 +1,14 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using sReportsV2.Domain.Entities.CustomFHIRClasses;
+using sReportsV2.Domain.MongoDb.Entities.Base;
+using sReportsV2.Domain.Sql;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 
 namespace sReportsV2.Domain.Entities.Form
 {
     [BsonIgnoreExtraElements]
-    public class FormPage
+    public class FormPage : IFormThesaurusEntity
     {
-        public O4CodeableConcept Code { get; set; }
         public string Id { get; set; }
         public string Title { get; set; }
         public bool IsVisible { get; set; }
@@ -19,6 +20,8 @@ namespace sReportsV2.Domain.Entities.Form
         public List<List<FieldSet>> ListOfFieldSets { get; set; } = new List<List<FieldSet>>();
 
         public LayoutStyle LayoutStyle { get; set; }
+
+        #region Thesaurus Methods
 
         public List<int> GetAllThesaurusIds()
         {
@@ -45,14 +48,16 @@ namespace sReportsV2.Domain.Entities.Form
                 }
             }
         }
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
         {
-            this.ThesaurusId = this.ThesaurusId == oldThesaurus ? newThesaurus : this.ThesaurusId;
+            this.ThesaurusId = this.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
             foreach (var list in this.ListOfFieldSets)
             {
-                list[0].ReplaceThesauruses(oldThesaurus, newThesaurus);
+                list[0].ReplaceThesauruses(thesaurusMerge);
             }
         }
+
+        #endregion /Thesaurus Methods
 
     }
 }

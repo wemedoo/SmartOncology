@@ -29,11 +29,11 @@
                             <img alt="" src="/css/img/icons/edit_pencil_02.svg">
                             <div class="pl-2">@(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.View : @sReportsV2.Cache.Resources.TextLanguage.Edit) </div>
                         </div>
-                        <img alt="" class="remove-outside-user" onclick="deleteOutsideUser('@consensusUser.Id')" src="/css/img/icons/Administration_remove.svg">
+                        <img alt="" class="remove-outside-user" onclick="deleteConsensusUser('@consensusUser.Id', true)" src="/css/img/icons/Administration_remove.svg">
                     }
                     else
                     {
-                        <img alt="" class="remove-outside-user" style="margin-left:140px;" onclick="deleteInsideUser('@consensusUser.Id')" src="/css/img/icons/Administration_remove.svg">
+                        <img alt="" class="remove-outside-user" style="margin-left:140px;" onclick="deleteConsensusUser('@consensusUser.Id')" src="/css/img/icons/Administration_remove.svg">
                     }
                 }
             </div>

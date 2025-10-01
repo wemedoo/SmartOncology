@@ -1,24 +1,21 @@
-﻿using iText.IO.Image;
-using iText.Kernel.Pdf;
-using iText.Layout.Element;
+﻿using iText.Layout.Element;
 using iText.Layout.Properties;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Color = iText.Kernel.Colors.Color;
-using Image = iText.Layout.Element.Image;
 using sReportsV2.Domain.Sql.Entities.OrganizationEntities;
 using sReportsV2.DTOs.Form.DataOut;
 using sReportsV2.DTOs.Field.DataOut;
 using iText.Layout.Borders;
-using iText.Svg.Converter;
 using iText.Kernel.Colors;
 using iText.Kernel.Font;
-using sReportsV2.Common.Helpers;
 using sReportsV2.Common.Constants;
 using System;
 using Chapters.Generators;
 using System.Globalization;
+using Chapters.Resources;
+using Chapters.Extensions;
+using sReportsV2.Common.Extensions;
 
 namespace Chapters
 {
@@ -39,22 +36,17 @@ namespace Chapters
     }
 
 
-    public class PdfParameters
+    public class SynopticPdfParameters
     {
         public readonly int DocumentWidth = 595;
-        public readonly int DocumentHeight = 842;
 
         public readonly int RightMargin, LeftMargin, TopMargin, BottomMargin;
 
-        public readonly int headerUpperLimit = 24;
-        public readonly int footerLowerLimit = 24;
-
-        public readonly int logoMaxWidth = 70;
-        public readonly int logoMaxHeight = 40;
+        public readonly int footerLowerLimit = 45;
 
         public readonly SynopticFontStyle Font;
 
-        public PdfParameters(int rightMargin, int leftMargin, int topMargin, int bottomMargin, SynopticFontStyle fontStyle)
+        public SynopticPdfParameters(int rightMargin, int leftMargin, int topMargin, int bottomMargin, SynopticFontStyle fontStyle)
         {
             RightMargin = rightMargin;
             LeftMargin = leftMargin;
@@ -67,10 +59,7 @@ namespace Chapters
         {
             return DocumentWidth - RightMargin - LeftMargin;
         }
-        public int GetAvailableHeight()
-        {
-            return DocumentHeight - TopMargin - BottomMargin;
-        }
+        
         public DeviceRgb Green()
         {
             return new DeviceRgb(18, 112, 124);
@@ -92,86 +81,49 @@ namespace Chapters
     {
         private readonly string signingUserCompleteName;
         private readonly FormDataOut formDataOut;
-        private readonly PdfParameters parameters;
+        private readonly SynopticPdfParameters parameters;
 
-        public SynopticPdfGenerator(FormDataOut formDataOut, string signingUserCompleteName, Organization organization) : base(organization, "NUNITOSANS-REGULAR")
+        public SynopticPdfGenerator(FormDataOut formDataOut, string signingUserCompleteName, Organization organization, string activeUserNameInfo, string patientIdentifier) : base(organization, "NUNITOSANS-REGULAR", activeUserNameInfo, new FormPdfMetadata(formDataOut.Title, formDataOut.Version, formDataOut.EntryDatetime.Value, patientIdentifier))
         {
             this.formDataOut = formDataOut;
-            parameters = new PdfParameters(70, 70, 100, 120, new SynopticFontStyle(this.font));
+            this.parameters = new SynopticPdfParameters(50, 50, 60, 150, new SynopticFontStyle(this.font));
             this.signingUserCompleteName = signingUserCompleteName;
         }
 
+        public string GetDownloadedSynopticPdfName()
+        {
+            string identifierPart = !string.IsNullOrEmpty(this.formMetadata.PatientIdentifier) ? $"_{this.formMetadata.PatientIdentifier}" : string.Empty;
+            return $"{formMetadata.Title}_{formMetadata.Version.Major}.{formMetadata.Version.Minor}{identifierPart}_{DateTime.Now.ToString(DateTimeConstants.DateFormat)}";
+        }
         protected override void PopulatePdf()
         {
             document.SetMargins(parameters.TopMargin, parameters.RightMargin, parameters.BottomMargin, parameters.LeftMargin);
-
             pdfDocument.AddNewPage();
 
             AddSynopticElements();
-            AddHeaderAndFooter();
+            AddFormInstanceMetadataAtBottom();
         }
 
-        private void AddHeaderAndFooter()
+        #region FormInstance Metadata
+
+        private void AddFormInstanceMetadataAtBottom()
         {
             for (int i = 1; i <= pdfDocument.GetNumberOfPages(); i++)
             {
-                AddHeaderText(i);
-                AddHeaderLogo(i);
-                AddFooter(i);
+                AddFormInstanceMetadata(i);
             }
         }
 
-        private void AddHeaderText(int pageNumber)
+        private void AddFormInstanceMetadata(int pageNumber)
         {
-            string title = StringShortener($"{formDataOut.Title} (v{formDataOut.Version.Major}.{formDataOut.Version.Minor})", TextMaxLength);
-
-            Paragraph headerLabel = CreateCustomParagraph(" Document:", parameters.Font.labelsValuesSize, parameters.Green(), isBold: true);
-            headerLabel.SetWidth(200);  // setting width for constraining text in limited area
-
-            Paragraph headerTitle = CreateCustomParagraph(title, parameters.Font.labelsValuesSize, parameters.DarkGray());
-            headerTitle.SetWidth(200);  // setting width for constraining text in limited area
-
-            Table lineTable = new Table(1).SetWidth(parameters.GetAvailableWidth()).SetHeight(1).SetBorderBottom(new SolidBorder(parameters.LightGray(), 1));
-
-            document.ShowTextAligned(new Paragraph().Add(headerLabel), parameters.LeftMargin, parameters.DocumentHeight - parameters.headerUpperLimit, pageNumber, TextAlignment.LEFT, VerticalAlignment.MIDDLE, 0);
-            Flush();
-            document.ShowTextAligned(new Paragraph().Add(headerTitle), parameters.LeftMargin, parameters.DocumentHeight - parameters.headerUpperLimit - 2, pageNumber, TextAlignment.LEFT, VerticalAlignment.TOP, 0);
-            Flush();
-            document.ShowTextAligned(new Paragraph().Add(lineTable), parameters.LeftMargin, parameters.DocumentHeight - parameters.headerUpperLimit - 50, pageNumber, TextAlignment.LEFT, VerticalAlignment.MIDDLE, 0);
-            Flush();
-        }
-
-        private void AddHeaderLogo(int pageNumber)
-        {
-            string imagePath = organization.LogoUrl;
-            if (!string.IsNullOrWhiteSpace(imagePath))
-            {
-                Image img = LoadCustomImage(imagePath);
-
-                if (img != null)
-                {
-                    img.ScaleToFit(parameters.logoMaxWidth, parameters.logoMaxHeight);
-                    img.SetFixedPosition(
-                        pageNumber,
-                        parameters.DocumentWidth - parameters.RightMargin - img.GetImageScaledWidth(),
-                        parameters.DocumentHeight - parameters.headerUpperLimit - img.GetImageScaledHeight());
-                    document.Add(img);
-
-                    Flush();
-                }
-            }
-        }
-
-        private void AddFooter(int pageNumber)
-        {
-            string organizationImpressum = StringShortener(!string.IsNullOrWhiteSpace(organization.Impressum) ? organization.Impressum : string.Empty, 600);
+            string organizationImpressum = organization.Impressum.StringShortener(600);
             Paragraph impressumParagraph = CreateCustomParagraph(organizationImpressum, parameters.Font.footerTextSize, parameters.DarkGray());
             impressumParagraph.SetWidth(parameters.GetAvailableWidth()).SetMinHeight(55);
             impressumParagraph.SetFixedLeading(parameters.Font.labelsValuesSize).SetWordSpacing(0.1f);
 
             // Last Update and Signature line 
             Paragraph lastUpdateLabel = CreateCustomParagraph("Last Update: ", parameters.Font.labelsValuesSize, parameters.Green(), isBold: true);
-            Paragraph lastUpdateValue = CreateCustomParagraph(formDataOut.LastUpdate.Value.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture), parameters.Font.labelsValuesSize, parameters.DarkGray());
+            Paragraph lastUpdateValue = CreateCustomParagraph(formDataOut.LastUpdate.Value.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true), parameters.Font.labelsValuesSize, parameters.DarkGray());
             lastUpdateLabel.Add(lastUpdateValue).SetFixedLeading(parameters.Font.labelsValuesSize);
 
             Paragraph SignatureLabel = CreateCustomParagraph(!string.IsNullOrWhiteSpace(signingUserCompleteName) ? "Electronically Signed: " : string.Empty, 
@@ -181,40 +133,26 @@ namespace Chapters
 
             Table updateAndSignatureTable = new Table(2)
                 .SetWidth(UnitValue.CreatePercentValue(100f))
+                .SetBorderBottom(new SolidBorder(parameters.LightGray(), 1))
                 .SetFixedLayout();
 
             updateAndSignatureTable
                 .AddCell(new Cell().Add(lastUpdateLabel).SetBorder(Border.NO_BORDER).SetTextAlignment(TextAlignment.LEFT))
                 .AddCell(new Cell().Add(SignatureLabel).SetBorder(Border.NO_BORDER).SetTextAlignment(TextAlignment.RIGHT));
 
-            // Table used to draw a horizontal line
-            Table lineTable = new Table(1).SetWidth(parameters.GetAvailableWidth()).SetHeight(1).SetBorderBottom(new SolidBorder(parameters.LightGray(), 1));
-
-            // WeMedoo Informations line
-            Paragraph wemedooPoweredByText = CreateCustomParagraph("Powered by: ", parameters.Font.labelsValuesSize, parameters.DarkGray())
-                .Add(CreateCustomParagraph("WeMedoo ", parameters.Font.labelsValuesSize, parameters.DarkGray(), isBold: true))
-                .Add(CreateCustomParagraph("AG", parameters.Font.labelsValuesSize, parameters.DarkGray()));
-
-            Paragraph wemedooInfo = CreateCustomParagraph("info@wemedoo.com", parameters.Font.labelsValuesSize, parameters.DarkGray());
-
-            // Adding elements from the bottom of the page upwards
-            document.ShowTextAligned(wemedooPoweredByText, parameters.LeftMargin, parameters.footerLowerLimit, pageNumber, TextAlignment.LEFT, VerticalAlignment.MIDDLE, 0);
-            Flush();
-            document.ShowTextAligned(wemedooInfo, parameters.DocumentWidth - parameters.RightMargin, parameters.footerLowerLimit, pageNumber, TextAlignment.RIGHT, VerticalAlignment.MIDDLE, 0);
-            Flush();
-            document.ShowTextAligned(new Paragraph().Add(lineTable), parameters.LeftMargin, parameters.footerLowerLimit + 10, pageNumber, TextAlignment.LEFT, VerticalAlignment.MIDDLE, 0);
-            Flush();
-
             int impressumOffset = !string.IsNullOrWhiteSpace(organizationImpressum) ? 75 : 10; // if Impressum not present, we put LastUpdate+Signature down
-            
-            document.ShowTextAligned(new Paragraph().Add(impressumParagraph), parameters.LeftMargin, parameters.footerLowerLimit + impressumOffset, pageNumber, TextAlignment.LEFT, VerticalAlignment.TOP, 0);
+
+            int bottom = parameters.footerLowerLimit + impressumOffset;
+            document.ShowTextAligned(new Paragraph().Add(impressumParagraph), parameters.LeftMargin, bottom, pageNumber, TextAlignment.LEFT, VerticalAlignment.TOP, 0);
             Flush();
-            document.ShowTextAligned(new Paragraph().Add(lineTable), parameters.LeftMargin, parameters.footerLowerLimit + impressumOffset, pageNumber, TextAlignment.LEFT, VerticalAlignment.MIDDLE, 0);
-            Flush();
-            updateAndSignatureTable.SetFixedPosition(pageNumber, parameters.LeftMargin, parameters.footerLowerLimit + impressumOffset, parameters.GetAvailableWidth());
+            updateAndSignatureTable.SetFixedPosition(pageNumber, parameters.LeftMargin, bottom, parameters.GetAvailableWidth());
             document.Add(updateAndSignatureTable);
             Flush();
         }
+
+        #endregion /FormInstance Metadata
+
+        #region Synoptic Elements
 
         private void AddSynopticElements()
         {
@@ -227,13 +165,15 @@ namespace Chapters
                     AddPage(page.Title);
                     AddSpacing(15);
 
-                    foreach (List<FormFieldSetDataOut> fieldSet in page.ListOfFieldSets)
+                    foreach (List<FormFieldSetDataOut> fieldSets in page.ListOfFieldSets)
                     {
-                        int numOfFieldSetInstanceRepetitions = fieldSet.Count;
+                        List<FormFieldSetDataOut> listOfFieldsets = fieldSets.GetEffectiveFieldSets();
+
+                        int numOfFieldSetInstanceRepetitions = listOfFieldsets.Count;
                         bool addFiledSetRepetitionToLabel = numOfFieldSetInstanceRepetitions > 1;
                         for (int i = 0; i < numOfFieldSetInstanceRepetitions; i++)
                         {
-                            FormFieldSetDataOut repetitiveFieldSet = fieldSet[i];
+                            FormFieldSetDataOut repetitiveFieldSet = listOfFieldsets[i];
                             AddFieldSetLabel(repetitiveFieldSet.Label + (addFiledSetRepetitionToLabel ? $" ({i + 1})" : string.Empty));
                             AddRepetitiveFieldSetValues(repetitiveFieldSet);
                         }
@@ -284,27 +224,30 @@ namespace Chapters
             Table labelValue = new Table(2, false);
             labelValue.SetWidth(UnitValue.CreatePercentValue(100f));
             labelValue.SetFixedLayout();
-            int fieldsCounter = 1;
 
-            foreach (FieldDataOut field in repetitiveFieldSet.Fields.Where(f => f.IsVisible))
+            int fieldIndex = 1;
+            int numOfFieldsWithSynopticValue = repetitiveFieldSet.Fields.Count(f => f.IsVisible && f.HasAnyValue());
+            foreach (FieldDataOut field in repetitiveFieldSet.Fields.Where(f => f.IsVisible && f.HasAnyValue()))
             {
-                int numOfFieldInstanceRepetitions = field.GetRepetitiveFieldCount();
+                List<int> repetitiveFieldInstanceIndexesWithValues = field.GetRepetitiveFieldInstanceIndexesWithValues();
 
-                for (int j = 0; j < numOfFieldInstanceRepetitions; j++)
+                for (int i = 0; i < repetitiveFieldInstanceIndexesWithValues.Count; i++) 
                 {
-                    if (!string.IsNullOrWhiteSpace(field.Label) && field.HasValue(j))
-                    {
-                        AddLabelAndValueToTable(field.Label, field.GetSynopticValue(j, ResourceTypes.NotDefined, Environment.NewLine), repetitiveFieldSet.Fields, fieldsCounter, ref labelValue);
-                    }
+                    AddLabelAndValueToTable(
+                        field.Label, 
+                        field.GetSynopticValue(repetitiveFieldInstanceIndexesWithValues[i], ResourceTypes.NotDefined, Environment.NewLine), 
+                        fieldIndex == numOfFieldsWithSynopticValue && i == repetitiveFieldInstanceIndexesWithValues.Count - 1,
+                        ref labelValue);
                 }
-                fieldsCounter++;
+
+                ++fieldIndex;
             }
             document.Add(labelValue);
             Flush();
             AddSpacing(10);
         }
 
-        private void AddLabelAndValueToTable(string fieldLabel, string fieldValue, List<FieldDataOut> fields, int fieldsCounter, ref Table labelValue)
+        private void AddLabelAndValueToTable(string fieldLabel, string fieldValue, bool lastSynopticValue, ref Table labelValue)
         {
             Paragraph label = CreateCustomParagraph(fieldLabel, parameters.Font.labelsValuesSize, parameters.DarkGray(), textLeftPadding: 10);
             Paragraph value = CreateCustomParagraph(fieldValue, parameters.Font.labelsValuesSize, textLeftPadding: 10);
@@ -312,7 +255,7 @@ namespace Chapters
             Cell labelCell = new Cell().Add(label).SetBorder(Border.NO_BORDER).SetKeepTogether(true);
             Cell valueCell = new Cell().Add(value).SetBorder(Border.NO_BORDER).SetKeepTogether(true);
 
-            if (fieldsCounter < fields.Count(f => f.HasValue()))  // last one row doesn't need the bottom border
+            if (!lastSynopticValue) // last one row doesn't need the bottom border
             {
                 labelCell.SetBorderBottom(new SolidBorder(parameters.LightGray(), 1));
                 valueCell.SetBorderBottom(new SolidBorder(parameters.LightGray(), 1));
@@ -322,7 +265,9 @@ namespace Chapters
             labelValue.AddCell(valueCell);
         }
 
-        // Helper Methods
+        #endregion /Synoptic Elements
+
+        #region Helper Methods
 
         private Paragraph CreateCustomParagraph(string text, int textSize, Color textColor = null, bool isBold = false, int textLeftPadding = 0)
         {
@@ -356,48 +301,12 @@ namespace Chapters
             return t;
         }
 
-        private Image LoadCustomImage(string imagePath)
-        {
-            Image img = null;
-
-            if (!string.IsNullOrWhiteSpace(imagePath))
-            {
-                try
-                {
-                    if (imagePath.Contains(".png") || imagePath.Contains(".jpg") || imagePath.Contains(".jpeg"))
-                    {
-                        ImageData data = ImageDataFactory.Create(new System.Uri(imagePath));
-                        img = new Image(data);
-                    }
-                    else if (imagePath.Contains(".svg"))
-                    {
-                        var req = System.Net.WebRequest.Create(new System.Uri(imagePath));
-                        using (Stream stream = req.GetResponse().GetResponseStream())
-                        {
-                            img = SvgConverter.ConvertToImage(stream, pdfDocument);
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    LogHelper.Error(ex.Message);
-                }
-            }
-            return img;
-        }
-
-        private string StringShortener(string input, int charLimit)
-        {
-            if (input.Length > charLimit)
-                input = input.Substring(0, charLimit - 3) + "...";
-
-            return input;
-        }
-
         private void AddSpacing(float height)
         {
             document.Add(new Table(1).SetHeight(height));
             Flush();
         }
+
+        #endregion Helper Methods
     }
 }

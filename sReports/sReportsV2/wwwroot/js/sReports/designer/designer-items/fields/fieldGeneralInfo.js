@@ -58,6 +58,12 @@ $(document).on('click', '#submit-field-info', function (e) {
         }
 
         if (element) {
+
+            let matrixId = $('#fsMatrixId').val();
+            if (matrixId) {
+                updateFieldInFieldset(matrixId, elementId, label);
+            }
+
             updateTreeIfFieldTypeIsChanged(element);
             updateElementAttributes(element, elementId, type);
 
@@ -78,6 +84,60 @@ $(document).on('click', '#submit-field-info', function (e) {
         toastr.error("Field informations are not valid");
     }
 });
+
+function updateFieldInFieldset(matrixId, elementId, label) {
+    if (!matrixId) return;
+    let fsId = $('#fsId').val();
+    let parentElement = document.querySelector(`li.dd-item[data-id='${matrixId}']`);
+    if (!parentElement) return;
+
+    let listOfFieldsets = $(parentElement).attr('data-listoffieldsets');
+    if (!listOfFieldsets) return;
+
+    let fieldsets = JSON.parse(decodeURIComponent(listOfFieldsets));
+    let fieldset = fieldsets.find(f => f.id === fsId);
+
+    if (!fieldset) return;
+
+    let fieldIndex = fieldset.fields.findIndex(f => f.id === elementId);
+
+    let field = {
+        id: encodeURIComponent(elementId),
+        label: encodeURIComponent(label),
+        type: $('#type').val(),
+        thesaurusId: encodeURIComponent($('#thesaurusId').val()),
+        description: encodeURIComponent($('#description').val()),
+        isBold: encodeURIComponent($('#isBold').is(":checked")),
+        isRequired: encodeURIComponent($('#isRequired').is(":checked")),
+        isReadonly: encodeURIComponent($('#isReadonly').is(":checked")),
+        isVisible: encodeURIComponent($('#isVisible').is(":checked")),
+        isHiddenOnPdf: encodeURIComponent($('#isHiddenOnPdf').is(":checked")),
+        allowSaveWithoutValue: $('#isRequired').is(":checked") && ($('#allowSaveWithoutValue').is(":checked") || $('#saveWithValue').is(":checked"))
+            ? encodeURIComponent($('#allowSaveWithoutValue').is(":checked"))
+            : null,
+        nullFlavors: getCheckedNullFlavor(),
+        help: getHelp($(this)),
+    };
+
+    setFieldConstraints(field);
+
+    if (fieldIndex !== -1) {
+        fieldset.fields[fieldIndex] = field;
+    }
+
+    $(parentElement).attr('data-listoffieldsets', JSON.stringify(fieldsets));
+}
+
+function setFieldConstraints(field) {
+    if (field.type === 'number') {
+        field.min = encodeURIComponent($('#min').val());
+        field.max = encodeURIComponent($('#max').val());
+        field.step = encodeURIComponent($('#step').val());
+    } else if (field.type === 'text') {
+        field.minLength = encodeURIComponent($('#minLength').val());
+        field.maxLength = encodeURIComponent($('#maxLength').val());
+    }
+}
 
 function updateElementAttributes(element, elementId, type) {
     $(element).attr('data-id', encodeURIComponent(elementId));
@@ -121,7 +181,7 @@ function handleMatrixLayout(element, type) {
         var jsonSerialize = JSON.stringify(formFieldValues);
         $(element).attr('data-values', jsonSerialize);
         let formDefinition = getNestableFullFormDefinition($("#nestable").find(`li[data-itemtype='form']`).first());
-        getNestableTree(formDefinition);
+        getNestableTree(formDefinition, true);
         getNestableFormElements();
     }
 }
@@ -141,10 +201,8 @@ function removeAddNewFieldOption(fieldSetId) {
 
 function getCheckedNullFlavor() {
     var nullFlavor = [];
-    $('.additional-checkbox').each(function () {
-        if ($(this).is(':checked')) {
-            nullFlavor.push($(this).val());
-        }
+    $('.additional-checkbox:checked').each(function () {
+        nullFlavor.push(parseInt($(this).val(), 10));
     });
 
     return nullFlavor;
@@ -221,8 +279,6 @@ function setCustomFieldsByType(element, type) {
             setCommonStringFields(element);
             break;
         case 'file':
-            setCommonStringFields(element);
-            break;
         case 'long-text':
             setCustomLongTextFields(element);
             break;
@@ -232,6 +288,7 @@ function setCustomFieldsByType(element, type) {
         case 'radio':
         case 'select':
         case 'checkbox':
+        case 'rich-text-paragraph':
             break;
         case 'regex':
             setCustomRegexFields(element);
@@ -241,6 +298,9 @@ function setCustomFieldsByType(element, type) {
             break;
         case 'coded':
             setCustomCodedFields(element);
+            break;
+        case 'connected':
+            setCustomConnectedFields(element);
             break;
         case 'paragraph':
             setCustomParagraphFields(element);
@@ -276,7 +336,8 @@ function initializeValidator() {
         formula: {
             allVariablesAssignedToField: true,
             duplicateVariableAssignment: true,
-            datetimeCalculationFormula: true
+            datetimeCalculationFormula: true,
+            numericCalculationFormula: true,
         },
         link: {
             required: true,

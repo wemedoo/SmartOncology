@@ -1,6 +1,8 @@
-﻿namespace sReportsV2.SqlDomain.Filter
+﻿using sReportsV2.Common.Entities;
+
+namespace sReportsV2.SqlDomain.Filter
 {
-    public class OrganizationFilter
+    public class OrganizationFilter : EntityFilter
     {
         public int OrganizationId { get; set; }
         public string Name { get; set; }
@@ -15,10 +17,6 @@
         public string Street { get; set; }
         public int? ClinicalDomainCD { get; set; }
         public int? Parent { get; set; }
-        public int Page { get; set; }
-        public int PageSize { get; set; }
-        public string ColumnName { get; set; }
-        public bool IsAscending { get; set; }
         public bool ShowActive { get; set; }
         public bool ShowInactive { get; set; }
     }

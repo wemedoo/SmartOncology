@@ -176,14 +176,9 @@ function getSelectedValuesForMerge() {
 function reloadTable(isFilter) {
     $('#buttons').hide();
     $('#targetAppereance').hide();
+    let requestObject = applyActionsBeforeServerReloadSimple(true, true, { page: getPageNum(), doOrdering: true });
 
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    checkUrlPageParams();
     requestObject.Id = $('#id').val();
-
-    setTableProperties(requestObject, { doOrdering: false });
- 
     if ($('#preferredTerm').val()) {
         requestObject.PreferredTerm = $('#preferredTerm').val();
     }
@@ -202,6 +197,10 @@ function reloadTable(isFilter) {
             handleResponseError(xhr);
         }
     });
+}
+
+function getFilterParametersObjectForDisplay(filterObject) {
+    return filterObject;
 }
 
 function getFilterParametersObject() {

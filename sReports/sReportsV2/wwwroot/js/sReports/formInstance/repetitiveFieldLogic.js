@@ -208,7 +208,7 @@ function setAdditionalAttributesForDatetimeField() {
         if ($input.hasClass('date-helper')) {
             let dateHandler = setAdditionalAttributesForDateField();
             dateHandler($input, newFieldInstanceRepetitionId);
-        } else if ($input.hasClass('time-part')) {
+        } else if ($input.hasClass('time-helper')) {
             $input.attr("name", newFieldInstanceRepetitionId);
             $input.attr("id", "time-field-id-" + newFieldInstanceRepetitionId);
         }
@@ -303,7 +303,8 @@ $(document).on('click', '.button-fieldset-repetitive', function (event) {
 });
 
 function handleFieldSetInstanceRepetition($target) {
-    let closestFsContainer = $target.closest(".form-fieldset").children(".field-set-container");
+    let formFieldSetRepsContainer = $target.closest(".form-fieldset");
+    let closestFsContainer = formFieldSetRepsContainer.children(".field-set-container");
 
     let fsNumsInRepetition = closestFsContainer.children('.field-set').length + 1;
     let oneFsRepetitionsContainer = closestFsContainer.closest('.oneFsRepetitionsContainer');
@@ -311,6 +312,8 @@ function handleFieldSetInstanceRepetition($target) {
 
     let request = {
         formId: getFormInputValueByName("fid", "formDefinitionId"),
+        chapterId: formFieldSetRepsContainer.attr('chapter-id'),
+        pageId: formFieldSetRepsContainer.attr('page-id'),
         fieldsetId: $target.attr('fieldset-id'),
         fsNumsInRepetition: fsNumsInRepetition,
         isLastFieldsetOnPage: isLastFieldsetOnPage,
@@ -349,11 +352,11 @@ function handleRepetitiveFieldsetBtns(closestFsContainer) {
 function handleAddNewRepetitiveFieldsetBtn(closestFsContainer) {
     let numOfRepetitiveFieldSet = $(closestFsContainer).children(".field-set").length;
     $(closestFsContainer).children(".field-set").each(function (index, element) {
-        let $addNewBtnInLastRepetitiveFieldset = $(element).children('div:first').children('.fieldset-repetitive').children('div:last');
+        let $addNewBtnInLastRepetitiveFieldset = $(element).children('div:first').find('.add-repetitive-btn-container');
         if (numOfRepetitiveFieldSet - 1 == index) {
-            $addNewBtnInLastRepetitiveFieldset.show();
+            $addNewBtnInLastRepetitiveFieldset.removeClass('d-none');
         } else {
-            $addNewBtnInLastRepetitiveFieldset.hide();
+            $addNewBtnInLastRepetitiveFieldset.addClass('d-none');
         }
     });
 }
@@ -362,11 +365,11 @@ function handleRemoveRepetitiveFieldsetBtn(closestFsContainer) {
     let numOfRepetitiveFs = $(closestFsContainer).children(".field-set").length;
 
     $(closestFsContainer).children(".field-set").each(function (index, element) {
-        let $removeRepetitiveFieldsetBtn = $(element).children("div:first").children("div:last").children("button:first");
+        let $removeRepetitiveFieldsetBtn = $(element).children("div:first").find(".remove-repetitive-btn-container");
         if (numOfRepetitiveFs === 1) {
-            $removeRepetitiveFieldsetBtn.hide();
+            $removeRepetitiveFieldsetBtn.addClass('d-none');
         } else {
-            $removeRepetitiveFieldsetBtn.show();
+            $removeRepetitiveFieldsetBtn.removeClass('d-none');
         }
     });
 }

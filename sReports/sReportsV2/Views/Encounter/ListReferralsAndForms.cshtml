@@ -11,15 +11,15 @@
             @sReportsV2.Cache.Resources.TextLanguage.SelectRefsForNewDoc
         </div>
         <div class="referrals-list">
-            @foreach (sReportsV2.DTOs.FormInstance.DataOut.FormInstanceDataOut formInstanceDataOut in Model.FormInstances)
+            @foreach (sReportsV2.DTOs.DTOs.FormInstance.DataOut.FormInstanceMetadataDataOut formInstanceDataOut in Model.FormInstances)
             {
-                <div class="single-referral-item" data-id="@formInstanceDataOut.Id" onclick="addReferrals(event,'@formInstanceDataOut.Id')" id="@formInstanceDataOut.Id">
+                <div class="single-referral-item" data-id="@formInstanceDataOut.FormInstanceId" onclick="addReferrals(event,'@formInstanceDataOut.FormInstanceId')" id="@formInstanceDataOut.FormInstanceId">
                     <div class="icon-wrapper">
                         <div class="icon">
 
                         </div>
                         <div class="datetime">
-                            @formInstanceDataOut.EntryDatetime.ToTimeZonedDateTime(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string)
+                            @formInstanceDataOut.EntryDatetime.ToTimeZoned(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string)
                         </div>
                     </div>
                     <div class="title">
@@ -49,7 +49,7 @@
         </div>
 
         <div class="forms-container-list" id="formsContainer">
-            @await Html.PartialAsync("ListForms", Model.Forms)
+            @await Html.PartialAsync("SelectOptionRows", Model.Forms)
         </div>
     </div>
 
@@ -60,7 +60,7 @@
         @sReportsV2.Cache.Resources.TextLanguage.Back
     </div>
 
-    <div class="submit-button" onclick="loadDynamicForm()">
+    <button class="submit-button" onclick="loadDynamicForm()" id="loadDynamicFormBtn">
         @sReportsV2.Cache.Resources.TextLanguage.Continue
-    </div>
+    </button>
 </div>

@@ -30,12 +30,14 @@ var trialEnv = {
 
 $(document).on('click', '.so-tab', function (e) {
     var readOnly = ($("#readOnly").val() === "true");
-
-    if (leavingMainTab() && !readOnly) {
-        trySubmitClinicalTrial(e, $('#trialId').val(), this);
-    }
-    else {
-        switchTab(this);
+    let $tab = $(this);
+    let callback = function () {
+        switchTab($tab);
+    };
+    if (leavingMainTab() && !readOnly && thereAreChanges("#projectDataForm", "#trialDataForm")) {
+        trySubmitClinicalTrial(e, $('#trialId').val(), callback);
+    } else {
+        executeCallback(callback);
     }
 });
 
@@ -47,14 +49,14 @@ function switchTab(tabElement) {
     $('.so-tab').removeClass('active');
     $(tabElement).addClass('active');
 
-    $('.so-tab-container').hide();
+    $('.so-tab-container').addClass('d-none');
 
     let activeContainerId = $(tabElement).attr("data-id");
 
     trialEnv['destinationTableSelector'] = `#${activeContainerId}Table`;
     resetTableCommonVariables();
 
-    $(`#${activeContainerId}`).show();
+    $(`#${activeContainerId}`).removeClass('d-none');
 }
 
 function reloadTable() {
@@ -64,7 +66,7 @@ function reloadTable() {
             reloadTrialPersonnelTable();
         }
         else if (trialEnv['destinationTableSelector'] === "#AddTrialPersonnelTable") {
-            reloadAddTrialPersonnelTable();
+            reloadTrialPersonnelTable(true);
         }
         else if (trialEnv['destinationTableSelector'] === "#TrialDocumentsTable") {
             reloadTrialDocumentsTable();
@@ -118,7 +120,7 @@ function getFilterParametersObject(requestedTable) {
                 addPropertyToObject(result, 'PersonnelTeamIdModal', $('#personnelTeamIdModal').val());
             }
         }
-        else if (requestedTable === "#TrialDocumentsTable") {
+        else if (requestedTable === "TrialDocumentsTable") {
             if ($('#title').val()) {
                 addPropertyToObject(result, 'Title', $('#title').val());
             }
@@ -190,10 +192,10 @@ function getFilterParametersObjectForDisplay(filterObject) {
 
     // ---
 
-    getFilterParameterObjectForDisplay(filterObject, 'DocumentTitleFilter');
-    getFilterParameterObjectForDisplay(filterObject, 'DocumentClassFilter'); 
-    getFilterParameterObjectForDisplay(filterObject, 'DocumentExplicitPurposeFilter');
-    getFilterParameterObjectForDisplay(filterObject, 'DocumentClinicalContextFilter');
+    getFilterParameterObjectForDisplay(filterObject, 'Title');
+    getFilterParameterObjectForDisplay(filterObject, 'Classes'); 
+    getFilterParameterObjectForDisplay(filterObject, 'ExplicitPurpose');
+    getFilterParameterObjectForDisplay(filterObject, 'ClinicalContext');
 
     return filterObject;
 }

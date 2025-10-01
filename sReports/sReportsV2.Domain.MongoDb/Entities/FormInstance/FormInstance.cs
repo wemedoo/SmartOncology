@@ -5,6 +5,8 @@ using sReportsV2.Common.Extensions;
 using MongoDB.Driver.Linq;
 using sReportsV2.Domain.Entities.Common;
 using sReportsV2.Domain.Entities.Form;
+using sReportsV2.Domain.MongoDb.Entities.FormInstance;
+using sReportsV2.Domain.Entities.FieldEntity;
 
 namespace sReportsV2.Domain.Entities.FormInstance
 {
@@ -63,7 +65,7 @@ namespace sReportsV2.Domain.Entities.FormInstance
             base.Copy(entity);
             this.CopyChapterPageWorkflowHistory(entity);
             this.WorkflowHistory = entity?.WorkflowHistory ?? new List<FormInstanceStatus>();
-            this.RecordLatestWorkflowChange(formInstanceStatus);
+            this.RecordLatestWorkflowChangeAndPropagate(formInstanceStatus);
             this.OomniaDocumentInstanceExternalId = entity?.OomniaDocumentInstanceExternalId;
         }
 
@@ -73,14 +75,59 @@ namespace sReportsV2.Domain.Entities.FormInstance
             field?.AddValue(value);
         }
 
-        public string GetFieldValueById(string id)
+        public string GetFieldValueById(string fieldId)
         {
-            return this.FieldInstances.Find(x => x.FieldId.Equals(id))?.FieldInstanceValues?.GetFirstValue();
+            return GetFieldInstanceByFieldId(fieldId)?.FieldInstanceValues?.GetFirstValue();
+        }
+
+        public FieldInstance GetFieldInstanceByFieldId(string fieldId, string fieldSetInstanceRepetitionId = null)
+        {
+            if (string.IsNullOrEmpty(fieldSetInstanceRepetitionId))
+            {
+                return this.FieldInstances.Find(x => x.FieldId.Equals(fieldId));
+            }
+            else
+            {
+                return this.FieldInstances.Find(x => x.FieldId.Equals(fieldId) && fieldSetInstanceRepetitionId == x.FieldSetInstanceRepetitionId);
+            }
         }
 
         public int GetUserIdWhoMadeAction()
         {
             return this.WorkflowHistory?.LastOrDefault()?.CreatedById ?? this.UserId;
+        }
+
+        public void AddMissingFieldSetRepetitions(int inputFieldSetCount, FieldSet fieldSet)
+        {
+            List<string> fieldSetInstanceRepetitionIds = this.GetFieldSetInstanceRepetitionIds(fieldSet.Id);
+            for (int i = fieldSetInstanceRepetitionIds.Count; i < inputFieldSetCount; i++)
+            {
+                string fieldSetInstanceRepetitionId = GuidExtension.NewGuidStringWithoutDashes();
+                foreach (Field field in fieldSet.Fields)
+                {
+                    this.FieldInstances.Add(new FieldInstance(field, fieldSet.Id, fieldSetInstanceRepetitionId));
+                }
+            }
+        }
+
+        public List<string> GetFieldSetInstanceRepetitionIds(string fieldSetId)
+        {
+            return this.FieldInstances
+                .Where(fI => fI.FieldSetId == fieldSetId)
+                .Select(fI => fI.FieldSetInstanceRepetitionId)
+                .Distinct().ToList();
+        }
+
+        public void ParseOrAddLastUpdate(string lastUpdate)
+        {
+            if (string.IsNullOrWhiteSpace(lastUpdate))
+            {
+                this.SetLastUpdate();
+            }
+            else
+            {
+                this.LastUpdate = Convert.ToDateTime(lastUpdate);
+            }
         }
 
         #region Workflow History
@@ -97,19 +144,28 @@ namespace sReportsV2.Domain.Entities.FormInstance
             return formInstanceStatus;
         }
 
-        public void InitOrUpdateChapterPageWorkflowHistory(Form.Form form, int? createdById)
+        public void InitOrUpdateChapterPageFieldSetWorkflowHistory(Form.Form form, int? createdById)
         {
             if (this.ChapterInstances == null)
             {
                 this.ChapterInstances = new List<ChapterInstance>();
             }
 
+            if (this.FieldInstances == null)
+            {
+                this.FieldInstances = new List<FieldInstance>();
+            }
+
+            IDictionary<string, List<string>> fieldSetInstanceRepetitions = FieldInstances
+                .GroupBy(x => x.FieldSetId)
+                .ToDictionary(x => x.Key, x => x.Select(x => x.FieldSetInstanceRepetitionId).Distinct().ToList());
+
             DateTime createdOn = DateTime.Now;
             foreach (FormChapter chapter in form.Chapters)
             {
                 ChapterInstance chapterInstance = GetChapterInstance(chapter.Id);
-                bool doesChapterInstanceAlreadyExist = chapterInstance != null;
-                if (!doesChapterInstanceAlreadyExist)
+                bool chapterInstanceDoesntExist = ItemDoesNotExist(chapterInstance);
+                if (chapterInstanceDoesntExist)
                 {
                     chapterInstance = new ChapterInstance(chapter.Id, createdById, createdOn);
                 }
@@ -117,88 +173,128 @@ namespace sReportsV2.Domain.Entities.FormInstance
                 foreach (FormPage page in chapter.Pages)
                 {
                     PageInstance pageInstance = chapterInstance.GetPageInstance(page.Id);
-                    bool doesPageInstanceAlreadyExist = pageInstance != null;
-                    if (!doesPageInstanceAlreadyExist)
+                    bool pageInstanceDoesntExist = ItemDoesNotExist(pageInstance);
+
+                    if (pageInstanceDoesntExist)
                     {
-                        chapterInstance.PageInstances.Add(
-                            new PageInstance(page.Id, createdById, createdOn)
-                        );
+                        pageInstance = new PageInstance(page.Id, createdById, createdOn);
+                    }
+
+                    if (pageInstance.FieldSetInstances == null)
+                    {
+                        pageInstance.FieldSetInstances = new List<FieldSetInstance>();
+                    }
+
+                    foreach (FieldSet fieldSet in page.ListOfFieldSets.SelectMany(x => x))
+                    {
+                        if (fieldSetInstanceRepetitions.TryGetValue(fieldSet.Id, out List<string> fieldSetInstanceRepetitionsIds))
+                        {
+                            foreach (string fieldSetInstanceRepetitionId in fieldSetInstanceRepetitionsIds)
+                            {
+                                FieldSetInstance fieldSetInstance = pageInstance.GetFieldSetInstance(fieldSetInstanceRepetitionId);
+                                if (ItemDoesNotExist(fieldSetInstance))
+                                {
+                                    pageInstance.FieldSetInstances.Add(
+                                        new FieldSetInstance(fieldSetInstanceRepetitionId, createdById, createdOn)
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    if (pageInstanceDoesntExist)
+                    {
+                        chapterInstance.PageInstances.Add(pageInstance);
                     }
                 }
 
-                if (!doesChapterInstanceAlreadyExist)
+                if (chapterInstanceDoesntExist)
                 {
                     this.ChapterInstances.Add(chapterInstance);
                 }
             }
         }
 
-        public void RecordLatestChapterOrPageChangeState(FormInstancePartialLock formInstancePartialLock)
+        public void RecordLatestChapterOrPageOrFieldSetChangeState(FormInstancePartialLock formInstancePartialLock)
         {
             ChapterInstance chapterInstance = GetChapterInstance(formInstancePartialLock?.ChapterId);
             if (chapterInstance != null)
             {
-                bool pageAction = formInstancePartialLock.IsPageAction();
-                if (pageAction)
+                formInstancePartialLock.SetPartialLockPropagationType();
+                ChapterPageFieldSetInstanceStatus chapterPageFieldSetInstanceStatus = new ChapterPageFieldSetInstanceStatus(formInstancePartialLock);
+                switch (chapterPageFieldSetInstanceStatus.PropagationType)
                 {
-                    formInstancePartialLock.ActionType = PropagationType.Page;
-                    PageInstance pageInstance = chapterInstance.GetPageInstance(formInstancePartialLock.PageId);
-                    pageInstance.RecordLatestWorkflowChangeState(new ChapterPageInstanceStatus(formInstancePartialLock));
+                    case PropagationType.Chapter:
+                        chapterInstance.RecordLatestWorkflowChangeStateAndPropagate(chapterPageFieldSetInstanceStatus);
+                        break;
+                    case PropagationType.Page:
+                        PageInstance pageInstance = chapterInstance.GetPageInstance(formInstancePartialLock.PageId);
+                        pageInstance.RecordLatestWorkflowChangeStateAndPropagate(chapterPageFieldSetInstanceStatus);
+                        break;
+                    case PropagationType.FieldSet:
+                        FieldSetInstance fieldSetInstance = chapterInstance
+                            .GetPageInstance(formInstancePartialLock.PageId)
+                            .GetFieldSetInstance(formInstancePartialLock.FieldSetInstanceRepetitionId);
+                        fieldSetInstance.RecordLatestWorkflowChangeStateAndPropagate(chapterPageFieldSetInstanceStatus);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Not supported propagation type, propagation type: {formInstancePartialLock.ActionType}");
                 }
-                else
-                {
-                    formInstancePartialLock.ActionType = PropagationType.Chapter;
-                    chapterInstance.RecordLatestWorkflowChangeState(new ChapterPageInstanceStatus(formInstancePartialLock));
-                }
-                DoPropagation(formInstancePartialLock);
+                DoBackwardPropagation(formInstancePartialLock, chapterPageFieldSetInstanceStatus);
             }
         }
 
-        public void DoPropagation(FormInstancePartialLock formInstancePartialLock)
+        private void DoBackwardPropagation(FormInstancePartialLock formInstancePartialLock, ChapterPageFieldSetInstanceStatus latestChangeToPropagate)
         {
             switch (formInstancePartialLock.ActionType)
             {
+                case PropagationType.FieldSet:
+                    DoBackwardPropagationAfterFieldSetStateChange(formInstancePartialLock, latestChangeToPropagate);
+                    break;
                 case PropagationType.Page:
-                    DoPropagationAfterPageStateChange(formInstancePartialLock);
+                    DoBackwardPropagationAfterPageStateChange(formInstancePartialLock, latestChangeToPropagate);
                     break;
                 case PropagationType.Chapter:
-                    DoPropagationAfterChapterStateChange(formInstancePartialLock);
-                    break;
-                case PropagationType.FormInstance:
-                    DoPropagationAfterFormInstanceStateChange(formInstancePartialLock);
+                    DoBackwardPropagationAfterChapterStateChange(formInstancePartialLock, latestChangeToPropagate);
                     break;
                 default:
                     break;
             }
         }
 
-        public (Dictionary<string, bool>, Dictionary<string, bool>, Dictionary<string, List<string>> chapterHierarchy) ExamineIfChaptersAndPagesAreLocked()
+        public FormInstanceItemLockingStatus ExamineIfChaptersAndPagesAndFieldsetsAreLocked()
         {
-            Dictionary<string, bool> chaptersState = new Dictionary<string, bool>();
-            Dictionary<string, bool> pagesState = new Dictionary<string, bool>();
-            Dictionary<string, List<string>> chapterHierarchy = new Dictionary<string, List<string>>();
-
+            FormInstanceItemLockingStatus formInstanceLockingStatus = new FormInstanceItemLockingStatus(false);
             if (ChapterInstances != null)
             {
                 foreach (ChapterInstance chapterInstance in ChapterInstances)
                 {
-                    ChapterPageInstanceStatus lastChange = chapterInstance.GetLastChange();
-                    chaptersState.Add(chapterInstance.ChapterId, IsItemLocked(lastChange));
-                    List<string> pageIdsWithinChapter = new List<string>();
+                    ChapterPageFieldSetInstanceStatus lastChange = chapterInstance.GetLastChange();
+                    FormInstanceItemLockingStatus chapterInstanceItemLockingStatus = new FormInstanceItemLockingStatus(IsItemLocked(lastChange));
                     foreach (PageInstance pageInstance in chapterInstance.PageInstances)
                     {
                         lastChange = pageInstance.GetLastChange();
-                        pagesState.Add(pageInstance.PageId, IsItemLocked(lastChange));
-                        pageIdsWithinChapter.Add(pageInstance.PageId);
+                        FormInstanceItemLockingStatus pageInstanceItemLockingStatus = new FormInstanceItemLockingStatus(IsItemLocked(lastChange));
+
+                        if (pageInstance.FieldSetInstances != null)
+                        {
+                            foreach (FieldSetInstance fieldSetInstance in pageInstance.FieldSetInstances)
+                            {
+                                lastChange = fieldSetInstance.GetLastChange();
+                                FormInstanceItemLockingStatus fieldSetInstanceItemLockingStatus = new FormInstanceItemLockingStatus(IsItemLocked(lastChange));
+                                pageInstanceItemLockingStatus.UpdateChildLockingStatus(fieldSetInstance.FieldSetInstanceRepetitionId, fieldSetInstanceItemLockingStatus);
+                            }
+                        }
+                        chapterInstanceItemLockingStatus.UpdateChildLockingStatus(pageInstance.PageId, pageInstanceItemLockingStatus);
                     }
-                    chapterHierarchy.Add(chapterInstance.ChapterId, pageIdsWithinChapter);
+                    formInstanceLockingStatus.UpdateChildLockingStatus(chapterInstance.ChapterId, chapterInstanceItemLockingStatus);
                 }
             }
 
-            return (chaptersState, pagesState, chapterHierarchy);
+            return formInstanceLockingStatus;
         }
 
-        public void RecordLatestWorkflowChange(FormInstanceStatus formInstanceStatus)
+        public void RecordLatestWorkflowChangeAndPropagate(FormInstanceStatus formInstanceStatus, FormInstancePartialLock formInstancePartialLockForwardPropagate = null)
         {
             if (WorkflowHistory == null)
             {
@@ -207,6 +303,10 @@ namespace sReportsV2.Domain.Entities.FormInstance
             if (formInstanceStatus != null)
             {
                 WorkflowHistory.Add(formInstanceStatus);
+            }
+            if (formInstancePartialLockForwardPropagate != null)
+            {
+                DoForwardPropagationAfterFormInstanceStateChange(new ChapterPageFieldSetInstanceStatus(formInstancePartialLockForwardPropagate));
             }
         }
 
@@ -218,30 +318,82 @@ namespace sReportsV2.Domain.Entities.FormInstance
             }
         }
 
-        private bool IsItemLocked(ChapterPageInstanceStatus lastChange)
+        private bool IsItemLocked(ChapterPageFieldSetInstanceStatus lastChange)
         {
             return lastChange != null && lastChange.IsLocked();
         }
 
-        private void DoPropagationAfterPageStateChange(FormInstancePartialLock formInstancePartialLock)
+        private bool ItemDoesNotExist<T>(T formInstanceItem) where T : ChapterPageFieldSetInstanceBase
         {
-            ChapterPageInstanceStatus latestChangeToPropagate = new ChapterPageInstanceStatus(formInstancePartialLock);
+            return formInstanceItem == null;
+        }
+
+        private void DoBackwardPropagationAfterFieldSetStateChange(FormInstancePartialLock formInstancePartialLock, ChapterPageFieldSetInstanceStatus latestChangeToPropagate)
+        {
+            ChapterInstance chapterInstance = GetChapterInstance(formInstancePartialLock.ChapterId);
+            PageInstance pageInstance = chapterInstance.GetPageInstance(formInstancePartialLock.PageId);
+            bool shouldUpdateFormInstanceState;
+            bool shouldUpdateChapterInstanceState;
+            bool shouldUpdatePageInstanceState;
+            if (formInstancePartialLock.IsLockAction())
+            {
+                FormInstanceItemLockingStatus formInstanceLockingStatus = this.ExamineIfChaptersAndPagesAndFieldsetsAreLocked();
+                FormInstanceItemLockingStatus chapterInstanceLockingStatus = formInstanceLockingStatus.GetChild(chapterInstance.ChapterId);
+                FormInstanceItemLockingStatus pageInstanceLockingStatus = chapterInstanceLockingStatus.GetChild(pageInstance.PageId);
+
+                bool allFieldSetsWithinPageAreLocked = pageInstanceLockingStatus.AllChildrenLocked();
+                shouldUpdatePageInstanceState = allFieldSetsWithinPageAreLocked;
+                if (allFieldSetsWithinPageAreLocked)
+                {
+                    chapterInstanceLockingStatus.UpdateChildLockingStatus(pageInstance.PageId, true);
+                }
+
+                bool allPagesWithinChapterAreLocked = chapterInstanceLockingStatus.AllChildrenLocked();
+                shouldUpdateChapterInstanceState = allPagesWithinChapterAreLocked;
+                if (allPagesWithinChapterAreLocked)
+                {
+                    formInstanceLockingStatus.UpdateChildLockingStatus(chapterInstance.ChapterId, true);
+                }
+
+                shouldUpdateFormInstanceState = formInstanceLockingStatus.AllChildrenLocked();
+            }
+            else
+            {
+                shouldUpdatePageInstanceState = IsItemLocked(pageInstance.GetLastChange());
+                shouldUpdateChapterInstanceState = IsItemLocked(chapterInstance.GetLastChange());
+                shouldUpdateFormInstanceState = IsFormInstanceLocked();
+            }
+
+            if (shouldUpdatePageInstanceState)
+            {
+                pageInstance.RecordLatestWorkflowChangeState(latestChangeToPropagate);
+            }
+
+            if (shouldUpdateChapterInstanceState)
+            {
+                chapterInstance.RecordLatestWorkflowChangeState(latestChangeToPropagate);
+            }
+            DoBackwardPropagationUntilFormInstance(latestChangeToPropagate, shouldUpdateFormInstanceState);
+        }
+
+        private void DoBackwardPropagationAfterPageStateChange(FormInstancePartialLock formInstancePartialLock, ChapterPageFieldSetInstanceStatus latestChangeToPropagate)
+        {
             ChapterInstance chapterInstance = GetChapterInstance(formInstancePartialLock.ChapterId);
             bool shouldUpdateFormInstanceState = false;
             bool shouldUpdateChapterInstanceState = false;
             if (formInstancePartialLock.IsLockAction())
             {
-                (Dictionary<string, bool> chaptersState, Dictionary<string, bool> pagesState, Dictionary<string, List<string>> chapterHierarchy) = this.ExamineIfChaptersAndPagesAreLocked();
+                FormInstanceItemLockingStatus formInstanceLockingStatus = this.ExamineIfChaptersAndPagesAndFieldsetsAreLocked();
 
-                List<string> pageIdsWithinChapter = chapterHierarchy[chapterInstance.ChapterId];
-                bool allPagesWithinChapterAreLocked = pageIdsWithinChapter.Where(pagesState.ContainsKey).Select(x => pagesState[x]).All(x => x);
+                FormInstanceItemLockingStatus chapterInstanceLockingStatus = formInstanceLockingStatus.GetChild(chapterInstance.ChapterId);
+                bool allPagesWithinChapterAreLocked = chapterInstanceLockingStatus.AllChildrenLocked();
                 shouldUpdateChapterInstanceState = allPagesWithinChapterAreLocked;
                 if (allPagesWithinChapterAreLocked)
                 {
-                    chaptersState[chapterInstance.ChapterId] = true;
+                    formInstanceLockingStatus.UpdateChildLockingStatus(chapterInstance.ChapterId, true);
                 }
 
-                bool allChaptersAreLocked = chaptersState.Values.All(x => x);
+                bool allChaptersAreLocked = formInstanceLockingStatus.AllChildrenLocked();
                 shouldUpdateFormInstanceState = allChaptersAreLocked;
             }
             else
@@ -254,54 +406,39 @@ namespace sReportsV2.Domain.Entities.FormInstance
             {
                 chapterInstance.RecordLatestWorkflowChangeState(latestChangeToPropagate);
             }
-            DoPropagationUntilFormInstance(latestChangeToPropagate, shouldUpdateFormInstanceState);
+            DoBackwardPropagationUntilFormInstance(latestChangeToPropagate, shouldUpdateFormInstanceState);
         }
 
-        private void DoPropagationAfterChapterStateChange(FormInstancePartialLock formInstancePartialLock)
+        private void DoBackwardPropagationAfterChapterStateChange(FormInstancePartialLock formInstancePartialLock, ChapterPageFieldSetInstanceStatus latestChangeToPropagate)
         {
-            ChapterPageInstanceStatus latestChangeToPropagate = new ChapterPageInstanceStatus(formInstancePartialLock);
-            ChapterInstance chapterInstance = GetChapterInstance(formInstancePartialLock.ChapterId);
-            if (chapterInstance != null)
-            {
-                foreach (PageInstance pageInstance in chapterInstance.PageInstances)
-                {
-                    pageInstance.RecordLatestWorkflowChangeState(latestChangeToPropagate);
-                }
-            }
             bool shouldUpdateFormInstanceState = false;
             if (formInstancePartialLock.IsLockAction())
             {
-                (Dictionary<string, bool> chaptersState, _, _) = this.ExamineIfChaptersAndPagesAreLocked();
-                bool allChaptersAreLocked = chaptersState.Values.All(x => x);
-                shouldUpdateFormInstanceState = allChaptersAreLocked;
+                FormInstanceItemLockingStatus formInstanceLockingStatus = this.ExamineIfChaptersAndPagesAndFieldsetsAreLocked();
+                shouldUpdateFormInstanceState = formInstanceLockingStatus.AllChildrenLocked();
             }
             else
             {
                 shouldUpdateFormInstanceState = IsFormInstanceLocked();
             }
-            DoPropagationUntilFormInstance(latestChangeToPropagate, shouldUpdateFormInstanceState);
+            DoBackwardPropagationUntilFormInstance(latestChangeToPropagate, shouldUpdateFormInstanceState);
         }
 
-        private void DoPropagationUntilFormInstance(ChapterPageInstanceStatus latestChangeToPropagate, bool shouldUpdateFormInstanceState)
+        private void DoBackwardPropagationUntilFormInstance(ChapterPageFieldSetInstanceStatus latestChangeToPropagate, bool shouldUpdateFormInstanceState)
         {
             if (shouldUpdateFormInstanceState)
             {
                 FormInstanceStatus latestFormInstanceChange = new FormInstanceStatus(latestChangeToPropagate);
                 this.FormState = latestFormInstanceChange.Status;
-                RecordLatestWorkflowChange(latestFormInstanceChange);
+                RecordLatestWorkflowChangeAndPropagate(latestFormInstanceChange);
             }
         }
 
-        private void DoPropagationAfterFormInstanceStateChange(FormInstancePartialLock formInstancePartialLock)
+        private void DoForwardPropagationAfterFormInstanceStateChange(ChapterPageFieldSetInstanceStatus latestChangeToPropagate)
         {
-            ChapterPageInstanceStatus latestChangeToPropagate = new ChapterPageInstanceStatus(formInstancePartialLock);
             foreach (ChapterInstance chapterInstance in ChapterInstances)
             {
-                chapterInstance.WorkflowHistory.Add(latestChangeToPropagate);
-                foreach (PageInstance pageInstance in chapterInstance.PageInstances)
-                {
-                    pageInstance.RecordLatestWorkflowChangeState(latestChangeToPropagate);
-                }
+                chapterInstance.RecordLatestWorkflowChangeStateAndPropagate(latestChangeToPropagate);
             }
         }
 

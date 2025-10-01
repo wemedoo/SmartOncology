@@ -50,5 +50,5 @@
         </div>
     </div>
 </div>
-@Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js", "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/chartjs-4.4.8/dist/chart.umd.js"), "", ""))
 @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/home/overview.js"), "", ""))

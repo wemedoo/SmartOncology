@@ -2,6 +2,7 @@
 using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace sReportsV2.SqlDomain.Interfaces
 {
@@ -27,10 +28,10 @@ namespace sReportsV2.SqlDomain.Interfaces
         long GetAllSimilarCount(ThesaurusReviewFilterData filter, string preferredTerm, string language, int? productionStateCD);
         void UpdateState(int thesaurusId, int? stateCD);
         List<ThesaurusEntry> GetByIdsList(List<int> thesaurusList);
-        List<string> GetAll(string language, string searchValue, int page);
         O4CodeableConcept GetCodeById(int id);
         int GetThesaurusIdThatHasCodeableConcept(string codeValue);
         int GetIdByPreferredTerm(string prefferedTerm, string language = LanguageConstants.EN);
         ThesaurusEntry GetByPreferredTerm(string prefferedTerm, string language = LanguageConstants.EN);
+        Task<List<FormThesaurusReportView>> GetFormThesaurusReportView(List<int> thesaurusIds);
     }
 }

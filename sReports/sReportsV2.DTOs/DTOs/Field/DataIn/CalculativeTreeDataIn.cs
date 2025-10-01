@@ -5,7 +5,7 @@ namespace sReportsV2.DTOs.Field.DataIn
 {
     public class CalculativeTreeDataIn : IViewModeDataIn
     {
-        public List<CalculativeTreeItemDTO> Data { get; set; }
+        public List<CalculativeTreeItemDTO> CalculationFields { get; set; }
         public bool IsReadOnlyViewMode { get; set; }
     }
 }

@@ -13,6 +13,9 @@ using System.Linq;
 using sReportsV2.Common.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
+using sReportsV2.Common.Entities.User;
 
 namespace sReportsV2.DAL.Sql.Implementations
 {
@@ -32,13 +35,35 @@ namespace sReportsV2.DAL.Sql.Implementations
                 .Any(x => x.CodeSetId == codeSetId);
         }
 
-        public void Delete(int codeId)
+        public async Task Delete(int codeId)
         {
             Code fromDb = this.GetById(codeId);
             if (fromDb != null)
             {
-                fromDb.Delete();
-                context.SaveChanges();
+                var strategy = context.Database.CreateExecutionStrategy();
+                await strategy.ExecuteAsync(async () =>
+                {
+                    using var transaction = await context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        fromDb.Delete();
+                        foreach (CodeAssociation codeAssociation in context.CodeAssociations
+                             .WhereEntriesAreActive()
+                            .Where(x => x.ParentId == codeId || x.ChildId == codeId))
+                        {
+                            codeAssociation.Delete();
+                        }
+
+                        await context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                });
+
             }
         }
 
@@ -57,7 +82,7 @@ namespace sReportsV2.DAL.Sql.Implementations
                 result = SortByField(result, filter);
             else
                 result = result.OrderByDescending(x => x.EntryDatetime)
-                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Skip(filter.GetHowManyElementsToSkip())
                     .Take(filter.PageSize);
 
             return result.ToList();
@@ -171,16 +196,16 @@ namespace sReportsV2.DAL.Sql.Implementations
                 .Any(x => x.ThesaurusEntryId == thesaurusId);
         }
 
-        public int UpdateManyWithThesaurus(int oldThesaurus, int newThesaurus)
+        public int ReplaceThesaurus(ThesaurusMerge thesaurusMerge, UserData userData = null)
         {
             int entriesUpdated = 0;
-            foreach(Code code in GetAllByThesaurusId(oldThesaurus))
+            foreach(Code code in GetAllByThesaurusId(thesaurusMerge.OldThesaurus))
             {
-                code.ReplaceThesauruses(oldThesaurus, newThesaurus);
+                code.ReplaceThesauruses(thesaurusMerge);
                 ++entriesUpdated;
             }
             context.SaveChanges();
-
+            
             return entriesUpdated;
         }
 
@@ -319,15 +344,15 @@ namespace sReportsV2.DAL.Sql.Implementations
                 case AttributeNames.PreferredTerm:
                     if (filterData.IsAscending)
                         return result.AsEnumerable().OrderBy(x => x.ThesaurusEntry.GetPreferredTermByTranslationOrDefault(LanguageConstants.EN, filterData.ActiveLanguage))
-                                .Skip((filterData.Page - 1) * filterData.PageSize)
+                                .Skip(filterData.GetHowManyElementsToSkip())
                                 .Take(filterData.PageSize).AsQueryable();
                     else
                         return result.AsEnumerable().OrderByDescending(x => x.ThesaurusEntry.GetPreferredTermByTranslationOrDefault(LanguageConstants.EN, filterData.ActiveLanguage))
-                                .Skip((filterData.Page - 1) * filterData.PageSize)
+                                .Skip(filterData.GetHowManyElementsToSkip())
                                 .Take(filterData.PageSize).AsQueryable();
                 default:
                     return SortTableHelper.OrderByField(result, filterData.ColumnName, filterData.IsAscending)
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
             }
         }

@@ -42,7 +42,14 @@ using sReportsV2.Domain.Mongo;
 using Microsoft.EntityFrameworkCore;
 using sReportsV2.BusinessLayer.Implementations;
 using sReportsV2.BusinessLayer.Interfaces;
-using AutoMapper;
+using Microsoft.AspNetCore.Http.Features;
+using sReportsV2.Domain.Sql.Entities.CodeSystem;
+using sReportsV2.LoincParser.LoincParser;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
+using sReportsV2.BusinessLayer.Components.Interfaces;
+using sReportsV2.DTOs.Common.DTO;
+using sReportsV2.BusinessLayer.Components.Implementations;
+using System.IO;
 
 namespace sReportsV2
 {
@@ -71,6 +78,10 @@ namespace sReportsV2
 
             services.AddLogging();
             services.AddHttpContextAccessor();
+            services.Configure<FormOptions>(options =>
+            {
+                options.ValueCountLimit = 5500;
+            });
             services.AddTransient(typeof(CommonGlobalAfterMapping<>));
 
             services.AddSingleton<GlobalExceptionHandler>();
@@ -78,6 +89,10 @@ namespace sReportsV2
             services.AddDbContext<SReportsContext>(options => options.UseSqlServer(Configuration["Sql"], sqlOptions =>
             {
                 sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
             }));
 
             // Register MongoDB
@@ -90,6 +105,10 @@ namespace sReportsV2
             // Register MVC services
             services.AddControllers()
                     .AddNewtonsoftJson();
+            services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50 MB
+            });
 
             services.AddScoped<AccountService>();
             services.AddScoped<IModuleDAL, ModuleDAL>();
@@ -106,7 +125,6 @@ namespace sReportsV2
 
             ConfigureAuth(services);
 
-            services.AddHttpContextAccessor();
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromHours(2);
@@ -130,7 +148,23 @@ namespace sReportsV2
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
+
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+                context.Response.Headers["Pragma"] = "no-cache";
+                context.Response.Headers["Expires"] = "0";
+                await next();
+            });
+
             app.UseSession();
+
+            app.Use((context, next) =>
+            {
+                GlobalConfig.Configure(context.RequestServices.GetService<IHttpContextAccessor>());
+                return next();
+            });
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
@@ -142,12 +176,6 @@ namespace sReportsV2
                 endpoints.MapRazorPages();
             });
 
-            app.Use(async (context, next) =>
-            {
-                GlobalConfig.Configure(context.RequestServices.GetService<IHttpContextAccessor>());
-                await next.Invoke();
-            });
-
             using (var scope = serviceProvider.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<SReportsContext>();
@@ -155,7 +183,6 @@ namespace sReportsV2
 
                 var migrator = new MongoMigrator(Configuration, dbContext);
                 migrator.SetToLatestVersion();
-
                 if (ShouldInitData(env))
                 {
                     if (Configuration.IsGlobalThesaurusRunning())
@@ -197,6 +224,7 @@ namespace sReportsV2
             PopulatePermissions(app);
             PopulateUsers(serviceProvider);
             PopulateExtendedProperties(serviceProvider);
+            InsertMondoOntology(serviceProvider);
         }
 
         private void PopulatePermissions(IApplicationBuilder app)
@@ -218,10 +246,10 @@ namespace sReportsV2
                 int organizationId = InsertDefaultOrganization(serviceProvider);
                 string salt = PasswordHelper.CreateSalt(10);
                 int? activeUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Active);
+                int? superAdministratorPositionId = codeDAL.GetByPreferredTerm(PredifinedRole.SuperAdministrator.ToString(), CodeSetAttributeNames.Role)?.CodeId;
 
-                Personnel user = new Personnel(defaultUsername, PasswordHelper.Hash(ResourceTypes.DefaultPass, salt), salt, "nikola.cihoric@insel.ch", "Nikola", "Cihoric", DateTime.Now, organizationId)
+                Personnel user = new Personnel(defaultUsername, PasswordHelper.Hash(ResourceTypes.DefaultPass, salt), salt, "nikola.cihoric@insel.ch", "Nikola", "Cihoric", DateTime.Now, activeOrganizationId: organizationId, superAdministratorPositionId: superAdministratorPositionId)
                 {
-
                     Organizations = new List<PersonnelOrganization>()
                     {
                         new PersonnelOrganization()
@@ -233,10 +261,6 @@ namespace sReportsV2
                 };
                 userDAL.InsertOrUpdate(user);
             }
-            int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
-
-            AssignRolesIfNotSet(userDAL, serviceProvider);
-            userDAL.UpdateUsersCountForAllOrganization(archivedUserStateCD);
         }
 
         private int InsertDefaultOrganization(IServiceProvider serviceProvider)
@@ -256,25 +280,12 @@ namespace sReportsV2
                     State = ResourceTypes.CompanyCountry,
                     StreetNumber = 24,
                 },
-                TimeZoneOffset = "+01:00",
                 TimeZone = "(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna"
             };
 
             organizationDAL.InsertOrUpdate(organization);
 
             return organization.OrganizationId;
-        }
-
-        private void AssignRolesIfNotSet(IPersonnelDAL userDAL, IServiceProvider serviceProvider)
-        {
-            var codeDAL = serviceProvider.GetService<ICodeDAL>();
-            int? superAdministratorPositionId = codeDAL.GetByPreferredTerm(PredifinedRole.SuperAdministrator.ToString(), CodeSetAttributeNames.Role)?.CodeId;
-            var user = userDAL.GetByUsername(defaultUsername);
-            if (user != null && user.PersonnelPositions.Count == 0 && superAdministratorPositionId.HasValue)
-            {
-                user.UpdateRoles(new List<int>() { superAdministratorPositionId.Value });
-                userDAL.InsertOrUpdate(user);
-            }
         }
 
         private void StartMllpServer(IServiceCollection services)
@@ -300,7 +311,7 @@ namespace sReportsV2
             var codeDAL = serviceProvider.GetService<ICodeDAL>();
             var thesaurusDAL = serviceProvider.GetService<IThesaurusDAL>();
             string fileAndSheetName = "CountryCodes";
-            CountryCodeImporter countryCodeImporter = new CountryCodeImporter(fileAndSheetName, fileAndSheetName, thesaurusDAL, codeDAL, serviceProvider.GetService<ICodeSystemDAL>(), serviceProvider.GetService<IThesaurusTranslationDAL>(), serviceProvider.GetService<IO4CodeableConceptDAL>(),
+            CountryCodeImporter countryCodeImporter = new CountryCodeImporter(Path.Combine(ResourceTypes.CountriesFolder, fileAndSheetName), fileAndSheetName, thesaurusDAL, codeDAL, serviceProvider.GetService<ICodeSystemDAL>(), serviceProvider.GetService<IThesaurusTranslationDAL>(), serviceProvider.GetService<IO4CodeableConceptDAL>(),
                 serviceProvider.GetService<ICodeSetDAL>(), Configuration
                 );
             countryCodeImporter.ImportDataFromExcelToDatabase();
@@ -341,9 +352,10 @@ namespace sReportsV2
         {
             var administrativeDataDAL = serviceProvider.GetService<IAdministrativeDataDAL>();
 
-            ExtendedPropertiesImporter extendedPropertiesColumnImporter = new ExtendedPropertiesImporter(administrativeDataDAL, ExtendedPropertiesConstants.FileName, ExtendedPropertiesConstants.ColumnDescriptionSheet);
+            string fileName = Path.Combine(ExtendedPropertiesConstants.FolderName, ExtendedPropertiesConstants.FileName);
+            ExtendedPropertiesImporter extendedPropertiesColumnImporter = new ExtendedPropertiesImporter(administrativeDataDAL,  fileName, ExtendedPropertiesConstants.ColumnDescriptionSheet);
             extendedPropertiesColumnImporter.ImportDataFromExcelToDatabase();
-            ExtendedPropertiesImporter extendedPropertiesTableImporter = new ExtendedPropertiesImporter(administrativeDataDAL, ExtendedPropertiesConstants.FileName, ExtendedPropertiesConstants.TableDescriptionSheet);
+            ExtendedPropertiesImporter extendedPropertiesTableImporter = new ExtendedPropertiesImporter(administrativeDataDAL, fileName, ExtendedPropertiesConstants.TableDescriptionSheet);
             extendedPropertiesTableImporter.ImportDataFromExcelToDatabase();
         }
 
@@ -393,6 +405,43 @@ namespace sReportsV2
             }
         }
 
+        private void InsertMondoOntology(IServiceProvider serviceProvider)
+        {
+            var skosConnector = serviceProvider.GetService<ISkosConnector>();
+            if (!skosConnector.UseSkosData()) return;
+            var codeSystemDAL = serviceProvider.GetService<ICodeSystemDAL>();
+            var thesaurusDAL = serviceProvider.GetService<IThesaurusDAL>();
+            var translationDAL = serviceProvider.GetService<IThesaurusTranslationDAL>();
+            var o4codeableConceptDAL = serviceProvider.GetService<IO4CodeableConceptDAL>();
+            var codeDAL = serviceProvider.GetService<ICodeDAL>();
+            int? draftStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.ThesaurusState, CodeAttributeNames.Draft);
+            MondoTurtleParser mondoTurtleParser = new MondoTurtleParser(draftStateCD, "mondo-skos.ttl");
+            List<CodeSystem> codeSystems = mondoTurtleParser.GetCodeSystems();
+            LogHelper.Info("Code System is read successfully"); ;
+            int numberOfInserts = codeSystemDAL.InsertMany(codeSystems);
+            if (numberOfInserts > 0)
+            {
+                Tuple<Dictionary<string, ThesaurusEntry>, List<ParentChildDTO>> results = mondoTurtleParser.GetOntology(codeSystems);
+                LogHelper.Info("Ongology is read successfully");
+                List<ThesaurusEntry> thesauruses = results.Item1.Values.ToList();
+                thesaurusDAL.InsertMany(thesauruses);
+                LogHelper.Info("Thesauruses are inserted successfully");
+                var bulkedThesauruses = thesaurusDAL.GetLastBulkInserted(thesauruses.Count);
+                translationDAL.InsertMany(thesauruses, bulkedThesauruses, Configuration);
+                LogHelper.Info("Thesauruses translations are inserted successfully");
+                o4codeableConceptDAL.InsertMany(thesauruses, bulkedThesauruses, Configuration);
+                LogHelper.Info("Thesauruses codeable concepts are inserted successfully");
+                int i = 0;
+                foreach (ThesaurusEntry thesaurusEntry in thesauruses)
+                {
+                    thesaurusEntry.ThesaurusEntryId = bulkedThesauruses[i];
+                    i++;
+                }
+                skosConnector.InsertConcepts(results);
+                LogHelper.Info("Graph concepts are inserted successfully");
+            }
+        }
+
         #region smart_oncology_initialisation
 
         private void PopulateChemotherapySchemaInitialData(IServiceProvider serviceProvider)
@@ -433,16 +482,18 @@ namespace sReportsV2
 
         private void ImportChemotherapySchemaDataFromExcel(IServiceProvider serviceProvider)
         {
+            string chemOncAdditionalDataFile = Path.Combine(ChemotherapySchemaConstants.ChemotheraphyFolder, ChemotherapySchemaConstants.ChemOncAdditionalDataFile);
+            string chemOncDrugDosingTimeFile = Path.Combine(ChemotherapySchemaConstants.ChemotheraphyFolder, ChemotherapySchemaConstants.ChemOncDrugDosingTimeFile);
             IBodySurfaceCalculationFormulaDAL bodySurfaceCalculationFormulaDAL = serviceProvider.GetService<IBodySurfaceCalculationFormulaDAL>();
-            BodySurfaceCalculationFormulaImporter bodySurfaceCalculationFormulaImporter = new BodySurfaceCalculationFormulaImporter(bodySurfaceCalculationFormulaDAL, ChemotherapySchemaConstants.ChemOncAdditionalDataFile, ChemotherapySchemaConstants.BodySurfaceCalculationFormulaSheet);
+            BodySurfaceCalculationFormulaImporter bodySurfaceCalculationFormulaImporter = new BodySurfaceCalculationFormulaImporter(bodySurfaceCalculationFormulaDAL, chemOncAdditionalDataFile, ChemotherapySchemaConstants.BodySurfaceCalculationFormulaSheet);
             bodySurfaceCalculationFormulaImporter.ImportDataFromExcelToDatabase();
 
             var routeOfAdministrationDAL = serviceProvider.GetService<IRouteOfAdministrationDAL>();
-            RouteOfAdministrationImporter routeOfAdministrationImporter = new RouteOfAdministrationImporter(routeOfAdministrationDAL, ChemotherapySchemaConstants.ChemOncAdditionalDataFile, ChemotherapySchemaConstants.RouteOfAdministrationSheet);
+            RouteOfAdministrationImporter routeOfAdministrationImporter = new RouteOfAdministrationImporter(routeOfAdministrationDAL, chemOncAdditionalDataFile, ChemotherapySchemaConstants.RouteOfAdministrationSheet);
             routeOfAdministrationImporter.ImportDataFromExcelToDatabase();
 
             var medicationDoseTypeDAL = serviceProvider.GetService<IMedicationDoseTypeDAL>();
-            MedicationDoseTypeImporter medicationDoseTypeImporter = new MedicationDoseTypeImporter(medicationDoseTypeDAL, ChemotherapySchemaConstants.ChemOncDrugDosingTimeFile, ChemotherapySchemaConstants.DrugDosingTimeSheet);
+            MedicationDoseTypeImporter medicationDoseTypeImporter = new MedicationDoseTypeImporter(medicationDoseTypeDAL, chemOncDrugDosingTimeFile, ChemotherapySchemaConstants.DrugDosingTimeSheet);
             medicationDoseTypeImporter.ImportDataFromExcelToDatabase();
         }
 
@@ -452,7 +503,7 @@ namespace sReportsV2
             Personnel user = userDAL.GetByUsername(defaultUsername);
             if (user != null)
             {
-                SchemaImporterV2 schemaImporterV2 = new SchemaImporterV2("Chemotherapy Compendium Import - 26.11.2021", "Basic Data", serviceProvider.GetService<IChemotherapySchemaDAL>(), serviceProvider.GetService<IRouteOfAdministrationDAL>(),
+                SchemaImporterV2 schemaImporterV2 = new SchemaImporterV2(Path.Combine(ChemotherapySchemaConstants.ChemotheraphyFolder, ChemotherapySchemaConstants.ChemotherapySchemaImportFile), ChemotherapySchemaConstants.BasicDataSheet, serviceProvider.GetService<IChemotherapySchemaDAL>(), serviceProvider.GetService<IRouteOfAdministrationDAL>(),
                   serviceProvider.GetService<IUnitDAL>(),
                 user.PersonnelId);
                 schemaImporterV2.ImportDataFromExcelToDatabase();
@@ -569,7 +620,7 @@ namespace sReportsV2
                 codeableConceptDAL,
                 codeDAL,
                 administrativeDataDAL,
-                GlobalThesaurusConstants.FileName,
+                Path.Combine(GlobalThesaurusConstants.FolderName, GlobalThesaurusConstants.FileName),
                 GlobalThesaurusConstants.Sheet,
                 Configuration
              );

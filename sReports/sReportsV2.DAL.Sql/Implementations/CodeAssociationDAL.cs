@@ -210,7 +210,10 @@ namespace sReportsV2.SqlDomain.Implementations
             {
                 return context.Codes
                     .WhereEntriesAreActive()
-                    .Where(x => x.CodeSetId == codeSetId).AsEnumerable()
+                    .Where(x => x.CodeSetId == codeSetId)
+                    .Include(x => x.ThesaurusEntry)
+                    .Include(x => x.ThesaurusEntry.Translations)
+                    .AsEnumerable()
                     .ToDictionary(
                         code => code.CodeId,
                         code => code.ThesaurusEntry?.GetPreferredTermByTranslationOrDefault(language)?.ToString() ?? ""

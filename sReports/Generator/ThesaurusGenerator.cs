@@ -12,21 +12,14 @@ namespace Generator
     public class ThesaurusGenerator : ThesaurusCommon
     {
         private readonly ThesaurusDAL thesaurusDAL;
-        private readonly IConfiguration configuration;
-        private readonly SReportsContext dbContext;
-        UserData userData;
 
         public ThesaurusGenerator(IConfiguration configuration, SReportsContext dbContext)
         {
-            this.configuration = configuration;
-            this.dbContext = dbContext;
             this.thesaurusDAL = new ThesaurusDAL(dbContext, configuration);
         }
 
-        public void GenerateThesauruses(Form form, UserData user) 
+        public void GenerateThesauruses(Form form) 
         {
-            userData = user;
-
             if (!string.IsNullOrWhiteSpace(form.Title)) 
             {
                 form.ThesaurusId = GetNewThesaurus(form.Title);

@@ -1,0 +1,124 @@
+﻿@using sReportsV2.Common.Constants
+@using sReportsV2.Common.Extensions
+@using sReportsV2.DTOs.CodeEntry.DataOut
+@model List<sReportsV2.DTOs.DTOs.QueryManagement.DataOut.QueryDataOut>
+
+@{
+    var userCookieData = ViewBag.UserCookieData;
+    string activeLanguage = userCookieData.ActiveLanguage;
+    List<CodeDataOut> reasons = ViewBag.Reasons as List<CodeDataOut>;
+    List<CodeDataOut> statuses = ViewBag.Statuses as List<CodeDataOut>;
+    var newStatusCD = statuses?.FirstOrDefault(c => c.HasPreferredTerm(CodeAttributeNames.New))?.Id ?? 0;
+    var activeStatusCD = statuses?.FirstOrDefault(c => c.HasPreferredTerm(CodeAttributeNames.Active))?.Id ?? 0;
+    var resolvedStatusCD = statuses?.FirstOrDefault(c => c.HasPreferredTerm(CodeAttributeNames.Resolved))?.Id ?? 0;
+    bool readOnly = (ViewBag.IsReadOnly as bool?) ?? false;
+    bool isFormInstanceMode = (ViewBag.IsFormInstanceMode as bool?) ?? false;
+}
+
+<input type="hidden" id="newStatusCD" value="@newStatusCD" />
+
+<table class="table table-striped table-border">
+    <thead class="color-header">
+        <tr class="table-header-row">
+            <th id="RaisedBy" class="sort-arrow" onclick="sortQueryTable('RaisedBy')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.RaisedBy.ToUpper()</th>
+            <th id="EntryDatetime" class="sort-arrow" onclick="sortQueryTable('EntryDatetime')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.Date.ToUpper()</th>
+            <th id="QueryReason" class="sort-arrow" onclick="sortQueryTable('QueryReason')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.Reason.ToUpper()</th>
+            <th id="QueryDescription" class="sort-arrow" onclick="sortQueryTable('QueryDescription')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.Description.ToUpper()</th>
+            <th id="QueryStatus" class="sort-arrow" onclick="sortQueryTable('QueryStatus')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.Status.ToUpper()</th>
+            <th id="DaysOpen" class="sort-arrow" onclick="sortQueryTable('DaysOpen')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.DaysOpen.ToUpper()</th>
+            <th id="DaysSinceLastChange" class="sort-arrow" onclick="sortQueryTable('DaysSinceLastChange')" style="border-bottom: unset;border-top: unset;">@sReportsV2.Cache.Resources.TextLanguage.DaysSinceLastChange.ToUpper()</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var entry in Model)
+        {
+            var daysOpen = (DateTime.UtcNow - entry.EntryDatetime).Days;
+            var daysSinceLastChange = entry.LastUpdate != null ? (DateTime.UtcNow - entry.LastUpdate.Value).Days : daysOpen;
+
+            <tr id="row-@entry.QueryId" class="table-content-row">
+                <td>@(entry.CreatedBy != null ? $"{entry.CreatedBy.FirstName} {entry.CreatedBy.LastName}" : "System")</td>
+                <td>@entry.EntryDatetime.ToTimeZoned(ViewBag.DateFormat as string, seconds: true)</td>
+                <td>@entry.GetQueryReason(activeLanguage, reasons)</td>
+                <td>@entry.Description</td>
+                <td class="@(entry.StatusCD == activeStatusCD ? "status-active" : entry.StatusCD == resolvedStatusCD ? "status-resolved" : "status-default")">
+                    @entry.GetQueryStatus(activeLanguage, statuses)
+                </td>
+                <td>@daysOpen</td>
+                <td>
+                    @daysSinceLastChange
+                    @if (!readOnly || entry.History.Count > 0)
+                    {
+                        <img src="@(isFormInstanceMode ? "/css/img/icons/query-expand.svg": "/css/img/icons/query-collapse.svg")" 
+                            class="query-collapse-icon" data-queryid="@entry.QueryId" />
+                    }
+                </td>
+            </tr>
+
+            if (!readOnly || entry.History.Count > 0)
+            {
+                <tr id="details-@entry.QueryId" class="query-details-row" style="@(isFormInstanceMode ? "display:none;" : "")">
+                    <td colspan="7">
+                        <div class="query-details-container">
+                            <div class="query-update-history">
+                                @if (entry.History != null && entry.History.Any())
+                                {
+                                    for (int i = 0; i < entry.History.Count; i++)
+                                    {
+                                        var h = entry.History[i];
+
+                                        bool isLastResolved = (i == entry.History.Count - 1) && (entry.StatusCD == resolvedStatusCD);
+
+                                        <div class="query-history-area">
+                                            <span class="padding-top-10">@h.LastUpdate?.ToTimeZoned(ViewBag.DateFormat as string, seconds: true)</span>
+                                            <div class="query-history-item">
+
+                                                @if (isLastResolved)
+                                                {
+                                                    <div data-status="@h.StatusCD" data-history-id="@h.QueryHistoryId">
+                                                        <em>@(h.LastUpdateBy != null ? $"{h.LastUpdateBy.FirstName} {h.LastUpdateBy.LastName} " : "System ")<span class="span-resolved">Resolved</span> the query.</em>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <strong>@(h.LastUpdateBy != null ? $"{h.LastUpdateBy.FirstName} {h.LastUpdateBy.LastName}" : "System")</strong>
+                                                    <div data-status="@h.StatusCD" data-history-id="@h.QueryHistoryId">@h.Comment</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+
+                            @if (!readOnly && entry.StatusCD != resolvedStatusCD)
+                            {
+                                <div class="query-update-controls" id="update-controls-@entry.QueryId">
+                                    <div class="query-update-input mt-2">
+                                        <input type="text" id="comment-@entry.QueryId" class="filter-input" data-queryid="@entry.QueryId" placeholder="Type an update" required>
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <button class="submit-button right-button margin-left-13" type="button"
+                                                onclick="addHistoryItem(event, @true.ToJsBoolean(), '@entry.QueryId', '@($"{userCookieData.FirstName} {userCookieData.LastName} resolved the query.")', '@resolvedStatusCD')">
+                                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Resolve</span>
+                                        </button>
+                                        <button class="btn submit-button right-button margin-left-13 send-update-btn" type="button" data-queryid="@entry.QueryId" disabled
+                                                onclick="addHistoryItem(event, @false.ToJsBoolean(), '@entry.QueryId', '@($"{userCookieData.FirstName} {userCookieData.LastName}")', '@activeStatusCD')">
+                                            <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.SendUpdate</span>
+                                        </button>
+                                        <div class="float-right">
+                                            <a class="btn advanced-cancel" style="display:none" onclick="clearQueryInput('@entry.QueryId')">
+                                                @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+
+        }
+    </tbody>
+</table>

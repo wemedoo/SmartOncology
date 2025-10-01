@@ -12,7 +12,7 @@
         <div class="title">@Model.Title</div>
         @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
         {
-            <img alt="" class="mr-1 form-title-thesaurus" src="/css/img/icons/@(Model.ThesaurusId != null ? "thesaurus_green.svg" : "thesaurus_grey.svg")" onclick="goToThesaurus('@Model.ThesaurusId')">
+            <img alt="" class="mr-1 form-title-thesaurus" src="/css/img/icons/@(Model.ThesaurusId != 0 ? "thesaurus_green.svg" : "thesaurus_grey.svg")" onclick="goToThesaurus('@Model.ThesaurusId')">
         }
     </div>
     <div class="display-flex forminstance-background">

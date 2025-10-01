@@ -1,21 +1,22 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using sReportsV2.Common.CustomAttributes;
 using sReportsV2.Common.Enums;
 using sReportsV2.DTOs.Common.DTO;
+using sReportsV2.DTOs.CustomAttributes;
 using sReportsV2.DTOs.DocumentProperties.DataOut;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
+using sReportsV2.DTOs.DTOs.DocumentProperties.DataOut;
 using sReportsV2.DTOs.DTOs.Form.DataOut;
-using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
-using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.Field.DataOut;
 using sReportsV2.DTOs.Organization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Web;
 namespace sReportsV2.DTOs.Form.DataOut
 {
-    public class FormDataOut
+    public partial class FormDataOut
     {
         public static string DefaultIdPlaceholder { get; set; } = "formIdPlaceHolder";
         public static string DefaultFormPlaceholder { get; set; } = "Form title";
@@ -38,6 +39,7 @@ namespace sReportsV2.DTOs.Form.DataOut
         [DataProp]
         public DateTime? LastUpdate { get; set; }
         public List<OrganizationDataOut> Organizations { get; set; }
+        [DataList]
         public List<FormChapterDataOut> Chapters { get; set; } = new List<FormChapterDataOut>();
         [DataProp]
         public FormDefinitionState State { get; set; }
@@ -48,36 +50,23 @@ namespace sReportsV2.DTOs.Form.DataOut
         [DataProp]
         public DocumentPropertiesDataOut DocumentProperties { get; set; }
         [DataProp]
+        public DocumentLoincPropertiesDataOut DocumentLoincProperties { get; set; }
+
+        [DataProp]
         public FormEpisodeOfCareDataDataOut EpisodeOfCare { get; set; }
         public List<FormStatusDataOut> WorkflowHistory { get; set; }
         public List<ReferralInfoDTO> ReferrableFields { get; set; }
         [DataProp]
         public bool DisablePatientData { get; set; }
-        public string Notes { get; set; }
-        public FormState? FormState { get; set; }
-        public DateTime? Date { get; set; }
         [DataProp]
         public string OomniaId { get; set; }
-        public bool IsParameterize { get; set; }
         [DataProp]
-        public bool AvailableForTask { get; set; }
-        public bool DoesAllMandatoryFieldsHaveValue { get; set; }
-        public string ActiveChapterId { get; set; }
-        public int? ActivePageLeftScroll { get; set; }
-        public string ActivePageId { get; set; }
+        public bool AvailableForTask { get; set; }        
         [DataProp]
         public List<int> NullFlavors { get; set; }
         [DataProp]
         public List<int> OrganizationIds { get; set; }
-        public List<FieldDataOut> RequiredFieldsWithoutValue { get; set; } = new List<FieldDataOut>();
-
         private List<CustomHeaderFieldDataOut> customHeaderFields = new List<CustomHeaderFieldDataOut>();
-        private Dictionary<string, List<DependentOnInstanceInfoDataOut>> parentFieldInstanceDependencies = new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
-        
-        public FormDataOut()
-        {
-            WorkflowHistory = new List<FormStatusDataOut>();
-        }
 
         public List<CustomHeaderFieldDataOut> CustomHeaderFields
         {
@@ -85,23 +74,12 @@ namespace sReportsV2.DTOs.Form.DataOut
             set => customHeaderFields = value ?? new List<CustomHeaderFieldDataOut>();
         }
 
-        public Dictionary<string, List<DependentOnInstanceInfoDataOut>> ParentFieldInstanceDependencies
+        public FormDataOut()
         {
-            get => parentFieldInstanceDependencies;
-            set => parentFieldInstanceDependencies = value ?? new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
+            WorkflowHistory = new List<FormStatusDataOut>();
         }
 
         #region Designer
-        public object ToJson()
-        {
-            var serializerSettings = new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            return JsonConvert.DeserializeObject(JsonConvert.SerializeObject(this, serializerSettings));
-        }
         public List<FieldDataOut> GetAllFields()
         {
             return this.Chapters
@@ -163,238 +141,106 @@ namespace sReportsV2.DTOs.Form.DataOut
             return NullFlavors.Contains(codeId);
         }
 
-        #endregion /Designer
-
-        #region Form Instance Methods
-        public void SetDoesAllMandatoryFieldsHaveValue()
+        public object GetCustomMarkedPropertiesObject()
         {
-            foreach (FormPageDataOut page in Chapters.SelectMany(ch => ch.Pages))
-            {
-                page.SetDoesAllMandatoryFieldsHaveValue();
-            }
+            return GetCustomMarkedPropertiesObject(this);
+        }
+
+        public List<LoincPropertyAutocompleteDataOut> GetAutocompleteHierarchyData(string fieldId)
+        {
+            List<LoincPropertyAutocompleteDataOut> loincPropertyPerName = new List<LoincPropertyAutocompleteDataOut>();
 
             foreach (FormChapterDataOut chapter in Chapters)
             {
-                chapter.DoesAllMandatoryFieldsHaveValue = chapter.Pages.Select(p => p.DoesAllMandatoryFieldsHaveValue).All(p => p);
-            }
-
-            this.DoesAllMandatoryFieldsHaveValue = Chapters.Select(ch => ch.DoesAllMandatoryFieldsHaveValue).All(ch => ch);
-        }
-
-
-        public int CountAllFieldsWhichCanSaveWithoutValue(string chapterId)
-        {
-            return this.Chapters
-                .Where(chapter => chapter.Id == chapterId)
-                .SelectMany(chapter => chapter.Pages
-                    .SelectMany(page => page.ListOfFieldSets
-                        .SelectMany(fieldSet => fieldSet.SelectMany(field => field.Fields
-                            .Where(x => x.FieldInstanceValues.Any() && x.FieldInstanceValues.FirstOrDefault()?.Values.Count == 0
-                                && x.AllowSaveWithoutValue.HasValue && x.AllowSaveWithoutValue.Value && x.IsVisible))
-                        )
-                    )
-                )
-                .Count();
-        }
-
-
-        public List<FormFieldSetDataOut> GetFieldSetDefinitions()
-        {
-            return this.Chapters
-                        .SelectMany(chapter => chapter.Pages
-                            .SelectMany(page => page.ListOfFieldSets
-                                .Select(fieldSet => fieldSet.FirstOrDefault())
-                                    .Where(fS => fS != null)
-                            )
-                        )
-                        .ToList();
-        }
-
-        public FormFieldSetDataOut GetFieldSet(string fieldSetId)
-        {
-            return this.Chapters
-                       .SelectMany(chapter => chapter.Pages)
-                       .SelectMany(page => page.ListOfFieldSets)
-                       .SelectMany(innerList => innerList)
-                       .FirstOrDefault(fieldSet => fieldSet != null && fieldSet.Id == fieldSetId);
-        }
-
-        public List<FormFieldSetDataOut> GetAllFieldSets()
-        {
-            return this.Chapters
-                        .SelectMany(chapter => chapter.Pages
-                            .SelectMany(page => page.ListOfFieldSets
-                                .SelectMany(fieldSet => fieldSet)
-                            )
-                        )
-                        .ToList();
-        }
-
-        public List<FieldDataOut> GetAllFieldsWhichCannotSaveWithoutValue(List<string> fieldsIds)
-        {
-            return this.Chapters
-                        .SelectMany(chapter => chapter.Pages
-                            .SelectMany(page => page.ListOfFieldSets
-                                .SelectMany(list =>
-                                    list.SelectMany(set => set.Fields.Where(y => fieldsIds.Contains(y.Id) && y.AllowSaveWithoutValue.HasValue && !y.AllowSaveWithoutValue.Value)
-                                    )
-                                )
-                            )
-                        )
-                        .ToList();
-        }
-
-        public List<FieldDataOut> GetAllFieldsWhichCanSaveWithoutValue(List<string> fieldsIds)
-        {
-            return this.Chapters
-                        .SelectMany(chapter => chapter.Pages
-                            .SelectMany(page => page.ListOfFieldSets
-                                .SelectMany(list =>
-                                    list.SelectMany(set => set.Fields.Where(y => fieldsIds.Contains(y.Id))
-                                    )
-                                )
-                            )
-                        )
-                        .ToList();
-        }
-        public void SetIfChaptersAndPagesAreLocked(Dictionary<string, bool> chaptersState, Dictionary<string, bool> pagesState)
-        {
-            foreach (FormChapterDataOut chapter in Chapters)
-            {
-                chaptersState.TryGetValue(chapter.Id, out bool isChapterLocked);
-                chapter.IsLocked = isChapterLocked;
-
-                bool canBeLockedNext = true;
+                AddAutocompleteOption(loincPropertyPerName, chapter.Id, chapter.Title, 0);
                 foreach (FormPageDataOut page in chapter.Pages)
                 {
-                    pagesState.TryGetValue(page.Id, out bool isPageLocked);
-                    page.IsLocked = isPageLocked;
-                    page.CanBeLockedNext = canBeLockedNext;
-                    canBeLockedNext &= page.IsLocked;
-                }
-            }
-        }
-        public void SetActiveChapterAndPageId(FormInstanceReloadDataIn formInstanceReloadData)
-        {
-            if (formInstanceReloadData == null)
-            {
-                formInstanceReloadData = new FormInstanceReloadDataIn();
-            }
-            if (string.IsNullOrEmpty(formInstanceReloadData?.ActiveChapterId))
-            {
-                formInstanceReloadData.ActiveChapterId = this.Chapters.FirstOrDefault()?.Id;
-            }
-            if (string.IsNullOrEmpty(formInstanceReloadData?.ActivePageId))
-            {
-                formInstanceReloadData.ActivePageId = this.Chapters.FirstOrDefault()?.Pages?.FirstOrDefault()?.Id;
-            }
-            this.ActiveChapterId = formInstanceReloadData.ActiveChapterId;
-            this.ActivePageId = formInstanceReloadData.ActivePageId;
-            this.ActivePageLeftScroll = formInstanceReloadData.ActivePageLeftScroll;
-        }
-        public bool IsFormInstanceLockedOrUnlocked()
-        {
-            return this.FormState == sReportsV2.Common.Enums.FormState.Locked ||
-                this.FormState == sReportsV2.Common.Enums.FormState.Unlocked;
-        }
-
-        public bool IsFormInstanceLocked()
-        {
-            return this.FormState == sReportsV2.Common.Enums.FormState.Locked;
-        }
-
-        public bool IsFormInstanceInActiveState()
-        {
-            return !this.FormState.HasValue || (this.FormState.Equals(sReportsV2.Common.Enums.FormState.OnGoing) || this.FormState.Equals(sReportsV2.Common.Enums.FormState.InError) || this.FormState.Equals(sReportsV2.Common.Enums.FormState.Unlocked));
-
-        }
-
-        public string GetTimeZone()
-        {
-            return Organizations?.FirstOrDefault()?.TimeZone ?? string.Empty;
-        }
-        #endregion /Form Instance Methods
-
-        #region Dependency Handling
-        public List<FieldInstanceDTO> CreateParentDependableStructure(List<FieldDataOut> populatedFieldInstances)
-        {
-            List<FieldInstanceDTO> populatedParentFieldInstances = new List<FieldInstanceDTO>();
-
-            ParentFieldInstanceDependencies = new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
-
-            Dictionary<string, bool> fieldSetRepetitive = GetFieldSetDefinitions().ToDictionary(x => x.Id, x => x.IsRepetitive);
-            foreach (FieldDataOut childDependentField in populatedFieldInstances.Where(f => HasDependentOn(f)))
-            {
-                childDependentField.AddMissingPropertiesInDependency(this);
-                DependentOnInfoDataOut dependentOnInfo = childDependentField.DependentOn;
-                foreach (var grouping in dependentOnInfo.DependentOnFieldInfos.GroupBy(x => x.FieldId))
-                {
-                    DependentOnFieldInfoDataOut dependendOnField = grouping.First();
-                    FieldDataOut parentField = GetParentField(childDependentField, populatedFieldInstances, dependendOnField);
-                    if (parentField != null)
+                    AddAutocompleteOption(loincPropertyPerName, page.Id, page.Title, 1);
+                    foreach (FormFieldSetDataOut fieldSet in page.ListOfFieldSets.SelectMany(p => p))
                     {
-                        foreach (FieldInstanceValueDataOut parentFieldInstanceValue in parentField.FieldInstanceValues)
+                        AddAutocompleteOption(loincPropertyPerName, fieldSet.Id, fieldSet.Label, 2);
+                        foreach (FieldDataOut field in fieldSet.Fields)
                         {
-                            populatedParentFieldInstances.Add(new FieldInstanceDTO(parentField, parentFieldInstanceValue));
-
-                            IEnumerable<DependentOnInstanceInfoDataOut> upcomingChildFieldInstanceDependencies = GetUpcomingChildFieldInstanceDependencies(
-                                childDependentField,
-                                parentFieldInstanceValue.FieldInstanceRepetitionId,
-                                fieldSetRepetitive[childDependentField.FieldSetId]
-                                );
-                            AppendChildDependencies(parentFieldInstanceValue.FieldInstanceRepetitionId, upcomingChildFieldInstanceDependencies);
+                            if (field.Id != fieldId && field.CanBeConnectedField())
+                            {
+                                AddAutocompleteOption(loincPropertyPerName, field.Id, field.Label, 3);
+                            }
                         }
                     }
                 }
+
             }
 
-            return populatedParentFieldInstances;
-
+            return loincPropertyPerName;
         }
 
-        private FieldDataOut GetParentField(FieldDataOut childDependentField, List<FieldDataOut> populatedFieldInstances, DependentOnFieldInfoDataOut dependendOnField)
+        private void AddAutocompleteOption(List<LoincPropertyAutocompleteDataOut> loincPropertyPerName, string id, string title, int level)
         {
-            FieldDataOut parentField = populatedFieldInstances.Find(f =>
-                f.Id == dependendOnField.FieldId
-                && f.FieldSetInstanceRepetitionId == childDependentField.FieldSetInstanceRepetitionId
-                )
-                ?? populatedFieldInstances.Find(f => f.Id == dependendOnField.FieldId);
-            return parentField;
+            loincPropertyPerName.Add(new LoincPropertyAutocompleteDataOut
+            {
+                id = id,
+                level = level.ToString(),
+                text = title
+            });
         }
 
-        private IEnumerable<DependentOnInstanceInfoDataOut> GetUpcomingChildFieldInstanceDependencies(FieldDataOut childDependentField, string parentFieldInstanceRepetitionId, bool isChildDependentFieldSetRepetitive)
+        private object GetCustomMarkedPropertiesObject(object source)
         {
-            return childDependentField
-                .FieldInstanceValues
-                .Select(x => new DependentOnInstanceInfoDataOut(childDependentField.DependentOn)
+            Type objectType = source.GetType();
+            PropertyInfo[] allProperties = objectType
+            .GetProperties();
+
+            Dictionary<string, object> propertiesWithDataProp = allProperties
+                .Where(p => Attribute.IsDefined(p, typeof(DataPropAttribute)))
+                .ToDictionary(
+                    prop => prop.Name,
+                    prop => prop.GetValue(source)
+                );
+
+            // Return as anonymous object
+            var anon = new System.Dynamic.ExpandoObject() as IDictionary<string, object>;
+            foreach (var kvp in propertiesWithDataProp)
+            {
+                anon[kvp.Key] = kvp.Value;
+            }
+
+            Dictionary<string, object> propertiesWithDataList = allProperties
+                .Where(p => Attribute.IsDefined(p, typeof(DataListAttribute)))
+                .ToDictionary(
+                    prop => prop.Name,
+                    prop => prop.GetValue(source)
+                );
+
+            foreach (var kvp in propertiesWithDataList)
+            {
+                string propName = kvp.Key;
+                if (kvp.Value is System.Collections.IEnumerable enumerable)
                 {
-                    ChildFieldInstanceRepetitionId = x.FieldInstanceRepetitionId,
-                    ChildFieldSetInstanceRepetitionId = childDependentField.FieldSetInstanceRepetitionId,
-                    ChildFieldInstanceCssSelector = childDependentField.GetChildFieldInstanceCssSelector(x.FieldInstanceRepetitionId),
-                    ParentFieldInstanceCssSelector = childDependentField.GetParentFieldInstanceCssSelector(parentFieldInstanceRepetitionId),
-                    IsChildDependentFieldSetRepetitive = isChildDependentFieldSetRepetitive
-                });
+                    var list = new List<object>();
+                    foreach (var item in enumerable)
+                    {
+                        if (item is System.Collections.IEnumerable enumerableOfEnumerable)
+                        {
+                            var subList = new List<object>();
+                            foreach (var subItem in enumerableOfEnumerable)
+                            {
+                                subList.Add(GetCustomMarkedPropertiesObject(subItem));
+                            }
+                            list.Add(subList);
+                        }
+                        else
+                        {
+                            list.Add(GetCustomMarkedPropertiesObject(item));
+                        }
+                    }
+                    anon.Add(propName, list);
+                }
+            }
+
+            return anon;
         }
 
-        private bool HasDependentOn(FieldDataOut fieldDataOut)
-        {
-            return fieldDataOut.DependentOn != null && fieldDataOut.DependentOn.DependentOnFieldInfos != null && fieldDataOut.DependentOn.DependentOnFieldInfos.Any();
-        }
 
-        private void AppendChildDependencies(string parentFieldInstanceRepetitionId, IEnumerable<DependentOnInstanceInfoDataOut> upcomingChildFieldInstanceDependencies)
-        {
-            if (ParentFieldInstanceDependencies.TryGetValue(parentFieldInstanceRepetitionId, out List<DependentOnInstanceInfoDataOut> childFieldInstanceDependencies))
-            {
-                childFieldInstanceDependencies.AddRange(upcomingChildFieldInstanceDependencies);
-            }
-            else
-            {
-                ParentFieldInstanceDependencies.Add(
-                    parentFieldInstanceRepetitionId,
-                    new List<DependentOnInstanceInfoDataOut>(upcomingChildFieldInstanceDependencies)
-                    );
-            }
-        }
-        #endregion /Dependency Handling
+        #endregion /Designer
     }
 }

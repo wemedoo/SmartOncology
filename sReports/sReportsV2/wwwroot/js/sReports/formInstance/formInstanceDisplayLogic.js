@@ -5,11 +5,12 @@
 }
 
 function getPreviousActivePage() {
-    var previousActivePage = $('.page').filter(function () {
-        return $(this).css('display') === 'block';
-    });
+    return getPageFromPageTab(getPreviousActivePageTab())
+}
 
-    return $(previousActivePage);
+function getPageFromPageTab($pageTab) {
+    let pageId = $pageTab.attr("id").replace("page-link-", "");
+    return $(`#${pageId}`);
 }
 
 function getPreviousActivePageId() {
@@ -51,17 +52,23 @@ function downloadSynopticPdf(formTitle) {
     getDocument('/Pdf/GetSynopticPdf', formTitle, '.pdf', {formInstanceId: getFormInstanceId()});
 }
 
-function switchFormInstanceViewMode(viewMode, isPatientModule, toggleBtn, isReadOnly) {
+function switchFormInstanceViewMode(viewMode, isPatientModule, toggleBtn, isReadOnly, monitorChanges, callback) {
+    if (monitorChanges) {
+        let stopExecution = unsavedChangesCheck("#fid");
+        if (stopExecution) {
+            return;
+        }
+    }
     if (toggleBtn) {
         $(".form-instance-view-mode").toggle();
     }
 
     let controller = isPatientModule ? 'DiagnosticReport' : 'FormInstance';
     let url = `/${controller}/GetFormInstanceContent`;
-    getFormInstanceContent(viewMode, isReadOnly, url);
+    getFormInstanceContent(viewMode, isReadOnly, url, callback);
 }
 
-function getFormInstanceContent(viewMode, isReadOnly, url) {
+function getFormInstanceContent(viewMode, isReadOnly, url, callback) {
     callServer({
         type: "GET",
         url: url,
@@ -69,6 +76,7 @@ function getFormInstanceContent(viewMode, isReadOnly, url) {
         success: function (data) {
             setFormInstanceContent(data);
             showAdministrativeArrowIfOverflow('administrative-container-form-instance');
+            executeCallback(callback);
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -88,8 +96,8 @@ function getIsHiddenFieldsShown() {
     return $('#showHiddenFieldsAction').hasClass('d-none');
 }
 
-function reloadAfterFormInstanceChange() {
-    switchFormInstanceViewMode('RegularView', isPatientModule(), false, false);
+function reloadAfterFormInstanceChange(callback = null) {
+    switchFormInstanceViewMode('RegularView', isPatientModule(), false, false, false, callback);
 }
 
 function changeImageSrc(source, restore) {

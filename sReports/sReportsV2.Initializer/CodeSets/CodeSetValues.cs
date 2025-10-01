@@ -1643,7 +1643,7 @@ namespace sReportsV2.Initializer.CodeSets
                     new ThesaurusEntryTranslation()
                     {
                         Language = LanguageConstants.EN,
-                        PreferredTerm = "unmarried",
+                        PreferredTerm = "Unmarried",
                         Definition = "Currently not in a marriage contract"
                     }
                 }
@@ -3297,6 +3297,21 @@ namespace sReportsV2.Initializer.CodeSets
             "Not Verified",
             "Active",
             "Blocked"
+        };
+
+        [DisplayName(CodeSetAttributeNames.QueryStatus)]
+        public static List<string> QueryStatus { get; set; } = new List<string>()
+        {
+            "New",
+            "Active",
+            "Resolved"
+        };
+
+        [DisplayName(CodeSetAttributeNames.QueryReason)]
+        public static List<string> QueryReason { get; set; } = new List<string>()
+        {
+            "Data Validation",
+            "Other"
         };
     }
 }

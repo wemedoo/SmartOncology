@@ -1,11 +1,13 @@
 ﻿@using System.Globalization
 @using sReportsV2.DTOs.O4CodeableConcept.DataOut;
 @using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
 
 @model O4CodeableConceptDataOut
 
 @{
     var userCookieData = ViewBag.UserCookieData;
+    string versionPublishDate = Model.VersionPublishDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true);
 }
 
 <tr class="tr edit-raw" data-id="@Model.Id">
@@ -22,8 +24,8 @@
     <td data-property="codeValue" data-value="@Model.Value" class="custom-td">
         @Model.Value
     </td>
-    <td data-property="codeVersionPublishDate" data-value="@(Model.VersionPublishDate != null ? Model.VersionPublishDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")" class="custom-td">
-        @(Model.VersionPublishDate != null ? Model.VersionPublishDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")
+    <td data-property="codeVersionPublishDate" data-value="@versionPublishDate" class="custom-td">
+        @versionPublishDate
     </td>
     <td class="custom-td-last" style="padding:unset">
         @if (!ViewBag.ReadOnly)

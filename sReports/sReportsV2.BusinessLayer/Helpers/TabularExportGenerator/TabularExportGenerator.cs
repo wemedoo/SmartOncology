@@ -125,11 +125,11 @@ namespace sReportsV2.BusinessLayer.Helpers.TabularExportGenerator
             return allFieldCurrentForm.Select(x => new CustomDataColumn() { ColumnName = CustomDataColumn.CreateNonRepetitiveFieldName(x.Id, x.Label), ColumnLabel = x.Label }).ToList();
         }
 
-        protected DataRow AddPatientAndMetaDataToWideTableRow(DataRow dataRow, FormInstance formInstance, string organization, string TimeZoneOffset, string DateFormat)
+        protected DataRow AddPatientAndMetaDataToWideTableRow(DataRow dataRow, FormInstance formInstance, string organization, string timeZoneOffset, string DateFormat)
         {
             dataRow[TextLanguage.Organization] = organization;
             dataRow[TextLanguage.Document_Id] = formInstance.Id;
-            dataRow[TextLanguage.Date_And_Time] = formInstance.EntryDatetime.ToTimeZoned(TimeZoneOffset, DateFormat);
+            dataRow[TextLanguage.Date_And_Time] = formInstance.EntryDatetime.ToTimeZoned(timeZoneOffset, DateFormat);
 
             dataRow = AddPatientInfoToWideTableRow(dataRow, formInstance.PatientId);
             return dataRow;
@@ -144,7 +144,7 @@ namespace sReportsV2.BusinessLayer.Helpers.TabularExportGenerator
                 {
                     dataRow[TextLanguage.PatientName] = patient.NameGiven ?? String.Empty;
                     dataRow[TextLanguage.Patient_lastname] = patient.NameFamily ?? String.Empty;
-                    dataRow[TextLanguage.Patient_date_of_birth] = patient.BirthDate != null ? patient.BirthDate.Value.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture) : String.Empty;
+                    dataRow[TextLanguage.Patient_date_of_birth] = patient.BirthDate.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true);
                 }
             }
             return dataRow;
@@ -159,7 +159,7 @@ namespace sReportsV2.BusinessLayer.Helpers.TabularExportGenerator
                 {
                     fileWriter.WriteRow(new List<string>() { formInstanceId, TextLanguage.Patient_name, patient.NameGiven ?? String.Empty });
                     fileWriter.WriteRow(new List<string>() { formInstanceId, TextLanguage.Patient_lastname, patient.NameFamily ?? String.Empty });
-                    fileWriter.WriteRow(new List<string>() { formInstanceId, TextLanguage.Patient_date_of_birth, patient.BirthDate != null ? patient.BirthDate.Value.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture) : String.Empty });
+                    fileWriter.WriteRow(new List<string>() { formInstanceId, TextLanguage.Patient_date_of_birth, patient.BirthDate.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true)});
                 }
             }
         }

@@ -17,7 +17,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IFormBLL formBLL;
         private readonly IEncounterDAL encounterDAL;
         private readonly IFormInstanceDAL formInstanceDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public DiagnosticReportBLL(IEncounterDAL encounterDAL, IFormBLL formBLL, IFormInstanceDAL formInstanceDAL, IFormInstanceBLL formInstanceBLL, IMapper mapper)
         {
@@ -25,7 +25,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.formInstanceDAL = formInstanceDAL;
             this.formInstanceBLL = formInstanceBLL;
             this.formBLL = formBLL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public async Task<DiagnosticReportCreateFromPatientDataOut> GetReportAsync(FormInstanceReloadDataIn dataIn, UserCookieData userCookieData)
@@ -33,13 +33,12 @@ namespace sReportsV2.BusinessLayer.Implementations
             string formInstanceId = Ensure.IsNotNull(dataIn.FormInstanceId, nameof(dataIn.FormInstanceId));
 
             var formInstance = await formInstanceDAL.GetByIdAsync(formInstanceId);
-            var referrals = await formInstanceBLL.GetByIdsAsync(formInstance.Referrals);
-            var data = formBLL.GetFormDataOut(formInstance, referrals, userCookieData, dataIn);
+            var data = formBLL.GetFormDataOut(formInstance, userCookieData, dataIn);
             var encounter = encounterDAL.GetByIdAsync(formInstance.EncounterRef);
 
             DiagnosticReportCreateFromPatientDataOut diagnosticReportCreateFromPatientDataOut = new DiagnosticReportCreateFromPatientDataOut()
             {
-                Encounter = Mapper.Map<EncounterDataOut>(await encounter),
+                Encounter = mapper.Map<EncounterDataOut>(await encounter),
                 CurrentForm = data,
             };
 

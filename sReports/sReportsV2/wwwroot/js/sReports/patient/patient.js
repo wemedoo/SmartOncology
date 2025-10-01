@@ -3,19 +3,18 @@ var religionId;
 
 addUnsavedChangesEventHandler("#idPatientInfo");
 
-function submitForm(form) {
+function submitPatientForm(form, callback) {
     updateDisabledOptions(false);
     $(form).validate({
         ignore: []
     });
     if ($(form).valid()) {
-
         var request = {};
 
         let patientId = getParentId();
         let action = patientId != 0 ? 'Edit' : 'Create';
         request['Id'] = patientId;
-        request['Name'] = $("#name").val();
+        request['GivenName'] = $("#name").val();
         request['FamilyName'] = $('#familyName').val();
         request['GenderCD'] = $("#gender").val();
         request['BirthDate'] = toDateStringIfValue($("#birthDate").val());
@@ -33,6 +32,7 @@ function submitForm(form) {
         request['UniqueMasterCitizenNumber'] = $("#umcn").val();
         request['Identifiers'] = getIdentifiers();
         request['Communications'] = getCommunications();
+        if (!validateCommunication(request['Communications'])) { return false; }
 
         callServer({
             type: "POST",
@@ -46,9 +46,12 @@ function submitForm(form) {
                     }
                     toastr.options.onHidden = function () { window.location.href = `/Patient/EditPatientInfo?patientId=${data.id}&isReadOnlyViewMode=${false}`; }
                 }
+                resetCommunication(patientId);
                 updateDisabledOptions(true);
                 saveInitialFormData("#idPatientInfo");
-                toastr.success("Success");
+                executeCallback(callback);
+                toastr.success("Patient data have been saved successfully");
+                enableChangeTab(+request["Id"]);
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 handleResponseError(xhr);
@@ -66,17 +69,30 @@ function submitForm(form) {
     return false;
 }
 
-function selectChanged()
-{
-    if ($('#multipleBirth1').is(':visible')) {
-        $('#multipleBirth1').hide();
-        $('#multipleBirthNumber').val(1);
+$(document).on('change', '#multipleBirth', function (e) {
+    var isMultipleBirth = $(this).val();
+    if (isMultipleBirth === "true") {
+        $('#multipleBirthNumberContainer').removeClass('d-none');
+    } else {
+        resetMultipleBirthNumber();
     }
-    else
-    {
-        $('#multipleBirth1').show();
-    }
+});
+
+function resetMultipleBirthNumber() {
+    $('#multipleBirthNumberContainer').addClass('d-none');
+    $('#multipleBirthNumber').val('1');
 }
+
+$(document).on('change', '#gender', function (e) {
+    var gender = $(this).val();
+    if (gender === $('#femaleCodeId').val()) {
+        $('#multipleBirthContainer').removeClass('d-none');
+    } else {
+        $('#multipleBirthContainer').addClass('d-none');
+        $('#multipleBirth').val('false');
+        resetMultipleBirthNumber();
+    }
+});
 
 function deceasedChanged(isDeceasedChecked) {
     var $deceasedDateTimeContainer = $("#deceasedDateTimeContainer");
@@ -111,39 +127,24 @@ function cancelPatientEdit(event, readOnly) {
     event.preventDefault();
     if (PatientId) {
         let action = readOnly ? 'View' : 'Edit';
-        if (!compareForms("#idPatientInfo")) {
-            if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-                saveInitialFormData("#idPatientInfo");
+        unsavedChangesCheck("#idPatientInfo",
+            function () {
+                window.location.href = `/Patient/${action}?patientId=${PatientId}`;
+            },
+            function () {
                 window.location.href = `/Patient/${action}?patientId=${PatientId}`;
             }
-        } else {
-            window.location.href = `/Patient/${action}?patientId=${PatientId}`;
-        }
+        );
     } else {
-        if (!compareForms("#idPatientInfo")) {
-            if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-                saveInitialFormData("#idPatientInfo");
+        unsavedChangesCheck("#idPatientInfo",
+            function () {
+                window.location.href = "/Patient/GetAll";
+            },
+            function () {
                 window.location.href = "/Patient/GetAll";
             }
-        } else {
-            window.location.href = "/Patient/GetAll";
-        }
+        );
     }
-}
-
-function getCommunications() {
-    let result = [];
-    let selected = $('input[name=radioPreferred]:checked').val();
-
-    $('input[name=radioPreferred]').each(function (index, element) {
-        result.push({
-            preferred: $(element).val() == selected ? true : false,
-            languageCD: $(element).val(),
-            id: $(element).attr("data-id")
-        })
-    })
-
-    return result;
 }
 
 $(document).ready(function () {
@@ -152,6 +153,8 @@ $(document).ready(function () {
     setCommonValidatorMethods();
     setValidationFunctions();
     saveInitialFormData("#idPatientInfo");
+    setPatientLanguages();
+    $('[data-toggle="tooltip"]').tooltip();
 });
 
 function setPatientId() {
@@ -166,16 +169,6 @@ function setPatientId() {
 }
 
 function renderInitialData() {
-    $("input[name=radioPreferred]").each(function () {
-        if ($(this).is(":checked")) {
-            let preferredText = document.createElement('span');
-            $(preferredText).addClass("preferred-text-class");
-            preferredText.innerHTML = " (Preferred)";
-            $(this).closest('div').addClass("preferred-language-text-active").append(preferredText);;
-        } else {
-            $(this).closest('div').removeClass("preferred-language-text-active");
-        }
-    });
     deceasedChanged($("#deceased").is(":checked"));
 
     initCodeSelect2(hasSelectedReligion(), religionId, "religion", "religion", "ReligiousAffiliationType", '', "#idPatientInfo");
@@ -205,111 +198,6 @@ function setValidationFunctions() {
     });
 }
 
-$(document).on('click', '.plus-button', function (e) {
-    if (ValidateLanguage() && $('#language').val()) {
-        let language = createLanguageElement();
-        let input = createRadioInput();
-
-        let removeButton = createRemoveLanguageButton();
-        removeButton.id = "removeButtonId";
-
-        let preferredText = createPreferredText();
-
-        if ($('#tableBody').find('input:radio[name=radioPreferred]').length == 0) {
-            $(input).attr('checked', true);
-            $(language).addClass("preferred-language-text-active");
-            $(language).append(preferredText);
-            $(removeButton).addClass("preferred-language-text-active");
-        }
-
-        $(removeButton).addClass("right-remove-button");
-
-        let preferred = createRadioField();
-
-        let preferred2 = document.createElement('div');
-        $(preferred2).addClass("preferred-language-group");
-
-        let divElement = document.createElement('div');
-
-        $(preferred).append(input);
-        $(preferred2).append(preferred).append(language).append(removeButton)
-
-        $("#tableBody").append(preferred2).append(divElement);
-
-    }
-});
-
-function createLanguageElement() {
-    let language = document.createElement('span');
-    $(language).attr("data-property", 'language');
-    $(language).attr("data-value", $('#language').val());
-    $(language).addClass("preferred-language-text");
-    language.id = "firstLanguage";
-    $(language).html(getSelectedOptionLabel('language'));
-
-    return language;
-}
-
-function createRadioInput() {
-    let input = document.createElement('input');
-    $(input).addClass("form-radio-field");
-    $(input).attr("value", $('#language').val());
-    $(input).attr("name", 'radioPreferred');
-    $(input).attr("type", 'radio');
-    $(input).attr("data-id", '0');
-    $(input).attr("data-no-color-change", "true");
-
-    return input;
-}
-
-function createPreferredText() {
-    let preferredText = document.createElement('span');
-    $(preferredText).addClass("preferred-text-class");
-    preferredText.innerHTML = " (Preferred)";
-
-    return preferredText;
-}
-
-function createRadioField() {
-    let preferred = document.createElement('span');
-    $(preferred).attr("data-property", 'preferred');
-    $(preferred).attr("data-value", $('#preferred').val());
-    $(preferred).addClass("radio-space");
-    $(preferred).css("margin-right", "13px");
-
-    return preferred;
-}
-
-function ValidateLanguage() {
-    var isValid = true;
-    let language = $("#language").val();
-
-    $(`#tableBody > div`).each(function () {
-        if ($(this).find("span:eq(1)").data('value') == language) {
-            isValid = false;
-            toastr.error(`This language already added`);
-        }
-
-    });
-    return isValid;
-}
-
-function createRemoveLanguageButton() {
-    let span = document.createElement('span');
-    $(span).addClass('remove-language-button');
-
-    let i = document.createElement('i');
-    $(i).addClass('fas fa-times');
-
-    $(span).append(i);
-    return span;
-}
-
-$(document).on('click', '.remove-language-button', function (e) {
-    var currentEl = e.currentTarget;
-    $(currentEl).closest('div').remove();
-});
-
 function pushStateWithoutFilter(num) {
     if (PatientId) {
         history.pushState({}, '', `?patientId=${PatientId}&page=${num}&pageSize=${getPageSize()}`);
@@ -318,72 +206,41 @@ function pushStateWithoutFilter(num) {
     }
 }
 
-function showGeneralInfo(event, element){
-    event.stopPropagation();
-    setTagActiveClass(element);
-    setTagIconActiveClass("general-icon");
+$(document).on('click', '.patient-tab-item', function (e) {
+    if ($(this).hasClass('tab-disabled')) return;
 
-    $("#contactPersonPartial").hide();
-    $("#patientAddressAndTelecomPartial").hide();
-    $("#patientInfoPartial").show();
-    resetPatientContactForm();
-}
+    let $el = $(this);
+    savePatientIfThereAreChanges(function () {
+        setTagActiveClass($el);
+        setTagIconActiveClass($el);
 
-function showAddressAndTelecomInfo(event, element) {
-    event.stopPropagation();
-    setTagActiveClass(element);
-    setTagIconActiveClass("telecom-icon");
+        $('.patient-partial').addClass('d-none');
+        let containerId = $el.attr('data-id');
+        $(containerId).removeClass('d-none');
 
-    $("#contactPersonPartial").hide();
-    $("#patientAddressAndTelecomPartial").show();
-    $("#patientInfoPartial").hide();
-    resetPatientContactForm();
-}
-
-function showContactPerson(event, element) {
-    event.stopPropagation();
-    setTagActiveClass(element);
-    setTagIconActiveClass("contact-icon");
-
-    $("#contactPersonPartial").show();
-    $("#patientAddressAndTelecomPartial").hide();
-    $("#patientInfoPartial").hide();
-}
-
-function setTagActiveClass(element) {
-    $('.tab-item').removeClass('active');
-    $(element).addClass('active');
-}
-
-function setTagIconActiveClass(iconId) {
-    $('.tab-icon').removeClass('active');
-    document.getElementById(iconId).classList.add('active');
-}
-
-$(document).on('click', '[name="radioPreferred"]', function () {
-    let selected = $('input[name=radioPreferred]:checked').val();
-    var element = document.getElementById("firstLanguage");
-    element.classList.remove("preferred-language-text-active");
-    var removeElement = document.getElementById("removeButtonId");
-    if (removeElement) {
-        removeElement.classList.remove("preferred-language-text-active");
-        removeElement.classList.add("right-remove-button");
-    }
-    
-    let preferredText = document.createElement('span');
-    $(preferredText).addClass("preferred-text-class");
-    preferredText.innerHTML = " (Preferred)";
-
-    $(`#tableBody > div`).each(function () {
-        $(this).removeClass("preferred-language-text-active");
-        $(this).find(".preferred-text-class").remove();
-
-        if ($(this).find("span:eq(1)").data('value') == selected) {
-            $(this).find("span:eq(1)").append(preferredText);
-            $(this).addClass("preferred-language-text-active");
+        if (containerId != '#contactPersonPartial') {
+            resetPatientContactForm();
         }
     });
 });
+
+function savePatientIfThereAreChanges(callback) {
+    if (compareForms("#idPatientInfo")) {
+        executeCallback(callback);
+    } else {
+        submitPatientForm($("#idPatientInfo"), callback);
+    }
+}
+
+function setTagActiveClass(element) {
+    $('.patient-tab-item').removeClass('active');
+    $(element).addClass('active');
+}
+
+function setTagIconActiveClass(element) {
+    $('.tab-icon').removeClass('active');
+    $(element).find('i').addClass('active');
+}
 
 function setParentIdAndReturn(identifierEntity) {
     identifierEntity["patientId"] = getParentId();
@@ -395,5 +252,5 @@ function getParentId() {
 }
 
 function submitParentForm() {
-    return submitForm($("#idPatientInfo"));
+    return submitPatientForm($("#idPatientInfo"));
 }

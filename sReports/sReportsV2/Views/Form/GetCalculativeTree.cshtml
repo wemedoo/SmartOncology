@@ -4,7 +4,7 @@
 
 
 <div class="calculative-tree">
-    @if (Model != null)
+    @if (Model != null && Model.Count > 0)
     {
         foreach (CalculativeTreeItemDTO calculativeTreeItem in Model)
         {
@@ -22,6 +22,10 @@
                 </div>
             </div>
         }
+    }
+    else
+    {
+        <div class="text-center">There are no fields that could be in the formula</div>
     }
     <div class="vertical-line"></div>
 

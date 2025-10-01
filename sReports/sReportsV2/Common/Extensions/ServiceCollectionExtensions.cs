@@ -39,6 +39,8 @@ namespace sReportsV2.Common.Extensions
                 automapper.AddProfile<ClinicalTrialProfile>();
                 automapper.AddProfile<ProjectProfile>();
                 automapper.AddProfile<AdministrationApiProfile>();
+                automapper.AddProfile<UploadPatientDataAndPromptProfile>();
+                automapper.AddProfile<QueryProfile>();
 
                 automapper.ConstructServicesUsing(serviceProvider.GetService);
             }, typeof(Startup).Assembly);

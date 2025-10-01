@@ -9,6 +9,7 @@ using sReportsV2.HL7.DTO;
 using sReportsV2.SqlDomain.Implementations;
 using sReportsV2.SqlDomain.Interfaces;
 using System;
+using System.Threading.Tasks;
 
 namespace sReportsV2.HL7.Handlers.IncomingHandlers
 {
@@ -18,7 +19,7 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
         {
         }
 
-        public override void Process(SReportsContext dbContext)
+        public override async Task Process(SReportsContext dbContext)
         {
             Domain.Sql.Entities.Patient.Patient patient = CreatePatientFromMessage(MessageMetadata.ParsedMessage as ADT_A01);
 
@@ -38,7 +39,7 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
 
                 OverrideDates(patientDB);
 
-                CommitTransaction(dbContext, patientDAL, patientDB, procedeedEncounter);
+                await CommitTransaction(dbContext, patientDAL, patientDB, procedeedEncounter);
             }
             else
             {

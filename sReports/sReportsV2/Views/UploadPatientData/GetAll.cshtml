@@ -1,0 +1,32 @@
+﻿@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = "Uploaded Patient Data";
+    var userCookieData = ViewBag.UserCookieData;
+}
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", "Upload Patient Data" }, { "activeLevel", 1 } })
+
+<div class="table-container border-0">
+    <div class="header header-new">
+        Uploaded Patient Data
+        <div class="d-flex float-right">
+            @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Administration))
+            {
+                <input type="file" class="d-none" id="uploadPatientDataFileBtn" multiple>
+                <button class="btn btn-create" id="uploadPatientDataBtn"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Upload</button>
+            }
+        </div>
+    </div>
+
+    @await Html.PartialAsync("UploadPatientDataFilterGroup")
+    <div id="tableContainer">
+    </div>
+</div>
+
+<script>
+    var defaultFilter = @Html.Raw(Json.Serialize(ViewBag.FilterData));
+</script>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/uploadPatientDataGetAll-bundle.min.js"))

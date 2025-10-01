@@ -42,7 +42,7 @@
     })
 }
 
-<div id="editPatientContainer">
+<div>
     <div class="row patient-basic-content" id="patientBasicInfo">
         @await Html.PartialAsync("~/Views/Patient/PatientBasicInfo.cshtml", Model)
     </div>
@@ -61,6 +61,7 @@
 </div>
 
 @Html.Raw(ScriptHelper.RenderBundle("js/patient-bundle.min.js"))
+@Html.Raw(ScriptHelper.RenderBundle("js/createFormInstanceAutomatically-bundle.min.js"))
 
 <script>
     var readOnly = @readOnly.ToJsBoolean();

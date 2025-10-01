@@ -25,12 +25,13 @@ namespace Chapters
         public const string Paragraph = "paragraph";
         public const string Link = "link";
         public const string Audio = "audio";
-
+        public const string RichTextParagraph = "rich-text-paragraph";
 
         #endregion
 
         #region PictureTypes
         public const string Jpg = ".JPG";
+        public const string Jpeg = ".JPEG";
         public const string Png = ".PNG";
         #endregion
 

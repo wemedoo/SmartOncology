@@ -190,7 +190,7 @@ namespace sReportsV2.Domain.DatabaseMigrationScripts
 
             if (CouldDateBeParsed(datePart, out DateTime parsedDate))
             {
-                return parsedDate.ToString(DateConstants.UTCDatePartFormat);
+                return parsedDate.ToString(DateTimeConstants.UTCDatePartFormat);
             }
             else
             {
@@ -217,8 +217,8 @@ namespace sReportsV2.Domain.DatabaseMigrationScripts
         {
             string[] currentDateFormatsInDatabase = new string[] 
             { 
-                DateConstants.DateFormat, 
-                DateConstants.UTCDatePartFormat, 
+                DateTimeConstants.DateFormat, 
+                DateTimeConstants.UTCDatePartFormat, 
                 "dd-MM-yyyy", 
                 "d/M/yyyy", 
                 "d/MM/yyyy", 

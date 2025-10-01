@@ -129,18 +129,11 @@ function addAdditionalPatientListFilterTags(requestObject) {
             addPropertyToObject(patientListFilterTagsObject, 'EncounterStatus', getSelectedOptionLabel("encounterStatus"));
             addPropertyToObject(patientListFilterTagsObject, 'EncounterType', getSelectedOptionLabel("encounterType"));
 
-            addPropertyToObject(patientListFilterTagsObject, 'DateTimeFrom', $('#periodStartDateTime').val());
-            addPropertyToObject(patientListFilterTagsObject, 'DateTimeTo', $('#periodEndDateTime').val());
+            addPropertyToObject(patientListFilterTagsObject, 'DateTimeFrom', toLocaleDateStringIfValue($('#periodStartDateTime').val()));
+            addPropertyToObject(patientListFilterTagsObject, 'DateTimeTo', toLocaleDateStringIfValue($('#periodEndDateTime').val()));
             addPropertyToObject(patientListFilterTagsObject, 'ExcludeDeceased', $('#excludeDeceased').is(':checked') ? $('#excludeDeceased').attr('data-label') : '');
             addPropertyToObject(patientListFilterTagsObject, 'IncludeDischarged', $('#includeDischarged').is(':checked') ? $('#includeDischarged').attr('data-label') : '');
             addPropertyToObject(patientListFilterTagsObject, 'ShowOnlyDischarged', $('#showOnlyDischarged').is(':checked') ? $('#showOnlyDischarged').attr('data-label') : '');
-
-            if (patientListFilterTagsObject['DateTimeFrom']) {
-                addPropertyToObject(patientListFilterTagsObject, 'DateTimeFrom', toValidTimezoneFormat(patientListFilterTagsObject['DateTimeFrom']));
-            }
-            if (patientListFilterTagsObject['DateTimeTo']) {
-                addPropertyToObject(patientListFilterTagsObject, 'DateTimeTo', toValidTimezoneFormat(patientListFilterTagsObject['DateTimeTo']));
-            }
 
             reloadTags(patientListFilterTagsObject, undefined, null, false);
         });
@@ -188,7 +181,7 @@ function getPatientListModalContent(action, patientListId, showModal = false, ca
 function initSelect2Elements() {
 
     let selectsAndActions = [
-        { class: "#attendingDoctor", action: `/UserAdministration/GetNameAutocompleteData?filterByDoctors=true`, placeholder: selectAttendingDoctorMsg() },
+        { class: "#attendingDoctor", action: `/UserAdministration/GetAutocompleteData?filterByDoctors=true`, placeholder: selectAttendingDoctorMsg() },
         { class: "#personnelTeam", action: `/PersonnelTeam/GetNameAutocompleteData?organizationId=${0}`, placeholder: selectPersonnelTeamMsg() } // setting organizationId = 0 we'll get PersonnelTeams form every Org
     ];
 
@@ -329,7 +322,12 @@ $(document).on('keydown', '#listName', function () {
 });
 
 function validateDateTimeSpan(from, to) {
-    return Date.parse(from) < Date.parse(to);
+    if (from && to) {
+        return Date.parse(from) < Date.parse(to);
+    }
+    else {
+        return true;
+    }
 }
 
 function triggerAdmissionPeriodValidation() {

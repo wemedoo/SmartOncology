@@ -2,6 +2,7 @@
 using sReportsV2.BusinessLayer.Interfaces;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.Common.Constants;
+using sReportsV2.Common.Extensions;
 using sReportsV2.Common.Enums;
 using sReportsV2.Domain.Entities.FieldEntity;
 using sReportsV2.Domain.Entities.Form;
@@ -69,6 +70,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                     case FieldTypes.Paragraph:
                     case FieldTypes.Link:
                     case FieldTypes.Audio:
+                    case FieldTypes.RichTextParagraph:
                         fv.FieldInstanceValues = new List<FieldInstanceValue> {
                             GetStringFieldInstanceValueFromPathoLink(fields, fv.FieldId)
                         };
@@ -108,8 +110,8 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 CaseDetails = new CaseDetails()
                 {
-                    birthday = patient != null && patient.BirthDate.HasValue ? patient.BirthDate.Value.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture) : "",
-                    dateOfSurgery = formInstance.Date.HasValue ? formInstance.Date.Value.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture) : "",
+                    birthday = patient != null ? patient.BirthDate.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart : true) : "",
+                    dateOfSurgery = formInstance.Date.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true),
                     gender = GetPatholinkGender(patient?.GenderCD),
                     submissionID = formInstance.Id
 
@@ -210,7 +212,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             PathoLinkField pathLinkField = new PathoLinkField
             {
                 value = exportPatholinkValue,
-                name = $"[{field.Label}] [{field.Label}]{field.GenerateDependentSuffix(dictionaryFields)}",
+                name = $"[{field.Label}] {field.GenerateDependentSuffix(dictionaryFields)}",
                 defaultValue = string.Empty,
                 type = field.Type,
                 o40MtId = o40mtid

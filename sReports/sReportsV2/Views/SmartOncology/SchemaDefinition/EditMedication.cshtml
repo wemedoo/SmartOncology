@@ -1,4 +1,5 @@
 ﻿@using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchema.DataOut;
+@using sReportsV2.Common.Extensions;
 @model MedicationDataOut
 
 @{
@@ -9,7 +10,7 @@
 }
 
 <div class="schema-card new-medication">
-    <form onsubmit="updateMedication(this, event)" novalidate>
+    <form id="formMedication" onsubmit="updateMedication(this, event)" novalidate>
         <input type="hidden" value="@(Model != null ? Model.Id : 0)" id="inputMedicationId" />
         <input id="rowVersionMedication" name="rowVersionMedication" type="hidden" value="@(Model != null ? Model.RowVersion: "")" />
         @if (isSchemaDefinitionMedication)
@@ -126,7 +127,7 @@
                         <p class="item-body-heading col-12">@sReportsV2.Cache.Resources.TextLanguage.Preparation_instruction:</p>
                         <div class="form-row">
                             <div class="form-group col-md-12 select">
-                                <input type="text" class="filter-input text-input" id="inputPreparationInstruction" value="@(Model != null ? Model.PreparationInstruction : "")">
+                                <input type="text" class="filter-input text-input" name="inputPreparationInstruction" id="inputPreparationInstruction" value="@(Model != null ? Model.PreparationInstruction : "")">
                             </div>
                         </div>
                     </div>
@@ -136,7 +137,7 @@
                         <p class="item-body-heading col-12">@sReportsV2.Cache.Resources.TextLanguage.Application_instruction:</p>
                         <div class="form-row">
                             <div class="form-group col-md-12 select">
-                                <input type="text" class="filter-input text-input" id="inputApplicationInstruction" placeholder="-" value="@(Model != null ? Model.ApplicationInstruction : "")">
+                                <input type="text" class="filter-input text-input" name="inputApplicationInstruction" id="inputApplicationInstruction" placeholder="-" value="@(Model != null ? Model.ApplicationInstruction : "")">
                             </div>
                         </div>
                     </div>
@@ -151,7 +152,7 @@
                                     <p>@sReportsV2.Cache.Resources.TextLanguage.Premedication_days:</p>
                                     <div id="prem-day" class="quantity">
                                         <span class="plus">+</span>
-                                        <input type="text" disabled value="@(Model != null ? Model.GetMedicationDoses(true).Count * -1 : 0)">
+                                        <input name="prem-day" type="text" disabled value="@(Model != null ? Model.GetMedicationDoses(true).Count * -1 : 0)">
                                         <span class="minus">-</span>
                                     </div>
                                 </div>
@@ -163,7 +164,7 @@
                                             {
                                                 <div id="prem-day_@dose.DayNumber"
                                                      class="day-item @(dose.IntervalId.HasValue ? "background": "")"
-                                                     data-set="@dose.ToJson()">
+                                                     data-set="@dose.ToJsonUrlEncoded()">
                                                     @sReportsV2.Cache.Resources.TextLanguage.DAY
                                                     <span class="num">@dose.DayNumber</span>
                                                 </div>
@@ -177,7 +178,7 @@
                                     <p>@sReportsV2.Cache.Resources.TextLanguage.Number_of_days:</p>
                                     <div id="num-day" class="quantity">
                                         <span class="plus">+</span>
-                                        <input type="text" value="@(Model != null ? Model.GetMedicationDoses().Count : 0)" disabled>
+                                        <input name="numOfDays" type="text" value="@(Model != null ? Model.GetMedicationDoses().Count : 0)" disabled>
                                         <span class="minus">-</span>
                                     </div>
                                     <span id="select-all" class="btn-text text-green">@sReportsV2.Cache.Resources.TextLanguage.Select_all_days</span>
@@ -190,7 +191,7 @@
                                             {
                                                 <div id="num-day__@dose.DayNumber"
                                                      class="day-item @(dose.IntervalId.HasValue ? "background": "")"
-                                                     data-set="@dose.ToJson()">
+                                                     data-set="@dose.ToJsonUrlEncoded()">
                                                     @sReportsV2.Cache.Resources.TextLanguage.DAY
                                                     <span class="num">@dose.DayNumber</span>
                                                 </div>
@@ -312,7 +313,7 @@
                         <p class="item-body-heading col-12">@sReportsV2.Cache.Resources.TextLanguage.Additional_instruction:</p>
                         <div class="form-row">
                             <div class="form-group col-md-12 select">
-                                <textarea class="filter-input" id="inputAdditionalInstruction" rows="5" placeholder="-">@(Model != null ? Model.AdditionalInstruction : "")</textarea>
+                                <textarea class="filter-input" id="inputAdditionalInstruction" name="inputAdditionalInstruction" rows="5" placeholder="-">@(Model != null ? Model.AdditionalInstruction : "")</textarea>
                             </div>
                         </div>
                     </div>

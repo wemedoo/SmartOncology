@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Serialization;
 using Serilog;
 
 namespace sReportsV2.Controllers
@@ -27,23 +26,20 @@ namespace sReportsV2.Controllers
     {
         private readonly IFhirBLL fhirBLL;
 
-        public FhirController(IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL, 
+        public FhirController(
             IUserBLL userBLL,
             IOrganizationBLL organizationBLL, 
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL, 
             IFormBLL formBLL, 
-            IEncounterDAL encounterDAL, 
             IFhirBLL fhirBLL, 
-            IThesaurusDAL thesaurusDAL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL, 
             IMapper mapper, 
             IHttpContextAccessor httpContextAccessor,
             IServiceProvider serviceProvider,
-            IConfiguration configuration) :
-            base(patientDAL, episodeOfCareDAL, encounterDAL, userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration)
+            IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService) :
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService)
         {
             this.fhirBLL = fhirBLL;
         }
@@ -57,8 +53,10 @@ namespace sReportsV2.Controllers
                 TrimWhiteSpacesInXml = true,
                 Pretty = true,
             };
-            string jsonString = new FhirJsonSerializer(serializerSettings).SerializeToString(fhirBLL.ExportFormToQuestionnaire(formId));
-            return FormatExportResponse(jsonString);
+            Questionnaire questionnaire = fhirBLL.ExportFormToQuestionnaire(formId);
+            string jsonString = new FhirJsonSerializer(serializerSettings).SerializeToString(questionnaire);
+            SetFileNameInResponse(questionnaire.Title, "json");
+            return Json(jsonString);
         }
 
         [SReportsApiAuthenticate]
@@ -82,16 +80,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.ShowJson, Module = ModuleNames.Designer)]
         public ActionResult ExportFormToMimacom(string formId)
         {
-            var jsonData = JsonConvert.SerializeObject(fhirBLL.ExportFormToMimacom(formId), new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy()
-                },
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            return FormatExportResponse(jsonData);
+            return FormatExportResponse(fhirBLL.ExportFormToMimacom(formId).JsonSerialize(true));
         }
 
         [SReportsApiAuthenticate]
@@ -105,7 +94,7 @@ namespace sReportsV2.Controllers
 
                 formInstanceJsonInput = Ensure.IsNotNull(formInstanceJsonInput, nameof(formInstanceJsonInput));
                 string formId = formInstanceJsonInput.FormId;
-                Form form = formDAL.GetForm(formId);
+                Form form = formBLL.GetFormById(formId);
                 FormInstance formInstance = formInstanceBLL.GetFormInstanceSet(form, formInstanceDataIn: null, userCookieData, setFieldsFromRequest: false);
                 fhirBLL.InsertFromJson(form, formInstance, formInstanceJsonInput);
             }

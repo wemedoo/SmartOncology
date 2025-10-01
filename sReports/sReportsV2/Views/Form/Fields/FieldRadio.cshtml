@@ -37,8 +37,8 @@
                 }
                 @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
                 {
-                    <div class="w-1rem d-flex">
-                        <img alt="" title="Thesaurus" class="margin-bottom-5 hover-th-icon" src="/css/img/icons/@(ffv != null ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToThesaurus('@ffv.ThesaurusId')">
+                    <div class="hover-th-icon-div">
+                        <img alt="" title="Thesaurus" class="hover-th-icon" src="/css/img/icons/@(ffv != null ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToThesaurus('@ffv.ThesaurusId')">
                     </div>
                 }
             </div>

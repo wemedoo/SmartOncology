@@ -1,6 +1,14 @@
 ﻿@using System.Globalization
 @using sReportsV2.DTOs.CodeEntry.DataOut;
 @using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.Encounter;
+
+@{
+    EncounterFilterDataIn filter = ViewBag.FilterData as EncounterFilterDataIn;
+    string admissionDate = filter != null ? filter.AdmissionDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+    string dischargeDate = filter != null ? filter.DischargeDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+    string birthDate = filter != null ? filter.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+}
 
 <form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
     <div class="modal fade" id="advancedFilterModal" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
@@ -19,13 +27,13 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Family
                             </div>
-                            <input type="text" class="filter-input" id="family" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Family : "")">
+                            <input type="text" class="filter-input" id="family" value="@(filter!= null ? filter.Family : "")">
                         </div>
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Given
                             </div>
-                            <input type="text" class="filter-input" id="given" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.Given : "")">
+                            <input type="text" class="filter-input" id="given" value="@(filter != null ? filter.Given : "")">
                         </div>
                     </div>
 
@@ -35,14 +43,14 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.BirthDate
                             </div>
-                            <input type="hidden" id="birthDateDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.BirthDate!= null ? ViewBag.FilterData.BirthDate.ToString("s") : "")">
+                            <input type="hidden" id="birthDateDefault" value="@(filter != null && filter.BirthDate!= null ? filter.BirthDate.Value.ToString("s") : "")">
                             @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
                             {
                                 InputAttributes = new Dictionary<object, object> {
                                     { "class", "filter-input" },
                                     { "id", "birthDate" },
                                     { "name", "birthDate" },
-                                    { "value", ViewBag.FilterData != null && ViewBag.FilterData.BirthDate != null ? ViewBag.FilterData.BirthDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                    { "value", birthDate }
                                 },
                                 InputBtnAttributes = new Dictionary<object, object> {
                                     { "class", "date-img" },
@@ -96,14 +104,14 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Admission_Date
                             </div>
-                            <input type="hidden" id="admissionDateDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.AdmissionDate != null ? ViewBag.FilterData.AdmissionDate.ToString("s") : "")">
+                            <input type="hidden" id="admissionDateDefault" value="@(filter != null && filter.AdmissionDate != null ? filter.AdmissionDate.Value.ToString("s") : "")">
                             @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
                             {
                                 InputAttributes = new Dictionary<object, object> {
                                     { "class", "filter-input" },
                                     { "id", "admissionDate" },
                                     { "name", "admissionDate" },
-                                    { "value", ViewBag.FilterData != null && ViewBag.FilterData.AdmissionDate != null ? ViewBag.FilterData.AdmissionDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                    { "value", admissionDate }
                                 },
                                 InputBtnAttributes = new Dictionary<object, object> {
                                     { "class", "date-img" },
@@ -115,14 +123,14 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Discharge_Date
                             </div>
-                            <input type="hidden" id="dischargeDateDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.DischargeDate != null ? ViewBag.FilterData.DischargeDate.ToString("s") : "")">
+                            <input type="hidden" id="dischargeDateDefault" value="@(filter != null && filter.DischargeDate != null ? filter.DischargeDate.Value.ToString("s") : "")">
                             @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
                             {
                                 InputAttributes = new Dictionary<object, object> {
                                     { "class", "filter-input" },
                                     { "id", "dischargeDate" },
                                     { "name", "dischargeDate" },
-                                    { "value", ViewBag.FilterData != null && ViewBag.FilterData.DischargeDate != null ? ViewBag.FilterData.DischargeDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                    { "value", dischargeDate }
                                 },
                                 InputBtnAttributes = new Dictionary<object, object> {
                                     { "class", "date-img" },

@@ -54,11 +54,11 @@ function getFilterParametersObject() {
 function pushCustomState() {
     var codeSetDisplay = encodeURIComponent($('#thesaurusSearchInputCode').val());
     var codeDisplay = encodeURIComponent($('#codeValueDisplay').val());
-    return `?page=1&pageSize=${getPageSize()}&CodeId=${$('#codeValue').val()}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${$('#codeSetNumberForCode').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+    return `?page=1&pageSize=${getPageSize()}&CodeId=${$('#codeValue').val()}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${$('#codeSetNumberForCode').val()}&CodeSetDisplay=${codeSetDisplay}`;
 }
 
 function getCustomPageParams(number, pageSize) {
     var codeSetDisplay = encodeURIComponent($('#thesaurusSearchInputCode').val());
     var codeDisplay = encodeURIComponent($('#codeValueDisplay').val());
-    return `?page=${number}&pageSize=${pageSize}&CodeId=${$('#codeValue').val()}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${$('#codeSetNumberForCode').val()}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+    return `?page=${number}&pageSize=${pageSize}&CodeId=${$('#codeValue').val()}&CodeDisplay=${encodeURIComponent(codeDisplay)}&CodeSetId=${$('#codeSetNumberForCode').val()}&CodeSetDisplay=${codeSetDisplay}`;
 }

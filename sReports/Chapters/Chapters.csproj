@@ -16,7 +16,7 @@
     <ProjectReference Include="..\sReportsV2.Cache\sReportsV2.Cache.csproj" />
     <ProjectReference Include="..\sReportsV2.Common\sReportsV2.Common.csproj" />
     <ProjectReference Include="..\sReportsV2.Domain.Sql\sReportsV2.Domain.Sql.csproj" />
-    <ProjectReference Include="..\sReportsV2.Domain\sReportsV2.DAL.MongoDb.csproj" />
+    <ProjectReference Include="..\sReportsV2.DAL.MongoDb\sReportsV2.DAL.MongoDb.csproj" />
     <ProjectReference Include="..\sReportsV2.DTOs\sReportsV2.DTOs.csproj" />
   </ItemGroup>
   <ItemGroup>

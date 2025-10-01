@@ -1,0 +1,22 @@
+﻿@using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
+@model List<AutocompleteOptionDataOut>
+
+@foreach (AutocompleteOptionDataOut item in Model)
+{
+    <div class="single-form-list-element" @Html.Raw(item.RenderDataAttributes())>
+        @if (item.FormAddition)
+        {
+            <div class="pin-icon @(item.PinnedItem ? "pinned" : "")" id="pinned-icon" onclick="pinOrUnpinSuggestedForm(event, '@item.id')">
+            </div>
+        }
+        <div class="title">
+            @item.text
+        </div>
+        <div class="select-button unselect">
+            @sReportsV2.Cache.Resources.TextLanguage.Unselect
+        </div>
+        <div class="select-button">
+            @sReportsV2.Cache.Resources.TextLanguage.Select
+        </div>
+    </div>
+}

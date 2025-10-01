@@ -1,4 +1,12 @@
 ﻿(function ($) {
+
+    addUnsavedSecondFormChangesEventHandler("#formMedication", "#generalProperties");
+
+    $(document).ready(function () {
+        saveInitialFormData("#formMedication");
+        saveInitialSecondFormData("#generalProperties");
+    });
+
     //"use strict";
     ///////////
     // TREATMENT CYCLES  -  Show more options for LIMITED therapy
@@ -224,6 +232,7 @@ function updateGeneralProperties() {
         success: function (data) {
             toastr.success("Schema is updated sucessfully!");
             updateSchemaDataOnUI(data.id, data.rowVersion);
+            saveInitialSecondFormData("#generalProperties");
         },
         error: function (xhr, ajaxOptions, thrownError) {
             handleResponseError(xhr);
@@ -347,12 +356,21 @@ function viewEntity(id) {
 //medication modal
 $(document).on('click', '.update-medication', function (e) {
     let medicationId = $(this).attr("data-id");
+
+    if (initialFormData != null && !compareForms("#formMedication")) {
+        const confirmChange = confirm("You have unsaved changes. Are you sure you want to leave?");
+        if (!confirmChange) {
+            return;
+        }
+    }
+
     callServer({
         type: "GET",
         url: `/SmartOncology/GetSchemaMedication?id=${medicationId}`,
         success: function (data) {
             $(".new-medication-wrapper").html(data);
             $('.new-medication-wrapper').show();
+            saveInitialFormData("#formMedication");
         },
         error: function (xhr, ajaxOptions, thrownError) {
             handleResponseError(xhr);

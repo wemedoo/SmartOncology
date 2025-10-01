@@ -76,12 +76,13 @@
         public const string CommentState = "Comment state";
         public const string GlobalUserSource = "Global user source";
         public const string GlobalUserStatus = "Global user status";
+        public const string QueryStatus = "Query Status";
+        public const string QueryReason = "Query Reason";
 
         #region Code Set names that are not migrated
 
         public const string FormFieldDependableType = "Form field dependable type";
         public const string LayoutType = "Layout types";
-        public const string SimilarTermType = "Similar term type";
         public const string IdentifierKind = "Identifier kind";
         public const string TypeOfIdentifier = "Type of identifier";
         public const string FormTypeField = "Form type field";

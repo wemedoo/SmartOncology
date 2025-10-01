@@ -18,29 +18,29 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly ICodeAliasViewDAL aliasDAL;
         private readonly IInboundAliasDAL inboundAliasDAL;
         private readonly IOutboundAliasDAL outboundAliasDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public CodeAliasBLL(ICodeAliasViewDAL aliasDAL, IInboundAliasDAL inboundAliasDAL, IOutboundAliasDAL outboundAliasDAL, IMapper mapper)
         {
             this.aliasDAL = aliasDAL;
             this.inboundAliasDAL = inboundAliasDAL;
             this.outboundAliasDAL = outboundAliasDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public CodeAliasViewDataOut GetById(int aliasId)
         {
             CodeAliasView alias = aliasDAL.GetById(aliasId);
-            return Mapper.Map<CodeAliasViewDataOut>(alias);
+            return mapper.Map<CodeAliasViewDataOut>(alias);
         }
 
         public PaginationDataOut<CodeAliasViewDataOut, DataIn> GetAllFiltered(CodeAliasFilterDataIn dataIn)
         {
-            CodeAliasFilter filter = Mapper.Map<CodeAliasFilter>(dataIn);
+            CodeAliasFilter filter = mapper.Map<CodeAliasFilter>(dataIn);
             PaginationDataOut<CodeAliasViewDataOut, DataIn> result = new PaginationDataOut<CodeAliasViewDataOut, DataIn>()
             {
                 Count = this.aliasDAL.GetAllEntriesCount(filter),
-                Data = Mapper.Map<List<CodeAliasViewDataOut>>(this.aliasDAL.GetAllAlias(filter)),
+                Data = mapper.Map<List<CodeAliasViewDataOut>>(this.aliasDAL.GetAllAlias(filter)),
                 DataIn = dataIn
             };
 
@@ -60,7 +60,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public InboundAlias InsertInboundAlias(CodeAliasDataIn dataIn, bool hasOutboundAlias)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            InboundAlias inboundAlias = Mapper.Map<InboundAlias>(dataIn);
+            InboundAlias inboundAlias = mapper.Map<InboundAlias>(dataIn);
             InboundAlias inboundAliasDB = inboundAliasDAL.GetById(inboundAlias.AliasId);
 
             try 
@@ -102,7 +102,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private int InsertInboundAndOutboundAliases(CodeAliasDataIn dataIn) 
         {
-            OutboundAlias outboundAlias = Mapper.Map<OutboundAlias>(dataIn);
+            OutboundAlias outboundAlias = mapper.Map<OutboundAlias>(dataIn);
             OutboundAlias outboundAliasDB = outboundAliasDAL.GetById(outboundAlias.AliasId);
             InboundAlias inboundAliasForInsert = InsertInboundAlias(dataIn, true);
 

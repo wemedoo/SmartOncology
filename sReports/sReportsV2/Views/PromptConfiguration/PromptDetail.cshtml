@@ -1,0 +1,23 @@
+﻿@using sReportsV2.DTOs.DTOs.Prompt.DataOut
+
+@model PromptDetailDataOut
+
+<div class="promptContainer">
+    <div class="prompt-title">@Model.GetPromptItemName()</div>
+    <div class="prompt-input">
+        <div class="label filter-label">
+            Type a prompt
+        </div>
+        <textarea class="designer-form-input form-control" rows="10" placeholder="Type a prompt" id="prompt-text" name="prompt-text" @ViewBag.Disabled>@Model.Prompt</textarea>
+    </div>
+</div>
+@if (Model.Field != null)
+{
+    <div>
+        <input type="hidden" id="prompt-field-id" value="@Model.Field.Id" />
+        <div class="prompt-title">Field Preview</div>
+        <div class="prompt-field-display">
+            @await Html.PartialAsync(Model.Field.NestableView, Model.Field, new ViewDataDictionary(ViewData) { { "IsMatrixLayout", false }, { "ShowBtnGroupSection", false } })
+        </div>
+    </div>
+}

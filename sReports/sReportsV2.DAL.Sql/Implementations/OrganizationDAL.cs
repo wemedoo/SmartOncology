@@ -150,7 +150,7 @@ namespace sReportsV2.DAL.Sql.Implementations
                 result = SortByField(result, organizationFilter);
             else
                 result = result.OrderByDescending(x => x.OrganizationId)
-                    .Skip((organizationFilter.Page - 1) * organizationFilter.PageSize)
+                    .Skip(organizationFilter.GetHowManyElementsToSkip())
                     .Take(organizationFilter.PageSize);
 
             return result.ToList();
@@ -235,8 +235,10 @@ namespace sReportsV2.DAL.Sql.Implementations
         public List<Organization> GetByIds(List<int> ids)
         {
             return context.Organizations
+                .Include(x => x.OrganizationAddress)
                 .WhereEntriesAreActive()
-                .Where(x => ids.Contains(x.OrganizationId)).ToList();
+                .Where(x => ids.Contains(x.OrganizationId))
+                .ToList();
         }
 
         public void InsertOrganizationRelation(OrganizationRelation relation)
@@ -295,12 +297,6 @@ namespace sReportsV2.DAL.Sql.Implementations
             return await context.OrganizationCommunicationEntities
                  .FirstOrDefaultAsync(x => x.OrgCommunicationEntityId == orgCommunicationEntityId)
                  .ConfigureAwait(false);
-        }
-
-        public string GetTimeZoneOffset(int organizationId)
-        {
-            return context.Organizations.Where(x => x.OrganizationId == organizationId)
-                .FirstOrDefault()?.TimeZoneOffset;
         }
 
         private void SetOrganizationsChildren(List<OrganizationUsersCount> allOrganization)
@@ -401,17 +397,17 @@ namespace sReportsV2.DAL.Sql.Implementations
                         return result.OrderBy(x => x.OrganizationAddress.City)
                                 .ThenBy(x => x.OrganizationAddress.PostalCode)
                                 .ThenBy(x => x.OrganizationAddress.Country)
-                                .Skip((organizationFilter.Page - 1) * organizationFilter.PageSize)
+                                .Skip(organizationFilter.GetHowManyElementsToSkip())
                                 .Take(organizationFilter.PageSize);
                     else
                         return result.OrderByDescending(x => x.OrganizationAddress.City)
                                 .ThenByDescending(x => x.OrganizationAddress.PostalCode)
                                 .ThenByDescending(x => x.OrganizationAddress.Country)
-                                .Skip((organizationFilter.Page - 1) * organizationFilter.PageSize)
+                                .Skip(organizationFilter.GetHowManyElementsToSkip())
                                 .Take(organizationFilter.PageSize);
                 default:
                     return SortTableHelper.OrderByField(result, organizationFilter.ColumnName, organizationFilter.IsAscending)
-                                 .Skip((organizationFilter.Page - 1) * organizationFilter.PageSize)
+                                 .Skip(organizationFilter.GetHowManyElementsToSkip())
                                  .Take(organizationFilter.PageSize);
             }
         }

@@ -191,7 +191,7 @@
 
 .patient-container {
   border-right: 1px solid #dfdfdf;
-  margin-left: -27px;
+  margin-left: -22px;
   background: #F9F9F9;
   padding-left: 8px;
   display: block;
@@ -345,7 +345,7 @@
 }
 
 .eoc-document {
-  margin-right: -57px;
+  margin-right: -52px;
   background: #F9F9F9;
   min-height: calc(100vh - 159px);
   padding-left: 12px;
@@ -1141,15 +1141,6 @@
   margin-right: 10px;
 }
 
-.gray-accordion-header {
-  color: black !important;
-  background-color: #ECEEEF !important;
-  font-weight: 600;
-}
-.gray-accordion-header::after {
-  color: black !important;
-}
-
 .add-btn-div {
   text-align: right;
   margin-right: 10px;
@@ -1351,6 +1342,10 @@
 .dots-eoc {
   margin-left: 0px;
   width: 45px;
+}
+.dots-eoc .view-svg-size {
+  height: unset;
+  margin-right: 10px;
 }
 
 .show-encounters-button {
@@ -1823,7 +1818,7 @@
   border-top: 1px solid #DFDFDF;
 }
 
-.ecnounter-dropdown-menu {
+.expand-dropdown-menu {
   min-width: max-content;
 }
 
@@ -1931,123 +1926,22 @@
   top: 116px;
 }
 
-.single-document-item, .suggested-forms .single-pinned-item {
-  padding: 27px 34px 23px 34px;
-  border: dashed 1px #bababa;
-  border-radius: 14px;
-  margin-top: 12px;
-  margin-right: 12px;
-  display: inline-block;
-  width: calc(25% - 16px);
-  cursor: pointer;
-  vertical-align: top;
-  background-color: white;
+.patient-list-checkbox-label i {
+  top: 0.25rem;
 }
-.single-document-item .icon, .suggested-forms .single-pinned-item .icon {
-  background-image: url("img/icons/doc_silver.svg");
-  background-repeat: no-repeat;
-  width: 31px;
-  height: 40px;
-}
-.single-document-item > .title, .suggested-forms .single-pinned-item > .title {
-  padding-top: 11px;
-  padding-bottom: 28px;
-  border-radius: 14px;
-  font-weight: 700;
-  color: #1c94a3;
-  height: 170px;
-  font-size: 14px;
-}
-.single-document-item:hover:not(.add-new-document-item-button), .suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button), .single-document-item.active, .suggested-forms .active.single-pinned-item {
-  background-color: #1c94a3;
-  color: white;
-  border: solid 1px #1c94a3;
-}
-.single-document-item:hover:not(.add-new-document-item-button) > .title, .suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button) > .title, .single-document-item.active > .title, .suggested-forms .active.single-pinned-item > .title {
-  color: white;
-}
-.single-document-item:hover:not(.add-new-document-item-button) .icon, .suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button) .icon, .single-document-item.active .icon, .suggested-forms .active.single-pinned-item .icon {
-  background-image: url("img/icons/doc_white.svg");
-}
-.single-document-item:hover:not(.add-new-document-item-button) .select-button, .suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button) .select-button, .single-document-item.active .select-button, .suggested-forms .active.single-pinned-item .select-button {
-  background-image: url("img/icons/arrow_select_white.svg");
-  background-position-x: 60px;
-  background-position-y: 6px;
-}
-.single-document-item:hover:not(.add-new-document-item-button) .select-button.view, .suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button) .select-button.view, .single-document-item.active .select-button.view, .suggested-forms .active.single-pinned-item .select-button.view {
-  background-position-x: 52px;
-  background-position-y: 7px;
-}
-.single-document-item:hover:not(.add-new-document-item-button) .datetime, .suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button) .datetime, .single-document-item.active .datetime, .suggested-forms .active.single-pinned-item .datetime {
-  color: white;
-}
-.single-document-item.active .unselect, .suggested-forms .active.single-pinned-item .unselect {
-  display: block;
-  background-image: url("img/icons/arrow_select_white.svg");
-  background-repeat: no-repeat;
-}
-.single-document-item.active .select-button:not(.unselect), .suggested-forms .active.single-pinned-item .select-button:not(.unselect) {
-  background-image: url("img/icons/arrow_select_white.svg");
-  background-repeat: no-repeat;
-  display: none;
-}
-.single-document-item.add-new-document-item-button, .suggested-forms .add-new-document-item-button.single-pinned-item {
-  border: dashed 1px #1c94a3;
-  background-color: #ebfdff;
-}
-.single-document-item.add-new-document-item-button .icon, .suggested-forms .add-new-document-item-button.single-pinned-item .icon {
-  width: 42px;
-  background-image: url("img/icons/browse.svg");
-}
-.single-document-item.add-new-document-item-button > .title, .suggested-forms .add-new-document-item-button.single-pinned-item > .title {
-  color: #1c94a3;
-  height: 191px;
-}
-.single-document-item .icon-wrapper, .suggested-forms .single-pinned-item .icon-wrapper {
-  display: flex;
-  align-items: center;
-}
-.single-document-item .icon-wrapper .datetime, .suggested-forms .single-pinned-item .icon-wrapper .datetime {
-  font-weight: 700;
-  color: #1c94a3;
+.patient-list-checkbox-label span {
   margin-left: 10px;
-  font-size: 13px;
+  margin-top: 5px;
+  padding-top: 3px;
 }
 
-.suggested-forms {
-  padding-top: 40px;
-  display: block;
-  vertical-align: top;
+.delete-btn-document-encounter {
+  margin-top: 19px;
+  margin-bottom: auto;
+  color: #B8B8B8;
+  margin-left: 5px;
+  font-size: 13px;
 }
-.suggested-forms .suggested-forms-container {
-  padding-top: 14px;
-  padding-bottom: 40px;
-}
-.suggested-forms .single-pinned-item {
-  position: relative;
-}
-.suggested-forms .single-pinned-item .icon {
-  background-size: cover;
-  height: 41px;
-  background-image: url("img/icons/pinned_doc.svg");
-}
-.suggested-forms .single-pinned-item .pinned-icon {
-  position: absolute;
-  right: 15px;
-  top: 27px;
-  background-image: url("img/icons/pinned_red.svg");
-  width: 30px;
-  height: 30px;
-  background-repeat: no-repeat;
-}
-.suggested-forms .single-pinned-item:hover:not(.add-new-document-item-button) .icon, .suggested-forms .single-pinned-item.active .icon {
-  background-image: url("img/icons/pinned_doc_white.svg");
-}
-.suggested-forms .single-pinned-item .icon {
-  background-image: url("img/icons/pinned_doc.svg");
-}
-.suggested-forms > .title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #000000;
+.delete-btn-document-encounter:hover {
+  color: #6f6b6b;
 }

@@ -15,8 +15,6 @@ using sReportsV2.DTOs.User.DTO;
 using sReportsV2.DAL.Sql.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using sReportsV2.Common.Entities.User;
@@ -27,13 +25,15 @@ using sReportsV2.Common.Exceptions;
 using sReportsV2.DTOs.DTOs.User.DataIn;
 using sReportsV2.DTOs.DTOs.User.DataOut;
 using sReportsV2.DTOs.Autocomplete;
-using System.Transactions;
 using sReportsV2.Cache.Resources;
 using sReportsV2.BusinessLayer.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using sReportsV2.Common.Enums;
+using System.Net;
+using sReportsV2.Cache.Singleton;
+using System.Linq;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -45,7 +45,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IFormDAL formDAL;
         private readonly ICodeDAL codeDAL;
         private readonly IEmailSender emailSender;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         private readonly IConfiguration configuration;
 
         public UserBLL(IPersonnelDAL userDAL, IOrganizationDAL organizationDAL, IHttpContextAccessor httpContextAccessor, IFormDAL formDAL, IEmailSender emailSender, IMapper mapper, IConfiguration configuration, ICodeDAL codeDAL)
@@ -55,7 +55,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.httpContextAccessor = httpContextAccessor;
             this.formDAL = formDAL;
             this.emailSender = emailSender;
-            Mapper = mapper;
+            this.mapper = mapper;
             this.configuration = configuration;
             this.codeDAL = codeDAL;
         }
@@ -69,14 +69,14 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             if (userEntity != null)
             {
-                UserCookieData userCookieData = Mapper.Map<UserCookieData>(userEntity);
-                userCookieData.TimeZoneOffset = userDataIn.TimeZone;
+                UserCookieData userCookieData = mapper.Map<UserCookieData>(userEntity);
                 userCookieData.ActiveLanguage = LanguageConstants.EN;
+                userCookieData.TimeZoneOffset = userDataIn.TimeZone;
                 userEntity.PersonnelConfig.TimeZoneOffset = userDataIn.TimeZone;
 
                 UpdateUserCookieLanguageData(userCookieData);
-                result = Mapper.Map<UserDataOut>(userCookieData);
-                result.Organizations = Mapper.Map<List<UserOrganizationDataOut>>(userEntity.GetNonArchivedOrganizations(archivedUserStateCD));
+                result = mapper.Map<UserDataOut>(userCookieData);
+                result.Organizations = mapper.Map<List<UserOrganizationDataOut>>(userEntity.GetNonArchivedOrganizations(archivedUserStateCD));
 
                 userDAL.Save();
 
@@ -100,70 +100,52 @@ namespace sReportsV2.BusinessLayer.Implementations
         #region CRUD
         public UserDataOut GetById(int userId)
         {
-            return Mapper.Map<UserDataOut>(userDAL.GetById(userId));
+            return mapper.Map<UserDataOut>(userDAL.GetById(userId));
         }
 
-        public CreateUserResponseResult Insert(UserDataIn userDataIn, string activeLanguage, int medicalDoctorsCodeId)
+        public async Task<CreateUserResponseResult> InsertOrUpdate(UserDataIn userDataIn, string activeLanguage)
         {
             userDataIn = Ensure.IsNotNull(userDataIn, nameof(userDataIn));
-            Personnel user = Mapper.Map<Personnel>(userDataIn);
-            user.IsDoctor = CheckIsDoctor(user.PersonnelOccupation, medicalDoctorsCodeId);
-            Personnel userDb = userDAL.GetById(userDataIn.Id) ?? new Personnel();
-            string password = null;
+            ValidateUniqueness(userDataIn);
 
-            using (var scope = new TransactionScope())
+            Personnel user = mapper.Map<Personnel>(userDataIn);
+            user.IsDoctor = CheckIsDoctor(user.PersonnelOccupation);
+            Personnel userDb = userDAL.GetById(userDataIn.Id) ?? user;
+            string passwordForQuickRegistration = null;
+
+            if (userDataIn.Id == 0)
             {
-                try
+                userDb.PersonnelConfig = new PersonnelConfig() { ActiveLanguage = activeLanguage };
+                string generatedPassword = SetCredentialsForNewUser(userDb);
+                if (userDb.Email != null)
                 {
-                    if (userDataIn.Id == 0)
-                    {
-                        userDb = user;
-                        userDb.Salt = PasswordHelper.CreateSalt(10);
-                        var tuplePass = PasswordHelper.CreateHashedPassword(8, userDb.Salt);
-                        userDb.Password = tuplePass.Item2;
-                        if (userDb.Email != null)
-                        {
-                            string mailContent = EmailHelpers.GetRegistrationEmailContent(userDb, tuplePass.Item1);
-                            Task.Run(() => emailSender.SendAsync(new EmailDTO(userDb.Email, mailContent, $"{EmailSenderNames.SoftwareName} Registration")));
-                        }
-                        else
-                        {
-                            password = tuplePass.Item1;
-                        }
-                    }
-                    else
-                    {
-                        userDb.Copy(user);
-                    }
-
-                    userDb.UpdateRoles(userDataIn.Roles);
-                    userDb.SetPersonnelConfig(activeLanguage);
-                    userDAL.InsertOrUpdate(userDb);
-
-                    if (userDataIn.PersonnelOccupation != null)
-                        userDAL.InsertOrUpdatePersonnelOccupation(userDb, Mapper.Map<PersonnelOccupation>(userDataIn.PersonnelOccupation));
-
-                    scope.Complete();
+                    string mailContent = EmailHelpers.GetRegistrationEmailContent(userDb, generatedPassword);
+                    await Task.Run(() => emailSender.SendAsync(new EmailDTO(userDb.Email, mailContent, $"{EmailSenderNames.SoftwareName} Registration")));
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine($"An error occurred: {ex.Message}");
-                    throw;
+                    passwordForQuickRegistration = generatedPassword;
                 }
             }
+            else
+            {
+                userDb.Copy(user);
+            }
+
+            await userDAL.CommitUserTransaction(userDb, mapper.Map<PersonnelOccupation>(userDataIn.PersonnelOccupation));
 
             return new CreateUserResponseResult()
             {
                 Id = userDb.PersonnelId,
                 RowVersion = userDb.RowVersion,
-                Password = password,
+                Password = passwordForQuickRegistration,
                 Message = userDb.PersonnelId == 0 ? TextLanguage.UserAdministrationMsgCreate : TextLanguage.UserAdministrationMsgEdit
             };
         }
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PersonnelIdentifierDataIn childDataIn)
         {
-            PersonnelIdentifier personnelIdentifier = Mapper.Map<PersonnelIdentifier>(childDataIn);
+            PersonnelIdentifier personnelIdentifier = mapper.Map<PersonnelIdentifier>(childDataIn);
             PersonnelIdentifier personnelIdentifierDb = await userDAL.GetById(new QueryEntityParam<PersonnelIdentifier>(childDataIn.Id)).ConfigureAwait(false);
 
             if (personnelIdentifierDb == null)
@@ -185,7 +167,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(PersonnelAddressDataIn addressDataIn)
         {
-            PersonnelAddress personnelAddress = Mapper.Map<PersonnelAddress>(addressDataIn);
+            PersonnelAddress personnelAddress = mapper.Map<PersonnelAddress>(addressDataIn);
             PersonnelAddress personnelAddressDb = await userDAL.GetById(new QueryEntityParam<PersonnelAddress>(addressDataIn.Id)).ConfigureAwait(false);
 
             if (personnelAddressDb == null)
@@ -209,7 +191,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PersonnelIdentifier personnelIdentifier = Mapper.Map<PersonnelIdentifier>(childDataIn);
+                PersonnelIdentifier personnelIdentifier = mapper.Map<PersonnelIdentifier>(childDataIn);
                 await userDAL.Delete(personnelIdentifier).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -222,7 +204,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                PersonnelAddress personnelAddress = Mapper.Map<PersonnelAddress>(childDataIn);
+                PersonnelAddress personnelAddress = mapper.Map<PersonnelAddress>(childDataIn);
                 await userDAL.Delete(personnelAddress).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -232,9 +214,15 @@ namespace sReportsV2.BusinessLayer.Implementations
         }
         #endregion /CRUD
 
+        public int GetMedicalDoctorsCodeId()
+        {
+            return SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.OccupationSubCategory).Where(e => e.Thesaurus.Translations
+                .Exists(t => t.PreferredTerm == "Medical Doctors")).Select(x => x.Id).FirstOrDefault();
+        }
+
         public List<UserDataOut> GetByIdsList(List<int> ids)
         {
-            return Mapper.Map<List<UserDataOut>>(userDAL.GetAllByIds(ids));
+            return mapper.Map<List<UserDataOut>>(userDAL.GetAllByIds(ids));
         }
 
         public bool IsUsernameValid(string username, int? userId)
@@ -257,11 +245,11 @@ namespace sReportsV2.BusinessLayer.Implementations
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
 
-            PersonnelFilter filterData = Mapper.Map<PersonnelFilter>(dataIn);
+            PersonnelFilter filterData = mapper.Map<PersonnelFilter>(dataIn);
             PaginationDataOut<UserViewDataOut, DataIn> result = new PaginationDataOut<UserViewDataOut, DataIn>()
             {
                 Count = (int)userDAL.GetAllFilteredCount(filterData, archivedUserStateCD),
-                Data = Mapper.Map<List<UserViewDataOut>>(userDAL.GetAll(filterData, archivedUserStateCD)),
+                Data = mapper.Map<List<UserViewDataOut>>(userDAL.GetAll(filterData, archivedUserStateCD)),
                 DataIn = dataIn
             };
 
@@ -277,13 +265,13 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 //TO DO THROW EXCEPTION NOT FOUND
             }
-            userDAL.UpdateOrganizationsUserCounts(Mapper.Map<Personnel>(userDataIn), dbUser);
+            userDAL.UpdateOrganizationsUserCounts(mapper.Map<Personnel>(userDataIn), dbUser);
             if (userDataIn.UserOrganizations != null) 
             {
                 foreach (UserOrganizationDataIn userOrganizationDataIn in userDataIn.UserOrganizations)
                 {
                     PersonnelOrganization userOrganizationDb = dbUser.Organizations.Find(x => x.OrganizationId == userOrganizationDataIn.OrganizationId);
-                    PersonnelOrganization userOrganization = Mapper.Map<PersonnelOrganization>(userOrganizationDataIn);
+                    PersonnelOrganization userOrganization = mapper.Map<PersonnelOrganization>(userOrganizationDataIn);
                     if (userOrganizationDb != null)
                     {
                         userOrganizationDb.Copy(userOrganization);
@@ -309,14 +297,14 @@ namespace sReportsV2.BusinessLayer.Implementations
         public UserDataOut GetUserForEdit(int userId)
         {
             Personnel dbUser = userDAL.GetById(userId) ?? throw new ArgumentNullException(nameof(userId));
-            UserDataOut userData = Mapper.Map<UserDataOut>(dbUser);
+            UserDataOut userData = mapper.Map<UserDataOut>(dbUser);
             return userData;
         }
 
         public UserOrganizationDataOut LinkOrganization(LinkOrganizationDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            OrganizationDataOut organization = Mapper.Map<OrganizationDataOut>(organizationDAL.GetById(dataIn.OrganizationId));
+            OrganizationDataOut organization = mapper.Map<OrganizationDataOut>(organizationDAL.GetById(dataIn.OrganizationId));
 
             return new UserOrganizationDataOut(organization);
         }
@@ -340,8 +328,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             Personnel user = this.userDAL.GetById(userCookieData.Id);
             user.PersonnelConfig.ActiveOrganizationId = organizationId;
             this.userDAL.InsertOrUpdate(user);
-            userCookieData.ActiveOrganization = organizationId;
-            userCookieData.LogoUrl = this.organizationDAL.GetById(organizationId).LogoUrl;
+            userCookieData.UpdateAfterActiveOrganizationChange(user, organizationId);
             UpdateUserCookieInSession(userCookieData);
         }
 
@@ -398,7 +385,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public List<UserData> GetUsersForCommentTag(string searchWord)
         {
             List<Personnel> proposedUsers = userDAL.GetUsersForCommentTag(searchWord);
-            return Mapper.Map<List<UserData>>(proposedUsers);
+            return mapper.Map<List<UserData>>(proposedUsers);
         }
 
         public void AddSuggestedForm(string username, string formId)
@@ -415,48 +402,39 @@ namespace sReportsV2.BusinessLayer.Implementations
             userDAL.InsertOrUpdate(user);
         }
 
-        public List<UserDataOut> GetUsersByName(string searchValue, int organizationId)
+        public async Task<AutocompleteResultDataOut> GetAutocompleteData(PersonnelAutocompleteDataIn autocompleteFilterDataIn)
         {
-            int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
-            List<AutoCompleteUserData> users = userDAL.GetUsersFilteredByName(searchValue, organizationId, archivedUserStateCD).ToList();
+            PersonnelAutocompleteFilter personnelAutocompleteFilter = mapper.Map<PersonnelAutocompleteFilter>(autocompleteFilterDataIn);
+            personnelAutocompleteFilter.ArchivedUserStateId = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
 
-            return Mapper.Map<List<UserDataOut>>(users);
+            List<AutoCompleteUserData> users = await userDAL.FilterForAutocomplete(personnelAutocompleteFilter).ConfigureAwait(false);
+
+            return new AutocompleteResultDataOut() { results = mapper.Map<List<AutocompleteDataOut>>(users) };
         }
 
-        public async Task<AutocompleteResultDataOut> GetUsersByNameAsync(AutocompleteDataIn dataIn)
-        {
-            int defaultPageSize = 10;
-            dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
-
-            IQueryable<AutoCompleteUserData> filteredUsers = userDAL.GetUsersFilteredByName(dataIn.Term, 0, archivedUserStateCD);
-            int count = await filteredUsers.CountAsync().ConfigureAwait(false);
-                
-            List<AutocompleteDataOut> autocompleteDataDataOuts = filteredUsers
-                .OrderBy(x => x.FirstName)
-                .Skip((dataIn.Page - 1) * defaultPageSize)
-                .Take(defaultPageSize).AsEnumerable()
-                .Select(userData => new AutocompleteDataOut()
-                {
-                    id = userData.PersonnelId.ToString(),
-                    text = userData.ToString()
-                })
-                .ToList();
-
-            AutocompleteResultDataOut result = new AutocompleteResultDataOut()
-            {
-                results = autocompleteDataDataOuts,
-                pagination = new AutocompletePaginatioDataOut() { more = count > dataIn.Page * defaultPageSize, }
-            };
-
-            return result;
-        }
 
         public bool ExistEntity(PersonnelIdentifierDataIn dataIn)
         {
-            PersonnelIdentifier identifier = Mapper.Map<PersonnelIdentifier>(dataIn);
+            PersonnelIdentifier identifier = mapper.Map<PersonnelIdentifier>(dataIn);
             bool result = userDAL.ExistIdentifier(identifier);
             return result;
+        }
+
+        private string SetCredentialsForNewUser(Personnel user)
+        {
+            user.Salt = PasswordHelper.CreateSalt(10);
+            var tuplePass = PasswordHelper.CreateHashedPassword(8, user.Salt);
+            user.Password = tuplePass.Item2;
+
+            return tuplePass.Item1;
+        }
+
+        private void ValidateUniqueness(UserDataIn userDataIn)
+        {
+            if (!string.IsNullOrEmpty(userDataIn.Email) && (!userDAL.IsEmailValid(userDataIn.Email, userDataIn.Id) || !userDAL.IsUsernameValid(userDataIn.Username, userDataIn.Id)))
+            {
+                throw new UserAdministrationException((int)HttpStatusCode.Conflict, $"User with the given data (email: {userDataIn.Email}, username: {userDataIn.Username}) already exist");
+            }
         }
 
         private Personnel ValidateChangePasswordInput(string oldPassword, string newPassword, string confirmPassword, string userId)
@@ -466,7 +444,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 throw new UserAdministrationException(StatusCodes.Status400BadRequest, "User id is in invalid format.");
             }
 
-            Personnel user = userDAL.GetById(userIdentifier) ?? throw new UserAdministrationException(StatusCodes.Status404NotFound, string.Format("User with given id ({0}) does not exist.", userId));
+            Personnel user = userDAL.GetWithHistoryById(userIdentifier) ?? throw new UserAdministrationException(StatusCodes.Status404NotFound, string.Format("User with given id ({0}) does not exist.", userId));
             if (!PasswordHelper.Hash(oldPassword, user.Salt).Equals(user.Password))
             {
                 throw new UserAdministrationException(StatusCodes.Status400BadRequest, "Current password is not correct.");
@@ -485,6 +463,12 @@ namespace sReportsV2.BusinessLayer.Implementations
             if (newPassword.Equals(oldPassword))
             {
                 throw new UserAdministrationException(StatusCodes.Status409Conflict, "Old and new password match. Please provide new value.");
+            }
+
+            string newPasswordHash = PasswordHelper.Hash(newPassword, user.Salt);
+            if (user.PasswordHistory != null && user.PasswordHistory.Contains(newPasswordHash))
+            {
+                throw new UserAdministrationException(StatusCodes.Status409Conflict, "You cannot reuse an old password.");
             }
 
             string errorMessage = PasswordHelper.AdditionalPasswordChecking(newPassword, configuration);
@@ -539,42 +523,16 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             if (userCookieData.ActiveLanguage != null)
             {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo(LanguageConstants.EN);
-                Thread.CurrentThread.CurrentUICulture = new CultureInfo(userCookieData.ActiveLanguage);
+                Thread.CurrentThread.UpdateLanguage(userCookieData.ActiveLanguage);
             }
 
             var context = httpContextAccessor.HttpContext;
             context.Response.Cookies.Append("Language", userCookieData.ActiveLanguage);
         }
 
-        public AutocompleteResultDataOut GetNameForAutocomplete(PersonnelAutocompleteDataIn autocompleteFilterDataIn)
+        private bool CheckIsDoctor(PersonnelOccupation occupation)
         {
-            autocompleteFilterDataIn = Ensure.IsNotNull(autocompleteFilterDataIn, nameof(autocompleteFilterDataIn));
-            PersonnelAutocompleteFilter personnelAutocompleteFilter = Mapper.Map<PersonnelAutocompleteFilter>(autocompleteFilterDataIn);
-            int? archivedUserStateCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.UserState, CodeAttributeNames.Archived);
-
-            IQueryable<Personnel> filtered = userDAL.FilterForAutocomplete(personnelAutocompleteFilter, archivedUserStateCD)
-                .OrderBy(x => x.FirstName);
-
-            List<AutocompleteDataOut> personnelTeamDataOuts = filtered
-                .Select(x => new AutocompleteDataOut()
-                {
-                    id = x.PersonnelId.ToString(),
-                    text = x.FirstName + " " + x.LastName
-                })
-                .ToList();
-
-            AutocompleteResultDataOut result = new AutocompleteResultDataOut()
-            {
-                results = personnelTeamDataOuts
-            };
-
-            return result;
-        }
-
-        private bool CheckIsDoctor(PersonnelOccupation occupation, int medicalDoctorsCodeId)
-        {
-            if (occupation != null && occupation.OccupationSubCategoryCD == medicalDoctorsCodeId)
+            if (occupation != null && occupation.OccupationSubCategoryCD == GetMedicalDoctorsCodeId())
                 return true;
 
             return false;

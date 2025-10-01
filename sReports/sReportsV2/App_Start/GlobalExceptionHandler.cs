@@ -16,6 +16,7 @@ using sReportsV2.DTOs.Common;
 using Newtonsoft.Json;
 using sReportsV2.Common.Extensions;
 using Microsoft.EntityFrameworkCore;
+using sReportsV2.Common.Helpers;
 
 namespace sReportsV2.App_Start
 {
@@ -110,7 +111,7 @@ namespace sReportsV2.App_Start
 
         private void LogException(HttpContext httpContext, Exception exception, string exType)
         {
-            Log.Error("<--- Exception [{ExType}] is thrown in ({RequestMethod} {RequestPath}) ---> Message: {Message} StackTrace: {StackTrace}", exType, httpContext.Request.Method, httpContext.Request.Path, exception.Message, exception.StackTrace);
+            Log.Error("<--- Exception [{ExType}] is thrown in ({RequestMethod} {RequestPath}) ---> Message: {Message} StackTrace: {StackTrace}", exType, httpContext.Request.Method, httpContext.Request.Path, exception.GetExceptionStackMessages(), exception.StackTrace);
         }
     }
 }

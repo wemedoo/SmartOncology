@@ -314,6 +314,7 @@ a:focus, a:hover {
   overflow-y: auto;
   -ms-overflow-style: none; /* Internet Explorer 10+ */
   scrollbar-width: none; /* Firefox */
+  max-width: 304px;
   /*.nav {
 
       .nav-link {
@@ -354,8 +355,10 @@ a:focus, a:hover {
 .main-content {
   padding: 15px 30px;
   padding-bottom: 0;
-  padding-left: 400px;
+  padding-left: 304px;
   width: 100%;
+  height: calc(100vh - 61px);
+  overflow: auto;
 }
 @media (max-width: 768px) {
   .main-content {
@@ -378,7 +381,7 @@ a:focus, a:hover {
 }
 
 .sidebar-shrink .sidebar {
-  width: 50px;
+  width: 56px;
   overflow: hidden;
   left: 0;
   overflow-y: auto;
@@ -389,7 +392,7 @@ a:focus, a:hover {
   opacity: 0;
 }
 .sidebar-shrink .sidebar:focus, .sidebar-shrink .sidebar:hover {
-  width: 400px;
+  width: 304px;
 }
 .sidebar-shrink .sidebar:focus .nav-link > span, .sidebar-shrink .sidebar:hover .nav-link > span {
   opacity: 1;
@@ -397,7 +400,6 @@ a:focus, a:hover {
 .sidebar-shrink .main-content {
   margin-left: 0;
   padding-left: 62px;
-  padding-right: 15px;
 }
 @media (max-width: 768px) {
   .sidebar-shrink .main-content {
@@ -408,11 +410,6 @@ a:focus, a:hover {
 /*--------------------!SIDEBAR--------------------*/
 .body-content {
   padding-top: 50px;
-}
-
-.button-container {
-  padding-top: 10px;
-  padding-bottom: 15px;
 }
 
 .forms-values-container {
@@ -474,6 +471,9 @@ footer {
 
 tr:hover {
   cursor: pointer;
+}
+tr.tr-no-action:hover {
+  cursor: default;
 }
 
 .s-reports-button, .btn-primary, .pagination-container.pagination li, .nav-link.active {
@@ -1784,6 +1784,9 @@ textarea {
 .form-instance-button-container {
   width: 100%;
   padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .lock-unlock-form-instance-icon {
@@ -2238,7 +2241,7 @@ h3:first-letter {
   padding: 3px 10px;
 }
 
-.repetitive-bar, .textarea-repetitive, .text {
+.repetitive-bar, .textarea-repetitive, .richtext-repetitive .text {
   width: 100%;
 }
 
@@ -2432,10 +2435,6 @@ ul, #myUL {
   width: 400px;
 }
 
-.active {
-  display: block;
-}
-
 .no-result {
   font-size: 30px;
   text-align: center;
@@ -2527,10 +2526,6 @@ ul, #myUL {
   display: none;
 }
 .expandable.expanded {
-  display: block;
-}
-
-.active {
   display: block;
 }
 

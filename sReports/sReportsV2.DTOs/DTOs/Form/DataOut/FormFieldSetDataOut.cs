@@ -1,11 +1,15 @@
-﻿using sReportsV2.Common.CustomAttributes;
+﻿using sReportsV2.Common.Constants;
+using sReportsV2.Common.CustomAttributes;
+using sReportsV2.Common.Enums;
+using sReportsV2.DTOs.CustomAttributes;
 using sReportsV2.DTOs.Field.DataOut;
+using sReportsV2.DTOs.Form.DataIn;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace sReportsV2.DTOs.Form.DataOut
 {
-    public class FormFieldSetDataOut
+    public partial class FormFieldSetDataOut
     {
         [DataProp]
         public string FhirType { get; set; }
@@ -17,6 +21,7 @@ namespace sReportsV2.DTOs.Form.DataOut
         public string Description { get; set; }
         [DataProp]
         public int ThesaurusId { get; set; }
+        [DataList]
         public List<FieldDataOut> Fields { get; set; } = new List<FieldDataOut>();
         [DataProp]
         public FormLayoutStyleDataOut LayoutStyle { get; set; }
@@ -30,50 +35,32 @@ namespace sReportsV2.DTOs.Form.DataOut
         public bool IsRepetitive { get; set; }
         [DataProp]
         public int NumberOfRepetitions { get; set; }
-        public string FieldSetInstanceRepetitionId { get; set; }
+        [DataProp]
+        public string MatrixId { get; set; }
+        [DataProp]
+        public MatrixType? MatrixType { get; set; }
         [DataProp]
         public List<FormFieldValueDataOut> Options { get; set; } = new List<FormFieldValueDataOut>();
-
-        private Dictionary<string, List<DependentOnInstanceInfoDataOut>> allParentFieldInstanceDependencies = new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
-        private Dictionary<string, List<DependentOnInstanceInfoDataOut>> parentFieldInstanceDependencies = new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
-
-        public Dictionary<string, List<DependentOnInstanceInfoDataOut>> AllParentFieldInstanceDependencies
-        {
-            get => allParentFieldInstanceDependencies;
-            set => allParentFieldInstanceDependencies = value ?? new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
-        }
-
-        public Dictionary<string, List<DependentOnInstanceInfoDataOut>> ParentFieldInstanceDependencies
-        {
-            get => parentFieldInstanceDependencies;
-            set => parentFieldInstanceDependencies = value ?? new Dictionary<string, List<DependentOnInstanceInfoDataOut>>();
-        }
-
-        public void SetParentFieldInstanceDependencies(FormDataOut formDataOut)
-        {
-            IEnumerable<string> fieldInstanceRepetitionIdsINFieldSet = this.Fields.SelectMany(f => f.FieldInstanceValues).Select(fIv => fIv.FieldInstanceRepetitionId);
-
-            this.AllParentFieldInstanceDependencies = formDataOut.ParentFieldInstanceDependencies;
-            this.ParentFieldInstanceDependencies = formDataOut
-                .ParentFieldInstanceDependencies
-                .Where(x => fieldInstanceRepetitionIdsINFieldSet.Contains(x.Key))
-                .ToDictionary(x => x.Key, x => x.Value);
-        }
-
-        public IEnumerable<FieldDataOut> GetFieldsForDependencyFormula(string openedFieldId)
-        {
-            this.Fields = this.Fields ?? new List<FieldDataOut>();
-            return this.Fields.Where(f => f.Id != openedFieldId && f.CanBeInDependencyFormula() && !f.IsFieldRepetitive);
-        }
-
-        public bool CanFieldSetBeIncludedInDependencyFormula(FieldDataOut openedField)
-        {
-            return this.Id == openedField.FieldSetId || this.Fields.Exists(f => f.Id == openedField.Id) || !this.IsRepetitive;
-        }
+        [DataProp]
+        public List<FormFieldSetDataOut> ListOfFieldSets { get; set; } = new List<FormFieldSetDataOut>();
 
         public bool IsMatrixFieldSet() 
         {
             if (this.LayoutStyle != null && this.LayoutStyle.LayoutType == sReportsV2.Common.Enums.LayoutType.Matrix)
+                return true;
+            return false;
+        }
+
+        public bool IsFieldSetMatrixType()
+        {
+            if (this.MatrixType != null && this.MatrixType == sReportsV2.Common.Enums.MatrixType.FieldSetMatrix)
+                return true;
+            return false;
+        }
+
+        public bool IsTextFieldType()
+        {
+            if (this.ListOfFieldSets.Count > 0 && this.ListOfFieldSets.FirstOrDefault().Fields?.FirstOrDefault()?.Type == FieldTypes.Text)
                 return true;
             return false;
         }

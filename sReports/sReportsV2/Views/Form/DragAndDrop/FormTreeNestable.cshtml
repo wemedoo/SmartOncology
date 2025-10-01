@@ -6,42 +6,45 @@
 
 @{
     bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+    bool showDragAndDropAction = ViewContext.RouteData.Values["Controller"].ToString() != "PromptConfiguration";
 }
 
 <div class="cf nestable-lists ">
     <div class="dd nestableTree" id="nestable">
         <ol class="dd-list dd-scrollable-container">
-            <li class="dd-item dd-nodrag"
-                data-id="@(Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder)"
-                data-itemtype="form"
-                data-activeversion='@(Model != null ? Model.GetActiveVersionJsonString() : null)'
-                @(Html.Raw(Model != null ? Model.GetDataAttr() : FormDataOut.GetInitialDataAttributes()))>
+            <li class="dd-item li-item dd-nodrag"
+            data-id="@(Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder)"
+            data-itemtype="form"
+            data-activeversion='@(Model != null ? Model.GetActiveVersionJsonString() : null)'
+            @(Html.Raw(Model != null ? Model.GetDataAttr() : FormDataOut.GetInitialDataAttributes()))>
 
                 <div class="dd-nohandle" data-toggle="tooltip" data-placement="left" title="@(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)">
                     @(Model != null ? Model.Title : FormDataOut.DefaultFormPlaceholder)
                 </div>
-                @{ RenderEditButton(readOnly); }
+                @{ RenderEditButton(readOnly, showDragAndDropAction); }
 
                 <ol class="dd-list">
                     @if (Model != null && Model.Chapters != null)
                     {
                         foreach (FormChapterDataOut chapterDataOut in Model.Chapters)
                         {
-                            <li class="dd-item"
-                                @Html.Raw(chapterDataOut.GetDataAttr()) data-itemtype="chapter">
+                            <li class="dd-item li-item"
+                            @Html.Raw(chapterDataOut.GetDataAttr()) data-itemtype="chapter">
                                 <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@chapterDataOut.Title">@chapterDataOut.Title</div>
-                                @{ RenderRemoveButton(readOnly); }
-                                @{ RenderEditButton(readOnly); }
+                                @{ RenderRemoveButton(readOnly, showDragAndDropAction); }
+                                @{ RenderEditButton(readOnly, showDragAndDropAction, false); }
 
                                 <ol class="dd-list">
                                     @if (chapterDataOut.Pages != null && chapterDataOut.Pages.Count > 0)
                                     {
                                         foreach (FormPageDataOut pageDataOut in chapterDataOut.Pages)
                                         {
-                                            <li class="dd-item" data-itemtype="page" @Html.Raw(pageDataOut.GetDataAttr())>
+                                            <li class="dd-item li-item" data-itemtype="page" @Html.Raw(pageDataOut.GetDataAttr())>
                                                 <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@pageDataOut.Title">@pageDataOut.Title</div>
-                                                @{ RenderRemoveButton(readOnly); }
-                                                @{ RenderEditButton(readOnly); }
+                                                @{ RenderRemoveButton(readOnly, showDragAndDropAction); }
+                                                @{
+                                                    RenderEditButton(readOnly, showDragAndDropAction, false);
+                                                }
 
                                                 <ol class="dd-list">
                                                     @if (pageDataOut.ListOfFieldSets != null && pageDataOut.ListOfFieldSets.Count > 0)
@@ -49,20 +52,22 @@
                                                         foreach (List<FormFieldSetDataOut> formFieldSet in pageDataOut.ListOfFieldSets)
                                                         {
                                                             bool isMatrix = formFieldSet[0].IsMatrixFieldSet();
-                                                            <li class="dd-item" @Html.Raw(formFieldSet[0].GetDataAttr()) data-itemtype="fieldset">
+                                                            <li class="dd-item li-item" data-formid="@Model.Id" data-itemtype="fieldset" data-id="@formFieldSet[0].Id" @Html.Raw(formFieldSet[0].GetDataAttr())>
                                                                 <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@formFieldSet[0].Label">@(string.IsNullOrEmpty(formFieldSet[0].Label) ? "Label is not defined" : formFieldSet[0].Label)</div>
-                                                                @{ RenderRemoveButton(readOnly); }
-                                                                @{ RenderEditButton(readOnly); }
+                                                                @{ RenderRemoveButton(readOnly, showDragAndDropAction); }
+                                                                @{
+                                                                    RenderEditButton(readOnly, showDragAndDropAction, false);
+                                                                }
 
                                                                 <ol class="dd-list">
                                                                     @if (formFieldSet[0].Fields != null && formFieldSet[0].Fields.Count > 0)
                                                                     {
                                                                         foreach (FieldDataOut field in formFieldSet[0].Fields)
                                                                         {
-                                                                            <li class="dd-item" data-itemtype="field" @Html.Raw(field.GetDataAttr()) data-parentid="@formFieldSet[0].Id" data-maxitems="@(formFieldSet[0].LayoutStyle != null && !string.IsNullOrEmpty(formFieldSet[0].LayoutStyle.MaxItems) ? int.Parse(formFieldSet[0].LayoutStyle.MaxItems) : 0)">
-                                                                              <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@field.GetLabel()">@field.GetLabel()</div>
-                                                                                @{ RenderRemoveButton(readOnly); }
-                                                                                @{ RenderEditButton(readOnly); }
+                                                                            <li class="dd-item li-item" data-itemtype="field" @Html.Raw(field.GetDataAttr()) data-parentid="@formFieldSet[0].Id" data-maxitems="@(formFieldSet[0].LayoutStyle != null && !string.IsNullOrEmpty(formFieldSet[0].LayoutStyle.MaxItems) ? int.Parse(formFieldSet[0].LayoutStyle.MaxItems) : 0)">
+                                                                                <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@field.GetLabel()">@field.GetLabel()</div>
+                                                                                @{ RenderRemoveButton(readOnly, showDragAndDropAction); }
+                                                                                @{ RenderEditButton(readOnly, showDragAndDropAction); }
 
                                                                                 @if (field is FieldSelectableDataOut fieldSelectableDataOut)
                                                                                 {
@@ -72,45 +77,104 @@
                                                                                         {
                                                                                             foreach (FormFieldValueDataOut valueDataOut in fieldSelectableDataOut.Values)
                                                                                             {
-                                                                                                <li class="dd-item" data-itemtype="fieldvalue" data-ismatrix="@isMatrix" @Html.Raw(valueDataOut.GetDataAttr())>
+                                                                                                <li class="dd-item li-item" data-itemtype="fieldvalue" data-ismatrix="@isMatrix" @Html.Raw(valueDataOut.GetDataAttr())>
                                                                                                     <div @*style="max-width:400px;"*@ class="dd-handle" data-toggle="tooltip" data-placement="left" title="@valueDataOut.Label">@valueDataOut.Label</div>
-                                                                                                    @if (!isMatrix) { RenderRemoveButton(readOnly); }
-                                                                                                    @{ RenderEditButton(readOnly); }
+                                                                                                    @if (!isMatrix) { RenderRemoveButton(readOnly, showDragAndDropAction); }
+                                                                                                    @{
+                                                                                                        RenderEditButton(readOnly, showDragAndDropAction, false);
+                                                                                                    }
                                                                                                 </li>
                                                                                             }
                                                                                         }
                                                                                         @if (!isMatrix)
-                                                                                        { 
-                                                                                           RenderAddNewTreeItem(readOnly, "fieldvalue", "option", @field.Id); 
-                                                                                       }
+                                                                                        { RenderAddNewTreeItem(readOnly, "fieldvalue", "option", @field.Id, showDragAndDropAction); }
                                                                                     </ol>
                                                                                 }
                                                                             </li>
                                                                         }
                                                                     }
                                                                     @if (!(formFieldSet[0] != null
-                                                                           && formFieldSet[0].LayoutStyle != null
-                                                                           && formFieldSet[0].LayoutStyle.LayoutType == sReportsV2.Common.Enums.LayoutType.Matrix
-                                                                           && formFieldSet[0].LayoutStyle.MaxItems != null
-                                                                           && int.Parse(formFieldSet[0].LayoutStyle.MaxItems) == formFieldSet[0].Fields.Count))
+                                                                        && formFieldSet[0].LayoutStyle != null
+                                                                        && formFieldSet[0].LayoutStyle.LayoutType == sReportsV2.Common.Enums.LayoutType.Matrix
+                                                                        && formFieldSet[0].LayoutStyle.MaxItems != null
+                                                                        && int.Parse(formFieldSet[0].LayoutStyle.MaxItems) == formFieldSet[0].Fields.Count)
+                                                                        && !formFieldSet[0].IsFieldSetMatrixType())
+                                                                    { RenderAddNewTreeItem(readOnly, "field", "field", @formFieldSet[0].Id, showDragAndDropAction); }
+                                                                </ol>
+                                                                <ol>
+                                                                    @if (formFieldSet.FirstOrDefault().ListOfFieldSets.Count > 0)
                                                                     {
-                                                                        RenderAddNewTreeItem(readOnly, "field", "field", @formFieldSet[0].Id);
+                                                                        foreach (var matrixFieldSet in formFieldSet.FirstOrDefault().ListOfFieldSets)
+                                                                        {
+                                                                            <li class="dd-item li-item" data-formid="@Model.Id" data-itemtype="fieldset" data-fsmatrixid="@matrixFieldSet.MatrixId" @Html.Raw(matrixFieldSet.GetDataAttr())>
+                                                                                <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@matrixFieldSet.Label">@(string.IsNullOrEmpty(matrixFieldSet.Label) ? "Label is not defined" : matrixFieldSet.Label)</div>
+                                                                                @{
+                                                                                    RenderEditButton(readOnly, showDragAndDropAction, false);
+                                                                                    RenderRemoveFieldsetButton(readOnly, showDragAndDropAction);
+                                                                                }
+
+                                                                                <ol class="dd-list">
+                                                                                    @if (matrixFieldSet.Fields != null && matrixFieldSet.Fields.Count > 0)
+                                                                                    {
+                                                                                        foreach (FieldDataOut field in matrixFieldSet.Fields)
+                                                                                        {
+                                                                                            <li class="dd-item li-item" data-itemtype="field" @Html.Raw(field.GetDataAttr()) data-parentid="@matrixFieldSet.Id" data-maxitems="@(matrixFieldSet.LayoutStyle != null && !string.IsNullOrEmpty(matrixFieldSet.LayoutStyle.MaxItems) ? int.Parse(matrixFieldSet.LayoutStyle.MaxItems) : 0)">
+                                                                                                <div class="dd-handle" data-toggle="tooltip" data-placement="left" title="@field.GetLabel()">@field.GetLabel()</div>
+                                                                                                @{
+                                                                                                    RenderEditButton(readOnly, showDragAndDropAction);
+                                                                                                }
+
+                                                                                                @if (field is FieldSelectableDataOut fieldSelectableDataOut)
+                                                                                                {
+                                                                                                    <ol class="dd-list">
+
+                                                                                                        @if (fieldSelectableDataOut != null && fieldSelectableDataOut.Values.Count > 0)
+                                                                                                        {
+                                                                                                            foreach (FormFieldValueDataOut valueDataOut in fieldSelectableDataOut.Values)
+                                                                                                            {
+                                                                                                                <li class="dd-item li-item" data-itemtype="fieldvalue" data-ismatrix="@isMatrix" @Html.Raw(valueDataOut.GetDataAttr())>
+                                                                                                                    <div @*style="max-width:400px;"*@ class="dd-handle" data-toggle="tooltip" data-placement="left" title="@valueDataOut.Label">@valueDataOut.Label</div>
+                                                                                                                    @{
+                                                                                                                        RenderEditButton(readOnly, showDragAndDropAction, false);
+                                                                                                                    }
+                                                                                                                </li>
+                                                                                                            }
+                                                                                                        }
+                                                                                                        @if (!isMatrix)
+                                                                                                        {
+                                                                                                            RenderAddNewTreeItem(readOnly, "fieldvalue", "option", @field.Id, showDragAndDropAction);
+                                                                                                        }
+                                                                                                    </ol>
+                                                                                                }
+                                                                                            </li>
+                                                                                        }
+                                                                                    }
+                                                                                </ol>
+                                                                            </li>
+                                                                        }
+
                                                                     }
                                                                 </ol>
                                                             </li>
                                                         }
                                                     }
-                                                    @{ RenderAddNewTreeItem(readOnly, "fieldset", "fieldset", @pageDataOut.Id); }
+                                                    @{
+                                                        RenderAddNewTreeItem(readOnly, "fieldset", "fieldset", @pageDataOut.Id, showDragAndDropAction);
+                                                    }
                                                 </ol>
                                             </li>
                                         }
                                     }
-                                    @{ RenderAddNewTreeItem(readOnly, "page", "page", @chapterDataOut.Id); }
+                                    @{
+                                        RenderAddNewTreeItem(readOnly, "page", "page", @chapterDataOut.Id, showDragAndDropAction);
+                                    }
                                 </ol>
                             </li>
                         }
                     }
-                    @{ RenderAddNewTreeItem(readOnly, "chapter", "chapter", Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder); }
+                    @{
+                        RenderAddNewTreeItem(readOnly, "chapter", "chapter", Model != null ? Model.Id : FormDataOut.DefaultIdPlaceholder, showDragAndDropAction);
+                    }
                 </ol>
             </li>
         </ol>
@@ -120,18 +184,23 @@
 {
     <script>
         $(document).ready(function (e) {
-            $('#nestable').nestable({
+            let dragAndDropAction = @showDragAndDropAction.ToJsBoolean();
+            let nestableConfig = {
                 group: 1,
                 maxDepth: 7
-            });
+            };
+            if(!dragAndDropAction){
+                nestableConfig['handleClass'] = 'no-drag-action';
+            }
+            $('#nestable').nestable(nestableConfig);
         });
     </script>
 }
 
 @functions {
-    private void RenderAddNewTreeItem(bool readOnly, string itemType, string itemLabel, string parentId)
+    private void RenderAddNewTreeItem(bool readOnly, string itemType, string itemLabel, string parentId, bool showDragAndDropAction)
     {
-        if (!readOnly)
+        if (!readOnly && showDragAndDropAction)
         {
             <li class="add-item-button add-chapter-button dd-nodrag" data-itemtype="@itemType" data-parentid="@parentId">
                 <div>
@@ -142,20 +211,42 @@
         }
     }
 
-    private void RenderRemoveButton(bool readOnly)
+    private void RenderRemoveButton(bool readOnly, bool showDragAndDropAction)
     {
-        if (!readOnly)
+        if (!readOnly && showDragAndDropAction)
         {
             <div class="remove-button">
-                <img alt="" src="/css/img/icons/remove_simulator.svg" />
+                <img alt="" src="/css/img/icons/remove_simulator.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Remove" />
             </div>
         }
     }
 
-    private void RenderEditButton(bool readOnly)
+    private void RenderEditButton(bool readOnly, bool showDragAndDropAction, bool showIcon = true)
     {
-        <div class="edit-button @(readOnly ? "to-the-right" : "")">
-            <img alt="" src="/css/img/icons/edit_pencil_03.svg" />
-        </div>
+        if (showDragAndDropAction)
+        {
+            <div class="edit-button @(readOnly ? "to-the-right" : "")">
+                <img alt="" src="/css/img/icons/edit_pencil_03.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Edit" />
+            </div>
+        }
+        else
+        {
+            if (showIcon)
+            {
+                <div class="edit-button to-the-right">
+                    <img alt="" src="/css/img/icons/edit_pencil_03.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Edit" />
+                </div>
+            }
+        }
+    }
+
+    private void RenderRemoveFieldsetButton(bool readOnly, bool showDragAndDropAction)
+    {
+        if (!readOnly && showDragAndDropAction)
+        {
+            <div class="remove-matrix-button">
+                <img alt="" src="/css/img/icons/remove_simulator.svg" />
+            </div>
+        }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using sReportsV2.Common.Extensions;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 using sReportsV2.Domain.Sql.EntitiesBase;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace sReportsV2.Domain.Sql.Entities.Common
 {
-    public class CodeSet : Entity
+    public class CodeSet : Entity, IReplaceThesaurusEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int CodeSetId { get; set; }
@@ -25,9 +26,9 @@ namespace sReportsV2.Domain.Sql.Entities.Common
             this.ApplicableInDesigner = codeSet.ApplicableInDesigner;
         }
 
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
         {
-            this.ThesaurusEntryId = this.ThesaurusEntryId == oldThesaurus ? newThesaurus : this.ThesaurusEntryId;
+            this.ThesaurusEntryId = this.ThesaurusEntryId.ReplaceThesaurus(thesaurusMerge);
         }
 
         public CodeSet()

@@ -18,6 +18,7 @@
     ? fieldSet.Options
     : new List<FormFieldValueDataOut>();
     var jsonOptions = System.Text.Json.JsonSerializer.Serialize(optionsList);
+    string disabled = ViewBag.IsNested || ViewBag.Disabled == "disabled" ? "disabled" : "";
 }
 
 <input type="hidden" id="elementId" value="@(string.IsNullOrWhiteSpace(Model.Id) ? GuidExtension.NewGuidStringWithoutDashes() : Model.Id)" />
@@ -25,6 +26,8 @@
 <input type="hidden" id="layoutType" value="@(fieldSet != null && fieldSet.LayoutStyle != null && fieldSet.LayoutStyle.LayoutType != null ? fieldSet.LayoutStyle.LayoutType.ToString() : "")" />
 <input type="hidden" id="fieldSetOptions" value='@jsonOptions' />
 <input type="hidden" id="isUpdateField" value="@(!string.IsNullOrWhiteSpace(Model.Id) && Model.ThesaurusId != 0 ? "true" : "false")" />
+<input type="hidden" id="fsMatrixId" value="@(fieldSet?.MatrixId)" />
+<input type="hidden" id="fsId" value="@(fieldSet?.Id)" />
 
 <div class="designer-form-section">
     <div>
@@ -32,32 +35,34 @@
             <div class="label filter-label">
                 @sReportsV2.Cache.Resources.TextLanguage.Field_Type
             </div>
-            <select required class="designer-form-input select-arrow" id="type" name="type" @ViewBag.Disabled>
+            <select required class="designer-form-input select-arrow" id="type" name="type" @disabled>
                 <option value="">Select an option</option>
                 @if (fieldSet != null && fieldSet.LayoutStyle != null && fieldSet.LayoutStyle.LayoutType == sReportsV2.Common.Enums.LayoutType.Matrix)
                 {
-                    <option value="@FieldTypes.Radio" @(Model != null && Model.Type == FieldTypes.Radio ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Radio</option>
-                    <option value="@FieldTypes.Checkbox" @(Model != null && Model.Type == FieldTypes.Checkbox ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Checkbox</option>
+                    RenderFieldTypeOption(FieldTypes.Radio, sReportsV2.Cache.Resources.TextLanguage.Radio);
+                    RenderFieldTypeOption(FieldTypes.Checkbox, sReportsV2.Cache.Resources.TextLanguage.Checkbox);
                 }
                 else
                 {
-                    <option value="@FieldTypes.Calculative" @(Model != null && Model.Type == FieldTypes.Calculative ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Calculative</option>
-                    <option value="@FieldTypes.Checkbox" @(Model != null && Model.Type == FieldTypes.Checkbox ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Checkbox</option>
-                    <option value="@FieldTypes.Date" @(Model != null && Model.Type == FieldTypes.Date ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Date</option>
-                    <option value="@FieldTypes.Datetime" @(Model != null && Model.Type == FieldTypes.Datetime ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.DateTime</option>
-                    <option value="@FieldTypes.Email" @(Model != null && Model.Type == FieldTypes.Email ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Email</option>
-                    <option value="@FieldTypes.LongText" @(Model != null && Model.Type == FieldTypes.LongText ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Long_Text</option>
-                    <option value="@FieldTypes.Number" @(Model != null && Model.Type == FieldTypes.Number ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Number</option>
-                    <option value="@FieldTypes.Radio" @(Model != null && Model.Type == FieldTypes.Radio ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Radio</option>
-                    <option value="@FieldTypes.Regex" @(Model != null && Model.Type == FieldTypes.Regex ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Regex</option>
-                    <option value="@FieldTypes.Select" @(Model != null && Model.Type == FieldTypes.Select ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Select</option>
-                    <option value="@FieldTypes.Text" @(Model != null && Model.Type == FieldTypes.Text ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Text</option>
-                    <option value="@FieldTypes.File" @(Model != null && Model.Type == FieldTypes.File ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.File</option>
-                    <option value="@FieldTypes.CustomButton" @(Model != null && Model.Type == FieldTypes.CustomButton ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Custom_Button</option>
-                    <option value="@FieldTypes.Coded" @(Model != null && Model.Type == FieldTypes.Coded ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.Coded</option>
-                    <option value="@FieldTypes.Paragraph" @(Model != null && Model.Type == FieldTypes.Paragraph ? "selected" : "")> @sReportsV2.Cache.Resources.TextLanguage.Paragraph</option>
-                    <option value="@FieldTypes.Link" @(Model != null && Model.Type == FieldTypes.Link ? "selected" : "")> @sReportsV2.Cache.Resources.TextLanguage.Link</option>
-                    <option value="@FieldTypes.Audio" @(Model != null && Model.Type == FieldTypes.Audio ? "selected" : "")> @sReportsV2.Cache.Resources.TextLanguage.Audio</option>
+                    RenderFieldTypeOption(FieldTypes.Calculative, sReportsV2.Cache.Resources.TextLanguage.Calculative);
+                    RenderFieldTypeOption(FieldTypes.Checkbox, sReportsV2.Cache.Resources.TextLanguage.Checkbox);
+                    RenderFieldTypeOption(FieldTypes.Date, sReportsV2.Cache.Resources.TextLanguage.Date);
+                    RenderFieldTypeOption(FieldTypes.Datetime, sReportsV2.Cache.Resources.TextLanguage.DateTime);
+                    RenderFieldTypeOption(FieldTypes.Email, sReportsV2.Cache.Resources.TextLanguage.Email);
+                    RenderFieldTypeOption(FieldTypes.LongText, sReportsV2.Cache.Resources.TextLanguage.Long_Text);
+                    RenderFieldTypeOption(FieldTypes.Number, sReportsV2.Cache.Resources.TextLanguage.Number);
+                    RenderFieldTypeOption(FieldTypes.Radio, sReportsV2.Cache.Resources.TextLanguage.Radio);
+                    RenderFieldTypeOption(FieldTypes.Regex, sReportsV2.Cache.Resources.TextLanguage.Regex);
+                    RenderFieldTypeOption(FieldTypes.Select, sReportsV2.Cache.Resources.TextLanguage.Select);
+                    RenderFieldTypeOption(FieldTypes.Text, sReportsV2.Cache.Resources.TextLanguage.Text);
+                    RenderFieldTypeOption(FieldTypes.File, sReportsV2.Cache.Resources.TextLanguage.File);
+                    RenderFieldTypeOption(FieldTypes.CustomButton, sReportsV2.Cache.Resources.TextLanguage.Custom_Button);
+                    RenderFieldTypeOption(FieldTypes.Coded, sReportsV2.Cache.Resources.TextLanguage.Coded);
+                    RenderFieldTypeOption(FieldTypes.Connected, sReportsV2.Cache.Resources.TextLanguage.Connected);
+                    RenderFieldTypeOption(FieldTypes.Paragraph, sReportsV2.Cache.Resources.TextLanguage.Paragraph);
+                    RenderFieldTypeOption(FieldTypes.RichTextParagraph, sReportsV2.Cache.Resources.TextLanguage.Rich_Text_Paragraph);
+                    RenderFieldTypeOption(FieldTypes.Link, sReportsV2.Cache.Resources.TextLanguage.Link);
+                    RenderFieldTypeOption(FieldTypes.Audio, sReportsV2.Cache.Resources.TextLanguage.Audio);
                 }
             </select>
         </div>
@@ -67,11 +72,11 @@
             <div class="label filter-label">
                 @sReportsV2.Cache.Resources.TextLanguage.Field_Label
             </div>
-            <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @ViewBag.Disabled />
+            <input required class="designer-form-input item-title" id="label" name="label" type="text" value="@(Model != null && Model.Label != null ? Model.Label : "")" @disabled />
         </div><!--      
         --><div class="designer-form-input-group two-margins">
         </div><!--  
-        --><div id="repetitiveDiv" class="designer-form-input-group repetitive-field-group short" @Html.Raw((possibleRepetitiveField ? "" : "style='display: none'"))>
+        --><div id="repetitiveDiv" class="designer-form-input-group repetitive-field-group short @(ViewBag.IsNested ? "hide-repetitive" : "")" @Html.Raw((possibleRepetitiveField ? "" : "style='display: none'"))>
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.Repetitive
                 </div>
@@ -81,7 +86,7 @@
                 <option value="false" @(Model == null || !possibleRepetitiveField || !isRepetitive ? "selected" : "")>@sReportsV2.Cache.Resources.TextLanguage.No_</option>
             </select>
         </div><!--
-        --><div id="numberOfRepetitionDiv"class="designer-form-input-group repetitive-field-group medium-short no-margin-right" @Html.Raw((possibleRepetitiveField ? "" : "style='display: none'"))>
+        --><div id="numberOfRepetitionDiv"class="designer-form-input-group repetitive-field-group medium-short no-margin-right @(ViewBag.IsNested ? "hide-repetitive" : "")" @Html.Raw((possibleRepetitiveField ? "" : "style='display: none'"))>
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.NumberOfRepetitionOnPdf
                 </div>
@@ -123,7 +128,7 @@
                 </label>
             </div>
         </div><!--
-        --><div class="designer-form-input-group two-margins no-margin-right" id="unitDiv">
+        --><div class="designer-form-input-group two-margins no-margin-right @(ViewBag.IsNested ? "hide-repetitive" : "")" id="unitDiv">
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.Unit
                 </div>
@@ -185,8 +190,14 @@
             case FieldTypes.Coded:
                 @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/CodedFieldForm.cshtml", Model as FieldCodedDataOut)
                 break;
+            case FieldTypes.Connected:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/ConnectedFieldForm.cshtml", Model as FieldConnectedDataOut)
+                break;
             case FieldTypes.Paragraph:
                 @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/ParagraphFieldForm.cshtml", Model as FieldParagraphDataOut)
+                break;
+            case FieldTypes.RichTextParagraph:
+                @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/RichTextParagraphFieldForm.cshtml")
                 break;
             case FieldTypes.Link:
                 @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomFields/LinkFieldForm.cshtml", Model as FieldLinkDataOut)
@@ -219,3 +230,10 @@
         <textarea class="designer-form-input" id="helpContent" name="helpContent" value="@(Model != null && Model.Help != null ? Model.Help.Content : "")" @ViewBag.Disabled>@(Model != null && Model.Help != null? Model.Help.Content : "")</textarea>
     </div>
 </div>
+
+@functions {
+    private void RenderFieldTypeOption(string fieldType, string fieldLabel)
+    {
+        <option value="@fieldType" @(Model != null && Model.Type == fieldType ? "selected" : "")>@fieldLabel</option>
+    }
+}

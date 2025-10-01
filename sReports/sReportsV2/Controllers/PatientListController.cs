@@ -11,12 +11,10 @@ using sReportsV2.DTOs.DTOs.PatientList;
 using sReportsV2.DTOs.DTOs.PatientList.DataIn;
 using sReportsV2.DTOs.Pagination;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
 namespace sReportsV2.Controllers
@@ -29,8 +27,9 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)   
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)   
         {
             this.patientListBLL = patientListBLL;
         }
@@ -62,6 +61,7 @@ namespace sReportsV2.Controllers
 
         [HttpPost]
         [SReportsAuthorize(Permission = PermissionNames.CreatePatientList, Module = ModuleNames.Patients)]
+        [SReportsModelStateValidate]
         [SReportsAuditLog]
         public async Task<ActionResult> Create(PatientListDTO patientListDTO)
         {
@@ -70,6 +70,7 @@ namespace sReportsV2.Controllers
         }
         
         [SReportsAuthorize(Permission = PermissionNames.UpdatePatientList, Module = ModuleNames.Patients)]
+        [SReportsModelStateValidate]
         [SReportsAuditLog]
         public async Task<ActionResult> Edit(int? id)
         {

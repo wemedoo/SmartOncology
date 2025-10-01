@@ -12,7 +12,7 @@
 }
 
 <tr @Html.Raw(Model.DependentAttributes) class="form-element form-radio form-radio-inline field-set-content radio-row @Model.ShowHiddenFieldsClass">
-    <td class="radio-row-label matrix-border-left">@Model.FullLabel</td>
+    <td class="radio-row-label matrix-border-left cursor-auto">@Model.FullLabel</td>
     @foreach (FormFieldValueDataOut ffv in Model.Values)
     {
         bool isRadioField = Model is FieldRadioDataOut;
@@ -20,21 +20,41 @@
             <label class="form-radio-label width-fit-content matrix-label" @Html.Raw(Model.Values.Count <= 5 ? "style= 'width: fit-content;'" : "")>
                 @if (isRadioField)
                 {
-                    AddRadio(Model as FieldRadioDataOut, Model.IsOptionChosen(ffv.Id), Model.IsReadonly || isChapterReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo);
-                    <i class="form-radio-button"></i>
+                    var isOptionChosen = Model.IsOptionChosen(ffv.Id);
+                    var model = Model as FieldRadioDataOut;
+                    var showMissingValue = model?.FieldInstanceValues?.FirstOrDefault()?.IsSpecialValue ?? false;
+                    var isReadonly = Model.IsReadonly || isChapterReadonly;
+
+                    <span name="@fieldInstanceRepetitionInfo.Item1" data-fieldId="@(model.Id)" class="missing-value-span @(showMissingValue ? "show-missing-value" : "hide-missing-value")">
+                        <span>@sReportsV2.Cache.Resources.TextLanguage.MissingValue</span>
+                    </span>
+
+                    <span class="@(showMissingValue ? "hide-missing-value" : "")">
+                        @{
+                            AddRadio(model, isOptionChosen, isReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo);
+                        }
+                        <i class="form-radio-button"></i>
+                    </span>
                 }
                 else
                 {
-                    AddCheckBox(Model as FieldCheckboxDataOut, Model.IsOptionChosen(ffv.Id), Model.IsReadonly || isChapterReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo);
-                    <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                    var isOptionChosen = Model.IsOptionChosen(ffv.Id);
+                    var model = Model as FieldCheckboxDataOut;
+                    var showMissingValue = model?.FieldInstanceValues?.FirstOrDefault()?.IsSpecialValue ?? false;
+                    var isReadonly = Model.IsReadonly || isChapterReadonly;
+
+                    <span name="@fieldInstanceRepetitionInfo.Item1" data-fieldId="@(model.Id)" class="missing-value-span @(showMissingValue ? "show-missing-value" : "hide-missing-value")">
+                        <span>@sReportsV2.Cache.Resources.TextLanguage.MissingValue</span>
+                    </span>
+
+                    <span class="@(showMissingValue ? "hide-missing-value" : "")">
+                        @{
+                            AddCheckBox(model, isOptionChosen, isReadonly, ffv, fieldSetId, fieldInstanceRepetitionInfo);
+                        }
+                        <i class="form-checkbox-button table-checkbox dynamic-checkbox-size"></i>
+                    </span>
                 }
             </label>
-            @if (ViewBag.UserCookieData != null && ViewBag.UserCookieData.UserHasPermission(PermissionNames.View, ModuleNames.Thesaurus))
-            {
-                <div class="w-1rem d-flex">
-                    <img alt="" title="Thesaurus" class="margin-bottom-5 hover-th-icon" src="/css/img/icons/@(ffv != null ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToThesaurus('@ffv.ThesaurusId')">
-                </div>
-            }
         </td>
     }
     <td class="radio-row-label matrix-reset matrix-border-right">
@@ -42,7 +62,7 @@
             <a class="dropdown-matrix" role="button" id="dropdownMenuButton-@fieldSetId" aria-haspopup="true" aria-expanded="false" data-display="static">
                 <img alt="" class="dots dots-center" src="/css/img/icons/dots_black.svg">
             </a>
-            <div class="dropdown-menu patient-dropdown-menu dropdown-menu-right dropleft mr-3 mt-3 matrix-menu" aria-labelledby="dropdownMenuButton-@fieldSetId">
+            <div class="dropdown-menu  dropdown-menu-right dropleft mr-3 mt-3 matrix-menu" aria-labelledby="dropdownMenuButton-@fieldSetId">
                 @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", 
                     Model, 
                     new ViewDataDictionary(ViewData) 
@@ -50,10 +70,6 @@
                         { "repetitiveValue", Model.GetValue() },
                         { "isMatrixFieldSet", true }
                     })
-                @if (!fieldInstanceRepetitionInfo.Item2)
-                {
-                    @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
-                }
             </div>
         </div>
         <div style="display:none" class="form-element-description field-desc">
@@ -74,7 +90,7 @@
                onclick="return @((!isReadonly).ToString().ToLower())"
         @Html.Raw(radioField.GetFieldInstanceDataAttrs(fieldSetId, 1))
         @(isChecked ? "checked" : string.Empty)
-        @Html.Disabled(fieldInstanceRepetitionInfo.Item2)>
+        @Html.Disabled(fieldInstanceRepetitionInfo.Item2 || radioField.IsDisabled)>
     }
 }
 
@@ -90,6 +106,6 @@
                data-numericvalue="@ffv.NumericValue"
                onclick="return @((!isReadonly).ToString().ToLower())"
         @Html.Raw(checkboxField.GetFieldInstanceDataAttrs(fieldSetId, 1))
-        @Html.Disabled(fieldInstanceRepetitionInfo.Item2) />
+        @Html.Disabled(fieldInstanceRepetitionInfo.Item2 || checkboxField.IsDisabled) />
     }
 }

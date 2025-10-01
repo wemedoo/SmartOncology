@@ -12,9 +12,7 @@
     bool readOnly = ViewBag.ReadOnly;
     string disabled = !hasAddEncounterPerm || readOnly ? "disabled" : "";
     bool hasPeriod = Model != null && Model.Period != null;
-    DateTime startDate = hasPeriod ? Model.Period.StartDate.DateTime : DateTime.Now;
-    string timeZoneOffset = userCookieData.TimeZoneOffset;
-    startDate = startDate.ToTimeZoned(timeZoneOffset);
+    DateTimeOffset startDate = hasPeriod ? Model.Period.StartDate : DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone();
     string modalTitle = Model.Id > 0 ? (readOnly ? @sReportsV2.Cache.Resources.TextLanguage.ViewEncounter : @sReportsV2.Cache.Resources.TextLanguage.EditEncounter) : @sReportsV2.Cache.Resources.TextLanguage.NewEncounter;
 }
 
@@ -34,6 +32,7 @@
                     <div class="advanced-filter-item">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.Status
+                            @await Html.PartialAsync("RequiredLabel")
                         </div>
                         <select class="filter-input arrow-select patient-background padding-right-36" id="status" name="Status" required @disabled>
                             <option value="" disabled selected></option>
@@ -58,6 +57,7 @@
                     <div class="advanced-filter-item">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.Class
+                            @await Html.PartialAsync("RequiredLabel")
                         </div>
                         <select class="filter-input arrow-select patient-background padding-right-36" id="classification" name="Classification" required @disabled>
                             <option value="" disabled selected></option>
@@ -85,6 +85,7 @@
                     <div class="advanced-filter-item">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.Encounter_Type_Name
+                            @await Html.PartialAsync("RequiredLabel")
                         </div>
                         <select class="filter-input arrow-select patient-background padding-right-36" id="type" name="Type" required @disabled>
                             <option id="enctype-option" value=""></option>
@@ -110,6 +111,7 @@
                     <div class="advanced-filter-item">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.Encounter_ServiceType_Name
+                            @await Html.PartialAsync("RequiredLabel")
                         </div>
                         <select class="filter-input arrow-select patient-background padding-right-36" id="servicetype" name="ServiceType" required @disabled>
                             <option value="" disabled selected></option>
@@ -133,9 +135,10 @@
                     </div>
                 </div>
                 <div class="d-flex margin-top-20">
-                    <div class="advanced-filter-item filter-item ">
+                    <div class="advanced-filter-item filter-item" id="divForStartDateTime">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.EOC_PeriodStartDate
+                            @await Html.PartialAsync("RequiredLabel")
                         </div>
 
                         <div class="filter-date-time datetime-picker-container">
@@ -144,10 +147,13 @@
                                 {
                                     InputAttributes = new Dictionary<object, object> {
                                         { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                        { "value",  startDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) },
+                                        { "skip-blur", true},
+                                        { "skip-change", true},
+                                        { "value", startDate.ToDateZoned(ViewBag.DateFormat as string)},
                                         { "id", "periodStartDate"},
                                         { "name", "periodStartDate"},
-                                        { @disabled, null},
+                                        { "required", null },
+                                        { @disabled, null}
                                     }
                                 })
                                 <input id="periodStartDateTime" name="periodStartDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@startDate.ToString("s")" />
@@ -155,22 +161,27 @@
                                     <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
                                 </div>
                             </div>
-                            <div class="time-wrapper w-35 input-border">
-                                <input type="text"
-                                       placeholder="@DateConstants.TimeFormatDisplay"
-                                       class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
-                                       value="@startDate.GetTimePart()"
-                                       id="periodStartTime"
-                                       name="periodStartTime" @disabled>
-                                <div class="clock-wrapper">
-                                    <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
-                                </div>
-                            </div>
+                            @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                           {
+                               InputAttributes = new Dictionary<object, object> {
+                                { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                { "value", startDate.GetTimePart() },
+                                { "id", "periodStartTime"},
+                                { "name", "periodStartTime"},
+                                { @disabled, null}
+                                },
+                               InputBtnAttributes = new Dictionary<object, object>
+                                {
+                                    {
+                                    "readOnly", @readOnly
+                                    }
+                                }
+                           })
                         </div>
                     </div>
 
 
-                    <div class="advanced-filter-item filter-item ">
+                    <div class="advanced-filter-item filter-item" id="divForEndDateTime">
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.EOC_PeriodEndDate
                         </div>
@@ -180,29 +191,35 @@
                                 {
                                     InputAttributes = new Dictionary<object, object> {
                                         { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                        { "value", hasPeriod ? Model.Period.EndToTimeZonedDateString(ViewBag.DateFormat) : "" },
+                                        { "skip-blur", true},
+                                        { "skip-change", true},
+                                        { "value", hasPeriod ? Model.Period.EndDate.ToDateZoned(ViewBag.DateFormat as string) : "" },
                                         { "id", "periodEndDate"},
                                         { "name", "periodEndDate"},
                                         { @disabled, null},
                                     }
                                 })
-                                <input id="periodEndDateTime" name="periodEndDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@(hasPeriod && Model.Period.EndDate != null ? Model.Period.EndDate.Value.DateTime.ToString("s") : "")" />
-                                <label id="admissionPeriod-error" class="error" for="periodEndDate" style="display:none">@sReportsV2.Cache.Resources.TextLanguage.Discharge_Error_Msg</label>
+                                <input id="periodEndDateTime" name="periodEndDateTime" type="text" class="date-time-local d-none form-element-field filter-input" value="@(hasPeriod && Model.Period.EndDate != null ? Model.Period.EndDate.Value.ToString("s") : "")" />
                                 <div class="img-wrapper">
                                     <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
                                 </div>
                             </div>
-                            <div class="time-wrapper w-35 input-border">
-                                <input type="text"
-                                       placeholder="@DateConstants.TimeFormatDisplay"
-                                       class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
-                                       value="@( hasPeriod ? Model.Period.EndToTimeZonedTimeString(ViewBag.DateFormat) : "")"
-                                       id="periodEndTime"
-                                       name="periodEndTime" @disabled>
-                                <div class="clock-wrapper">
-                                    <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
-                                </div>
-                            </div>
+                            @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                            {
+                                InputAttributes = new Dictionary<object, object> {
+                                    { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                    { "value", hasPeriod ? Model.Period.EndDate.GetTimePart() : "" },
+                                    { "id", "periodEndTime"},
+                                    { "name", "periodEndTime"},
+                                    { @disabled, null}
+                                    },
+                               InputBtnAttributes = new Dictionary<object, object>
+                                {
+                                    {
+                                    "readOnly", @readOnly
+                                    }
+                                }
+                            })
                         </div>
                     </div>
                 </div>
@@ -224,3 +241,9 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        validateEncounterModal();
+    });
+</script>

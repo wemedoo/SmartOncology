@@ -1,5 +1,6 @@
 @using System.Globalization
 @using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 @using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchemaInstance.DataOut;
 
 @model ChemotherapySchemaInstanceDataOut
@@ -22,7 +23,7 @@
     </div>
     <div class="row collapse-date collapse show">
         <div class="col-6">@sReportsV2.Cache.Resources.TextLanguage.Date_of_birth:</div>
-        <div class="date-of-birth about-data col-6">@(patient != null && patient.BirthDate != null ? patient.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")</div>
+        <div class="date-of-birth about-data col-6">@(patient != null ? patient.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "")</div>
     </div>
     <div class="row collapse-date collapse show">
         <div class="col-6">@sReportsV2.Cache.Resources.TextLanguage.Identification_number:</div>

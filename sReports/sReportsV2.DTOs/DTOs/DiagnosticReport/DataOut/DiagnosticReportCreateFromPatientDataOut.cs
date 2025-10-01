@@ -1,4 +1,5 @@
 ﻿using sReportsV2.Domain.Entities.FormInstance;
+using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.Encounter;
 using sReportsV2.DTOs.Form.DataOut;
 using sReportsV2.DTOs.FormInstance.DataOut;
@@ -12,7 +13,7 @@ namespace sReportsV2.DTOs.DiagnosticReport.DataOut
     public class DiagnosticReportCreateFromPatientDataOut
     {
         public EncounterDataOut Encounter { get; set; }
-        public List<FormInstanceDataOut> FormInstances { get; set; }
+        public List<FormInstanceMetadataDataOut> FormInstances { get; set; }
         public FormDataOut CurrentForm { get; set; }
     }
 }

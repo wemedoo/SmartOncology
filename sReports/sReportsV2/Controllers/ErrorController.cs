@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using sReportsV2.BusinessLayer.Interfaces;
 using System;
 
@@ -13,8 +12,8 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor,
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner
-        ) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             // Constructor logic here if needed
         }

@@ -39,7 +39,7 @@ function getCodedFieldsCodesets(codesetSelected) {
             initializeCodedCodesetSelectedValue(codesetSelected);
         }
         catch (e) {
-            console.log(e);
+            logError(e);
             $("#codeset").prop("disabled", false);
         }
     }

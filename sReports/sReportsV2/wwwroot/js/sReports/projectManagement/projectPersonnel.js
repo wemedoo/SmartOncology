@@ -7,7 +7,7 @@ $(document).ready(function () {
 function initSelect2Elements() {
 
     let selectsAndActions = [
-        { class: ".personnel-select2", action: `/User/GetAutocompleteData?organizationId=${$("#activeOrganizationId").val()}` },
+        { class: ".personnel-select2", action: `/UserAdministration/GetAutocompleteData?organizationId=${$("#activeOrganizationId").val()}` },
         { class: ".organization-select2", action: `/Organization/GetAutocompleteData` },
         { class: ".personnelteam-select2", action: `/PersonnelTeam/GetNameAutocompleteData?organizationId=${0}` } // setting organizationId = 0 we'll get PersonnelTeams form every Org
     ];
@@ -18,15 +18,17 @@ function initSelect2Elements() {
         let classSelector = this.class;
         let action = this.action;
         $(classSelector).each(function () {
+            let select2Arguments = {
+                placeholder: placeholder,
+                width: '100%',
+                allowClear: true,
+                url: action
+            };
+            if ($(this).attr('id').includes('Modal')) {
+                select2Arguments.modalId = 'AddTrialPersonnelModal';
+            }
             $(this).initSelect2(
-                getSelect2Object(
-                    {
-                        placeholder: placeholder,
-                        width: '100%',
-                        allowClear: true,
-                        url: action
-                    }
-                )
+                getSelect2Object(select2Arguments)
             );
         });
 
@@ -93,9 +95,9 @@ function addPersonnelsToTrial(event) {
             url: '/ProjectManagement/AddPersonnels',
             data: requestObject,
             success: function (data) {
-                reloadAddTrialPersonnelTable();
+                reloadTrialPersonnelTable(true, true);
+                reloadTrialPersonnelTable(false, true);
                 toastr.success('Personnel Added');
-                reloadTrialPersonnelTable();
             },
             error: function (xhr, thrownError) {
                 handleResponseError(xhr);
@@ -122,51 +124,35 @@ function getPersonnelCheckboxValues(projectId) {
 
 // ---
 
-function reloadTrialPersonnelTable() {
+function reloadTrialPersonnelTable(addNewPersonnel, resetPageNumber) {
+    let tableContainerName = addNewPersonnel ? "AddTrialPersonnelTable" : "TrialPersonnelTable";
 
-    let requestObject = getFilterParametersObject("#TrialPersonnelTable");
-    setFilterTagsFromObj(requestObject, "TrialPersonnelTable");
+    let requestObject = getFilterParametersObject(`#${tableContainerName}`);
+    setFilterTagsFromObj(requestObject, tableContainerName);
     hideTrialIdFilterTag();
 
     setTableProperties(requestObject);
 
-    addPropertyToObject(requestObject, 'tableContainer', "TrialPersonnelTable");
-    addPropertyToObject(requestObject, 'ShowAddedPersonnels', true);
+    addPropertyToObject(requestObject, 'tableContainer', tableContainerName);
+    addPropertyToObject(requestObject, 'ShowAddedPersonnels', !addNewPersonnel);
     addPropertyToObject(requestObject, 'ActiveOrganizationId', $("#activeOrganizationId").val());
     addPropertyToObject(requestObject, 'IsReadOnly', $("#isReadOnly").val());
+    if (addNewPersonnel) {
+        requestObject['PageSize'] = 5;
+    }
+    if (resetPageNumber) {
+        requestObject['Page'] = 1;
+    }
 
     callServer({
         type: 'GET',
         url: '/ProjectManagement/ReloadPersonnelTable',
         data: removeModalNamesFromRequest(requestObject),
         success: function (data) {
-            setTableContent(data, "#TrialPersonnelTable");
-        },
-        error: function (xhr, thrownError) {
-            handleResponseError(xhr);
-        }
-    });
-}
-
-function reloadAddTrialPersonnelTable() {
-
-    let requestObject = getFilterParametersObject("#AddTrialPersonnelTable");
-    setFilterTagsFromObj(requestObject, "AddTrialPersonnelTable");
-    hideTrialIdFilterTag();
-
-    setTableProperties(requestObject);
-
-    addPropertyToObject(requestObject, 'tableContainer', "AddTrialPersonnelTable");
-    addPropertyToObject(requestObject, 'ShowAddedPersonnels', false);
-    addPropertyToObject(requestObject, 'ActiveOrganizationId', $("#activeOrganizationId").val());
-    addPropertyToObject(requestObject, 'IsReadOnly', $("#isReadOnly").val());
-
-    callServer({
-        type: 'GET',
-        url: '/ProjectManagement/ReloadPersonnelTable',
-        data: removeModalNamesFromRequest(requestObject),
-        success: function (data) {
-            setTableContent(data, "#AddTrialPersonnelTable");
+            setTableContent(data, `#${tableContainerName}`);
+            if (addNewPersonnel) {
+                $(`.pageSizeSelector[data-container=${tableContainerName}]`).attr('disabled', true);
+            }
         },
         error: function (xhr, thrownError) {
             handleResponseError(xhr);
@@ -189,7 +175,7 @@ function showAddTrialPersonnelModal() {
     tableContainer = "AddTrialPersonnelTable";
     currentPage = 1;
     trialEnv['destinationTableSelector'] = "#AddTrialPersonnelTable";
-    reloadAddTrialPersonnelTable();
+    reloadTrialPersonnelTable(true);
 }
 
 $(document).on('hidden.bs.modal', '#AddTrialPersonnelModal', function (event) {

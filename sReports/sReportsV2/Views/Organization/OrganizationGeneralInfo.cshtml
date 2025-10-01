@@ -20,30 +20,27 @@
             <div class="organization-space-part margin-right-15">
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Name @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Name @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" id="name" name="Name" type="text" value="@(Model != null && Model.Name != null ? Model.Name : "")" @ViewBag.Disabled />
                 </div>
 
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Organizatin_Alias @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Organizatin_Alias @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" type="text" id="alias" name="alias" value="@(Model != null && Model.Alias != null ? Model.Alias : "")" @ViewBag.Disabled />
                 </div>
 
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.TimeZone @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.TimeZone @await Html.PartialAsync("RequiredLabel")
                     </div>
-                    <select class="filter-input arrow-select patient-background" id="timezone" name="timezone" required>
+                    <select class="filter-input arrow-select patient-background" id="timezone" name="timezone" required @ViewBag.Disabled>
                         <option value=""></option>
                         @foreach (var timeZoneInfo in ViewBag.TimeZoneList)
                         {
-                            TimeSpan offset = timeZoneInfo.BaseUtcOffset;
-                            string offsetSign = (offset < TimeSpan.Zero) ? "-" : "+";
-                            string offsetHoursMinutes = offset.ToString("hh\\:mm");
-                            <option value="@timeZoneInfo.Id" data-timezone="@timeZoneInfo.DisplayName" data-offset="@offsetSign@offsetHoursMinutes" selected="@(Model != null && Model.TimeZone == timeZoneInfo.DisplayName)">
+                            <option value="@timeZoneInfo.Id" data-timezone="@timeZoneInfo.DisplayName" selected="@(Model != null && Model.TimeZone == timeZoneInfo.DisplayName)">
                                 @timeZoneInfo.DisplayName
                             </option>
                         }
@@ -140,34 +137,34 @@
             <div class="organization-space-part margin-left-15">
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Organization_City @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_City @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" type="text" id="city" name="City" value="@(Model != null && Model.Address != null ? Model.Address.City : "")" @ViewBag.Disabled />
                 </div>
 
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Organization_State @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_State @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" type="text" id="state" name="state" value="@(Model != null && Model.Address != null ? Model.Address.State : "")" @ViewBag.Disabled />
                 </div>
 
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Organization_PostalCode @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_PostalCode @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" type="text" id="postalCode" name="PostalCode" value="@(Model != null && Model.Address != null ? Model.Address.PostalCode : "")" @ViewBag.Disabled />
                 </div>
 
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.OrganizationStreet @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.OrganizationStreet @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" type="text" id="street" name="Street" value="@(Model != null && Model.Address != null ? Model.Address.Street : "")" @ViewBag.Disabled />
                 </div>
                 <div class="advanced-filter-item input-margin country-select-input">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Country @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Organization_Country @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <select class="filter-input arrow-select" id="countryCD" name="countryCD" @ViewBag.Disabled required>
                         <option value=""></option>
@@ -175,7 +172,7 @@
                 </div>
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
-                        @sReportsV2.Cache.Resources.TextLanguage.Email @{ RenderRequiredIndicator(); }
+                        @sReportsV2.Cache.Resources.TextLanguage.Email @await Html.PartialAsync("RequiredLabel")
                     </div>
                     <input required class="filter-input" type="email" id="email" name="email" value="@(Model != null && Model.Email != null ? Model.Email : "")" @ViewBag.Disabled />
                 </div>
@@ -184,11 +181,11 @@
                         @sReportsV2.Cache.Resources.TextLanguage.Clinical_Domain
                     </div>
 
-                    <div id="dropdownSearch" class="position-relative dropdown-search">
-                        <div id="search">
-                            <input autocomplete="off" class="designer-form-input filter-input" id="clinicalDomain" name="ClinicalDomain" type="text" @ViewBag.Disabled />
+                    <div class="position-relative dropdown-search">
+                        <div id="search" class="autocomplete-wrapper">
+                            <input autocomplete="off" class="designer-form-input filter-input autocomplete-component" id="clinicalDomain" name="ClinicalDomain" type="text" @ViewBag.Disabled />
                         </div>
-                        <div id="clinicalOptions" class="clinical-domain-options" aria-labelledby="search">
+                        <div id="clinicalOptions" class="clinical-domain-options autocomplete-options" aria-labelledby="search">
                         </div>
                     </div>
 
@@ -201,7 +198,7 @@
                                     @item.ConvertClinicalDomainCDToDisplayName(clinicalDomains, activeLanguage)
                                     @if (!ViewBag.ReadOnly)
                                     {
-                                        <i class="fas fa-times clinical-remove"></i>
+                                        <i class="fas fa-times clinical-remove selected-autocomplete-remove"></i>
                                     }
                                 </div>
                             }
@@ -219,20 +216,6 @@
 
             </div>
         </div>
-
-        <div class="organization-line"></div>
-        <div class="button-partial">
-            @if (!ViewBag.ReadOnly)
-            {
-                <button class="submit-patient right-button" type="button" onclick="clickedSubmit()" style="outline: none;">
-                    <span class="submit-patient-info">@(Model != null ? sReportsV2.Cache.Resources.TextLanguage.Save : sReportsV2.Cache.Resources.TextLanguage.Create)</span>
-                </button>
-            }
-            <i class="angle-left fas fa-angle-left"></i>
-            <div class="text-underline right-button" type="button" onclick="cancelOrganization()">
-                <span class="back">@sReportsV2.Cache.Resources.TextLanguage.Back</span>
-            </div>
-        </div>
     </form>
 </div>
 
@@ -242,7 +225,7 @@
         string logoUrl = Model != null && Model.LogoUrl != null ? Model.LogoUrl.ToString() : "";
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.LogoUrl
+                @sReportsV2.Cache.Resources.TextLanguage.Logo
             </div>
             <div class="filter-input file-field">
                 <input type="file"
@@ -255,7 +238,7 @@
                        name="LogoUrl"
                        value="@logoUrl" />
                 <div class="d-flex">
-                    <span>@sReportsV2.Cache.Resources.TextLanguage.UploadFile</span>
+                    <span>@sReportsV2.Cache.Resources.TextLanguage.UploadLogo</span>
                     @if (ViewBag.Readonly)
                     {
                         <img alt="" src="/css/img/icons/thesaurus_green.svg" class="ml-2 cursor-pointer" style="width:20px;">
@@ -268,7 +251,7 @@
                     <span id="logo-action-btns" class="ml-auto @(string.IsNullOrEmpty(logoUrl) ? "d-none" : "")">
                         <a type="button" onclick="getOrganizationLogo(event)">
                             <i class="fas fa-arrow-down file-check"></i>
-                            <span class="get-logo">@sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.File</span>
+                            <span class="get-logo">@sReportsV2.Cache.Resources.TextLanguage.Download @sReportsV2.Cache.Resources.TextLanguage.Logo</span>
                         </a>
                         @if (!ViewBag.Readonly)
                         {
@@ -279,10 +262,5 @@
             </div>
             <label id="logoUrlError" class="error"></label>
         </div>
-    }
-
-    private void RenderRequiredIndicator()
-    {
-        <div class="label-required">*</div>
     }
 }

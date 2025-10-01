@@ -69,7 +69,6 @@ namespace ExcelImporter.Importers
             var bulkedThesauruses = thesaurusDAL.GetBulkInserted(thesauruses.Count);
             translationDAL.InsertMany(thesauruses, bulkedThesauruses, configuration);
             o4codeableConceptDAL.InsertMany(thesauruses, bulkedThesauruses, configuration);
-            administrativeDataDAL.InsertMany(thesauruses, bulkedThesauruses);
             administrativeDataDAL.InsertManyVersions(thesauruses, bulkedThesauruses);
         }
 

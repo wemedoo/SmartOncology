@@ -73,7 +73,7 @@
                     <div class="position-relative margin-top-10">
                         <label class="form-radio-label margin-right-20">
                             <input type="radio"
-                                   id="isPractitioner-@Model.OrganizationId"
+                                   id="isPractitioner-yes-@Model.OrganizationId"
                                    name="isPractitioner-@Model.OrganizationId"
                                    value="true"
                                    class="form-radio-field"
@@ -87,7 +87,7 @@
                         </label>
                         <label class="form-radio-label margin-right-20">
                             <input type="radio"
-                                   id="isPractitioner-@Model.OrganizationId"
+                                   id="isPractitioner-no-@Model.OrganizationId"
                                    name="isPractitioner-@Model.OrganizationId"
                                    value="false"
                                    class="form-radio-field"
@@ -138,13 +138,13 @@
                     <div class="label filter-label">
                         @sReportsV2.Cache.Resources.TextLanguage.Country
                     </div>
-                    <input readonly class="filter-input" type="text" id="country-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.Country : "")" @Html.Disabled(readOnly) />
+                    <input readonly class="filter-input" type="text" id="country-org-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.Country : "")" @Html.Disabled(readOnly) />
                 </div>
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
                         @sReportsV2.Cache.Resources.TextLanguage.State
                     </div>
-                    <input readonly class="filter-input" type="text" id="state-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.State : "")" @Html.Disabled(readOnly) />
+                    <input readonly class="filter-input" type="text" id="state-org-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.State : "")" @Html.Disabled(readOnly) />
                 </div>
             </div>
             <div class="user-input-group">
@@ -152,13 +152,13 @@
                     <div class="label filter-label">
                         @sReportsV2.Cache.Resources.TextLanguage.Postal_code
                     </div>
-                    <input readonly class="filter-input" type="text" id="postalNumber-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.PostalCode : "")" @Html.Disabled(readOnly) />
+                    <input readonly class="filter-input" type="text" id="postalNumber-org-@Model.OrganizationId" value="@(Model != null && Model.Organization != null && Model.Organization.Address != null ?  Model.Organization.Address.PostalCode : "")" @Html.Disabled(readOnly) />
                 </div>
                 <div class="advanced-filter-item input-margin">
                     <div class="label filter-label">
                         @sReportsV2.Cache.Resources.TextLanguage.BusinessEmail
                     </div>
-                    <input readonly class="filter-input" type="text" id="postalNumber-@Model.OrganizationId" value="@(Model != null && Model.Organization != null ?  Model.Organization.Email : "")" @Html.Disabled(readOnly) />
+                    <input readonly class="filter-input" type="text" id="business-org-@Model.OrganizationId" value="@(Model != null && Model.Organization != null ?  Model.Organization.Email : "")" @Html.Disabled(readOnly) />
                 </div>
             </div>
         </div>

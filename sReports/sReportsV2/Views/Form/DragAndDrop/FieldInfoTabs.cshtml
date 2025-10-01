@@ -4,11 +4,11 @@
 
 <form class="designer-item-form" id="fieldGeneralInfoForm">
     <div class="width-100">
-        <div class="organization-tabs">
+        <div class="custom-tabs">
             <div data-id="fieldGeneralInfoContainer" class="organization-tab active field-info-tab">
                 @sReportsV2.Cache.Resources.TextLanguage.FieldGeneralInfo
             </div>
-            <div data-id="fieldDependencyContainer" class="@(Model == null ? "organization-tab-disabled" : "organization-tab") field-info-tab">
+            <div data-id="fieldDependencyContainer" class="organization-tab field-info-tab @(ViewBag.IsNested ? "hide-repetitive" : "")">
                 @sReportsV2.Cache.Resources.TextLanguage.DependencyConfiguration
             </div>
         </div>

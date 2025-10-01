@@ -101,14 +101,14 @@ function getSelectedPermissions(roleCD) {
 }
 
 function cancelEditRole() {
-    if (!compareForms("#roleForm")) {
-        if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-            saveInitialFormData("#roleForm");
+    unsavedChangesCheck("#roleForm",
+        function () {
+            window.location.href = '/RoleAdministration/GetAll';
+        },
+        function () {
             window.location.href = '/RoleAdministration/GetAll';
         }
-    } else {
-        window.location.href = '/RoleAdministration/GetAll';
-    }
+    );
 }
 
 function isNewRoleCreated() {

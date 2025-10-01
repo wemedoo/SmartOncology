@@ -60,7 +60,7 @@ function getFilterParametersObject() {
     let requestObject = {};
 
     if (defaultFilter) {
-        requestObject = defaultFilter;
+        requestObject = getDefaultFilter();
         defaultFilter = null;
     } else {
         addPropertyToObject(requestObject, 'Id', $('#id').val());

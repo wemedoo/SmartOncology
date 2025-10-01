@@ -12,7 +12,7 @@
     List<CodeDataOut> genders = ViewBag.Genders as List<CodeDataOut>;
     CodeDataOut genderEnum = genders.Find(g => g.Id == Model.GenderId);
     string genderTranslated = genderEnum != null ? genderEnum.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
-    string birthDateRendered = Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : sReportsV2.Cache.Resources.TextLanguage.NotDefined;
+    string birthDateRendered = Model.BirthDate != null ? Model.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : sReportsV2.Cache.Resources.TextLanguage.NotDefined;
     string cityNamesRendered = string.IsNullOrWhiteSpace(cityNames) ? sReportsV2.Cache.Resources.TextLanguage.NotDefined : cityNames;
     List<CodeDataOut> episodeOfCaresTypes = ViewBag.EpisodeOfCareTypes as List<CodeDataOut>;
     var episodeOfCareFromUrl = Context.Request.Query["episodeOfCareId"].ToString();

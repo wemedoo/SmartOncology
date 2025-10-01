@@ -14,11 +14,9 @@ using sReportsV2.DTOs.DTOs.TrialManagement;
 using sReportsV2.DTOs.Form;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -29,7 +27,7 @@ namespace sReportsV2.Controllers
         private readonly ITrialManagementBLL trialManagementBLL;
         private readonly IProjectManagementBLL projectManagementBLL;
         private readonly ICodeBLL codeBLL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public ProjectManagementController(IProjectManagementBLL projectManagementBLL, 
             ITrialManagementBLL trialManagementBLL, 
@@ -38,13 +36,14 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration,
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.projectManagementBLL = projectManagementBLL;
             this.trialManagementBLL = trialManagementBLL;
             this.codeBLL = codeBLL; 
-            Mapper = mapper;
+            this.mapper = mapper;
         } 
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.ProjectManagement)]
@@ -102,6 +101,7 @@ namespace sReportsV2.Controllers
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             ViewBag.ShowUserProjects = dataIn.ShowUserProjects;
             ViewBag.ReadOnly = dataIn.IsReadOnly;
+            ViewBag.ProjectId = projectId;
             return PartialView("~/Views/ProjectManagement/ProjectDocuments/ProjectDocumentsTable.cshtml", 
                 await projectManagementBLL.ReloadDocumentsTable(dataIn, projectId, userCookieData).ConfigureAwait(false));
         }
@@ -110,7 +110,6 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         public async Task<ActionResult> Create()
         {
-            SetProjectManagementViewBags();
             return await CreateOrEdit().ConfigureAwait(false);
         }
 
@@ -125,18 +124,16 @@ namespace sReportsV2.Controllers
 
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.ProjectManagement)]
         [SReportsAuditLog]
-        public async Task<ActionResult> Edit(int projectId)
+        public async Task<ActionResult> Edit(int projectId, string activeTab)
         {
-            SetProjectManagementViewBags();
-            return await CreateOrEdit(projectId).ConfigureAwait(false);
+            return await CreateOrEdit(projectId, activeTab).ConfigureAwait(false);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.ProjectManagement)]
         [SReportsAuditLog]
-        public async Task<ActionResult> View(int projectId)
+        public async Task<ActionResult> View(int projectId, string activeTab)
         {
-            SetProjectManagementViewBags();
-            return await CreateOrEdit(projectId).ConfigureAwait(false);
+            return await CreateOrEdit(projectId, activeTab).ConfigureAwait(false);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.ProjectManagement)]
@@ -254,28 +251,29 @@ namespace sReportsV2.Controllers
             return View("ProjectForms", await projectManagementBLL.GetById(projectId).ConfigureAwait(false));
         }
 
-        private async Task<ActionResult> CreateOrEdit(int projectId = 0)
+        private async Task<ActionResult> CreateOrEdit(int projectId = 0, string activeTab = "")
         {
-            SetProjectManagementViewBags();
+            SetProjectManagementViewBags(activeTab);
             return View("Project", await projectManagementBLL.GetById(projectId).ConfigureAwait(false));
         }
 
-        private void SetProjectManagementViewBags()
+        private void SetProjectManagementViewBags(string activeTab = null)
         {
             ViewBag.ClinicalTrialIdentifiers = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalTrialIdentifiers);
             ViewBag.ClinicalTrialSponsorIdentifierTypes = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalTrialSponsorIdentifierType);
             ViewBag.ClinicalTrialRecruitmentsStatuses = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalTrialRecruitmentsStatus);
             ViewBag.Occupations = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Occupation);
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             ViewBag.ClinicalTrialTypeId = GetClinicalTrialTypeId();
             ViewBag.ShowUserProjects = false;
+            ViewBag.ActiveTab = string.IsNullOrEmpty(activeTab) ? "TrialData" : activeTab;
         }
 
         private void SetUserProjectViewBags()
         {
             ViewBag.ShowUserProjects = true;
             ViewBag.ClinicalTrialTypeId = GetClinicalTrialTypeId();
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
         }
 
         private int GetClinicalTrialTypeId() 

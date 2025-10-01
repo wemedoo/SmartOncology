@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using sReportsV2.Common.Constants;
 using sReportsV2.Common.Helpers;
 using System;
 using System.Diagnostics;
@@ -75,7 +76,7 @@ namespace sReportsV2
                 {
                     endpoints.MapRazorPages();
 
-                    endpoints.MapGet("/", async context =>
+                    endpoints.MapGet(ResourceTypes.DefaultEndpoint, async context =>
                     {
                         try
                         {
@@ -127,7 +128,7 @@ namespace sReportsV2
 
         private static void LogException(Exception exception)
         {
-            string message = ExceptionHelper.GetExceptionStackMessages(exception);
+            string message = exception.GetExceptionStackMessages();
             string stackTrace = exception.StackTrace;
             Log.Error("Exception occurred on Application startup: {Message} StackTrace: {StackTrace}", message, stackTrace);
             Debug.WriteLine("***************** ERROR ON STARTUP ***********************");

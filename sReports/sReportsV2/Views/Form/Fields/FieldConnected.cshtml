@@ -1,0 +1,99 @@
+@using sReportsV2.DTOs.Form.DataOut;
+@using sReportsV2.DTOs.DTOs.FormInstanceStructured.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Helpers;
+
+@model FieldConnectedDataOut
+@{
+    bool isChapterReadonly = ViewBag.Chapter;
+    string fieldSetId = ViewBag.FieldSetId;
+}
+
+
+<fieldset @Html.Raw(Model.DependentAttributes) class="form-element form-input form-select position-relative field-set-content @Model.ShowHiddenFieldsClass"  >
+    <div class="repetitive-values d-inline-block form-input-size">
+        @{
+            await AddField(Html, Model, isChapterReadonly, fieldSetId);
+        }
+    </div>
+    @await Html.PartialAsync("~/Views/Form/Fields/Custom/FormFieldDescription.cshtml", Model)
+</fieldset>
+
+
+@functions {
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldConnectedDataOut objectModel, bool isChapterReadonly, string fieldSetId, string additionalFieldClass = "", string additionalInputClass = "")
+    {
+        if (objectModel.HasValue())
+        {
+            for (int i = 0; i < objectModel.FieldInstanceValues.Count; i++)
+            {
+                await AddField(html, objectModel, isChapterReadonly, fieldSetId, i + 1, objectModel.FieldInstanceValues[i].ConnectedFieldInstanceRepetitionId, objectModel.FieldInstanceValues[i].ValueLabel, additionalFieldClass, additionalInputClass);
+            }
+        }
+        else
+        {
+            await AddField(html, objectModel, isChapterReadonly, fieldSetId, 1, "", "", additionalFieldClass, additionalInputClass);
+        }
+    }
+
+    private async Task AddField(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldConnectedDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, string repetitiveValueLabel, string additionalFieldClass, string additionalInputClass, string customLabel = "")
+    {
+        var fieldInstanceRepetitionInfo = Model.GetFieldInstanceRepetitionInfo(repetitiveCounter - 1);
+        <div class="field-group @additionalFieldClass">
+            <div for="@objectModel.Id" class="filter-label form-label-size d-inline-block">
+                @if (string.IsNullOrEmpty(customLabel))
+                {
+                    @html.Raw(objectModel.FullLabel)
+                }
+                else
+                {
+                    @customLabel
+                }
+            </div>
+            <div class="repetitive-field filter-input d-inline-block @additionalInputClass">
+                @{
+                    AddInput(html, objectModel, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue, repetitiveValueLabel, fieldInstanceRepetitionInfo);
+                }
+            </div>
+            @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", objectModel, new ViewDataDictionary(html.ViewData) { { "repetitiveCounter", repetitiveCounter }, { "repetitiveValue", repetitiveValue } })
+            @if (!fieldInstanceRepetitionInfo.Item2)
+            {
+                @await Html.PartialAsync("~/Views/Form/Common/CodesForMissingData.cshtml", Model)
+            }
+        </div>
+    }
+
+    private void AddInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldConnectedDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, string repetitiveValueLabel, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        AddSelectInput(html, objectModel, isChapterReadonly, fieldSetId, repetitiveCounter, repetitiveValue, repetitiveValueLabel, fieldInstanceRepetitionInfo);
+    }
+
+    private void AddSelectInput(Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper html, FieldConnectedDataOut objectModel, bool isChapterReadonly, string fieldSetId, int repetitiveCounter, string repetitiveValue, string repetitiveValueLabel, Tuple<string, bool> fieldInstanceRepetitionInfo)
+    {
+        bool isSpecialValue = fieldInstanceRepetitionInfo.Item2;
+        <select class="form-element-field select-input-field arrow-select"
+                data-no-color-change="true"
+                @html.Disabled(objectModel.IsDisabled || isSpecialValue)
+                @html.Raw(objectModel.GetFieldInstanceDataAttrs(fieldSetId, repetitiveCounter))
+                value="@repetitiveValue"
+                >
+            @if (!isSpecialValue)
+            {
+                <option value=""></option>
+                @foreach (FieldConnectedOptionDataOut fieldConnectedOption in objectModel.ConnectedFieldDataSource)
+                {
+                    <option value="@fieldConnectedOption.FieldInstanceRepetitionId"
+                    @(repetitiveValue == fieldConnectedOption.FieldInstanceRepetitionId ? "selected" : string.Empty)
+                    data-label="@fieldConnectedOption.DisplayValues"
+                    data-value="@string.Join(',', fieldConnectedOption.Values)"
+                    title="@fieldConnectedOption.DisplayValues"
+                    >
+                        @fieldConnectedOption.DisplayValues.StringShortener(100)
+                    </option>
+                }
+            }
+        </select>
+    }
+}

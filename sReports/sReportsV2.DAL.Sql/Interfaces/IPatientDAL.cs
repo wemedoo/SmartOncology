@@ -23,5 +23,6 @@ namespace sReportsV2.SqlDomain.Interfaces
         Patient GetBy(Patient patient, PatientIdentifier mrnPatientIdentifier);
         IQueryable<Patient> GetPatientFiltered(PatientFilter filter);
         Task<PaginationData<Patient>> GetAllAndCount(PatientFilter filter);
+        PatientIdentifier GetIdentifierByPatientId(int patientId, int? identifierTypeCD);
     }
 }

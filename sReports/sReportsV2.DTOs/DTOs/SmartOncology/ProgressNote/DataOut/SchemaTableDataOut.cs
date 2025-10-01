@@ -37,7 +37,7 @@ namespace sReportsV2.DTOs.DTOs.SmartOncology.ProgressNote.DataOut
 
             foreach(var day in Days.OrderBy(x => x.DayNumber))
             {
-                string date = day.Date.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture);
+                string date = day.Date.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true);
                 stringBuilder.Append($"<th class=\"{additionalStyleClass}\">{date}</th>");
             }
 
@@ -64,7 +64,7 @@ namespace sReportsV2.DTOs.DTOs.SmartOncology.ProgressNote.DataOut
         
         public string GetDoseEncoded(MedicationDoseInstanceDataOut dose)
         {
-            return dose != null ? dose.ToJson() : string.Empty;
+            return dose != null ? dose.ToJsonUrlEncoded() : string.Empty;
         }
 
         public MedicationDoseInstanceDataOut GetDose(string medicationName, int dayNumber)

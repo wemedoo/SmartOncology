@@ -138,7 +138,7 @@ namespace sReportsV2.Domain.Sql.Entities.ThesaurusEntry
             return GetTranslation(language)?.PreferredTerm;
         }
 
-        private ThesaurusEntryTranslation GetTranslation(string language)
+        public ThesaurusEntryTranslation GetTranslation(string language)
         {
             return Translations?.Find(x => x.Language.Equals(language));
         }

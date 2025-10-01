@@ -34,26 +34,18 @@ function deleteEntity(event) {
 
 function mainFilter() {
     $('#indication').val($('#indicationTemp').val());
-    $('#stateCD').val($('#stateCDTemp').val());
-    $('#clinicalConstelation').val($('#clinicalConstelationTemp').val());
+    $('#name').val($('#nameTemp').val());
     filterData();
 }
 
 function advanceFilter() {
     $('#indicationTemp').val($('#indication').val());
-    $('#stateCDTemp').val($('#stateCD').val());
-    $('#clinicalConstelationTemp').val($('#clinicalConstelation').val());
+    $('#nameTemp').val($('#name').val());
     filterData();
 }
 
 function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterTagsFromUrl();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setAdvancedFilterBtnStyle(requestObject, ['Indication', 'Stage', 'ClinicalConstelation', 'page', 'pageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReload(['Indication', 'Name', 'page', 'pageSize'], false);
 
     if (!requestObject.Page) {
         requestObject.Page = 1;
@@ -75,8 +67,6 @@ function reloadTable() {
 function getFilterParametersObject() {
     let result = {};
     var indication = $("#indication").val();
-    var state = $("#stateCD").val();
-    var clinicalConstelation = $("#clinicalConstelation").val();
     var name = $("#name").val();
 
     if (defaultFilter) {
@@ -85,8 +75,6 @@ function getFilterParametersObject() {
     }
     else {
         addPropertyToObject(result, 'Indication', indication);
-        addPropertyToObject(result, 'StateCD', state);
-        addPropertyToObject(result, 'ClinicalConstelation', clinicalConstelation);
         addPropertyToObject(result, 'Name', name);
     }
 

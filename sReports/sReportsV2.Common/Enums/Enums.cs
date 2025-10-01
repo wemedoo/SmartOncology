@@ -30,6 +30,13 @@ namespace sReportsV2.Common.Enums
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
+    public enum MatrixType
+    {
+        FieldMatrix,
+        FieldSetMatrix
+    }
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum FormState
     {
         Finished,
@@ -92,7 +99,7 @@ namespace sReportsV2.Common.Enums
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum ChapterPageState
+    public enum ChapterPageFieldSetState
     {
         DataEntryOnGoing = 0,
         Locked
@@ -103,7 +110,8 @@ namespace sReportsV2.Common.Enums
     {
         Page = 0,
         Chapter,
-        FormInstance
+        FormInstance,
+        FieldSet
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -113,10 +121,9 @@ namespace sReportsV2.Common.Enums
         Incoming = 2
     }
 
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum FieldAction
     {
-        DataCleaning
+        DataCleaning = 0
     }
 
     #endregion /Entity Enums
@@ -209,6 +216,8 @@ namespace sReportsV2.Common.Enums
         MissingValueDateTime = 94,
         MissingValueNumber = 95,
         ClinicalDomain = 96,
+        QueryStatus = 97,
+        QueryReason = 98
     }
     #endregion /Reserved Ids
 
@@ -261,14 +270,6 @@ namespace sReportsV2.Common.Enums
     {
         PatientIdentifierType,
         OrganizationIdentifierType
-    }
-
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SimilarTermType
-    {
-        O4MTId,
-        UMLS
-
     }
 
     [JsonConverter(typeof(StringEnumConverter))]

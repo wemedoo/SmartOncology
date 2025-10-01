@@ -12,6 +12,8 @@ namespace sReportsV2.Common.Constants
         public const string PageIsLocked = "PageIsLocked";
         public const string ReadOnlyOrLocked = "ReadOnlyOrLocked";
         public const string CanUnlockPage = "CanUnlockPage";
+        public const string CanLockFieldSet = "CanLockFieldSet";
+        public const string CanUnlockFieldSet = "CanUnlockFieldSet";
         public const string IsFormInstanceLocking = "IsFormInstanceLocking";
         public const string Title = "Title";
         public const string SubmitTitle = "SubmitTitle";

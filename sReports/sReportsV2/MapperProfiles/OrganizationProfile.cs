@@ -41,7 +41,6 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.PersonnelTeamOrganizationRelations, opt => opt.MapFrom(src => src.PersonnelTeams))
                 .ForMember(d => d.OrganizationCommunicationEntities, opt => opt.MapFrom(src => src.OrganizationCommunicationEntities))
                 .ForMember(d => d.TimeZone, opt => opt.MapFrom(src => src.TimeZone))
-                .ForMember(d => d.TimeZoneOffset, opt => opt.MapFrom(src => src.TimeZoneOffset))
                 .ForMember(d => d.ClinicalDomains, opt => opt.MapFrom(src => src.ClinicalDomains))
                 .AfterMap<CommonGlobalAfterMapping<Organization>>();
 
@@ -73,8 +72,7 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.Impressum, opt => opt.MapFrom(src => src.Impressum))
                 .ForMember(d => d.PersonnelTeamOrganizationRelations, opt => opt.MapFrom(src => src.PersonnelTeamOrganizationRelations))
                 .ForMember(d => d.OrganizationCommunicationEntities, opt => opt.MapFrom(src => src.OrganizationCommunicationEntities.Where(x => !x.IsDeleted())))
-                .ForMember(d => d.TimeZone, opt => opt.MapFrom(src => src.TimeZone))
-                .ForMember(d => d.TimeZoneOffset, opt => opt.MapFrom(src => src.TimeZoneOffset));
+                .ForMember(d => d.TimeZone, opt => opt.MapFrom(src => src.TimeZone));
 
             CreateMap<OrganizationClinicalDomain, OrganizationClinicalDomainDataOut>()
                 .IgnoreAllNonExisting()

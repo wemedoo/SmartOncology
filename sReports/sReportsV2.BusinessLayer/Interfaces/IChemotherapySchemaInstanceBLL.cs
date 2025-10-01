@@ -19,8 +19,8 @@ namespace sReportsV2.BusinessLayer.Interfaces
         void DeleteDose(EditMedicationDoseDataIn dataIn, UserCookieData userCookieData);
         void DeleteMedicationInstance(DeleteMedicationInstanceDataIn dataIn, UserCookieData userCookieData);
         ChemotherapySchemaInstanceDataOut GetById(int id);
-        ChemotherapySchemaInstanceDataOut GetSchemaInstance(int id);
-        SchemaTableDataOut GetSchemaTableData(int chemotherapySchemaInstanceId);
+        ChemotherapySchemaInstanceDataOut GetSchemaInstance(int id, UserCookieData userCookieData);
+        SchemaTableDataOut GetSchemaTableData(int chemotherapySchemaInstanceId, UserCookieData userCookieData);
         ChemotherapySchemaResourceCreatedDTO UpdateMedicationInstance(MedicationInstanceDataIn dataIn, UserCookieData userCookieData);
         MedicationDoseInstanceDataOut UpdateMedicationDoseInstance(MedicationDoseInstanceDataIn dataIn, UserCookieData userCookieData);
         PaginationDataOut<ChemotherapySchemaInstancePreviewDataOut, DataIn> ReloadTable(ChemotherapySchemaInstanceFilterDataIn dataIn);

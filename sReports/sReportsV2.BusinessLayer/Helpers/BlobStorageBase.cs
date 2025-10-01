@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.BusinessLayer.Interfaces;
+using sReportsV2.Common.Helpers;
 using sReportsV2.DTOs.Common;
 using System;
 using System.IO;
@@ -64,7 +65,7 @@ namespace sReportsV2.BusinessLayer.Helpers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Error assembling MP3 file: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Error assembling MP3 file: " + ex.GetExceptionStackMessages());
             }
 
             Directory.Delete(tempDirectory, true);

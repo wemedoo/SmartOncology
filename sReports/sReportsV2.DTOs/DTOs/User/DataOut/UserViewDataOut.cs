@@ -18,5 +18,10 @@ namespace sReportsV2.DTOs.DTOs.User.DataOut
         {
             return StateCD == blockedUserStateCD;
         }
+
+        public bool IsQuickRegisteredUser()
+        {
+            return string.IsNullOrEmpty(Email);
+        }
     }
 }

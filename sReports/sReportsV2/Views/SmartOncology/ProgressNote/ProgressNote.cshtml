@@ -65,9 +65,8 @@ else
     @await Html.PartialAsync("ProgressNote/AddAllergyModal")
 </div>
 <!-- Chart js -->
-@Html.Raw(ScriptHelper.RenderScript(Url.Content("//cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"), "sha512-Wt1bJGtlnMtGP0dqNFH1xlkLBNpEodaiQ8ZN5JLA5wpc1sUlk/O5uuOMNgvzddzkpvZ9GLyYNa8w2s7rqiTk5Q==", "anonymous"))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/chartjs-4.4.8/dist/chart.umd.js"), "", ""))
 <!--Custom script -->
-
 @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/progressNote.js"), "", ""))
 @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/schemaInstance.js"), "", ""))
 @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/schemaInstanceMedication.js"), "", ""))

@@ -2,6 +2,7 @@
 {
     public static class ExtendedPropertiesConstants
     {
+        public const string FolderName = "ExtendedProperty";
         public const string FileName = "Table_Column_Description";
         public const string ColumnDescriptionSheet = "Column Description";
         public const string TableDescriptionSheet = "Table Description";

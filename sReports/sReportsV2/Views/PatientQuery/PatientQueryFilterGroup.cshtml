@@ -1,0 +1,32 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Enums.DocumentPropertiesEnums;
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+        <div class="main-filter-select2-wrapper">
+            <div class="advanced-filter-item filter-item">
+                <div class="label filter-label">
+                    @sReportsV2.Cache.Resources.TextLanguage.Diagnostic
+                </div>
+                <select class="filter-input arrow-select" id="diagnoseId">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+        <div class="advanced-filter-item filter-item border-0 margin-top-15  margin-right-10">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="mainFilter()"> @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="filterElements" class="d-flex">
+</div>
+
+<script>
+    $(document).ready(function () {
+        initialFilterLoad('@sReportsV2.Cache.Resources.TextLanguage.Diagnostic');
+    });
+</script>

@@ -22,6 +22,7 @@ namespace sReportsV2.Domain.FieldFilters.Implementations
                 case FieldTypes.Paragraph:
                 case FieldTypes.Link:
                 case FieldTypes.Audio:
+                case FieldTypes.RichTextParagraph:
                     {
                         return new TextualCustomFieldFilter(fieldFilter.FieldThesaurusId, fieldFilter.Value, fieldFilter.FilterOperator);
                     }

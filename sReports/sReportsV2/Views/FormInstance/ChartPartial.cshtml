@@ -29,6 +29,6 @@
     </div>
 </form>
 
-@Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js", "", ""))
-@Html.Raw(ScriptHelper.RenderScript("https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js", "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/chartjs-4.4.8/dist/chart.umd.js"), "", ""))
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/chartjs-date-adapter/chartjs-adapter-date-fns.bundle.min.js"), "", ""))
 @Html.Raw(ScriptHelper.RenderBundle("js/dataCaptureChart-bundle.min.js"))

@@ -1,4 +1,6 @@
-﻿function setInitialViewData(patientId) {
+﻿addUnsavedChangesEventHandler("#smartOncologyPatientForm");
+
+function setInitialViewData(patientId) {
     if (patientId) {
         var selectedPatientEl = $(`.patient-table-entry[data-id="${patientId}"]`);
         handleOnPatientClick(selectedPatientEl);
@@ -8,6 +10,12 @@
 }
 
 $(document).on('click', '.patient-table-entry', function (e) {
+    if (initialFormData != null && !compareForms("#smartOncologyPatientForm")) {
+        const confirmChange = confirm("You have unsaved changes. Are you sure you want to leave?");
+        if (!confirmChange) {
+            return;
+        }
+    }
     handleOnPatientClick(e.currentTarget);
 });
 
@@ -79,6 +87,7 @@ function editPatient(id) {
         url: `/SmartOncology/EditPatientData?id=${id}`,
         success: function (data) {
             $("#smart-oncology-patient-detail").html(data);
+            saveInitialFormData("#smartOncologyPatientForm");
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -88,10 +97,19 @@ function editPatient(id) {
 
 function addNewPatient() {
     $('.patient-table-entry.active').removeClass('active');
+
+    if (initialFormData != null && !compareForms("#smartOncologyPatientForm")) {
+        const confirmChange = confirm("You have unsaved changes. Are you sure you want to leave?");
+        if (!confirmChange) {
+            return;
+        }
+    }
+
     callServer({
         url: `/SmartOncology/CreatePatientData`,
         success: function (data) {
             $("#smart-oncology-patient-detail").html(data);
+            saveInitialFormData("#smartOncologyPatientForm");
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -152,14 +170,14 @@ function existsTagValue(value, tagType) {
 function createSingleTag(value, displayValue) {
     var removeIcon = getNewRemoveIcon();
 
-    var element = getNewSignleTagContainer();
+    var element = getNewSingleTagContainer();
     $(element).append(getNewSingleTagValue(value, displayValue));
     $(element).append(removeIcon);
 
     return element;
 }
 
-function getNewSignleTagContainer() {
+function getNewSingleTagContainer() {
     var element = document.createElement('div');
     $(element).addClass('repetitive-value');
 
@@ -197,7 +215,7 @@ function submitPatientData(form, event) {
 
         request['Id'] = $("#patientId").val();
         request['Activity'] = true;
-        request['Name'] = $("#firstName").val();
+        request['GivenName'] = $("#firstName").val();
         request['FamilyName'] = $('#secondName').val();
         request['GenderCD'] = $("#gender").val();
         request['BirthDate'] = toDateStringIfValue($("#dateOfBirth").val());
@@ -220,6 +238,7 @@ function submitPatientData(form, event) {
                     reloadTable(data.id);
                 }
                 toastr.success("Success");
+                saveInitialFormData("#smartOncologyPatientForm");
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 handleResponseError(xhr);
@@ -287,7 +306,7 @@ function emptyPatientDetailContainer() {
     $("#smart-oncology-patient-detail").html('');
 }
 
-$('.toggle').on('click', function () {
+$(document).on('click', '.toggle', function () {
     $('.smart-oncology-patient-table').toggle();
     $('.arrow-right').toggleClass("show");
     $('.small-header').toggle();
@@ -299,16 +318,20 @@ $(document).on("click", "#closePatientNameIcon", function () {
 });
 
 $(document).on('change', '#gender', function (e) {
-    var gender = $(e.target).val();
-    if (gender === 'Female') {
+    var gender = $(this).val();
+    if (gender === $('#femaleCodeId').val()) {
         $('.egg-cell-cryopreservation').fadeIn(150);
-        $('.semen-cryopreservation').fadeOut(150);
-        $('input[name=semenCryopreservation]').prop('checked', false);
-    }
-    if (gender === 'Male') {
-        $('.semen-cryopreservation').fadeIn(150);
+    } else {
         $('.egg-cell-cryopreservation').fadeOut(150);
         $('input[name=eggCellCryopreservation]').prop('checked', false);
+    }
+
+    if (gender === $('#maleCodeId').val()) {
+        $('.semen-cryopreservation').fadeIn(150);
+        
+    } else {
+        $('.semen-cryopreservation').fadeOut(150);
+        $('input[name=semenCryopreservation]').prop('checked', false);
     }
 });
 

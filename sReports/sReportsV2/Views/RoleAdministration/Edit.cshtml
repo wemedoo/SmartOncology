@@ -9,8 +9,15 @@
     int positionId = Model.Position.Id;
 }
 <div class="element-background-grey">
-    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", @sReportsV2.Cache.Resources.TextLanguage.Roles }, { "linkLevel1", "/RoleAdministration/GetAll" }, { "level2", Model != null ? string.Concat(sReportsV2.Cache.Resources.TextLanguage.Edit_Role, " ", positionName) : @sReportsV2.Cache.Resources.TextLanguage.Create_New_Role }, { "activeLevel", 2 }, { "showBreadcrumbLine", true } })
-    <div class="edit-role-header">@sReportsV2.Cache.Resources.TextLanguage.Edit_Role</div>
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) 
+    { 
+        { "level1", @sReportsV2.Cache.Resources.TextLanguage.Roles }, 
+        { "linkLevel1", "/RoleAdministration/GetAll" },
+        { "level2", Model != null ? string.Concat((ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.ViewRole : sReportsV2.Cache.Resources.TextLanguage.Edit_Role), " ", positionName) : @sReportsV2.Cache.Resources.TextLanguage.Create_New_Role },
+        { "activeLevel", 2 }, 
+        { "showBreadcrumbLine", true } 
+    })
+    <div class="edit-role-header">@(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.ViewRole : sReportsV2.Cache.Resources.TextLanguage.Edit_Role)</div>
     <div class="edit-role-container">
         <form method="post" id="roleForm" onsubmit="return submitRoleForm(this, event)" novalidate>
             <input type="hidden" class="form-control" id="roleCD" value="@(Model != null ? positionId.ToString() : "" )" />
@@ -46,7 +53,7 @@
                         <div class="module-container module-permission" data-id="@module.Id">
                             <div class="row module-header">
                                 <div class="module-header-name col-sm-4">
-                                    <span>
+                                    <span class="sub-align">
                                         @if (module.Name == ModuleNames.ClinicalPathway)
                                         {
                                             <i class="fas fa-book"></i>
@@ -54,6 +61,10 @@
                                         else if (module.Name == ModuleNames.ClinicalOncology)
                                         {
                                             <img alt="" class="color-black" src="/css/open-oncology/images/icons/progress_note_black.svg">
+                                        }
+                                        else if (module.Name == ModuleNames.QueryManagement)
+                                        {
+                                            <i class="fas fa-table"></i>
                                         }
                                         else
                                         {

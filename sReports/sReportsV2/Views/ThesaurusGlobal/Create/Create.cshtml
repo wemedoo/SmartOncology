@@ -1,9 +1,10 @@
 @using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Constants
 @model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
 @{
     var thesaurusId = Model != null ? Model.Id : 0;
-    var backUrlToPreview = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}", thesaurusId) : "/";
-    var backUrlToCreate = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/Create?Id={0}", thesaurusId) : "/";
+    var backUrlToPreview = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}", thesaurusId) : ResourceTypes.DefaultEndpoint;
+    var backUrlToCreate = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/Create?Id={0}", thesaurusId) : ResourceTypes.DefaultEndpoint;
     ViewBag.Title = "Submit new term";
 }
 <input type="hidden" id="id" value="@thesaurusId" />

@@ -14,6 +14,7 @@ namespace sReportsV2.DTOs.DTOs.PatientList
     public class PatientListDTO
     {
         public int PatientListId { get; set; }
+        [Display(Name = "List Name")]
         [Required]
         public string PatientListName { get; set; }
         public bool ArePatientsSelected { get; set; }

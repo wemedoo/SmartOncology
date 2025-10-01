@@ -1,0 +1,32 @@
+@using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Extensions
+@using sReportsV2.DTOs.Field.DataOut
+@using sReportsV2.DTOs.Form.DataOut
+@model FieldConnectedDataOut
+
+@{
+    FormDataOut form = ViewBag.Form as FormDataOut;
+    string datasource = form.GetAutocompleteHierarchyData(Model.Id).JsonSerialize();
+}
+
+@await Html.PartialAsync("~/Views/Form/Common/ObligatoryWithMissingValues.cshtml")
+<div class="designer-form-section">
+    <div>
+        <div class="">
+            <div class="label filter-label color-black">
+                @sReportsV2.Cache.Resources.TextLanguage.Connected @sReportsV2.Cache.Resources.TextLanguage.Fields
+            </div>
+            <select multiple="multiple" required class="designer-form-input select-arrow valid" id="connected" name="connected" aria-invalid="false">
+                <option value="">@sReportsV2.Cache.Resources.TextLanguage.SelectOption</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/designer/designer-items/fields/connectedField.js"), "", ""))
+
+<script>
+    $(document).ready(function () {
+        loadConnectedFieldOptions(@Html.Raw(datasource), @Html.Raw(Model.ConnectedFieldIds.JsonSerialize()));
+    });
+</script>

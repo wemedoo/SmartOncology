@@ -1,0 +1,53 @@
+﻿@using sReportsV2.Common.Enums
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.CodeEntry.DataOut;
+@using sReportsV2.Common.Extensions;
+
+<div class="modal fade" id="exportModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-password w-616">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div class="modal-body">
+                <div class="form-group col-md-12">
+                    <form class="designer-item-form" id="exportModalForm">
+                        <div class="d-flex advanced-filter-header">
+                            <img alt="" class="mr-3" src="/css/img/icons/ClinicalPathway/thesaurus_entry.svg">
+                            <div>@sReportsV2.Cache.Resources.TextLanguage.ExportMenu</div>
+                        </div>
+
+                        <div class="advanced-filter-item input-margin">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.Name
+                            </div>
+                            <input class="filter-input" type="text" id="exportName" name="exportName" />
+                        </div>
+
+                        <div class="advanced-filter-item filter-item">
+                            <div class="label filter-label">
+                                @sReportsV2.Cache.Resources.TextLanguage.FileType
+                            </div>
+                            <select class="filter-input arrow-select" id="fileType">
+                                <option value="json">@sReportsV2.Cache.Resources.TextLanguage.DataFile</option>
+                                <option value="png">@sReportsV2.Cache.Resources.TextLanguage.ImageFile</option>
+                                <option value="PDF">@sReportsV2.Cache.Resources.TextLanguage.DocumentPdf</option>
+                            </select>
+                        </div>
+                 
+                        <div class="button-partial">
+                            <button class="submit-button right-button margin-left-13" type="button" onclick="exportPathway(event, '@Model?.Title')" style="outline: none;">
+                                <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Export</span>
+                            </button>
+                            <div class="button-wrapper-filter float-right" id="close">
+                                <a class="btn advanced-cancel" data-dismiss="modal" aria-label="Close">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

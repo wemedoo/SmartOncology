@@ -6,5 +6,11 @@
         public int PageSize { get; set; }
         public string ColumnName { get; set; }
         public bool IsAscending { get; set; }
+
+        public int GetHowManyElementsToSkip()
+        {
+            int page = this.Page > 0 ? this.Page : 1;
+            return (page - 1) * this.PageSize;
+        }
     }
 }

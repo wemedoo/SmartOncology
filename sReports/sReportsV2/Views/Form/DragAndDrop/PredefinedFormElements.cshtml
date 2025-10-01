@@ -12,7 +12,7 @@
                         @sReportsV2.Cache.Resources.TextLanguage.Drag_and_Drop
                     </div>
                 </div>
-                <ol class="dd-list">
+                <ol class="dd-list drag-and-drop-menu">
                     <li class="drag-and-drop-element dd-item" data-itemtype="chapter" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-title="Chapter title">
                         <div class="dd-handle custom-dd-handle">
                             @{ RenderDragTitleSection(string.Format("{0} {1}", sReportsV2.Cache.Resources.TextLanguage.Chapter, @sReportsV2.Cache.Resources.TextLanguage.Title), "chapter-predefined-item-placeholder"); }
@@ -93,6 +93,24 @@
                             </fieldset>
                         </div>
                     </li>
+                    <!--Start rich text field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.RichTextParagraph" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Rich Text field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Rich_Text_Paragraph, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder text-field-predefined-item-placeholder"); }
+                            @{ RenderDragItemIconSection("field-drag-item-icon d-none"); }
+                            @{ RenderIconsSection("d-none"); }
+                            <fieldset class="form-input d-none">
+                                <div class="filter-label form-label-size d-inline-block">
+                                    @sReportsV2.Cache.Resources.TextLanguage.Rich_Text_Paragraph @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                </div>
+                                <div class="repetitive-field filter-input d-inline-block">
+                                    <textarea class="form-element-field richarea-repetitive" placeholder="" readonly></textarea>
+                                </div>
+                                @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldRichTextParagraphDataOut())
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End rich text field-->
                     <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Link" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="">
                         <div class="dd-handle custom-dd-handle field-custom-dd-handle">
                             @{ RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Link, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder text-field-predefined-item-placeholder"); }
@@ -195,15 +213,19 @@
                                                 <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg">
                                             </div>
                                         </div>
-                                        <div class="time-wrapper w-35 input-border">
-                                            <input type="text"
-                                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                                   class="time-part time-helper d-inline-block border-0"
-                                                   readonly>
-                                            <div class="clock-wrapper">
-                                                <i class="fas fa-clock"></i>
-                                            </div>
-                                        </div>
+                                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                                       {
+                                           InputAttributes = new Dictionary<object, object> {
+                                            { "class", "time-helper d-inline-block border-0" },
+                                            {"readonly", null}
+                                           },
+                                           InputBtnAttributes = new Dictionary<object, object>
+                                            {
+                                                {
+                                                    "readOnly", true
+                                                }
+                                            }
+                                       })
                                     </div>
                                 </div>
                                 @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldDatetimeDataOut())
@@ -355,6 +377,34 @@
                         </div>
                     </li>
                     <!--End coded field-->
+                    <!--Start connected field-->
+                    <li class="drag-and-drop-element dd-item" data-itemtype="field" data-type="@FieldTypes.Connected" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Connected field title">
+                        <div class="dd-handle custom-dd-handle field-custom-dd-handle">
+                            @{
+                                RenderDragTitleSection(string.Format("{0} {1}", @sReportsV2.Cache.Resources.TextLanguage.Connected, @sReportsV2.Cache.Resources.TextLanguage.Field), "field-predefined-item-placeholder select-field-predefined-item-placeholder");
+                            }
+                            @{
+                                RenderDragItemIconSection("field-drag-item-icon d-none");
+                            }
+                            @{
+                                RenderIconsSection("d-none");
+                            }
+                            <fieldset class="form-input d-none">
+                                <div class="field-group">
+                                    <div class="filter-label form-label-size d-inline-block">
+                                        @sReportsV2.Cache.Resources.TextLanguage.Connected @sReportsV2.Cache.Resources.TextLanguage.Field @sReportsV2.Cache.Resources.TextLanguage.Label
+                                    </div>
+                                    <div class="repetitive-field filter-input d-inline-block arrow-select">
+                                        <select class="form-element-field" disabled>
+                                            <option value="" class="form-select-placeholder" data-itemtype="fieldvalue"></option>
+                                        </select>
+                                    </div>
+                                    @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", new FieldCodedDataOut())
+                                </div>
+                            </fieldset>
+                        </div>
+                    </li>
+                    <!--End connected field-->
                     <!--Start radio field-->
                     <li class="drag-and-drop-element dd-item padding-right-10 margin-bottom-15" data-itemtype="field" data-type="@FieldTypes.Radio" data-id="@GuidExtension.NewGuidStringWithoutDashes()" data-label="Radio field title">
                         <div class="dd-handle custom-dd-handle radio-custom-dd-handle add-new-element">
@@ -457,10 +507,10 @@
                 <div class="overlay"></div>
             }
             <div class="edit-button @additionalEditBtnClass">
-                <img alt="" src="/css/img/icons/edit_pencil_03.svg">
+                <img alt="" src="/css/img/icons/edit_pencil_03.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Edit">
             </div>
             <div class="remove-button @additionalRemoveBtnClass">
-                <img alt="" src="/css/img/icons/remove_simulator.svg">
+                <img alt="" src="/css/img/icons/remove_simulator.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Remove">
             </div>
         </div>
     }

@@ -10,12 +10,15 @@
 @model FormDataOut
 
 <div class="width-100">
-    <div class="organization-tabs">
+    <div class="custom-tabs">
         <div data-id="DesignerGeneralInfo" class="organization-tab active form-info-tab">
             @sReportsV2.Cache.Resources.TextLanguage.Form_General_Info
         </div>
-        <div data-id="CustomFieldHeaders" class="@(Model == null ? "organization-tab-disabled" : "organization-tab") form-info-tab">
+        <div data-id="CustomFieldHeaders" class="organization-tab form-info-tab">
             @sReportsV2.Cache.Resources.TextLanguage.Custom_Header <span class="unsaved-custom-headers-star" style="display:none">*</span>
+        </div>
+        <div data-id="LoincConfiguration" class="organization-tab form-info-tab">
+            LOINC Configuration <span class="unsaved-custom-headers-star" style="display:none">*</span>
         </div>
     </div>
 </div>
@@ -28,6 +31,10 @@
 
 <div id="CustomFieldHeaders" class="form-info-cont" style="display:none">
     @await Html.PartialAsync("~/Views/Form/DragAndDrop/CustomHeaderFields.cshtml", Model)
+</div>
+
+<div id="LoincConfiguration" class="form-info-cont" style="display:none">
+    @await Html.PartialAsync("~/Views/Form/DragAndDrop/LoincConfiguration.cshtml", Model)
 </div>
 
 @Html.Raw(ScriptHelper.RenderBundle("js/customHheaderFields-bundle.min.js"))

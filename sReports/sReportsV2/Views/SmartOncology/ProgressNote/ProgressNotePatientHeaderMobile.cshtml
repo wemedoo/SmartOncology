@@ -1,6 +1,7 @@
 <!-- //////// Start - Visible on tablet //////// -->
 @using System.Globalization
 @using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 @using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchemaInstance.DataOut;
 
 @model ChemotherapySchemaInstanceDataOut
@@ -90,8 +91,8 @@
                             }
                             else
                             {
-                                <input type="hidden" id="schemaStartMobile" name="schemaStartMobile" value="@(Model != null && Model.StartDate.HasValue ? Model.StartDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")" />
-                                <span>@(Model != null && Model.StartDate.HasValue ? Model.StartDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")</span>
+                                <input type="hidden" id="schemaStartMobile" name="schemaStartMobile" value="@(Model != null ? Model.StartDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "")" />
+                                <span>@(Model != null ? Model.StartDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "")</span>
                             }
                         </label>
                     </div>

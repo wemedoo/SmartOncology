@@ -32,6 +32,7 @@
                         <div class="advanced-filter-item input-margin">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Identifier_name
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <select required class="filter-input arrow-select" id="identifierTypeCD" name="identifierTypeCD" @ViewBag.Disabled>
                                 <option value=""></option>
@@ -46,6 +47,7 @@
                         <div class="advanced-filter-item input-margin">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Value
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <input required class="filter-input" type="text" id="identifierValue" name="identifierValue" onkeydown="pressButtonOnEnterKey(event, 'identifier-modal-button')" @ViewBag.Disabled />
                         </div>

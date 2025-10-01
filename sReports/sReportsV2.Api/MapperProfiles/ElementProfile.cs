@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using sReportsV2.Common.Constants;
-using sReportsV2.Domain.Entities.CustomFHIRClasses;
 using sReportsV2.Domain.Entities.FieldEntity;
 using System;
 using System.Collections.Generic;

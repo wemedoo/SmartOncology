@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using sReportsV2.Common.Extensions;
-using sReportsV2.Common.Configurations;
 
 namespace sReportsV2.BusinessLayer.Components.Implementations
 {
@@ -270,11 +269,12 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
         {
             if (this.Field is FieldDateDataOut _ && DateTime.TryParse(fhirSimpleOperand.Value, out DateTime parsedDate))
             {
-                return new Date(parsedDate.GetDateTimeDisplay(DateConstants.UTCDatePartFormat, excludeTimePart: true));
+                return new Date(parsedDate.GetDateTimeDisplay(DateTimeConstants.UTCDatePartFormat, excludeTimePart: true));
             }
             else if (this.Field is FieldDatetimeDataOut _ && DateTime.TryParse(fhirSimpleOperand.Value, out DateTime dateTime))
             {
-                string processedValue = dateTime.ToString("yyyy-MM-ddTHH:mm") + GlobalConfig.GetUserOffset(isOffsetForFormInstance: true);
+                string organizationOffsetPrinted = DateTimeExtension.GetOffsetValue();
+                string processedValue = dateTime.ToString(DateTimeConstants.UTCFormat) + organizationOffsetPrinted;
                 return new FhirDateTime(processedValue);
             }
 

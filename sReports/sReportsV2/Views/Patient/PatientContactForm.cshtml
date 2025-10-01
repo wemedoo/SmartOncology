@@ -67,7 +67,7 @@
                         { "id", "contactBirthDate" },
                         { "name", "contactBirthDate" },
                         { @ViewBag.Disabled, null },
-                        { "value", Model != null && Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                        { "value", Model != null ? Model.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" }
                     },
                     InputBtnAttributes = new Dictionary<object, object> {
                         { "class", "date-img" },

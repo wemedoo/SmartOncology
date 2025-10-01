@@ -1,6 +1,15 @@
 ﻿@using System.Globalization
 @using sReportsV2.Common.Extensions;
 @using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.DigitalGuideline.DataIn;
+
+@{
+    GuidelineFilterDataIn filter = ViewBag.FilterData as GuidelineFilterDataIn;
+    string timeFrom = filter != null ? filter.DateTimeFrom.GetTimePart() : "";
+    string timeTo = filter != null ? filter.DateTimeTo.GetTimePart() : "";
+    string dateFrom = filter != null ? filter.DateTimeFrom.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+    string dateTo = filter != null ? filter.DateTimeTo.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+}
 
 <form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
     <div class="modal fade" id="advancedFilterModal" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
@@ -8,35 +17,30 @@
             <div class="modal-content modal-content-advanced digital-guidelines-content">
                 <div class="float-right filter-close-btn">
                     <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
-
                 </div>
-
                 <div class="modal-body modal-body-advanced" id="advancedFilterModalContent">
                     <div class="d-flex advanced-filter-header">
                         <img alt="" class="mr-3" src="/css/img/icons/advanced_filter.svg">@sReportsV2.Cache.Resources.TextLanguage.Advanced_filter
                     </div>
-
-
-
                     <div class="d-flex margin-top-20">
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Title
                             </div>
-                            <input type="text" class="filter-input" id="title" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Title : "")">
+                            <input type="text" class="filter-input" id="title" value="@(filter!= null ? filter.Title : "")">
                         </div>
                         <div class="advanced-filter-item filter-item d-flex">
                             <div class="w-50 mr-1">
                                 <div class="label filter-label">
                                     @sReportsV2.Cache.Resources.TextLanguage.Major
                                 </div>
-                                <input type="text" class="filter-input" id="major" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Major : "")">
+                                <input type="text" class="filter-input" id="major" value="@(filter!= null ? filter.Major : "")">
                             </div>
                             <div class="w-50 ml-1">
                                 <div class="label filter-label">
                                     @sReportsV2.Cache.Resources.TextLanguage.Minor
                                 </div>
-                                <input type="text" class="filter-input" id="minor" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Minor : "")">
+                                <input type="text" class="filter-input" id="minor" value="@(filter!= null ? filter.Minor : "")">
                             </div>
                         </div>
                     </div>
@@ -51,29 +55,25 @@
                                {
                                    InputAttributes = new Dictionary<object, object> {
                                             { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                            { "value", ViewBag.FilterData != null && ViewBag.FilterData.DateTimeFrom != null ? ViewBag.FilterData.DateTimeFrom.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                            { "value", dateFrom },
                                             { "id", "dateFrom"},
                                             { "name", "dateFrom"}
                                         }
                                })
-                                    <input id="dateTimeFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeFrom != null ? ViewBag.FilterData.DateTimeFrom.ToString("s") : "")" />
+                                    <input id="dateTimeFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.DateTimeFrom != null ? filter.DateTimeFrom.Value.ToString("s") : "")" />
                                     <div class="img-wrapper">
                                         <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
                                     </div>
                                 </div>
-                                <div class="time-wrapper w-35 input-border">
-                                    <input 
-                                           type="text" 
-                                           placeholder="@DateConstants.TimeFormatDisplay" 
-                                           class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90" 
-                                           value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeFrom != null ? ViewBag.FilterData.DateTimeFrom.GetTimePart() : "")"
-                                           id="timeFrom"
-                                           name="timeFrom"
-                                           >
-                                    <div class="clock-wrapper">
-                                        <i class="fas fa-clock" @Html.TimeDisabled(readOnly: false)></i>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                                {
+                                    InputAttributes = new Dictionary<object, object> {
+                                        { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                        { "value", timeFrom },
+                                        { "id", "timeFrom"},
+                                        { "name", "timeFrom"}
+                                    }
+                                })
                             </div>
                         </div>
                         <div class="advanced-filter-item filter-item">
@@ -86,29 +86,25 @@
                                     {
                                         InputAttributes = new Dictionary<object, object> { 
                                             { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" }, 
-                                            { "value", ViewBag.FilterData != null && ViewBag.FilterData.DateTimeTo != null ? ViewBag.FilterData.DateTimeTo.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                            { "value", dateTo },
                                             { "id", "dateTo"},
                                             { "name", "dateTo"}
                                         }
                                     })
-                                    <input id="dateTimeTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeTo != null ? ViewBag.FilterData.DateTimeTo.ToString("s") : "")" />
+                                    <input id="dateTimeTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.DateTimeTo != null ? filter.DateTimeTo.Value.ToString("s") : "")" />
                                     <div class="img-wrapper">
                                         <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
                                     </div>
                                 </div>
-                                <div class="time-wrapper w-35 input-border">
-                                    <input 
-                                           type="text" 
-                                           placeholder="@DateConstants.TimeFormatDisplay" 
-                                           class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90" 
-                                           value="@(ViewBag.FilterData != null && ViewBag.FilterData.DateTimeTo != null ? ViewBag.FilterData.DateTimeTo.GetTimePat() : "")"
-                                           id="timeTo"
-                                           name="timeTo"
-                                           >
-                                    <div class="clock-wrapper">
-                                        <i class="fas fa-clock" @Html.TimeDisabled(readOnly: false)></i>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                               {
+                                   InputAttributes = new Dictionary<object, object> {
+                                    { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                    { "value", timeTo },
+                                    { "id", "timeTo"},
+                                    { "name", "timeTo"}
+                                    }
+                               })
                             </div>
                         </div>
                     </div>

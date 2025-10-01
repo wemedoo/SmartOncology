@@ -4,7 +4,7 @@
 @model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
 @{
     var thesaurusId = Model != null ? Model.Id : 0;
-    var backUrl = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}", thesaurusId) : "/";
+    var backUrl = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}", thesaurusId) : ResourceTypes.DefaultEndpoint;
     ViewBag.Title = "Preview thesaurus";
 }
 <input type="hidden" id="id" value="@thesaurusId" />

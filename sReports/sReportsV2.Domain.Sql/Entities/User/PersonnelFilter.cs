@@ -21,5 +21,6 @@ namespace sReportsV2.Domain.Sql.Entities.User
         public int? CountryCD { get; set; }
         public string PostalCode { get; set; }
         public string Street { get; set; }
+        public bool HasAdminRole { get; set; }
     }
 }

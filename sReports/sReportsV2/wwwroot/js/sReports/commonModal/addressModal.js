@@ -61,7 +61,6 @@ function submitAddress(e) {
                         addressRow = addAddressToTable(addressEntity);
                     }
                     updateTableEntryFormData(addressRow, getFormTrackingAddressPropertyName(), true);
-                    
                     handleModalAfterSubmitting(activeAddressContainer, 'address-entry', 'addressModal', function () {
                         setActiveAddressContainer('');
                     });
@@ -117,8 +116,10 @@ function editAddressInTable(addressEntity) {
     $(addressRow).children("[data-property]").each(function (index, addressCell) {
         let propertyName = $(addressCell).attr("data-property");
         let newPropertyValue = addressEntity[propertyName];
+        let cellDisplayValueFormatted = displayCellValueOrNe(newPropertyValue["display"]);
         $(addressCell).attr("data-value", newPropertyValue["value"]);
-        $(addressCell).text(displayCellValueOrNe(newPropertyValue["display"]));
+        $(addressCell).attr("title", cellDisplayValueFormatted);
+        $(addressCell).text(cellDisplayValueFormatted);
     });
 
     return addressRow;

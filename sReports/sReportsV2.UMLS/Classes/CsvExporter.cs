@@ -222,7 +222,7 @@ namespace sReportsV2.UMLS.Classes
 
         private static void HandleException(Exception ex, string fileName)
         {
-            LogHelper.Error($"The file ({fileName}) could not be read, exception message: {ex.Message}");
+            LogHelper.Error($"The file ({fileName}) could not be read, exception message: {ex.GetExceptionStackMessages()}");
             LogHelper.Error(ex.StackTrace);
         }
     }

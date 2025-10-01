@@ -18,6 +18,7 @@ namespace sReportsV2.DTOs.Field.DataOut
         {
             this.Formula = dependentOnInfoDataOut.Formula;
             this.DependentOnFieldInfos = dependentOnInfoDataOut.DependentOnFieldInfos;
+            this.FieldActions = dependentOnInfoDataOut.FieldActions;
         }
 
         public bool HasDependentField(string fieldId)

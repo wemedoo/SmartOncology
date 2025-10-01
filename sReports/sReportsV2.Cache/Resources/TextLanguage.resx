@@ -3981,9 +3981,6 @@
   <data name="Logo" xml:space="preserve">
     <value>Logo</value>
   </data>
-  <data name="LogoUrl" xml:space="preserve">
-    <value>Logo url</value>
-  </data>
   <data name="Logout" xml:space="preserve">
     <value>Log Out</value>
   </data>
@@ -4538,9 +4535,6 @@
   </data>
   <data name="no" xml:space="preserve">
     <value>Norwegian</value>
-  </data>
-  <data name="No result found" xml:space="preserve">
-    <value>No result found</value>
   </data>
   <data name="No Trial Found" xml:space="preserve">
     <value>No Trial Found !</value>
@@ -5914,7 +5908,7 @@
     <value>Regular expression description</value>
   </data>
   <data name="Regular_Expression_Settings" xml:space="preserve">
-    <value>Regular expression setttings</value>
+    <value>Regular expression settings</value>
   </data>
   <data name="Rehabilitation" xml:space="preserve">
     <value>Rehabilitation</value>
@@ -6389,15 +6383,6 @@
   </data>
   <data name="ServiceType" xml:space="preserve">
     <value>Service Type</value>
-  </data>
-  <data name="SessionBreak" xml:space="preserve">
-    <value>Session Interruption</value>
-  </data>
-  <data name="SessionExpiration" xml:space="preserve">
-    <value>Your session stands out for</value>
-  </data>
-  <data name="SessionInfo" xml:space="preserve">
-    <value>Choose "Continue" to continue with work or choose "Logout" to end your session.Session will break automaticly after 60s.</value>
   </data>
   <data name="SetNumberOfDocumentsToGenerate" xml:space="preserve">
     <value>Set number of documents to generate</value>
@@ -7085,9 +7070,6 @@
   </data>
   <data name="to" xml:space="preserve">
     <value>Tonga</value>
-  </data>
-  <data name="ToBeReplacedWithExternalOntologyTerm" xml:space="preserve">
-    <value>To Be Replaced With External Ontology Term</value>
   </data>
   <data name="Toggle" xml:space="preserve">
     <value>Toggle</value>
@@ -7996,7 +7978,7 @@
     <value>Form instance {0} doesn´t exist on Database</value>
   </data>
   <data name="FormNotExists" xml:space="preserve">
-    <value>Form {0} doesn´t exist on Database</value>
+    <value>Form {0} doesn´t exist in database</value>
   </data>
   <data name="Matrix" xml:space="preserve">
     <value>Matrix</value>
@@ -8030,5 +8012,224 @@
   </data>
   <data name="Show Only Discharged Patients" xml:space="preserve">
     <value>Show Only Discharged Patients</value>
+  </data>
+  <data name="FormDefinitionState_Archive" xml:space="preserve">
+    <value>Archive</value>
+  </data>
+  <data name="za" xml:space="preserve">
+    <value>Zhuang</value>
+  </data>
+  <data name="MissingValue" xml:space="preserve">
+    <value>Missing Value</value>
+  </data>
+  <data name="UploadLogo" xml:space="preserve">
+    <value>Upload Logo</value>
+  </data>
+  <data name="NominatorCodeSetName" xml:space="preserve">
+    <value>Nominator Code Set Name</value>
+  </data>
+  <data name="NominatorCodeSetNumber" xml:space="preserve">
+    <value>Nominator Code Set Number</value>
+  </data>
+  <data name="ViewProjectData" xml:space="preserve">
+    <value>View Project Data</value>
+  </data>
+  <data name="ViewRole" xml:space="preserve">
+    <value>View Role</value>
+  </data>
+  <data name="InvalidUploadedPdfFormat" xml:space="preserve">
+    <value>Uploaded pdf is in invalid format!</value>
+  </data>
+  <data name="MatrixType" xml:space="preserve">
+    <value>Matrix type</value>
+  </data>
+  <data name="NonSelectable" xml:space="preserve">
+    <value>Non-selectable</value>
+  </data>
+  <data name="Selectable" xml:space="preserve">
+    <value>Selectable</value>
+  </data>
+  <data name="FieldMatrix" xml:space="preserve">
+    <value>Field Matrix</value>
+  </data>
+  <data name="FieldSetMatrix" xml:space="preserve">
+    <value>Field Set Matrix</value>
+  </data>
+  <data name="CodeValueManagement" xml:space="preserve">
+    <value>Code Value Management</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="SystemAdministrationAndResources" xml:space="preserve">
+    <value>System Administration &amp; Resources</value>
+  </data>
+  <data name="Add edge" xml:space="preserve">
+    <value>Add edge</value>
+  </data>
+  <data name="Add node" xml:space="preserve">
+    <value>Add node</value>
+  </data>
+  <data name="Arrows" xml:space="preserve">
+    <value>Arrows</value>
+  </data>
+  <data name="Decision" xml:space="preserve">
+    <value>Decision</value>
+  </data>
+  <data name="Edit Node Information" xml:space="preserve">
+    <value>Edit Node Information</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Event</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="Shapes" xml:space="preserve">
+    <value>Shapes</value>
+  </data>
+  <data name="Statement" xml:space="preserve">
+    <value>Statement</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Unidirectional" xml:space="preserve">
+    <value>Unidirectional</value>
+  </data>
+  <data name="Update graph" xml:space="preserve">
+    <value>Update graph</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>Zoom In</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Zoom Out</value>
+  </data>
+  <data name="EditFormInstance" xml:space="preserve">
+    <value>Edit Form Instance</value>
+  </data>
+  <data name="Health_Care_Workers" xml:space="preserve">
+    <value>Health Care Workers</value>
+  </data>
+  <data name="Health_Care_Worker" xml:space="preserve">
+    <value>Health Care Worker</value>
+  </data>
+  <data name="PatientTabTooltip" xml:space="preserve">
+    <value>Please submit General Info before proceeding</value>
+  </data>
+  <data name="Bezier" xml:space="preserve">
+    <value>Bezier</value>
+  </data>
+  <data name="Taxi" xml:space="preserve">
+    <value>Taxi</value>
+  </data>
+  <data name="Unbundled Bezier" xml:space="preserve">
+    <value>Unbundled Bezier</value>
+  </data>
+  <data name="Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Thesaurus_ID" xml:space="preserve">
+    <value>Thesaurus ID</value>
+  </data>
+  <data name="Commands" xml:space="preserve">
+    <value>Commands</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ExportMenu" xml:space="preserve">
+    <value>Export menu</value>
+  </data>
+  <data name="DataFile" xml:space="preserve">
+    <value>Data File (JSON)</value>
+  </data>
+  <data name="DocumentPdf" xml:space="preserve">
+    <value>Document (PDF)</value>
+  </data>
+  <data name="FileType" xml:space="preserve">
+    <value>File type</value>
+  </data>
+  <data name="ImageFile" xml:space="preserve">
+    <value>Image File (PNG)</value>
+  </data>
+  <data name="Hierarchy" xml:space="preserve">
+    <value>Hierarchy</value>
+  </data>
+  <data name="NarrowerConcepts" xml:space="preserve">
+    <value>Narrower Concepts</value>
+  </data>
+  <data name="BroaderConcepts" xml:space="preserve">
+    <value>Broader Concepts</value>
+  </data>
+  <data name="Rich Text Paragraph" xml:space="preserve">
+    <value>Rich Text Paragraph</value>
+  </data>
+  <data name="PatientQueryWindow" xml:space="preserve">
+    <value>Patient Query Window</value>
+  </data>
+  <data name="Extensions" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="Query" xml:space="preserve">
+    <value>Query</value>
+  </data>
+  <data name="FieldId" xml:space="preserve">
+    <value>Field Id</value>
+  </data>
+  <data name="QueryManagement" xml:space="preserve">
+    <value>Query Management</value>
+  </data>
+  <data name="Instruction" xml:space="preserve">
+    <value>Instruction</value>
+  </data>
+  <data name="Queries" xml:space="preserve">
+    <value>Queries</value>
+  </data>
+  <data name="QueryReason" xml:space="preserve">
+    <value>Query Reason</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="ProvideAnAnwerWhyTheQueryIsRaised" xml:space="preserve">
+    <value>Please provide an answer or select one of the possible reasons why the query is raised.</value>
+  </data>
+  <data name="QueryText" xml:space="preserve">
+    <value>Query Text</value>
+  </data>
+  <data name="RaiseNewQuery" xml:space="preserve">
+    <value>Raise New Query</value>
+  </data>
+  <data name="DaysOpen" xml:space="preserve">
+    <value>Days Open</value>
+  </data>
+  <data name="DaysSinceLastChange" xml:space="preserve">
+    <value>Days Since Last Change</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Field Type</value>
+  </data>
+  <data name="QueryDate" xml:space="preserve">
+    <value>Query Date</value>
+  </data>
+  <data name="Question" xml:space="preserve">
+    <value>Question</value>
+  </data>
+  <data name="RaisedBy" xml:space="preserve">
+    <value>Raised By</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="SendUpdate" xml:space="preserve">
+    <value>Send Update</value>
+  </data>
+  <data name="ExportToQuestionnaire" xml:space="preserve">
+    <value>Export to Questionnaire</value>
   </data>
 </root>

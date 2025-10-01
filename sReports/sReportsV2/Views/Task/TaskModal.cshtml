@@ -56,7 +56,8 @@
                             <option value="" disabled selected></option>
                             @{
                                 var taskDocuments = ViewBag.TaskDocuments as List<CodeDataOut>;
-                                var filteredTaskDocuments = ObjectExtension.FilterDataSource(taskDocuments);
+                                var filteredTaskDocuments = ObjectExtension.FilterDataSource(taskDocuments, readOnly, Model != null ? Model.TaskDocumentCD : null);
+
                                 bool selectedTaskDocumentsExists = false;
                                 foreach (var taskDocument in filteredTaskDocuments)
                                 {

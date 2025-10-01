@@ -35,7 +35,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IMedicationDoseInstanceDAL medicationDoseInstanceDAL;
         private readonly ITrialManagementDAL trialManagementDAL;
         private readonly ICodeDAL codeDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public ChemotherapySchemaInstanceBLL(IChemotherapySchemaInstanceDAL chemotherapySchemaInstanceDAL, IChemotherapySchemaInstanceHistoryDAL chemotherapySchemaInstanceHistoryDAL, IMedicationInstanceDAL medicationInstanceDAL, IMedicationReplacementDAL medicationReplacementDAL, IMedicationDoseInstanceDAL medicationDoseInstanceDAL, ITrialManagementDAL trialManagementDAL, ICodeDAL codeDAL, IMapper mapper)
         {
@@ -46,7 +46,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.medicationDoseInstanceDAL = medicationDoseInstanceDAL;
             this.trialManagementDAL = trialManagementDAL;
             this.codeDAL = codeDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public void Delete(int id)
@@ -59,25 +59,25 @@ namespace sReportsV2.BusinessLayer.Implementations
             ChemotherapySchemaInstance chemotherapySchemaInstance = chemotherapySchemaInstanceDAL.GetSchemaInstance(id);
             if (chemotherapySchemaInstance == null) throw new ArgumentNullException(nameof(id));
 
-            ChemotherapySchemaInstanceDataOut chemotherapySchemaInstanceDataOut = Mapper.Map<ChemotherapySchemaInstanceDataOut>(chemotherapySchemaInstance);
+            ChemotherapySchemaInstanceDataOut chemotherapySchemaInstanceDataOut = mapper.Map<ChemotherapySchemaInstanceDataOut>(chemotherapySchemaInstance);
             return chemotherapySchemaInstanceDataOut;
         }
 
-        public ChemotherapySchemaInstanceDataOut GetSchemaInstance(int id)
+        public ChemotherapySchemaInstanceDataOut GetSchemaInstance(int id, UserCookieData userCookieData)
         {
             ChemotherapySchemaInstance chemotherapySchemaInstance = chemotherapySchemaInstanceDAL.GetSchemaInstance(id);
             if (chemotherapySchemaInstance == null) throw new ArgumentNullException(nameof(id));
 
-            ChemotherapySchemaInstanceDataOut chemotherapySchemaInstanceDataOut = Mapper.Map<ChemotherapySchemaInstanceDataOut>(chemotherapySchemaInstance);
-            chemotherapySchemaInstanceDataOut.SchemaTableData = GetSchemaTableData(chemotherapySchemaInstance);
-            chemotherapySchemaInstanceDataOut.Patient.ClinicalTrials = Mapper.Map<List<ClinicalTrialDataOut>>(trialManagementDAL.GetlClinicalTrialByIds(chemotherapySchemaInstance.Patient?.PatientChemotherapyData?.GetClinicalTrialIds()));
+            ChemotherapySchemaInstanceDataOut chemotherapySchemaInstanceDataOut = mapper.Map<ChemotherapySchemaInstanceDataOut>(chemotherapySchemaInstance);
+            chemotherapySchemaInstanceDataOut.SchemaTableData = GetSchemaTableData(chemotherapySchemaInstance, userCookieData);
+            chemotherapySchemaInstanceDataOut.Patient.ClinicalTrials = mapper.Map<List<ClinicalTrialDataOut>>(trialManagementDAL.GetlClinicalTrialByIds(chemotherapySchemaInstance.Patient?.PatientChemotherapyData?.GetClinicalTrialIds()));
             return chemotherapySchemaInstanceDataOut;
         }
 
         public ResourceCreatedDTO InsertOrUpdate(ChemotherapySchemaInstanceDataIn dataIn, UserCookieData userCookieData)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            ChemotherapySchemaInstance chemotherapySchemaInstance = Mapper.Map<ChemotherapySchemaInstance>(dataIn);
+            ChemotherapySchemaInstance chemotherapySchemaInstance = mapper.Map<ChemotherapySchemaInstance>(dataIn);
             ChemotherapySchemaInstance chemotherapySchemaInstanceDb = chemotherapySchemaInstanceDAL.GetById(dataIn.Id);
 
             string actionName;
@@ -106,13 +106,13 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            ChemotherapySchemaInstanceFilter filterData = Mapper.Map<ChemotherapySchemaInstanceFilter>(dataIn);
+            ChemotherapySchemaInstanceFilter filterData = mapper.Map<ChemotherapySchemaInstanceFilter>(dataIn);
 
             List<ChemotherapySchemaInstance> chemotherapySchemasFiltered = chemotherapySchemaInstanceDAL.GetAll(filterData);
             PaginationDataOut<ChemotherapySchemaInstancePreviewDataOut, DataIn> result = new PaginationDataOut<ChemotherapySchemaInstancePreviewDataOut, DataIn>()
             {
                 Count = (int)chemotherapySchemaInstanceDAL.GetAllFilteredCount(filterData),
-                Data = Mapper.Map<List<ChemotherapySchemaInstancePreviewDataOut>>(chemotherapySchemasFiltered),
+                Data = mapper.Map<List<ChemotherapySchemaInstancePreviewDataOut>>(chemotherapySchemasFiltered),
                 DataIn = dataIn
             };
 
@@ -122,7 +122,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public MedicationDoseInstanceDataOut UpdateMedicationDoseInstance(MedicationDoseInstanceDataIn dataIn, UserCookieData userCookieData)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            MedicationDoseInstance medicationDoseInstance = Mapper.Map<MedicationDoseInstance>(dataIn);
+            MedicationDoseInstance medicationDoseInstance = mapper.Map<MedicationDoseInstance>(dataIn);
             MedicationDoseInstance medicationDoseInstanceDb = medicationDoseInstanceDAL.GetById(dataIn.Id);
 
             string actionName;
@@ -169,13 +169,13 @@ namespace sReportsV2.BusinessLayer.Implementations
             int actionTypeCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.ChemotherapySchemaInstanceActionType, CodeAttributeNames.DelayDose);
             SaveChemotherapySchemaInstanceAction(dataIn.ChemotherapySchemaInstanceId, userCookieData.Id, actionTypeCD, $"Day number {dataIn.DayNumber} is delayed for {dataIn.DelayFor} days. Reason for delay: {dataIn.ReasonForDelay}.", newChemotherapySchemaInstanceVersion);
 
-            return GetSchemaTableData(dataIn.ChemotherapySchemaInstanceId);
+            return GetSchemaTableData(dataIn.ChemotherapySchemaInstanceId, userCookieData);
         }
 
         public ChemotherapySchemaInstanceHistoryDataOut ViewHistoryOfDayDose(DelayDoseHistoryDataIn dataIn)
         {
             int actionTypeCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.ChemotherapySchemaInstanceActionType, CodeAttributeNames.DelayDose);
-            var history = Mapper.Map<List<ChemotherapySchemaInstanceVersionDataOut>>(chemotherapySchemaInstanceHistoryDAL.ViewHistoryOfDayDose(dataIn.ChemotherapySchemaInstanceId, dataIn.DayNumber, actionTypeCD));
+            var history = mapper.Map<List<ChemotherapySchemaInstanceVersionDataOut>>(chemotherapySchemaInstanceHistoryDAL.ViewHistoryOfDayDose(dataIn.ChemotherapySchemaInstanceId, dataIn.DayNumber, actionTypeCD));
 
             var data = new ChemotherapySchemaInstanceHistoryDataOut()
             {
@@ -210,7 +210,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public ChemotherapySchemaResourceCreatedDTO UpdateMedicationInstance(MedicationInstanceDataIn dataIn, UserCookieData userCookieData)
         {
-            MedicationInstance medicationInstance = Mapper.Map<MedicationInstance>(dataIn);
+            MedicationInstance medicationInstance = mapper.Map<MedicationInstance>(dataIn);
             MedicationInstance medicationInstanceDb = medicationInstanceDAL.GetById(dataIn.Id);
 
             if (medicationInstanceDb == null)
@@ -235,7 +235,9 @@ namespace sReportsV2.BusinessLayer.Implementations
             var filtered = medicationInstanceDAL.FilterByNameAndChemotherapySchemaInstanceAndType(dataIn.Term, dataIn.ChemotherapySchemaInstanceId, dataIn.IsSupportiveMedication);
 
             var medicationInstanceDataOuts = filtered
-                .OrderBy(x => x.Medication.Name).Skip(dataIn.Page * 15).Take(15)
+                .OrderBy(x => x.Medication.Name)
+                .Skip(dataIn.GetHowManyElementsToSkip())
+                .Take(FilterConstants.DefaultPageSize)
                 .Select(e => new AutocompleteDataOut()
                 {
                     id = e.MedicationInstanceId.ToString(),
@@ -249,7 +251,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = medicationInstanceDataOuts
             };
@@ -257,18 +259,18 @@ namespace sReportsV2.BusinessLayer.Implementations
             return result;
         }
 
-        public SchemaTableDataOut GetSchemaTableData(int chemotherapySchemaInstanceId)
+        public SchemaTableDataOut GetSchemaTableData(int chemotherapySchemaInstanceId, UserCookieData userCookieData)
         {
             ChemotherapySchemaInstance chemotherapySchemaInstance = chemotherapySchemaInstanceDAL.GetSchemaInstance(chemotherapySchemaInstanceId);
-            return GetSchemaTableData(chemotherapySchemaInstance);
+            return GetSchemaTableData(chemotherapySchemaInstance, userCookieData);
         }
 
         public MedicationReplacementHistoryDataOut GetReplacementHistoryForMedication(int medicationId)
         {
             return new MedicationReplacementHistoryDataOut()
             {
-                MedicationInstance = Mapper.Map<MedicationInstancePreviewDataOut>(medicationInstanceDAL.GetById(medicationId)),
-                MedicationReplacements = Mapper.Map<List<MedicationReplacementDataOut>>(medicationReplacementDAL.GetByMedication(medicationId).ToList())
+                MedicationInstance = mapper.Map<MedicationInstancePreviewDataOut>(medicationInstanceDAL.GetById(medicationId)),
+                MedicationReplacements = mapper.Map<List<MedicationReplacementDataOut>>(medicationReplacementDAL.GetByMedication(medicationId).ToList())
             };
         }
 
@@ -289,16 +291,16 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
         }
 
-        private SchemaTableDataOut GetSchemaTableData(ChemotherapySchemaInstance chemotherapySchemaInstance)
+        private SchemaTableDataOut GetSchemaTableData(ChemotherapySchemaInstance chemotherapySchemaInstance, UserCookieData userCookieData)
         {
             SchemaTableDataOut schemaTableData = new SchemaTableDataOut
             {
                 Id = chemotherapySchemaInstance.ChemotherapySchemaInstanceId,
                 RowVersion = Convert.ToBase64String(chemotherapySchemaInstance.RowVersion),
-                FirstDay = chemotherapySchemaInstance.StartDate ?? DateTime.Now,
-                Medications = Mapper.Map<List<SchemaTableMedicationInstanceDataOut>>(chemotherapySchemaInstance.Medications.Where(x => x.IsActive())),
-                History = Mapper.Map<List<ChemotherapySchemaInstanceVersionDataOut>>(chemotherapySchemaInstance.ChemotherapySchemaInstanceHistory),
-                MedicationReplacements = Mapper.Map<List<MedicationReplacementDataOut>>(chemotherapySchemaInstance.MedicationReplacements)
+                FirstDay = chemotherapySchemaInstance.StartDate ?? DateTimeExtension.GetCurrentDateTime(userCookieData.OrganizationTimeZoneIana),
+                Medications = mapper.Map<List<SchemaTableMedicationInstanceDataOut>>(chemotherapySchemaInstance.Medications.Where(x => x.IsActive())),
+                History = mapper.Map<List<ChemotherapySchemaInstanceVersionDataOut>>(chemotherapySchemaInstance.ChemotherapySchemaInstanceHistory),
+                MedicationReplacements = mapper.Map<List<MedicationReplacementDataOut>>(chemotherapySchemaInstance.MedicationReplacements)
             };
             schemaTableData.SetSchemaDays();
 
@@ -319,7 +321,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private MedicationDoseInstanceDataOut GetMedicationDoseInstanceDataOut(MedicationDoseInstance medicationDose, string rowVersion)
         {
-            MedicationDoseInstanceDataOut dataOut = Mapper.Map<MedicationDoseInstanceDataOut>(medicationDose);
+            MedicationDoseInstanceDataOut dataOut = mapper.Map<MedicationDoseInstanceDataOut>(medicationDose);
             dataOut.RowVersion = rowVersion;
             dataOut.StartsAt = medicationDose.GetStartTime();
 

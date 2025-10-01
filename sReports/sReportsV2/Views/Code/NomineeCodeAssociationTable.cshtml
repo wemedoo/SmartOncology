@@ -11,8 +11,8 @@
             <div class="label filter-label">
                 @sReportsV2.Cache.Resources.TextLanguage.Nominee_Code_Set_Name
             </div>
-            <div id="dropdownSearch" class="position-relative dropdown-search">
-                <div id="codeSet-search">
+            <div class="position-relative dropdown-search">
+                <div id="codeSet-search" class="autocomplete-wrapper">
                     <input autocomplete="off" class="designer-form-input filter-input" id="nomineeCodeSetDisplay" name="Patient" type="text" value="@(Model.DataIn.CodeSetDisplay)"/>
                 </div>
                 <div id="codeSetOptions" class="patient-options" aria-labelledby="codeSet-search">
@@ -57,11 +57,7 @@
     </table>
     @if (Model.Data.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
 </div>
 

@@ -11,13 +11,13 @@ function setReadOnly(readOnly) {
     isReadOnly = readOnly;
 }
 
-function submitForm(form, e) {
+function submitUserForm(form, e) {
     e.preventDefault();
     e.stopPropagation();
     submitData();
 }
 
-function submitPersonalData() {
+function submitPersonalData(callback) {
     updateDisabledOptions(false);
     let form = $("#idUserInfo");
     $(form).validate({
@@ -35,15 +35,15 @@ function submitPersonalData() {
         request['LastName'] = $("#lastName").val();
         request['PrefixCD'] = $('#prefix').val();
         request['PersonnelTypeCD'] = $('#personnelType').val();
-        if (!validateEmailInput(request, "email")) return false;
-        if (!validateEmailInput(request, "personalEmail")) return false;
+        request['Email'] = $('#email').val();
+        request['PersonalEmail'] = $('#personalEmail').val();
 
         request["MiddleName"] = $("#middleName").val();
         request["AcademicPositions"] = getSelectedAcademicPositions();
         request["Addresses"] = getAddresses("personnelAddresses");
         request["Identifiers"] = getIdentifiers();
         request["DayOfBirth"] = toDateStringIfValue($("#dayOfBirth").val());
-        request["Roles"] = getUserRoles();
+        request["PersonnelPositions"] = getPersonnelPositions();
         request["PersonnelOccupation"] = getPersonnelOccupations();
 
         removeCustomValidators();
@@ -56,17 +56,17 @@ function submitPersonalData() {
                 updateAfterNewEntryIsCreated(request, data.id);
                 updateIdAndRowVersion(data);
                 toastr.success(data.message);
-                enableChangeTab();
+                enableChangeTab(+request["Id"]);
                 if ($("#registrationType").val() == "Quick")
                     showUserBasicInfo(data.id, data.password);
                 updateDisabledOptions(true);
+                validateCustomUserInfo();
+                userDataAreSaved(callback);
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 handleResponseError(xhr);
             }
         });
-        return true;
-
     }
     var errors = $('.error').get();
     if (errors.length !== 0) {
@@ -74,8 +74,6 @@ function submitPersonalData() {
             $(error).closest('.collapse').collapse("show");
         });
     };
-
-    return false;
 }
 
 function updateAfterNewEntryIsCreated(request, systemAndUserId) {
@@ -100,7 +98,7 @@ function getOrganizations() {
 
 function getOrganization(organizationId) {
     let institution = {};
-    institution["IsPracticioner"] = $(`#isPractitioner-${organizationId}:checked`).val();
+    institution["IsPracticioner"] = $(`[name=isPractitioner-${organizationId}]:checked`).val();
     institution["Qualification"] = $(`#qualification-${organizationId}`).val();
     institution["SeniorityLevel"] = $(`#seniority-${organizationId}`).val();
     institution["Speciality"] = $(`#speciality-${organizationId}`).val();
@@ -124,25 +122,27 @@ function getSelectedAcademicPositions() {
     return chkArray;
 }
 
-function getUserRoles() {
+function getPersonnelPositions() {
     var chkArray = [];
 
     $("#roles option:selected").each(function () {
-        chkArray.push($(this).val());
+        chkArray.push({
+            PositionCD: $(this).val()
+        });
     });
 
     return chkArray;
 }
 
 function cancelUserEdit() {
-    if (!compareForms("#idUserInfo")) {
-        if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-            saveInitialFormData("#idUserInfo");
-            window.location.href = isUserAdministration ? '/UserAdministration/GetAll' : '/Home/Index'
+    unsavedChangesCheck("#idUserInfo",
+        function () {
+            window.location.href = isUserAdministration ? '/UserAdministration/GetAll' : '/Home/Index';
+        },
+        function () {
+            window.location.href = isUserAdministration ? '/UserAdministration/GetAll' : '/Home/Index';
         }
-    } else {
-        window.location.href = isUserAdministration ? '/UserAdministration/GetAll' : '/Home/Index'
-    }
+    );
 }
 
 $(document).ready(function () {
@@ -204,7 +204,14 @@ $(document).ready(function () {
 });
 
 function validateCustomUserInfo() {
+    $.validator.addMethod("validEmailFormat", function (value, element) {
+        return isValidEmailFormat(value);
+    }, "Please enter a valid email address.");
+
     $.validator.addMethod("registeredEmail", function (value, element) {
+        if (!isValidEmailFormat(value)) {
+            return true;
+        }
         return emailExist(value);
     }, "This email is already associated with another user.");
 
@@ -215,14 +222,29 @@ function validateCustomUserInfo() {
     $("#idUserInfo").validate({});
     $('[name="Email"]').each(function () {
         $(this).rules('add', {
-            registeredEmail: true
+            registeredEmail: true,
+            validEmailFormat: true
         });
     });
+
+    $('[name="PersonalEmail"]').each(function () {
+        $(this).rules('add', {
+            validEmailFormat: true
+        });
+    });
+
     $('[name="Username"]').each(function () {
         $(this).rules('add', {
             registeredUsername: true
         });
     });
+}
+
+function isValidEmailFormat(value) {
+    value = value.trim().toLowerCase();
+    return value === '' ||
+        (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value) &&
+            value.length <= 254 && value.split('@')[1].includes('.'));
 }
 
 function removeCustomValidators() {
@@ -232,11 +254,6 @@ function removeCustomValidators() {
     $('[name="Username"]').each(function () {
         $(this).rules('remove', 'registeredUsername');
     });
-}
-
-function validateEmail(email) {
-    var re = /^(([^<>()[\]\\.,;:\s@]+(\.[^<>()[\]\\.,;:\s@]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email);
 }
 
 function emailExist(email) {
@@ -288,27 +305,34 @@ function usernameExist(username) {
 }
 
 $(document).on('click', '.personnel-tab', function (e) {
-    let isSuccess = submitData();
-    if (isSuccess) {
+    if ($(this).hasClass('tab-disabled')) return;
+
+    let $el = $(this);
+    saveIfThereAreChanges(function () {
         $('.personnel-tab').removeClass('active');
 
-        $(this).addClass('active');
+        $el.addClass('active');
         $('.user-cont').hide();
 
-        let containerId = $(this).attr("data-id");
+        let containerId = $el.attr("data-id");
         toggleSaveBtn(containerId);
 
         activeContainerId = containerId;
         $(`#${containerId}`).show();
         handleArrowVisibility(activeContainerId);
-    }
-
+    });
 });
 
+function saveIfThereAreChanges(callback) {
+    if (compareForms("#idUserInfo")) {
+        executeCallback(callback);
+    } else {
+        submitData(callback);
+    }
+}
+
 function toggleSaveBtn(containerId) {
-    if (containerId === "clinicalData") {
-        $(`#buttonGroupPrimary`).hide();
-    } else if (containerId === "institutionData" || containerId === "identifierData") {
+    if (containerId === "institutionData" || containerId === "identifierData") {
         $(`#buttonGroupPrimary`).show();
         if (isUserAdministration) {
             $(`#buttonGroupPrimary`).find("button").show();
@@ -334,44 +358,27 @@ function handleArrowVisibility(activeContainerId) {
             $('.user-arrow-left').show();
             return true;
         }
-        case "clinicalData": {
-            $('.user-arrow-right').hide();
-            $('.user-arrow-left').show();
-            return true;
-        }
         default:
     }
 }
 
-function submitData() {
-    if (isReadOnly) return true;
+function submitData(callback) {
+    if (isReadOnly) return;
     switch (activeContainerId) {
         case "personalData":
-            saveInitialFormData("#idUserInfo");
-            return submitPersonalData();
+            return submitPersonalData(callback);
         case "institutionData":
-            {
-                $('#registrationTypeId').remove();
-                return submitInstitutionalData();
-            }
+            $('#registrationTypeId').remove();
+            return submitInstitutionalData(callback);
         case "identifierData":
-            {
-                $('#registrationTypeId').remove();
-                saveInitialFormData("#idUserInfo");
-                return submitPersonalData();
-            }
-        case "clinicalData":
-            {
-                $('#registrationTypeId').remove();
-                return true;//submitClinicalData();
-            }
+            $('#registrationTypeId').remove();
+            return submitIdentifierData(callback);
         default:
-        // code block
-    }}
+            break;
+    }
+}
 
-
-
-function submitInstitutionalData() {
+function submitInstitutionalData(callback) {
     if (isUserAdministration) {
         var request = {};
 
@@ -386,14 +393,23 @@ function submitInstitutionalData() {
             success: function (data) {
                 updateIdAndRowVersion(data);
                 toastr.success(data.message);
+                userDataAreSaved(callback);
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 handleResponseError(xhr);
             }
         });
     }
-    
-    return true;
+}
+
+function submitIdentifierData(callback) {
+    toastr.success(document.getElementById("msgEdit").value);
+    userDataAreSaved(callback);
+}
+
+function userDataAreSaved(callback) {
+    saveInitialFormData("#idUserInfo");
+    executeCallback(callback);
 }
 
 function updateIdAndRowVersion(data) {
@@ -454,20 +470,6 @@ function addNewOrganizationData() {
     }
 }
 
-$(document).on('change', '.ct-name', function (e) {
-    $(this).closest('.single-ct').find('.institution-header-name').text($(this).val());
-});
-
-$(document).on('change', '.ct-role', function (e) {
-    var text = $(this).find(":selected").data("display");
-    $(this).closest('.single-ct').find('.header-role-value').text(text);
-});
-
-$(document).on('click', '.ct-status', function (e) {
-    var text = $(this).data("display");
-    $(this).closest('.single-ct').find('.ct-status-value').text(text);
-});
-
 $(document).on('click', '.user-arrow-left', function (e) {
     $('.personnel-tab').each(function (index, element) {
         if ($(element).hasClass('active')) {
@@ -485,18 +487,6 @@ $(document).on('click', '.user-arrow-right', function (e) {
         }
     });
 });
-
-function validateEmailInput(request, inputName, required = false) {
-    if (validateEmail($(`#${inputName}`).val()) || !required) {
-        request[`${capitalizeFirstLetter(inputName)}`] = $(`#${inputName}`).val();
-        return true;
-    }
-    else {
-        $(`#${inputName}`).addClass("error");
-        $(`#${inputName}`).after(`<label id="${inputName}-error" class="error" for="${inputName}">Please enter a valid email address.</label>`);
-        return false;
-    }
-}
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -522,14 +512,6 @@ function showUserBasicInfo(userId, password) {
     }
 }
 
-function enableChangeTab() {
-    $('[data-id="institutionData"]').removeAttr('data-toggle')
-        .removeAttr('data-original-title').removeClass("personnel-tab-disabled").addClass('personnel-tab');
-    $('[data-id="identifierData"]').removeAttr('data-toggle')
-        .removeAttr('data-original-title').removeClass("personnel-tab-disabled").addClass('personnel-tab');
-    $('[data-id="clinicalData"]').removeAttr('data-toggle')
-        .removeAttr('data-original-title').removeClass("personnel-tab-disabled").addClass('personnel-tab');
-}
 
 function copyValue(icon) {
     var valueElement = icon.parentNode;
@@ -553,16 +535,6 @@ function copyValue(icon) {
     }, 2000);
 }
 
-//function impressumWordCounter()
-$('.text-with-limit').on('keyup', function (e) {
-
-    let targetId = e.target.id;
-    let maxLength = $(`#${targetId}`).attr('maxLength');
-    let charCount = $(`#${targetId}`).val().length;
-
-    $(`#${targetId}`).siblings('.label').find('.char-limit-text').html(`${charCount}/${maxLength}`);
-});
-
 function removePersonnelFromOrganization(event) {
     event.stopPropagation();
     event.preventDefault();
@@ -573,8 +545,9 @@ function removePersonnelFromOrganization(event) {
         type: "PUT",
         url: `/UserAdministration/SetUserState?userId=${id}&organizationId=${organizationId}&newState=${state}`,
         success: function (data) {
-            toastr.success(`Success`);
+            toastr.success(`Successfully removed user from organizatoin`);
             $("#institution-" + organizationId).remove();
+            userDataAreSaved();
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);

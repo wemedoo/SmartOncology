@@ -3,7 +3,7 @@ $color-secondary: #2a796b;
 $color-header: #E0F2F1;
 $color-breadcrumb-active: #777777;
 $color-border: #dee2e6;
-$sidebar-width: 400px;
+$sidebar-width: 304px;
 /*--------------------LOADER----------------------*/
 .loader-overlay {
     display: none;
@@ -343,6 +343,7 @@ a {
     overflow-y: auto;
     -ms-overflow-style: none; /* Internet Explorer 10+ */
     scrollbar-width: none; /* Firefox */
+    max-width: 304px;
 
     @media(max-width: 768px) {
         display: none;
@@ -383,9 +384,11 @@ a {
 .main-content {
     padding: 15px 30px;
     padding-bottom: 0;
-   // margin-left: 213px;
+    // margin-left: 213px;
     padding-left: $sidebar-width;
     width: 100%;
+    height: calc(100vh - 61px);
+    overflow:auto;
 
     @media(max-width: 768px) {
         padding: 15px 5px;
@@ -406,11 +409,11 @@ a {
 
 .sidebar-shrink {
     .sidebar {
-        width: 50px;
+        width: 56px;
         overflow: hidden;
         left: 0;
         overflow-y: auto;
-
+          
         .nav-link {
             & > span {
                 opacity: 0;
@@ -437,7 +440,6 @@ a {
         //margin-left: 47px;
         margin-left: 0;
         padding-left: 62px;
-        padding-right: 15px;
 
         @media(max-width: 768px) {
             margin-left: 0;
@@ -448,11 +450,6 @@ a {
 
 .body-content {
     padding-top: 50px;
-}
-
-.button-container {
-    padding-top: 10px;
-    padding-bottom: 15px;
 }
 
 .forms-values-container {
@@ -523,6 +520,10 @@ footer {
 tr {
     &:hover {
         cursor: pointer;
+    }
+
+    &.tr-no-action:hover {
+        cursor: default;
     }
 }
 
@@ -2113,6 +2114,9 @@ textarea {
 .form-instance-button-container {
     width: 100%;
     padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .lock-unlock-form-instance-icon {
@@ -2583,7 +2587,7 @@ h3 {
     //padding: 0px 6px;
 }
 
-.repetitive-bar, .textarea-repetitive, .text {
+.repetitive-bar, .textarea-repetitive, .richtext-repetitive .text {
     width: 100%;
 }
 /*special page for covid*/
@@ -2810,10 +2814,6 @@ ul, #myUL {
     }*/
 }
 
-.active {
-    display: block;
-}
-
 .no-result {
     font-size: 30px;
     text-align: center;
@@ -2921,10 +2921,6 @@ ul, #myUL {
     &.expanded {
         display: block;
     }
-}
-
-.active {
-    display: block;
 }
 
 .no-result {

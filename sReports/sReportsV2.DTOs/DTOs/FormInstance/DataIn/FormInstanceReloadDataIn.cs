@@ -1,9 +1,4 @@
 ﻿using sReportsV2.Common.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
 {
@@ -16,5 +11,6 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
         public int? ActivePageLeftScroll { get; set; }
         public string ActivePageId { get; set; }
         public bool HiddenFieldsShown { get; set; }
+        public bool SetReferrableValues { get; set; }
     }
 }

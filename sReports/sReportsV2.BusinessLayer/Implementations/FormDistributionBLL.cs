@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using sReportsV2.BusinessLayer.Interfaces;
+using sReportsV2.Common.Constants;
 using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Entities.Distribution;
 using sReportsV2.Domain.Entities.FieldEntity;
@@ -10,6 +11,7 @@ using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
 using sReportsV2.DTOs.Form.DataOut;
 using sReportsV2.DTOs.FormDistribution.DataIn;
 using sReportsV2.DTOs.FormDistribution.DataOut;
+using sReportsV2.DTOs.Pagination;
 using sReportsV2.DTOs.User.DTO;
 using System;
 using System.Collections.Generic;
@@ -21,31 +23,40 @@ namespace sReportsV2.BusinessLayer.Implementations
     {
         private readonly IFormDistributionDAL formDistributionDAL;
         private readonly IFormDAL formDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public FormDistributionBLL(IFormDistributionDAL formDistributionDAL, IFormDAL formDAL, IMapper mapper)
         {
             this.formDistributionDAL = formDistributionDAL;
             this.formDAL = formDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
+        }
+
+        public FormDistributionDataOut GetById(string id)
+        {
+            return mapper.Map<FormDistributionDataOut>(formDistributionDAL.GetById(id));
+        }
+
+        public PaginationDataOut<FormDistributionTableDataOut, FormDistributionFilterDataIn> GetAll(FormDistributionFilterDataIn dataIn)
+        {
+            return new PaginationDataOut<FormDistributionTableDataOut, FormDistributionFilterDataIn>()
+            {
+                Count = formDistributionDAL.GetAllCount(),
+                Data = mapper.Map<List<FormDistributionTableDataOut>>(formDistributionDAL.GetAll(new Common.Entities.EntityFilter { Page = dataIn.Page, PageSize = dataIn.PageSize}))
+            };
         }
 
         public FormDistributionParameterizationDataOut GetFormDistributionForParameterization(int thesaurusId, string versionId)
         {
-            FormDistribution formDistribution = formDistributionDAL.GetByThesaurusIdAndVersion(thesaurusId, versionId);
             Form form = formDAL.GetFormByThesaurusAndVersion(thesaurusId, versionId);
+            FormDistribution formDistribution = CreateOrUpdate(form);
 
-            if (formDistribution == null)
-            {
-                formDistribution = Create(form);
-            }
-
-            FormDistributionDataOut dataOut = Mapper.Map<FormDistributionDataOut>(formDistribution);
+            FormDistributionDataOut dataOut = mapper.Map<FormDistributionDataOut>(formDistribution);
             SetRelatedFieldsLabels(dataOut, form);
             
             return new FormDistributionParameterizationDataOut() 
             {
-                Form = Mapper.Map<FormDataOut>(form),
+                Form = mapper.Map<FormDataOut>(form),
                 FormDistribution = dataOut
             };
         }
@@ -70,14 +81,14 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public FormFieldDistributionDataOut GetFormFieldDistribution(string formDistributionId, string fieldId)
         {
-            return Mapper.Map<FormFieldDistributionDataOut>(formDistributionDAL.GetFormFieldDistribution(formDistributionId, fieldId));
+            return mapper.Map<FormFieldDistributionDataOut>(formDistributionDAL.GetFormFieldDistribution(formDistributionId, fieldId));
         }
 
         public RelationFieldAutocompleteResultDataOut GetRelationFieldAutocomplete(AutocompleteDataIn dataIn, string formDistributionId)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            FormDistributionDataOut formDistribution = Mapper.Map<FormDistributionDataOut>(formDistributionDAL.GetById(formDistributionId));
+            FormDistributionDataOut formDistribution = mapper.Map<FormDistributionDataOut>(formDistributionDAL.GetById(formDistributionId));
             FormFieldDistributionDataOut targetField = formDistribution.GetFieldById(dataIn.ExcludeId);
             IEnumerable<FormFieldDistributionDataOut> filteredFields = FilterFieldsByLabel(formDistribution, dataIn.Term, CreateFieldExclusionList(formDistribution, targetField));
             List<RelationFieldAutocompleteDataOut>  formFieldDistributionDataOuts = FormatFieldsForDisplay(filteredFields, dataIn);
@@ -86,7 +97,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filteredFields.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filteredFields.Count())
                 },
                 results = formFieldDistributionDataOuts
             };
@@ -108,7 +119,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             formDistributionDAL.InsertOrUpdate(formDistribution);
 
-            return Mapper.Map<FormFieldDistributionDataOut>(blankFieldDistribution);
+            return mapper.Map<FormFieldDistributionDataOut>(blankFieldDistribution);
         }
 
         private IEnumerable<FormFieldDistributionDataOut> FilterFieldsByLabel(FormDistributionDataOut formdistribution, string labelName, List<string> exclusionList)
@@ -133,8 +144,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             return filteredFields
                 .OrderBy(x => x.Label)
-                .Skip(dataIn.Page * 15)
-                .Take(15)
+                .Skip(dataIn.Page * FilterConstants.DefaultPageSize)
+                .Take(FilterConstants.DefaultPageSize)
                 .Select(x => new RelationFieldAutocompleteDataOut()
                 {
                     id = x.Id.ToString(),
@@ -153,11 +164,12 @@ namespace sReportsV2.BusinessLayer.Implementations
                 FormFieldDistribution fieldDb = formDistribution.Fields.Find(x => x.Id.Equals(fieldDataIn.Id));
                 if (fieldDb != null)
                 {
-                    formDistribution.Fields[formDistribution.Fields.IndexOf(fieldDb)] = Mapper.Map<FormFieldDistribution>(fieldDataIn);
+                    formDistribution.Fields[formDistribution.Fields.IndexOf(fieldDb)] = mapper.Map<FormFieldDistribution>(fieldDataIn);
                 }
             }
         }
-        private FormDistribution Create(Form form)
+
+        private FormDistribution CreateOrUpdate(Form form)
         {
             FormDistribution formDistribution = GetFromForm(form);
             formDistributionDAL.InsertOrUpdate(formDistribution);
@@ -179,14 +191,102 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private FormDistribution GetFromForm(Form form)
         {
-            return new FormDistribution()
+            FormDistribution existingDistribution = GetByThesaurusIdAndVersion(form.ThesaurusId, form.Version.Id);
+            List<Field> currentFormFields = form.GetAllFields().Where(x => x.IsDistributiveField()).ToList();
+
+            if (existingDistribution == null)
             {
-                EntryDatetime = form.EntryDatetime,
-                ThesaurusId = form.ThesaurusId,
-                Title = form.Title,
-                Fields = GetDistributionFields(form.GetAllFields().Where(x => x.IsDistributiveField()).ToList()),
-                VersionId = form.Version.Id
-            };
+                return new FormDistribution()
+                {
+                    EntryDatetime = form.EntryDatetime,
+                    ThesaurusId = form.ThesaurusId,
+                    Title = form.Title,
+                    Fields = GetDistributionFields(currentFormFields),
+                    VersionId = form.Version.Id
+                };
+            }
+
+            UpdateDistributionFields(existingDistribution, currentFormFields);
+
+            return existingDistribution;
+        }
+
+        private void UpdateDistributionFields(FormDistribution distribution, List<Field> currentFormFields)
+        {
+            var currentFieldIds = currentFormFields.Select(f => f.Id).ToHashSet();
+            var removedFieldIds = distribution.Fields
+                .Where(fd => !currentFieldIds.Contains(fd.Id))
+                .Select(fd => fd.Id)
+                .ToHashSet();
+
+            distribution.Fields.RemoveAll(fd => removedFieldIds.Contains(fd.Id));
+
+            foreach (var field in distribution.Fields)
+            {
+                int removedCount = field.RelatedVariables.RemoveAll(rv => removedFieldIds.Contains(rv.Id));
+
+                if (removedCount > 0)
+                {
+                    var matchingFormField = currentFormFields.FirstOrDefault(f => f.Id == field.Id);
+
+                    field.ValuesAll = new List<FormFieldDistributionSingleParameter>()
+                     {
+                         new FormFieldDistributionSingleParameter()
+                         {
+                             NormalDistributionParameters = new FormFieldNormalDistributionParameters(),
+                             Values = matchingFormField is FieldSelectable fieldSelectable ? fieldSelectable.Values.Select(x => new FormFieldValueDistribution()
+                             {
+                                 Label = x.Label,
+                                 ThesaurusId = x.ThesaurusId,
+                                 Value = x.Value
+                             }).ToList() : null
+                         }
+                     };
+                }
+            }
+
+            foreach (var formField in currentFormFields)
+            {
+                var existingField = distribution.Fields.FirstOrDefault(f => f.Id == formField.Id);
+
+                if (existingField == null)
+                {
+                    distribution.Fields.Add(GetDistributionField(formField));
+                    continue;
+                }
+
+                UpdateFieldIfChanged(distribution, formField, existingField);
+            }
+        }
+
+        private void UpdateFieldIfChanged(FormDistribution distribution, Field formField, FormFieldDistribution existingField)
+        {
+            bool isSelectable = formField.Type == "radio" || formField.Type == "checkbox";
+
+            if (isSelectable && formField is FieldSelectable selectableField)
+            {
+                var newValues = selectableField.Values ?? new List<FormFieldValue>();
+                var existingParam = existingField.ValuesAll?.FirstOrDefault();
+                var existingValues = existingParam?.Values ?? new List<FormFieldValueDistribution>();
+
+                bool valuesDiffer = newValues.Count != existingValues.Count ||
+                    !newValues.All(nv => existingValues.Any(ev =>
+                        ev.Label == nv.Label &&
+                        ev.Value == nv.Value &&
+                        ev.ThesaurusId == nv.ThesaurusId
+                    ));
+
+                if (valuesDiffer)
+                {
+                    distribution.Fields.Remove(existingField);
+                    distribution.Fields.Add(GetDistributionField(formField));
+                    return;
+                }
+            }
+
+            existingField.Label = formField.Label;
+            existingField.Type = formField.Type;
+            existingField.ThesaurusId = formField.ThesaurusId;
         }
 
         private List<FormFieldDistribution> GetDistributionFields(List<Field> fields)
@@ -232,6 +332,21 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             Form form = formDAL.GetFormByThesaurusAndLanguageAndVersionAndOrganization(thesaurusId, userCookieData.ActiveOrganization, userCookieData.ActiveLanguage, versionId);
             return form.GetFieldById(fieldId);
+        }
+
+        public FormDistribution GetByThesaurusIdAndVersion(int id, string versionId)
+        {
+            return formDistributionDAL.GetByThesaurusIdAndVersion(id, versionId);
+        }
+
+        public FormDistribution GetByThesaurusId(int id)
+        {
+            return formDistributionDAL.GetByThesaurusId(id);
+        }
+
+        public List<FormDistribution> GetAllVersionAndThesaurus()
+        {
+            return formDistributionDAL.GetAllVersionAndThesaurus();
         }
     }
 }

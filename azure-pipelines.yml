@@ -1,11 +1,5 @@
-# ASP.NET
-# Build and test ASP.NET projects.
-# Add steps that publish symbols, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
-
 trigger:
-- release/release-2
-- master
+  - dev
 
 pool:
   vmImage: 'windows-latest'
@@ -16,10 +10,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-# - task: AdvancedSecurity-Codeql-Init@1
-#   inputs:
-#     languages: "csharp"
-
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 6.0.0'
   inputs:
@@ -42,4 +32,3 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     publishLocation: 'Container'
 - task: AdvancedSecurity-Dependency-Scanning@1
-# - task: AdvancedSecurity-Codeql-Analyze@1

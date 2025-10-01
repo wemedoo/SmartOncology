@@ -121,7 +121,7 @@ function hideChildDependentFieldInstance(childDependentFieldInstances, childFiel
     let previousFieldInstanceValue = $dependentInputElement.data("previousFieldInstanceValue");
 
     toggleChildDependentField($dependentInputElement, true);
-    if (cleanData(dependencyResult.FieldActions)) {
+    if (cleanData(dependencyResult.fieldActions)) {
         if (!hasPreviousValueInTheMemory(previousFieldInstanceValue)) {
             let childFieldInstanceValue = getFormInstanceFieldsSubmissionJson($dependentInputElement)[0];
             setPreviousValueToTheMemory($dependentInputElement, childFieldInstanceValue);

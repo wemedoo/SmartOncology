@@ -10,6 +10,7 @@ namespace sReportsV2.DTOs.DigitalGuideline.DataIn
         public string Title { get; set; }
         public int? Major { get; set; }
         public int? Minor { get; set; }
+        public int? ThesaurusId { get; set; }
         public DateTime? DateTimeTo { get; set; }
         public DateTime? DateTimeFrom { get; set; }
     }

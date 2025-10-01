@@ -1,0 +1,15 @@
+name: oopus
+services:
+    webapp:
+        container_name: oopus_webapp
+        build: ./
+        ports:
+            - 8080:80
+            - 8081:443
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Docker
+            - ASPNETCORE_URLS=https://+:443;http://+:80
+            - ASPNETCORE_Kestrel__Certificates__Default__Password=6UF7u78d
+            - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/oopus.cert.pfx
+        volumes:
+            - ~/.aspnet/https:/https:ro

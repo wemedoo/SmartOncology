@@ -1,16 +1,18 @@
-﻿using sReportsV2.Common.Constants;
+﻿using Microsoft.EntityFrameworkCore;
+using sReportsV2.Common.Constants;
+using sReportsV2.Common.Enums;
+using sReportsV2.Common.Extensions;
 using sReportsV2.Common.Helpers;
 using sReportsV2.DAL.Sql.Sql;
 using sReportsV2.Domain.Sql.Entities.Common;
 using sReportsV2.Domain.Sql.Entities.ProjectEntry;
+using sReportsV2.SqlDomain.Helpers;
 using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Linq.Dynamic.Core;
-using Microsoft.EntityFrameworkCore;
-using sReportsV2.SqlDomain.Helpers;
+using System.Threading.Tasks;
 
 namespace sReportsV2.SqlDomain.Implementations
 {
@@ -274,9 +276,15 @@ namespace sReportsV2.SqlDomain.Implementations
 
         private IQueryable<Project> GetUserProjectsFiltered(ProjectFilter filter, int personnelId)
         {
+            DateTimeOffset now = DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone();
             IQueryable<Project> query = context.Projects
                 .WhereEntriesAreActive()
-                .Where(x => x.ProjectPersonnelRelations.Any(rel => rel.PersonnelId == personnelId));
+                .Where(x => x.ProjectPersonnelRelations.Any(
+                    rel => rel.PersonnelId == personnelId 
+                    && rel.EntityStateCD != (int)EntityStateCode.Deleted 
+                    && rel.ActiveFrom <= now && now <= rel.ActiveTo
+                    )
+                );
 
             if (!string.IsNullOrWhiteSpace(filter.ProjectName))
             {
@@ -298,7 +306,7 @@ namespace sReportsV2.SqlDomain.Implementations
                 {
                     case AttributeNames.ProjectType:
                         query = query.OrderBy(x => x.ProjectTypeCD)
-                            .Skip((filter.Page - 1) * filter.PageSize)
+                            .Skip(filter.GetHowManyElementsToSkip())
                             .Take(filter.PageSize);
                         break;
                     default:
@@ -321,7 +329,7 @@ namespace sReportsV2.SqlDomain.Implementations
         private IQueryable<Project> ApplyPagingByFilter(ProjectFilter filter, IQueryable<Project> query)
         {
             return query
-                .Skip((filter.Page - 1) * filter.PageSize)
+                .Skip(filter.GetHowManyElementsToSkip())
                 .Take(filter.PageSize);
         }
 

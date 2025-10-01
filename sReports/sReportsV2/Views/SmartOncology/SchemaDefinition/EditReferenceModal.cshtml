@@ -1,5 +1,6 @@
 @using System.Globalization
 @using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 @using sReportsV2.DTOs.DTOs.SmartOncology.ChemotherapySchema.DataOut;
 @model LiteratureReferenceDataOut
 
@@ -45,9 +46,9 @@
                 InputAttributes = new Dictionary<object, object> { 
                     { "class", "filter-input" }, 
                     { "id", "publicationDate" }, 
-                    { "name", "publicationDate" }, 
-                    { "value", Model != null && Model.PublicationDate != null ? Model.PublicationDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" } 
-                }
+                    { "name", "publicationDate" },
+                    { "value", Model != null ? Model.PublicationDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" }
+            }
             })
         </div>
         <div class="modal-footer">

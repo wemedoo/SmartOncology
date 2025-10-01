@@ -48,7 +48,7 @@ namespace sReportsV2.HL7.Handlers.OutgoingHandlers
             }
             catch (Exception ex)
             {
-                string excepetionErrorMessage = ExceptionHelper.GetExceptionStackMessages(ex);
+                string excepetionErrorMessage = ex.GetExceptionStackMessages();
                 LogHelper.Error("Error while processing outgoing message --> " + excepetionErrorMessage);
                 AddErrorMessageLog(
                     excepetionErrorMessage,
@@ -96,7 +96,7 @@ namespace sReportsV2.HL7.Handlers.OutgoingHandlers
             }
             catch (Exception ex)
             {
-                throw new HL7RejectMessageException($"Message rejected, reason: { ExceptionHelper.GetExceptionStackMessages(ex) }");
+                throw new HL7RejectMessageException($"Message rejected, reason: { ex.GetExceptionStackMessages() }");
             }
         }
 

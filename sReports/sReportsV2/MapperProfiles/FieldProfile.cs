@@ -73,6 +73,14 @@ namespace sReportsV2.MapperProfiles
                 .IgnoreAllNonExisting()
                  .IncludeBase<FieldString, FieldStringDataOut>();
 
+            CreateMap<FieldRichTextParagraphDataIn, FieldRichTextParagraph>()
+                .IgnoreAllNonExisting()
+                .IncludeBase<FieldStringDataIn, FieldString>();
+
+            CreateMap<FieldRichTextParagraph, FieldRichTextParagraphDataOut>()
+                 .IgnoreAllNonExisting()
+                 .IncludeBase<FieldString, FieldStringDataOut>();
+
             CreateMap<FieldString, FieldStringDataOut>()
                 .IgnoreAllNonExisting()
                  .IncludeBase<Field, FieldDataOut>();
@@ -131,6 +139,10 @@ namespace sReportsV2.MapperProfiles
             CreateMap<FieldTextAreaDataIn, FieldTextArea>()
                 .IgnoreAllNonExisting()
                  .IncludeBase<FieldStringDataIn, FieldString>();
+
+            CreateMap<FieldRichTextParagraphDataIn, FieldRichTextParagraph>()
+                .IgnoreAllNonExisting()
+                .IncludeBase<FieldStringDataIn, FieldString>();
 
             CreateMap<FieldTextDataIn, FieldText>()
                 .IgnoreAllNonExisting()
@@ -191,6 +203,10 @@ namespace sReportsV2.MapperProfiles
                 .IgnoreAllNonExisting()
                  .IncludeBase<FieldStringDataIn, FieldStringDataOut>();
 
+            CreateMap<FieldRichTextParagraphDataIn, FieldRichTextParagraphDataOut>()
+                .IgnoreAllNonExisting()
+                .IncludeBase<FieldStringDataIn, FieldStringDataOut>();
+
             CreateMap<FieldTextDataIn, FieldTextDataOut>()
                 .IgnoreAllNonExisting()
                  .IncludeBase<FieldStringDataIn, FieldStringDataOut>();
@@ -202,7 +218,6 @@ namespace sReportsV2.MapperProfiles
             CreateMap<FieldSelectableDataIn, FieldSelectableDataOut>()
                 .IgnoreAllNonExisting()
                  .IncludeBase<FieldDataIn, FieldDataOut>();
-
 
             CreateMap<CustomFieldButtonDataIn, CustomFieldButton>()
                 .IgnoreAllNonExisting()
@@ -216,7 +231,6 @@ namespace sReportsV2.MapperProfiles
                 .IgnoreAllNonExisting()
                     .IncludeBase<Field, FieldDataOut>();
 
-
             CreateMap<FieldCodedDataIn, FieldCoded>()
                 .IgnoreAllNonExisting()
                     .IncludeBase<FieldDataIn, Field>();
@@ -229,11 +243,21 @@ namespace sReportsV2.MapperProfiles
                 .IgnoreAllNonExisting()
                     .IncludeBase<Field, FieldDataOut>();
 
+            CreateMap<FieldConnectedDataIn, FieldConnected>()
+                .IgnoreAllNonExisting()
+                    .IncludeBase<FieldDataIn, Field>();
+
+            CreateMap<FieldConnectedDataIn, FieldConnectedDataOut>()
+                .IgnoreAllNonExisting()
+                    .IncludeBase<FieldDataIn, FieldDataOut>();
+
+            CreateMap<FieldConnected, FieldConnectedDataOut>()
+                .IgnoreAllNonExisting()
+                    .IncludeBase<Field, FieldDataOut>();
 
             CreateMap<CustomAction, CustomActionDataOut>();
             CreateMap<CustomActionDataIn, CustomActionDataOut>();
             CreateMap<CustomActionDataIn, CustomAction>();
-
 
             /*Javascript Action mapping*/
             CreateMap<JavascriptActionDataIn, JavascriptAction>()
@@ -299,11 +323,9 @@ namespace sReportsV2.MapperProfiles
                     .IncludeBase<Field, FieldDataOut>();
 
             CreateMap<DependentOnInfoDataIn, DependentOnInfoDataOut>()
-                .ReverseMap()
-                ;
+                .ReverseMap();
             CreateMap<DependentOnFieldInfoDataIn, DependentOnFieldInfoDataOut>()
-                .ReverseMap()
-                ;
+                .ReverseMap();
 
             CreateMap<DependentOnInfoDataIn, DependentOnInfo>()
                 .AfterMap((dataIn, entity) =>
@@ -313,7 +335,10 @@ namespace sReportsV2.MapperProfiles
                         entity.FieldActions = new System.Collections.Generic.List<Common.Enums.FieldAction> { Common.Enums.FieldAction.DataCleaning };
                     }
                 });
-            CreateMap<DependentOnFieldInfoDataIn, DependentOnFieldInfo>();
+
+            CreateMap<DependentOnInfo, DependentOnInfoDataIn>();
+            CreateMap<DependentOnFieldInfoDataIn, DependentOnFieldInfo>()
+                .ReverseMap();
             CreateMap<DependentOnInfo, DependentOnInfoDataOut>();
             CreateMap<DependentOnFieldInfo, DependentOnFieldInfoDataOut>();
         }

@@ -1,11 +1,6 @@
 ﻿function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setAdvancedFilterBtnStyle(requestObject, ['Given', 'Family', 'Username', 'RoleCD', 'OrganizationId', 'ShowUnassignedUsers', 'page', 'pageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReload(['Given', 'Family', 'Username', 'RoleCD', 'OrganizationId', 'ShowUnassignedUsers', 'page', 'pageSize']);
+    setCodeValues(requestObject);
 
     if (!requestObject.Page) {
         requestObject.Page = 1;
@@ -28,7 +23,7 @@ function getFilterParametersObject() {
     let requestObject = {};
 
     if (defaultFilter) {
-        requestObject = defaultFilter;
+        requestObject = getDefaultFilter();
         defaultFilter = null;
     } else {
         if ($('#birthDate').val()) {
@@ -56,7 +51,7 @@ function getFilterParametersObject() {
 
 function setOrganizationId(requestObject) {
     addPropertyToObject(requestObject, 'OrganizationId', $('#organizationId').val());
-    addPropertyToObject(requestObject, 'OrganizationId', $('#OrganizationTempId').val());
+    addPropertyToObject(requestObject, 'OrganizationId', $('#organizationTempId').val());
 }
 
 function createUserEntry() {
@@ -114,16 +109,17 @@ function advanceFilter() {
     $('#GivenTemp').val($('#given').val());
     $('#UsernameTemp').val($('#username').val());
     $('#RoleTempId').val($('#roleCD').val());
-    $('#OrganizationTempId').val($('#organizationId').val()).trigger('change');
+    syncOrganizationValues('organizationId', 'organizationTempId');
     copyDateToHiddenField($("#birthDate").val(), "birthDateDefault");
 
     filterData();
 }
+
 function mainFilter() {
     $('#family').val($('#FamilyTemp').val());
     $('#given').val($('#GivenTemp').val());
     $('#username').val($('#UsernameTemp').val());
-    $('#organizationId').val($('#OrganizationTempId').val()).trigger('change');
+    syncOrganizationValues('organizationTempId', 'organizationId');
     $('#roleCD').val($('#RoleTempId').val());
     
     filterData();
@@ -132,7 +128,6 @@ function mainFilter() {
 function getFilterParametersObjectForDisplay(filterObject) {
     getFilterParameterObjectForDisplay(filterObject, 'IdentifierType');
     getFilterParameterObjectForDisplay(filterObject, 'PersonnelTypeCD');
-    getFilterParameterObjectForDisplay(filterObject, 'RoleCD');
 
     if (filterObject.hasOwnProperty('ShowUnassignedUsers')) {
         delete filterObject.ShowUnassignedUsers;
@@ -141,7 +136,7 @@ function getFilterParametersObjectForDisplay(filterObject) {
     if (filterObject.hasOwnProperty('OrganizationId')) {
         let organizationDisplay = getSelectedSelect2Label("organizationId");
         if (!organizationDisplay) {
-            organizationDisplay = getSelectedSelect2Label("OrganizationTempId");
+            organizationDisplay = getSelectedSelect2Label("organizationTempId");
         }
         if (organizationDisplay) {
             addPropertyToObject(filterObject, 'OrganizationId', organizationDisplay);
@@ -160,4 +155,15 @@ function getFilterParametersObjectForDisplay(filterObject) {
     }
 
     return filterObject;
+}
+
+function setCodeValues(requestObject) {
+    requestObject.RoleCD = $('#roleCD').find(':selected').attr('id');
+    requestObject.PersonnelTypeCD = $('#personnelTypeCD').find(':selected').attr('id');
+}
+
+function syncOrganizationValues(sourceId, targetId) {
+    let selectedValue = $(`#${sourceId}`).val();
+    $(`#${targetId}`).empty().append($(`#${sourceId} option`).clone());
+    $(`#${targetId}`).val(selectedValue).trigger('change');
 }

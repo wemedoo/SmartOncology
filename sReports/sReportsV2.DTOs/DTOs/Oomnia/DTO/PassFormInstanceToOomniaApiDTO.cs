@@ -12,7 +12,7 @@ namespace sReportsV2.DTOs.DTOs.Oomnia.DTO
         public PassFormInstanceToOomniaApiDTO() { }
         public PassFormInstanceToOomniaApiDTO(string externalOrganizationId, string oomniaDocumentExternalId)
         {
-            this.SystemIdentificator = ResourceTypes.ApplicationName;
+            this.SystemIdentificator = "eSource";
             this.ExternalOrganizationId = new Guid(externalOrganizationId);
             this.RequestData = new SaveDocumentExternalRequest
             {

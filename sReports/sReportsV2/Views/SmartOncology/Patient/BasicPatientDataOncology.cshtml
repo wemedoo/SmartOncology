@@ -34,7 +34,6 @@
 </div>
 
 @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/smartOncologyPatient.js"), "", ""))
-@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/openOncology/clinicalTrialAutocomplete.js"), "", ""))
 
 <script>
     var defaultFilter = @Html.Raw(Json.Serialize(Model.DataIn));

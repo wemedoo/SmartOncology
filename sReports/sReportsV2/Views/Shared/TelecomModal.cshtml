@@ -44,6 +44,7 @@
                         <div class="advanced-filter-item input-margin">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Telecom_Value
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <input required class="filter-input" type="text" id="value" name="value" onkeydown="pressButtonOnEnterKey(event, 'telecom-modal-button')" @ViewBag.Disabled/>
                         </div>

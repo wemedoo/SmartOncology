@@ -20,7 +20,7 @@ namespace sReportsV2.BusinessLayer.Interfaces
         bool ExistCodeSetByPreferredTerm(string codeSetName);
         int GetByPreferredTerm(string preferredTerm);
         AutocompleteResultDataOut GetAutoCompleteCodes(AutocompleteDataIn dataIn, int codesetId, string activeLanguage);
-        bool ImportFileFromCsv(IFormFile file, string codesetName, bool applicableInDesigner);
+        Task ImportFileFromCsv(IFormFile file, string codesetName, bool applicableInDesigner);
         CodeSetDataOut GetById(int codeSetId);
         List<CodeSetDataOut> GetAllByPreferredTerm(string preferredTerm);
         void Delete(int codeSetId);

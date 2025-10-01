@@ -11,5 +11,54 @@
     padding-right: 50px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+}
+
+.add-repetitive-btn-container {
+    font-size: 12px;
+    margin-left: 7px;
+}
+
+.remove-repetitive-btn-container {
+    margin-left: 7px;
+}
+
+.lock-fs-action{
+    margin-left: 5px;
+}
+
+.navigation-arrow {
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.arrow-disabled {
+        cursor: not-allowed;
+    }
+}
+
+#leftArrow {
+    &::before {
+        content: url("../img/icons/left_arrow.svg");
+    }
+
+    &:hover::before {
+        content: url("../img/icons/left_arrow_hover.svg");
+    }
+
+    &.arrow-disabled::before {
+        content: url("../img/icons/left_arrow_disabled.svg");
+    }
+}
+
+#rightArrow {
+    &::before {
+        content: url("../img/icons/right_arrow.svg");
+    }
+
+    &:hover::before {
+        content: url("../img/icons/right_arrow_hover.svg");
+    }
+
+    &.arrow-disabled::before {
+        content: url("../img/icons/right_arrow_disabled.svg");
+    }
 }

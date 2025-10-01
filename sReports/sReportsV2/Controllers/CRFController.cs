@@ -27,49 +27,37 @@ namespace sReportsV2.Controllers
         private readonly List<string> ApprovedLanguages = new List<string>() { LanguageConstants.DE, LanguageConstants.FR, LanguageConstants.SR, LanguageConstants.SR_CYRL_RS, LanguageConstants.EN, LanguageConstants.RU, LanguageConstants.ES, LanguageConstants.PT };
         // GET: CRF
 
-        public CRFController(IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL,
-            IUserBLL userBLL, 
+        public CRFController(IUserBLL userBLL, 
             IOrganizationBLL organizationBLL, 
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL, 
             IFormBLL formBLL, 
-            IEncounterDAL encounterDAL, 
-            IThesaurusDAL thesaurusDAL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL, 
             IMapper mapper,             
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
-            IConfiguration configuration) :
-            base(patientDAL, episodeOfCareDAL,encounterDAL,userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration)
+            IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService) :
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService)
         {
 
         }
-        public ActionResult Create(int id, string language = LanguageConstants.EN)
+        public ActionResult Create(int id = 14573, string language = LanguageConstants.EN)
         {
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                id = 14573;
-                language = LanguageConstants.EN;
-            }
-            Form form = formDAL.GetFormByThesaurusAndLanguage(id, language);
+            Form form = formBLL.GetFormByThesaurusAndLanguage(id, language);
             if (form == null)
             {
                 return NotFound(TextLanguage.FormNotExists, id.ToString());
             }
 
-            FormDataOut data = formBLL.SetFormDependablesAndReferrals(form, null, userCookieData);
-
-            Form form1 = form.ThesaurusId == 14573? form: formDAL.GetFormByThesaurusAndLanguage(14573, language);
-            Form form2 = form.ThesaurusId == 14911 ? form : formDAL.GetFormByThesaurusAndLanguage(14911, language);
-            Form form3 = form.ThesaurusId == 15112 ? form : formDAL.GetFormByThesaurusAndLanguage(15112, language);
-
-            List<Form> formsForTree = new List<Form>();
-            formsForTree.Add(form1);
-            formsForTree.Add(form2);
-            formsForTree.Add(form3);
-
+            FormDataOut data = formBLL.SetFormDependablesAndReferrals(form);
+            List<Form> formsForTree = [];
+            foreach (int particularThesaurusId in new List<int> { 14573, 14911, 15112 })
+            {
+                Form targetForm = form.ThesaurusId == particularThesaurusId 
+                    ? form : formBLL.GetFormByThesaurusAndLanguage(particularThesaurusId, language);
+                formsForTree.Add(targetForm);
+            }
 
             SetApprovedLanguages();
             ViewBag.Language = language;
@@ -107,7 +95,7 @@ namespace sReportsV2.Controllers
                 filter.Language = LanguageConstants.EN;
             }
 
-            FormInstance formInstance = formInstanceDAL.GetById(filter.FormInstanceId);
+            FormInstance formInstance = formInstanceBLL.GetById(filter.FormInstanceId);
             if (formInstance == null)
             {
                 return NotFound(TextLanguage.FormInstanceNotExists, filter.FormInstanceId);
@@ -126,7 +114,7 @@ namespace sReportsV2.Controllers
         public async Task<ActionResult> Create(string language, FormInstanceDataIn formInstanceDataIn)
         {
             formInstanceDataIn = Ensure.IsNotNull(formInstanceDataIn, nameof(formInstanceDataIn));
-            Form form = this.formDAL.GetForm(formInstanceDataIn.FormDefinitionId);
+            Form form = formBLL.GetFormById(formInstanceDataIn.FormDefinitionId);
             if (form == null)
             {
                 return NotFound(TextLanguage.FormNotExists, formInstanceDataIn.FormDefinitionId);
@@ -162,9 +150,9 @@ namespace sReportsV2.Controllers
             ViewBag.EncounterId = formInstance.EncounterRef;
             ViewBag.FilterFormInstanceDataIn = filter;
             ViewBag.LastUpdate = formInstance.LastUpdate;
-            Form form = formDAL.GetForm(formInstance.FormDefinitionId);
+            Form form = formBLL.GetFormById(formInstance.FormDefinitionId);
             form.SetFieldInstances(formInstance.FieldInstances);
-            FormDataOut data = formBLL.SetFormDependablesAndReferrals(form, null, userCookieData);
+            FormDataOut data = formBLL.SetFormDependablesAndReferrals(form);
   
             return View("~/Views/CRF/Create.cshtml", data);
         }

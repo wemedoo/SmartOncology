@@ -107,7 +107,7 @@ namespace sReportsV2.Domain.Sql
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.Error("Error while executing custom sql command, error: " + ex.Message);
+                            LogHelper.Error("Error while executing custom sql command, error: " + ex.GetExceptionStackMessages());
                         }
                         finally
                         {
@@ -264,7 +264,7 @@ namespace sReportsV2.Domain.Sql
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.Error("Error while executing custom sql command, error: " + ex.Message);
+                        LogHelper.Error("Error while executing custom sql command, error: " + ex.GetExceptionStackMessages());
                     }
                     finally
                     {

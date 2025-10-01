@@ -1,8 +1,9 @@
 @using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Constants
 @model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
 @{
     var thesaurusId = Model != null ? Model.Id : 0;
-    var backUrl = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}&ReturnUrl={1}", thesaurusId, ViewBag.ReturlUrl) : "/";
+    var backUrl = thesaurusId > 0 ? string.Format("/ThesaurusGlobal/PreviewThesaurus?Id={0}&ReturnUrl={1}", thesaurusId, ViewBag.ReturlUrl) : ResourceTypes.DefaultEndpoint;
     ViewBag.Title = "Contribute to translation";
 }
 <input type="hidden" id="id" value="@thesaurusId" />

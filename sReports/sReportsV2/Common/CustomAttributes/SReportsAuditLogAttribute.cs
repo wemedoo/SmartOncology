@@ -33,16 +33,17 @@ namespace sReportsV2.Common.CustomAttributes
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            filterContext = Ensure.IsNotNull(filterContext, nameof(filterContext));
-            var al = new AuditLog
-            {
-                Action = filterContext.ActionDescriptor.RouteValues["action"],
-                Controller = filterContext.ActionDescriptor.RouteValues["controller"],
-                Username = filterContext.HttpContext.User.Identity.Name,
-                Time = DateTime.Now,
-                Json = JsonConvert.SerializeObject(PrepareParametersBeforeSerialization(filterContext.ActionArguments))
-            };
-
+                filterContext = Ensure.IsNotNull(filterContext, nameof(filterContext));
+                var al = new AuditLog
+                {
+                    RequestType = filterContext.HttpContext.Request.Method,
+                    Action = filterContext.ActionDescriptor.RouteValues["action"],
+                    Controller = filterContext.ActionDescriptor.RouteValues["controller"],
+                    Username = filterContext.HttpContext.User.Identity.Name,
+                    Time = DateTime.Now,
+                    Json = JsonConvert.SerializeObject(PrepareParametersBeforeSerialization(filterContext.ActionArguments))
+                };
+            
             Task.Run(() => SaveLog(al)); //fire and forget*/
         }
 

@@ -25,7 +25,6 @@ using sReportsV2.SqlDomain.Interfaces;
 using sReportsV2.Domain.Sql.Entities.Patient;
 using sReportsV2.Common.Constants;
 using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
-using sReportsV2.Common.Helpers;
 using System.Data;
 using sReportsV2.DTOs.DTOs.Form.DataOut;
 using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
@@ -37,36 +36,30 @@ using sReportsV2.DTOs.DTOs.FieldInstance.DataIn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using sReportsV2.DTOs.DTOs.Fhir.DataIn;
+using sReportsV2.DTOs.DTOs.FormInstanceChart.DataOut;
 
 namespace sReportsV2.Controllers
 {
     //[Authorize]
     public class FormInstanceController : FormCommonController
     {
-        private readonly IMapper Mapper;
         #region Before Hackaton
-        public FormInstanceController(IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL, 
-            IEncounterDAL encounterDAL, 
-            IUserBLL userBLL, 
+        public FormInstanceController(IUserBLL userBLL, 
             IOrganizationBLL organizationBLL, 
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL, 
             IFormBLL formBLL, 
-            IThesaurusDAL thesaurusDAL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL,
             IMapper mapper,            
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
             IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService,
             ICodeAssociationBLL codeAssociationBLL,
             IProjectManagementBLL projectManagementBLL) : 
-            base(patientDAL, episodeOfCareDAL, encounterDAL, userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration, codeAssociationBLL, projectManagementBLL)
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService, codeAssociationBLL, projectManagementBLL)
         {
-            Mapper = mapper;
         }
 
         [SReportsAuditLog]
@@ -96,7 +89,7 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            if (!this.formDAL.ExistsFormByThesaurus(dataIn.ThesaurusId))
+            if (!this.formBLL.ExistsFormByThesaurus(dataIn.ThesaurusId))
             {
                 return NotFound(TextLanguage.FormForThesaurusIdNotExists, dataIn.ThesaurusId.ToString());
             }
@@ -107,20 +100,20 @@ namespace sReportsV2.Controllers
             }
 
             ViewBag.FilterFormInstanceDataIn = dataIn;
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             ViewBag.FormInstanceTitle = dataIn.Title;
-            var customHeaders = Mapper.Map<List<CustomHeaderFieldDataOut>>((await formDAL.GetFormAsync(dataIn.FormId).ConfigureAwait(false))?.CustomHeaderFields);
+            var customHeaders = mapper.Map<List<CustomHeaderFieldDataOut>>((await formBLL.GetFormByIdAsync(dataIn.FormId).ConfigureAwait(false))?.CustomHeaderFields);
             ViewBag.CustomHeaders = customHeaders != null && customHeaders.Count > 0 ? customHeaders : CustomHeaderFieldDataOut.GetDefaultHeaders();
             SetProjectViewBags(dataIn, dataIn.ShowUserProjects);
 
-            return PartialView("FormInstancesByFormThesaurusTable", await formInstanceBLL.ReloadData(dataIn, ViewBag.Languages as List<EnumDTO>, userCookieData).ConfigureAwait(false));
+            return PartialView("FormInstancesByFormThesaurusTable", await formInstanceBLL.ReloadData(dataIn, userCookieData).ConfigureAwait(false));
         }
 
         [SReportsAuditLog]
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Engine)]
         public ActionResult GetAllFormDefinitions(FormFilterDataIn dataIn)
         {
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             ViewBag.ClinicalDomains = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalDomain);
 
             ViewBag.FilterData = dataIn;
@@ -260,15 +253,12 @@ namespace sReportsV2.Controllers
             return PartialView("~/Views/FormInstance/ChartFiltersPartial.cshtml");
         }
 
-        public ActionResult GetFormInstanceFieldsById(FormInstancePlotDataIn dataIn)
+        public JsonResult GetFormInstanceFieldsById(FormInstancePlotDataIn dataIn)
         {
             dataIn.OrganizationId = userCookieData.ActiveOrganization;
-            DataCaptureChartUtility chartUtilityDataStructure = formInstanceBLL.GetPlottableFieldsByThesaurusId(dataIn, formBLL.GetPlottableFields(dataIn.FormDefinitionId));
+            FormInstanceChartDataOut chartUtilityDataStructure = formInstanceBLL.GetPlottableFieldsByThesaurusId(dataIn, formBLL.GetPlottableFields(dataIn.FormDefinitionId));
 
-
-            var result = Json(chartUtilityDataStructure);
-
-            return result;
+            return Json(chartUtilityDataStructure);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Engine)]
@@ -280,7 +270,7 @@ namespace sReportsV2.Controllers
                 return NotFound(TextLanguage.FormNotExists, thesaurusId.ToString());
             }
             ViewBag.NullFlavors = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.NullFlavor);
-            FormDataOut data = GetDataOutForCreatingNewFormInstance(form, formReferrals: null);
+            FormDataOut data = GetDataOutForCreatingNewFormInstance(form);
             data.RequiredFieldsWithoutValue = canSaveWithoutValue ? data.GetAllFieldsWhichCanSaveWithoutValue(fieldsIds) : data.GetAllFieldsWhichCannotSaveWithoutValue(fieldsIds);
 
             return PartialView("~/Views/FormInstance/MissingValuesModal.cshtml", data);
@@ -298,12 +288,18 @@ namespace sReportsV2.Controllers
 
             ViewBag.IsLastFieldsetOnPage = dataIn.IsLastFieldsetOnPage;
             ViewBag.FsNumsInRepetition = dataIn.FsNumsInRepetition;
+            ViewBag.ChapterId = dataIn.ChapterId;
+            ViewBag.PageId = dataIn.PageId;
+            ViewBag.FsNumsInRepetition = dataIn.FsNumsInRepetition;
             ViewBag.IsLastFieldsetInRepetition = true;
             ViewBag.AddFieldsetRepetition = true;
             ViewBag.Arguments = new Dictionary<string, bool>
             {
                 { FormInstanceConstants.IsChapterReadOnly, false },
+                { FormInstanceConstants.ReadOnlyMode, false},
                 { FormInstanceConstants.ReadOnlyOrLocked, false },
+                { FormInstanceConstants.CanLockFieldSet, userCookieData.UserHasPermission(PermissionNames.LockFieldSet, ModuleNames.Engine) },
+                { FormInstanceConstants.CanUnlockFieldSet, userCookieData.UserHasPermission(PermissionNames.UnlockFieldSet, ModuleNames.Engine) }
             };
             SetIsHiddenFieldsShown(dataIn.HiddenFieldsShown);
             return PartialView("~/Views/FormInstance/FormInstanceFieldSet.cshtml", fieldSetDataOut);
@@ -313,7 +309,7 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            if (!this.formDAL.ExistsFormByThesaurus(dataIn.ThesaurusId))
+            if (!this.formBLL.ExistsFormByThesaurus(dataIn.ThesaurusId))
             {
                 return NotFound(TextLanguage.FormForThesaurusIdNotExists, dataIn.ThesaurusId.ToString());
             }
@@ -346,7 +342,7 @@ namespace sReportsV2.Controllers
                 return NotFound(TextLanguage.FormNotExists, filter.ThesaurusId.ToString());
             }
 
-            FormDataOut data = GetDataOutForCreatingNewFormInstance(form, formReferrals: null);
+            FormDataOut data = GetDataOutForCreatingNewFormInstance(form);
 
             ViewBag.FilterFormInstanceDataIn = filter;
             ViewBag.Title = $"{TextLanguage.Create} {data.Title}";
@@ -363,7 +359,7 @@ namespace sReportsV2.Controllers
         {
             filter = Ensure.IsNotNull(filter, nameof(filter));
 
-            FormInstance formInstance = this.formInstanceDAL.GetById(filter.FormInstanceId);
+            FormInstance formInstance = formInstanceBLL.GetById(filter.FormInstanceId);
 
             if (formInstance == null)
             {
@@ -409,6 +405,15 @@ namespace sReportsV2.Controllers
             return Ok();
         }
 
+        [SReportsAuditLog]
+        [HttpGet]
+        [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Engine)]
+        public async Task<ActionResult> GenerateAIExtraction(DataExtractionDataIn dataExtractionDataIn)
+        {
+            await formInstanceBLL.GenerateAIDataExtraction(dataExtractionDataIn, userCookieData).ConfigureAwait(false);
+            return Ok();
+        }
+
         #endregion /Export
 
         #region (Un)Lock actions
@@ -438,6 +443,34 @@ namespace sReportsV2.Controllers
                 }
             }
             return PartialView("LockUnlockDocumentModalForm", formInstanceLockOrUnlockDataIn);
+        }
+
+        [SReportsAuthorize(Permission = PermissionNames.LockFieldSet, Module = ModuleNames.Engine)]
+        public ActionResult GetLockFieldSetInstancePartially(string chapterId, string pageId, string fieldSetInstanceRepetitionId)
+        {
+            return GetLockOrUnlockInstancePartially(chapterId, pageId, FormItemLevel.FieldSet, true, fieldSetInstanceRepetitionId);
+        }
+
+        [SReportsAuditLog(new string[] { "Password" })]
+        [HttpPost]
+        [SReportsAuthorize(Permission = PermissionNames.LockFieldSet, Module = ModuleNames.Engine)]
+        public ActionResult LockFieldSetInstancePartially(FormInstancePartialLockOrUnlockDataIn formInstancePartialLockDataIn)
+        {
+            return LockOrUnlockInstancePartially(formInstancePartialLockDataIn, FormItemLevel.FieldSet);
+        }
+
+        [SReportsAuthorize(Permission = PermissionNames.UnlockFieldSet, Module = ModuleNames.Engine)]
+        public ActionResult GetUnLockFieldSetInstancePartially(string chapterId, string pageId, string fieldSetInstanceRepetitionId)
+        {
+            return GetLockOrUnlockInstancePartially(chapterId, pageId, FormItemLevel.FieldSet, false, fieldSetInstanceRepetitionId);
+        }
+
+        [SReportsAuditLog(new string[] { "Password" })]
+        [HttpPost]
+        [SReportsAuthorize(Permission = PermissionNames.UnlockFieldSet, Module = ModuleNames.Engine)]
+        public ActionResult UnLockFieldSetInstancePartially(FormInstancePartialLockOrUnlockDataIn formInstancePartialLockOrUnlockDataIn)
+        {
+            return LockOrUnlockInstancePartially(formInstancePartialLockOrUnlockDataIn, FormItemLevel.FieldSet);
         }
 
         [SReportsAuthorize(Permission = PermissionNames.LockPage, Module = ModuleNames.Engine)]
@@ -496,14 +529,15 @@ namespace sReportsV2.Controllers
             return LockOrUnlockInstancePartially(formInstancePartialLockOrUnlockDataIn, FormItemLevel.Chapter);
         }
 
-        private ActionResult GetLockOrUnlockInstancePartially(string chapterId, string pageId, FormItemLevel itemType, bool isLockAction)
+        private ActionResult GetLockOrUnlockInstancePartially(string chapterId, string pageId, FormItemLevel itemType, bool isLockAction, string fieldSetInstanceRepetitionId = null)
         {
             return PartialView("LockUnlockDocumentModalForm", new FormInstancePartialLockOrUnlockDataIn
             {
                 ChapterId = chapterId,
                 PageId = pageId,
+                FieldSetInstanceRepetitionId= fieldSetInstanceRepetitionId,
                 ActionEndpoint = GetPartialLockUnlockActionEndpoint(isLockAction, itemType),
-                ChapterPageNextState = isLockAction ? ChapterPageState.Locked : ChapterPageState.DataEntryOnGoing
+                ChapterPageNextState = isLockAction ? ChapterPageFieldSetState.Locked : ChapterPageFieldSetState.DataEntryOnGoing
             });
         }
 
@@ -516,7 +550,7 @@ namespace sReportsV2.Controllers
                 var user = userBLL.IsValidUser(new DTOs.User.DataIn.UserLoginDataIn { Username = userCookieData.Username, Password = formInstancePartialLockOrUnlockDataIn.Password });
                 if (user != null)
                 {
-                    formInstanceBLL.LockUnlockChapterOrPage(MapFormInstancePartialLock(formInstancePartialLockOrUnlockDataIn), userCookieData);
+                    formInstanceBLL.LockUnlockChapterOrPageOrFieldSet(MapFormInstancePartialLock(formInstancePartialLockOrUnlockDataIn), userCookieData);
                     return Json($"{itemType} is successfully {(isLockAction ? "locked" : "unlocked")}.");
                 }
                 else
@@ -530,7 +564,7 @@ namespace sReportsV2.Controllers
 
         private FormInstancePartialLock MapFormInstancePartialLock(FormInstancePartialLockOrUnlockDataIn formInstancePartialLockOrUnlockDataIn)
         {
-            FormInstancePartialLock formInstancePartialLock = Mapper.Map<FormInstancePartialLock>(formInstancePartialLockOrUnlockDataIn);
+            FormInstancePartialLock formInstancePartialLock = mapper.Map<FormInstancePartialLock>(formInstancePartialLockOrUnlockDataIn);
             formInstancePartialLock.CreateById = userCookieData?.Id;
             formInstancePartialLock.IsSigned = true;
 
@@ -539,7 +573,7 @@ namespace sReportsV2.Controllers
 
         private FormInstanceLockUnlockRequest MapFormInstanceLock(FormInstanceLockUnlockRequestDataIn formInstanceSignDataIn)
         {
-            FormInstanceLockUnlockRequest formInstanceSign = Mapper.Map<FormInstanceLockUnlockRequest>(formInstanceSignDataIn);
+            FormInstanceLockUnlockRequest formInstanceSign = mapper.Map<FormInstanceLockUnlockRequest>(formInstanceSignDataIn);
             formInstanceSign.CreatedById = userCookieData?.Id;
 
             return formInstanceSign;
@@ -563,15 +597,15 @@ namespace sReportsV2.Controllers
         #region CTCAE
 
         [HttpPost]
-        public ActionResult CreateCTCAE(CTCAEPatient patient, FormInstanceDataIn formInstanceDataIn)
+        public async Task<ActionResult> CreateCTCAE(CTCAEPatient patient, FormInstanceDataIn formInstanceDataIn)
         {
-            UserData userData = Mapper.Map<UserData>(userCookieData);
+            UserData userData = mapper.Map<UserData>(userCookieData);
 
             if (patient == null)
             {
                 return NotFound(TextLanguage.FormInstanceNotExists, "Patient cannot be null.");
             }
-            Form form = formDAL.GetFormByThesaurus(15120);
+            Form form = formBLL.GetFormByThesaurus(15120);
             FormInstance formInstance = formInstanceBLL.GetFormInstanceSet(form, formInstanceDataIn, userCookieData);
 
             SetFormInstanceFields(form, formInstance, patient);
@@ -584,13 +618,13 @@ namespace sReportsV2.Controllers
 
             if (patient.FormInstanceId != null)
             {
-                FormInstance formInstanceForUpdate = SetFormInstanceIdForUpdate(patient, formInstance);
-                formInstanceDAL.InsertOrUpdate(formInstanceForUpdate, formInstance.GetCurrentFormInstanceStatus(userCookieData?.Id));
+                FormInstance formInstanceForUpdate = formBLL.SetFormInstanceIdForUpdate(patient, formInstance);
+                await formInstanceBLL.InsertOrUpdateAsync(formInstanceForUpdate, formInstance.GetCurrentFormInstanceStatus(userCookieData?.Id), userCookieData).ConfigureAwait(false);
             }
             else
             {
-                SetCTCAEPatient(form, formInstance, patient, userData);
-                formInstanceDAL.InsertOrUpdate(formInstance, formInstance.GetCurrentFormInstanceStatus(userCookieData?.Id));
+                formInstanceBLL.SetCTCAEPatient(form, formInstance, patient, userCookieData);
+                await formInstanceBLL.InsertOrUpdateAsync(formInstance, formInstance.GetCurrentFormInstanceStatus(userCookieData?.Id), userCookieData).ConfigureAwait(false);
             }
 
             return StatusCode(StatusCodes.Status201Created);
@@ -605,7 +639,7 @@ namespace sReportsV2.Controllers
                 case 1:
                     return patient.VisitNo;
                 case 2:
-                    return patient.Date?.ToString(DateConstants.UTCDatePartFormat);
+                    return patient.Date?.ToString(DateTimeConstants.UTCDatePartFormat);
                 case 3:
                     return patient.Title;
                 default:
@@ -650,29 +684,6 @@ namespace sReportsV2.Controllers
                 ));
         }
 
-        private void SetCTCAEPatient(Form form, FormInstance formInstance, CTCAEPatient patient, UserData user)
-        {
-            if (!form.DisablePatientData)
-            {
-                int patientId = 0;
-                Patient patientEntity = patientDAL.GetById(patient.PatientId);
-                if (patientEntity == null)
-                {
-                    patientEntity = new Patient("Unknown", "Unknown");
-                    patient.PatientId = 0;
-                    patientEntity.PatientId = patient.PatientId;
-                    patientEntity.OrganizationId = user.ActiveOrganization.GetValueOrDefault();
-                    patientDAL.InsertOrUpdate(patientEntity, null);
-                }
-
-                formInstance.PatientId = patientEntity.PatientId;
-                int eocId = InsertEpisodeOfCare(patientId, form.EpisodeOfCare, "Engine", DateTime.Now, user);
-                int encounterId = InsertEncounter(eocId);
-                formInstance.EpisodeOfCareRef = eocId;
-                formInstance.EncounterRef = encounterId;
-            }
-        }
-
         private void SetFormInstanceFields(Form form, FormInstance formInstance, CTCAEPatient patient)
         {
             formInstance.FieldInstances = new List<FieldInstance>();
@@ -691,73 +702,7 @@ namespace sReportsV2.Controllers
                 }
             }
         }
-
-        private FormInstance SetFormInstanceIdForUpdate(CTCAEPatient patient, FormInstance formInstance)
-        {
-            FormInstance formInstanceForUpdate = formInstanceDAL.GetById(patient.FormInstanceId);
-            Form formForUpdate = formDAL.GetForm(formInstanceForUpdate.FormDefinitionId);
-            formForUpdate.SetValuesFromReferrals(formBLL.GetFormsFromReferrals(new List<FormInstance>() { formInstance, formInstanceForUpdate }));
-
-            foreach (List<FieldSet> fieldSets in formForUpdate.GetAllListOfFieldSets())
-            {
-                foreach (FieldSet fieldSet in fieldSets)
-                {
-                    foreach (Field field in fieldSet.Fields)
-                    {
-                        field.FieldSetId = fieldSet.Id;
-                    }
-                }
-            }
-
-            SetFormInstanceForUpdateFields(formInstanceForUpdate, formForUpdate);
-
-            return formInstanceForUpdate;
-        }
-
-        private void SetFormInstanceForUpdateFields(FormInstance formInstanceForUpdate, Form formForUpdate)
-        {
-            formInstanceForUpdate.FieldInstances = formForUpdate
-                .GetAllFields()
-                .Where(x => x.FieldInstanceValues != null)
-                .Select(x => new FieldInstance(x, x.FieldSetId, x.FieldSetInstanceRepetitionId)
-                {
-                    FieldInstanceValues = x.FieldInstanceValues.ToList()
-                }
-            ).ToList();
-        }
         #endregion /CTCAE
-
-        #region Covid Filter
-
-        public ActionResult GetAllFormInstance(FormInstanceCovidFilterDataIn filter)
-        {
-            return FormatCovidResponse(formInstanceDAL.GetAllByCovidFilter(Mapper.Map<FormInstanceCovidFilter>(filter)));
-        }
-
-        public async Task<ActionResult> GetTest()
-        {
-            return FormatCovidResponse(await formInstanceDAL.GetAllFieldsByCovidFilter().ConfigureAwait(false));
-        }
-
-        private ContentResult FormatCovidResponse(List<FormInstance> resultData)
-        {
-            var jsonData = JsonConvert.SerializeObject(resultData, new JsonSerializerSettings
-            {
-                MaxDepth = Int32.MaxValue,
-                Formatting = Formatting.Indented,
-                ContractResolver = new DefaultContractResolver
-                {
-                    NamingStrategy = new CamelCaseNamingStrategy()
-                }
-            });
-
-            return new ContentResult
-            {
-                Content = jsonData,
-                ContentType = "application/json"
-            };
-        }
-        #endregion /Covid Filter
 
         #endregion
 

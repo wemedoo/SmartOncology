@@ -1,0 +1,20 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.DTOs.Common;
+
+@model TimeInputDTO
+
+@{
+    bool.TryParse(Model.GetBtnAttribute("readOnly", "false"), out bool readOnly);
+    string containerId = string.IsNullOrEmpty(Model.ContainerId) ? "" : $@"id=""{Model.ContainerId}""";
+}
+
+<div class="time-wrapper input-border @(Model.FullWidthHeight ? "w-100 h-100" : "w-35")" @Html.Raw(containerId)>
+    <input type="text"
+           placeholder="@DateTimeConstants.TimeFormatDisplay"
+           @Html.Raw(Model.InputAttributes.GetAttr())
+           autocomplete="off" data-time-input>
+    <div class="clock-wrapper @Model.GetBtnAttribute("class", "")">
+        <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
+    </div>
+</div>

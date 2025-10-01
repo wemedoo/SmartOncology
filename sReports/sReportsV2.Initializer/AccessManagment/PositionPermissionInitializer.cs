@@ -180,6 +180,11 @@ namespace sReportsV2.Initializer.AccessManagment
                 Name = ModuleNames.ClinicalOncology,
                 Description = "ClinicalOncology module has functionalities that are related to viewing, creating and editing Clinical Oncology modules."
             };
+            Module queryModule = new Module
+            {
+                Name = ModuleNames.QueryManagement,
+                Description = "Query Management module has functionalities that are related to viewing, creating and editing Query modules."
+            };
 
             List<Module> moduleList = new List<Module>
                 {
@@ -192,7 +197,8 @@ namespace sReportsV2.Initializer.AccessManagment
                     codeSetModule,
                     projectManagementModule,
                     clinicalPathwayModule,
-                    clinicalOncologyModule
+                    clinicalOncologyModule,
+                    queryModule
                 };
 
             return moduleList;
@@ -259,6 +265,11 @@ namespace sReportsV2.Initializer.AccessManagment
                 },
                 new Permission
                 {
+                    Name = PermissionNames.GenerateReports,
+                    Description = "Generate Reports"
+                },
+                new Permission
+                {
                     Name = PermissionNames.Download,
                     Description = "Download document"
                 },
@@ -311,6 +322,16 @@ namespace sReportsV2.Initializer.AccessManagment
                 {
                     Name = PermissionNames.UnlockPage,
                     Description = "Unlock Page"
+                },
+                new Permission
+                {
+                    Name = PermissionNames.LockFieldSet,
+                    Description = "Lock Field Set"
+                },
+                new Permission
+                {
+                    Name = PermissionNames.UnlockFieldSet,
+                    Description = "Unlock Field Set"
                 },
                 new Permission
                 {
@@ -500,7 +521,8 @@ namespace sReportsV2.Initializer.AccessManagment
                         PermissionNames.ViewAdministrativeData,
                         PermissionNames.ViewComments,
                         PermissionNames.AddComment,
-                        PermissionNames.ChangeCommentStatus
+                        PermissionNames.ChangeCommentStatus,
+                        PermissionNames.GenerateReports
                     }
                 },
                 {
@@ -514,7 +536,9 @@ namespace sReportsV2.Initializer.AccessManagment
                         PermissionNames.LockPage,
                         PermissionNames.UnlockPage,
                         PermissionNames.LockChapter,
-                        PermissionNames.UnlockChapter
+                        PermissionNames.UnlockChapter,
+                        PermissionNames.LockFieldSet,
+                        PermissionNames.UnlockFieldSet
                     }
                 },
                 {
@@ -602,6 +626,12 @@ namespace sReportsV2.Initializer.AccessManagment
                 },
                 {
                     ModuleNames.ClinicalOncology,
+                    new List<string>(generalPermissions)
+                    {
+                    }
+                },
+                {
+                    ModuleNames.QueryManagement,
                     new List<string>(generalPermissions)
                     {
                     }

@@ -19,13 +19,13 @@ namespace sReportsV2.Domain.DatabaseMigrationScripts
         protected override void Up()
         {
             string dateFormatRegexToUpdate = ".{4}-.{2}-.{2}";
-            UpdateFieldsDateFormat(dateFormatRegexToUpdate, DateConstants.DateFormat).Wait();
+            UpdateFieldsDateFormat(dateFormatRegexToUpdate, DateTimeConstants.DateFormat).Wait();
         }
 
         protected override void Down()
         {
             string dateFormatRegexToUpdate = ".{2}/.{2}/.{4}";
-            UpdateFieldsDateFormat(dateFormatRegexToUpdate, DateConstants.UTCDatePartFormat).Wait();
+            UpdateFieldsDateFormat(dateFormatRegexToUpdate, DateTimeConstants.UTCDatePartFormat).Wait();
         }
 
         // ---------- Helper Methods ----------

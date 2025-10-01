@@ -1,18 +1,17 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using sReportsV2.Domain.Entities.CustomFHIRClasses;
-using sReportsV2.Domain.Entities.FieldEntity;
-using sReportsV2.Common.Constants;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using sReportsV2.Common.Enums;
 using sReportsV2.Common.Extensions;
-using MongoDB.Bson;
-using sReportsV2.Domain.Entities.Common;
-using sReportsV2.Domain.Sql.Entities.Patient;
+using sReportsV2.Domain.Entities.FieldEntity;
+using sReportsV2.Domain.MongoDb.Entities.Base;
+using sReportsV2.Domain.Sql;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 
 namespace sReportsV2.Domain.Entities.Form
 {
     [BsonIgnoreExtraElements]
-    public class FieldSet
+    public partial class FieldSet : IFormThesaurusEntity
     {
-        public O4CodeableConcept Code { get; set; } 
         public string FhirType { get; set; }
         public string Id { get; set; }
         public string Label { get; set; }
@@ -27,10 +26,12 @@ namespace sReportsV2.Domain.Entities.Form
         public bool IsBold { get; set; }
         public bool IsRepetitive { get; set; }
         public int NumberOfRepetitions { get; set; }
-        [BsonIgnore]
-        public string FieldSetInstanceRepetitionId { get; set; }
+        public string MatrixId { get; set; }
+        public MatrixType? MatrixType { get; set; }
         public List<FormFieldValue> Options { get; set; } = new List<FormFieldValue>();
+        public List<FieldSet> ListOfFieldSets { get; set; } = new List<FieldSet>();
 
+        #region Thesaurus Methods
         public List<int> GetAllThesaurusIds()
         {
             List<int> thesaurusList = new List<int>();
@@ -54,52 +55,15 @@ namespace sReportsV2.Domain.Entities.Form
             }
         }
 
-        public bool IsReferable(FieldSet targetFieldSet) 
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
         {
-            Ensure.IsNotNull(targetFieldSet, nameof(FieldSet));
-
-            bool result = false;
-            int matchedFieldCounter = 0;
-            if (this.ThesaurusId == targetFieldSet.ThesaurusId && this.Fields.Count == targetFieldSet.Fields.Count) 
-            {
-                foreach (Field field in this.Fields) 
-                {
-                    foreach (Field targetField in this.Fields)
-                    {
-                        if (field.ThesaurusId == targetField.ThesaurusId && targetField.Type == field.Type) 
-                        {
-                            matchedFieldCounter++;
-                            break;
-                        }
-                    }
-                }
-
-                if (matchedFieldCounter == this.Fields.Count) 
-                {
-                    result = true;
-                }
-            }
-
-            return result;
-        }
-
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
-        {
-            this.ThesaurusId = this.ThesaurusId == oldThesaurus ? newThesaurus : this.ThesaurusId;
+            this.ThesaurusId = this.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
             foreach (Field field in this.Fields)
             {
-                field.ReplaceThesauruses(oldThesaurus, newThesaurus);
+                field.ReplaceThesauruses(thesaurusMerge);
             }
         }
-
-        public void SetFieldSetInstanceRepetitionIds(string fieldSetInstanceRepetitionId)
-        {
-            this.FieldSetInstanceRepetitionId = fieldSetInstanceRepetitionId;
-            this.Fields.ForEach(f => { 
-                f.FieldSetInstanceRepetitionId = fieldSetInstanceRepetitionId;
-                f.FieldSetId = this.Id;
-            });
-        }
+        #endregion /Thesaurus Methods
 
         public Field GetFieldById(string fieldId)
         {

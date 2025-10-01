@@ -27,32 +27,6 @@ namespace sReportsV2.SqlDomain.Implementations
             return context.AdministrativeDatas;
         }
 
-        public void InsertMany(List<ThesaurusEntry> thesauruses, List<int> bulkedThesauruses)
-        {
-            DataTable administrativeDataTable = new DataTable();
-            administrativeDataTable.Columns.Add(new DataColumn("ThesaurusEntryId", typeof(int)));
-
-            for (int i = 0; i < thesauruses.Count; i++)
-            {
-                DataRow translationRow = administrativeDataTable.NewRow();
-                translationRow["ThesaurusEntryId"] = bulkedThesauruses[i];
-
-                administrativeDataTable.Rows.Add(translationRow);
-            }
-
-            string connection = configuration["Sql"];
-            SqlConnection con = new SqlConnection(connection);
-            SqlBulkCopy objbulk = new SqlBulkCopy(con);
-            objbulk.BulkCopyTimeout = 0;
-
-            objbulk.DestinationTableName = "AdministrativeDatas";
-            objbulk.ColumnMappings.Add("ThesaurusEntryId", "ThesaurusEntryId");
-
-            con.Open();
-            objbulk.WriteToServer(administrativeDataTable);
-            con.Close();
-        }
-
         public void InsertManyVersions(List<ThesaurusEntry> thesauruses, List<int> bulkedThesauruses)
         {
             DataTable versionTable = new DataTable();
@@ -117,7 +91,7 @@ namespace sReportsV2.SqlDomain.Implementations
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.Error("Error while executing custom sql command, error: " + ex.Message);
+                        LogHelper.Error("Error while executing custom sql command, error: " + ex.GetExceptionStackMessages());
                     }
                     finally
                     {

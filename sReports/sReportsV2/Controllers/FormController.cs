@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.DTOs.Field.DataIn;
 using sReportsV2.DAL.Sql.Sql;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
 
 namespace sReportsV2.Controllers
 {
@@ -39,33 +40,28 @@ namespace sReportsV2.Controllers
     public partial class FormController : FormCommonController
     {
         private readonly ICommentBLL commentBLL;
-        private readonly IConsensusDAL consensusDAL;
-        private readonly IMapper Mapper;
+        private readonly IConsensusBLL consensusBLL;
         private readonly SReportsContext dbContext;
 
-        public FormController(IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL, 
-            IEncounterDAL encounterDAL, 
-            IConsensusDAL consensusDAL, 
+        public FormController(
+            IConsensusBLL consensusBLL, 
             IUserBLL userBLL, 
             IOrganizationBLL organizationBLL,
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL,
             IFormBLL formBLL, 
             ICommentBLL commentBLL,
-            IThesaurusDAL thesaurusDAL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL,
             IMapper mapper, 
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
             IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService,
             SReportsContext dbContext) :
-            base(patientDAL, episodeOfCareDAL, encounterDAL, userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration)
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService)
         {
-            Mapper = mapper;
             this.commentBLL = commentBLL;
-            this.consensusDAL = consensusDAL;
+            this.consensusBLL = consensusBLL;
             this.dbContext = dbContext;
         }
 
@@ -73,7 +69,7 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         public ActionResult GetAll(FormFilterDataIn dataIn)
         {
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             ViewBag.ClinicalDomains = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalDomain);
             ViewBag.FilterData = dataIn;
             return View();
@@ -84,7 +80,7 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             return PartialView("FormsTable", this.formBLL.ReloadData(dataIn, userCookieData));
         }
 
@@ -92,8 +88,8 @@ namespace sReportsV2.Controllers
         public ActionResult ReloadByFormThesaurusTable(FormFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            dataIn.HideInvalidDocuments = true;
-            ViewBag.DocumentPropertiesEnums = Mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
+            dataIn.WorkOnlyWithValidForms();
+            ViewBag.DocumentPropertiesEnums = mapper.Map<Dictionary<string, List<EnumDTO>>>(this.codeBLL.GetDocumentPropertiesEnums());
             return PartialView("~/Views/FormInstance/FormsTable.cshtml", this.formBLL.ReloadData(dataIn, userCookieData));
         }
 
@@ -110,9 +106,8 @@ namespace sReportsV2.Controllers
         [HttpPost]
         public ActionResult GetFormJson([ModelBinder(typeof(JsonNetModelBinder))] FormDataIn formDataIn)
         {
-            FormDataOut dataOut = Mapper.Map<FormDataOut>(formDataIn);
-
-            return PartialView("~/Views/Form/DragAndDrop/FormJson.cshtml", dataOut);
+            ViewBag.IsReadOnlyViewMode = formDataIn.IsReadOnlyViewMode;
+            return PartialView("~/Views/Form/DragAndDrop/FormJson.cshtml", formBLL.GetFormJson(formDataIn));
         }
 
         [SReportsAuthorize(Permission = PermissionNames.ViewComments, Module = ModuleNames.Designer)]
@@ -162,7 +157,7 @@ namespace sReportsV2.Controllers
         public ActionResult GetDocumentsByThesaurusId(int o4MtId, int thesaurusPageNum)
         {
             TreeDataOut result = formBLL.GetTreeDataOut(o4MtId, thesaurusPageNum, string.Empty);
-            ViewBag.TotalAppeareance = formDAL.GetThesaurusAppereanceCount(o4MtId, string.Empty);
+            ViewBag.TotalAppeareance = formBLL.GetThesaurusAppereanceCount(o4MtId, string.Empty);
 
             if (thesaurusPageNum != 0)
                 return PartialView("Thesaurus/FormThesaurusTreePartial", result);
@@ -171,10 +166,10 @@ namespace sReportsV2.Controllers
         }
 
         [SReportsAuthorize]
-        public ActionResult ReloadClinicalDomain(string term)
+        public ActionResult ReloadClinicalDomain(string name)
         {
             List<ClinicalDomainDTO> options = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.ClinicalDomain)
-                .Where(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage).ToLower().Contains(term.ToLower()))
+                .Where(x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage).ToLower().Contains(name.ToLower()))
                 .Select(x => new ClinicalDomainDTO()
                 {
                     Id = x.Id,
@@ -183,14 +178,21 @@ namespace sReportsV2.Controllers
                 .OrderBy(enm => enm.ToString())
                 .ToList();
 
-            return PartialView("~/Views/Form/DragAndDrop/CustomFields/ClinicalDomainValues.cshtml", options.OrderBy(x => x.Translation).ToList());
+            return PartialView(
+                "~/Views/Form/DragAndDrop/CustomFields/AutocompleteValues.cshtml", 
+                new CustomAutocompleteDataOut()
+                {
+                    ComponentName = "clinicalDomain",
+                    Options = options.OrderBy(x => x.Translation).ToDictionary(x => x.Id.ToString(), x => x.Translation),
+                }
+            );
         }
 
         [SReportsAuthorize]
         public ActionResult FilterThesaurusTree(int o4MtId, string searchTerm, int thesaurusPageNum)
         {
             TreeDataOut result = formBLL.GetTreeDataOut(o4MtId, thesaurusPageNum, searchTerm, userCookieData);
-            ViewBag.TotalAppeareance = formDAL.GetThesaurusAppereanceCount(o4MtId, searchTerm, userCookieData.ActiveOrganization);
+            ViewBag.TotalAppeareance = formBLL.GetThesaurusAppereanceCount(o4MtId, searchTerm, userCookieData.ActiveOrganization);
 
             if (thesaurusPageNum != 0)
                 return PartialView("Thesaurus/FormThesaurusAppearanceTreePartial", result);
@@ -201,8 +203,8 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize]
         public ActionResult GetDocumentProperties(string id)
         {
-            DocumentProperties result = this.formDAL.GetDocumentProperties(id);
-            return PartialView("Thesaurus/DocumentProperties", Mapper.Map<DocumentPropertiesDataOut>(result));
+            DocumentProperties result = this.formBLL.GetDocumentProperties(id);
+            return PartialView("Thesaurus/DocumentProperties", mapper.Map<DocumentPropertiesDataOut>(result));
         }
 
         [SReportsAuditLog]
@@ -226,18 +228,18 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         [HttpDelete]
         [SReportsAuthorize(Permission = PermissionNames.Delete, Module = ModuleNames.Designer)]
-        public ActionResult Delete(string formId, DateTime lastUpdate)
+        public async Task<ActionResult> Delete(string formId, DateTime lastUpdate)
         {
-            formBLL.Delete(formId, lastUpdate, userCookieData.OrganizationTimeZone);
+            await formBLL.Delete(formId, lastUpdate, userCookieData.OrganizationTimeZone);
             return NoContent();
         }
 
 
         public ActionResult ExportCTCAEForm()
         {
-            FormGenerator generator = new FormGenerator(Mapper.Map<UserData>(userCookieData));
+            FormGenerator generator = new FormGenerator(mapper.Map<UserData>(userCookieData));
             Form form = generator.GetFormFromCsv("CTCAE ");
-            formDAL.InsertOrUpdate(form, Mapper.Map<UserData>(userCookieData));
+            formBLL.InsertOrUpdate(form, userCookieData, executeBackgroundTask: false);
 
             return Json(true);
         }
@@ -263,11 +265,10 @@ namespace sReportsV2.Controllers
 
         public ActionResult GenerateThesauruses(string formId)
         {
-            Form form = formDAL.GetForm(formId);
-            UserData userData = Mapper.Map<UserData>(userCookieData);
+            Form form = formBLL.GetFormById(formId);
             ThesaurusGenerator generator = new ThesaurusGenerator(Configuration, dbContext);
-            generator.GenerateThesauruses(form, Mapper.Map<UserData>(userCookieData));
-            formDAL.InsertOrUpdate(form, userData);
+            generator.GenerateThesauruses(form);
+            formBLL.InsertOrUpdate(form, userCookieData, executeBackgroundTask: false);
 
             return RedirectToAction(EndpointConstants.Edit, "Form", new { formId });
         }
@@ -285,7 +286,7 @@ namespace sReportsV2.Controllers
         public async Task<ActionResult> ResetCustomHeadersView(string formId)
         {
             SetReadOnlyAndDisabledViewBag(!userCookieData.UserHasPermission(PermissionNames.Update, ModuleNames.Engine));
-            FormDataOut formDataOut = (!string.IsNullOrWhiteSpace(formId) && formId != "formIdPlaceHolder") ? Mapper.Map<FormDataOut>(await formDAL.GetFormAsync(formId).ConfigureAwait(false)) : new FormDataOut();
+            FormDataOut formDataOut = (!string.IsNullOrWhiteSpace(formId) && formId != "formIdPlaceHolder") ? mapper.Map<FormDataOut>(await formBLL.GetFormByIdAsync(formId).ConfigureAwait(false)) : new FormDataOut();
             formDataOut.CustomHeaderFields = CustomHeaderFieldDataOut.GetDefaultHeaders();
             return PartialView("~/Views/Form/DragAndDrop/CustomHeaderFields.cshtml", formDataOut);
         }
@@ -299,17 +300,17 @@ namespace sReportsV2.Controllers
             return StatusCode(StatusCodes.Status201Created);
         }
 
-        [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Designer)]
-        [SReportsAuditLog]
-        public async Task<ActionResult> GetTitleDataForAutocomplete(AutocompleteDataIn dataIn)
-        {
-            return Json(await formBLL.GetTitleDataForAutocomplete(dataIn, userCookieData).ConfigureAwait(false));
-        }
-
         [HttpPost]
         public ActionResult CheckFormula(DependentOnInfoDataIn dataIn)
         {
             return Json(formBLL.ValidateFormula(dataIn));
+        }
+
+        [SReportsAuthorize(Module = ModuleNames.Designer, Permission = PermissionNames.GenerateReports)]
+        public async Task<ActionResult> GenerateReport(string formId)
+        {
+            await formBLL.GenerateReport(formId, userCookieData);
+            return Json("Success");
         }
 
         private void SetViewBagCommentsParameters(string taggedCommentId = "")
@@ -324,12 +325,12 @@ namespace sReportsV2.Controllers
         {
             formDataIn = Ensure.IsNotNull(formDataIn, nameof(formDataIn));
 
-            if (formId != null && !formDAL.ExistsForm(formId))
+            if (formId != null && !formBLL.ExistsForm(formId))
             {
                 return NotFound(TextLanguage.FormNotExists, formId);
             }
 
-            Form form = Mapper.Map<Form>(formDataIn);
+            Form form = mapper.Map<Form>(formDataIn);
 
             form.UserId = userCookieData.Id;
             form.Language = userCookieData.ActiveLanguage;

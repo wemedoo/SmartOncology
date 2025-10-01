@@ -14,14 +14,14 @@
 
 <div class="doctors">
     <div class="div-header">
-        @sReportsV2.Cache.Resources.TextLanguage.Doctors
+        @sReportsV2.Cache.Resources.TextLanguage.Health_Care_Workers
     </div>
     <div class="doctor-list">
         @if (Model.Doctors != null)
         {
             foreach (var doctor in Model.Doctors)
             {
-                RenderEncounterPatientDoctor(doctor, relationTypeCodes, language);
+                RenderEncounterPatientDoctor(doctor, relationTypeCodes, language, readOnly);
             }
         }
         @if (!readOnly)
@@ -31,7 +31,7 @@
     </div>
 
     @{
-        RenderEncounterPatientDoctor(null, relationTypeCodes, language);
+        RenderEncounterPatientDoctor(null, relationTypeCodes, language, readOnly);
     }
 </div>
 
@@ -41,7 +41,7 @@
         <div class="d-flex margin-top-10">
             <div class="advanced-filter-item filter-item margin-right-5">
                 <div class="label filter-label">
-                    @sReportsV2.Cache.Resources.TextLanguage.Doctor
+                    @sReportsV2.Cache.Resources.TextLanguage.Health_Care_Worker
                 </div>
                 <select class="filter-input arrow-select patient-background padding-right-36 margin-left-13 encounter-doctor-input" id="doctor" name="doctor">
                     <option value="" disabled selected></option>
@@ -71,7 +71,7 @@
         </div>
     }
 
-    private void RenderEncounterPatientDoctor(EncounterPersonnelRelationDataOut doctor, List<CodeDataOut> relationTypeCodes, string language)
+    private void RenderEncounterPatientDoctor(EncounterPersonnelRelationDataOut doctor, List<CodeDataOut> relationTypeCodes, string language, bool readOnly)
     {
         bool isDoctorDefined = doctor != null;
         string relationTypeTranslated = "";
@@ -88,7 +88,7 @@
              class="@(isDoctorDefined ? "d-flex" : "d-none") margin-top-10 encounter-doctor-row" data-id="@(isDoctorDefined ? doctor.Id.ToString() : "0")">
             <div class="advanced-filter-item filter-item margin-right-5">
                 <div class="label filter-label">
-                    @sReportsV2.Cache.Resources.TextLanguage.Doctor
+                    @sReportsV2.Cache.Resources.TextLanguage.Health_Care_Worker
                 </div>
                 <select class="filter-input arrow-select patient-background padding-right-36 encounter-doctor" disabled>
                     @if (isDoctorDefined)
@@ -109,11 +109,14 @@
                         }
                     </select>
                 </div>
-                <div class="advanced-filter-item encounter-doctor-btn-div">
-                    <button class="btn btn-encounter-doctor delete-doctor" title="@sReportsV2.Cache.Resources.TextLanguage.Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                @if(!readOnly)
+                {
+                    <div class="advanced-filter-item encounter-doctor-btn-div">
+                        <button class="btn btn-encounter-doctor delete-doctor" title="@sReportsV2.Cache.Resources.TextLanguage.Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                }
             </div>
         </div>
     }
@@ -127,7 +130,7 @@
                 {
                     placeholder: "-",
                     width: '100%',
-                    url: `/UserAdministration/GetNameAutocompleteData?filterByDoctors=true`
+                    url: `/UserAdministration/GetAutocompleteData?filterByDoctors=true`
                 }
             )
         );

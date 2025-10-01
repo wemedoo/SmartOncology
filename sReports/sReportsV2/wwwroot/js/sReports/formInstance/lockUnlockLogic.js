@@ -85,13 +85,13 @@ function isLockUnlockDocumentValid(data) {
     }
 }
 
-function showLockOrUnlockPartialConfirmationModal(event, chapterId, pageId, isLockAction) {
+function showLockOrUnlockPartialConfirmationModal(event, chapterId, pageId, fieldSetInstanceRepetitionId, isLockAction) {
     executeEventFunctions(event, true);
 
     callServer({
         type: "GET",
-        url: `/FormInstance/${getLockOrUnlockActionName(pageId, isLockAction)}`,
-        data: getLockModalRequest(chapterId, pageId),
+        url: `/FormInstance/${getLockOrUnlockActionName(pageId, fieldSetInstanceRepetitionId, isLockAction)}`,
+        data: getLockModalRequest(chapterId, pageId, fieldSetInstanceRepetitionId),
         success: function (data) {
             showLockUnlockDocumentModalContent(data);
         },
@@ -101,12 +101,26 @@ function showLockOrUnlockPartialConfirmationModal(event, chapterId, pageId, isLo
     });
 }
 
-function getLockOrUnlockActionName(pageId, isLockAction) {
+function getLockOrUnlockActionName(pageId, fieldSetInstanceRepetitionId, isLockAction) {
+    let lockActionName;
     if (isLockAction) {
-        return pageId ? "GetLockPageInstancePartially" : "GetLockChapterInstancePartially";
+        if (fieldSetInstanceRepetitionId) {
+            lockActionName = "GetLockFieldSetInstancePartially";
+        } else if (pageId) {
+            lockActionName = "GetLockPageInstancePartially";
+        } else {
+            lockActionName = "GetLockChapterInstancePartially";
+        }
     } else {
-        return pageId ? "GetUnLockPageInstancePartially" : "GetUnLockChapterInstancePartially";
+        if (fieldSetInstanceRepetitionId) {
+            lockActionName = "GetUnLockFieldSetInstancePartially";
+        } else if (pageId) {
+            lockActionName = "GetUnLockPageInstancePartially";
+        } else {
+            lockActionName = "GetUnLockChapterInstancePartially";
+        }
     }
+    return lockActionName;
 }
 
 $(document).on('click', '#lockUnlockButton', function (event) {
@@ -115,7 +129,7 @@ $(document).on('click', '#lockUnlockButton', function (event) {
 });
 
 function lockOrUnlockPartially() {
-    let request = getLockModalRequest($("#ChapterId").val(), $("#PageId").val());
+    let request = getLockModalRequest($("#ChapterId").val(), $("#PageId").val(), $("#FieldSetInstanceRepetitionId").val());
     request['password'] = $("#lockUnlockDocumentPassword").val();
     request['chapterPageNextState'] = $("#ChapterPageNextState").val();
 
@@ -136,10 +150,11 @@ function lockOrUnlockPartially() {
     });
 }
 
-function getLockModalRequest(chapterId, pageId) {
+function getLockModalRequest(chapterId, pageId, fieldSetInstanceRepetitionId) {
     var request = {};
     request['pageId'] = pageId;
     request['chapterId'] = chapterId;
+    request['fieldSetInstanceRepetitionId'] = fieldSetInstanceRepetitionId;
     request['formInstanceId'] = getFormInstanceId();
     request['lastUpdate'] = getLastUpdate();
     return request;

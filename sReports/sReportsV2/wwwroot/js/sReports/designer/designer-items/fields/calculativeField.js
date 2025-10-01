@@ -14,8 +14,10 @@ function isDateCalculationType(value) {
 }
 
 function reloadCalculativeTree(identifierTypes) {
+    $('#formula').removeClass('error').attr('aria-invalid', 'false');
+    $('#formula-error').remove();
     let fields = getAvailableFieldsForCalculation(identifierTypes);
-    loadCalculativeTree({ data: fields });
+    loadCalculativeTree({ CalculationFields: fields });
 }
 
 function getAvailableFieldsForCalculation(identifierTypes) {
@@ -49,11 +51,11 @@ function generateIdentifierVariableObject(element, identifierTypes) {
     };
 }
 
-function loadCalculativeTree(data) {
-    setIsReadOnlyViewModeInRequest(data);
+function loadCalculativeTree(request) {
+    setIsReadOnlyViewModeInRequest(request);
     callServer({
         method: 'POST',
-        data: data,
+        data: request,
         url: '/Form/GetCalculativeTree',
         contentType: 'application/json',
         success: function (data) {
@@ -83,10 +85,10 @@ function getFieldsForCalculationWithVariables(formula) {
     let result = {};
     result['valid'] = true;
     result['allVariablesAssignedToField'] = true;
-    result['duplicateVariableAssignment'] = true;
+    result['duplicateVariableAssignment'] = true
+    result['fieldsAndVariables'] = {};
     let variables = getVariablesFromFormula(formula);
     if (variables) {
-        result['fieldsAndVariables'] = {};
         variables.forEach(x => {
             let variableName = getVariableName(x);
             let fieldsWithAssignedVariables = getFieldForVariable(variableName);
@@ -163,4 +165,19 @@ $(document).ready(function () {
         let result = getFieldsForCalculationWithVariables(value);
         return (isDateCalculationFormula && doesFormulaMatchDateCaculation(value, result.fieldsAndVariables)) || !isDateCalculationFormula;
     }, "Date(time) calculation should be in this format: [date_n1] - [date_n2]");
+
+    jQuery.validator.addMethod("numericCalculationFormula", function (value, element) {
+        let isDateCalculationFormula = isDateCalculationType($("#calculationFormulaType").val());
+        let formulaIsValid = true;
+        if (!isDateCalculationFormula) {
+            try {
+                value = value.replace(/\[[^[]+\]/g, 1);
+                let result = eval(value);
+                if (isNaN(+result)) throw new Error("Formula result is not a number!");
+            } catch (e) {
+                formulaIsValid = false;
+            }
+        }
+        return formulaIsValid;
+    }, "Invalid numeric formula");
 })

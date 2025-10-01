@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace sReportsV2.LoincParser.LoincParser
+﻿namespace sReportsV2.LoincParser.LoincParser
 {
     public class CustomKeyValuePair
     {

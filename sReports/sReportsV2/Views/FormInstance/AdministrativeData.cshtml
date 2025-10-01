@@ -27,25 +27,11 @@
 @if (userCookieData != null && userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Engine))
 {
     bool allowCollapsingChapters = ViewBag.CollapseChapters != null;
-    <div class="form-accordion hide-arrow" style="display:@(chapterIsActive || allowCollapsingChapters ? "block" : "none");" id="@Html.HtmlContainerId("administrativeChapter", isContainer: true)">
-        <div class="position-relative enc-form-instance-header display-flex @(allowCollapsingChapters ? "chapter-hover" : "chapter-non-collapse")"
-             data-toggle="collapse"
-             onclick="collapseChapter(this)"
-             data-link-id="#@Html.HtmlContainerId("administrativeChapter", isContainer: false)"
-             data-target="#administrativeChapter"
-             aria-expanded="false"
-             aria-controls="administrativeChapter">
-            @if (allowCollapsingChapters)
-            {
-                <img alt="" class="chapter-icon" src="@(!chapterIsActive ? "/css/img/icons/u_plus.svg" : "/css/img/icons/u_minus.svg")" />
-                <span class="chapter-title">@sReportsV2.Cache.Resources.TextLanguage.Administative_data.ToUpper()</span>
-            }
-            else
-            {
-                <div class="chapter-title padding-left-16">@sReportsV2.Cache.Resources.TextLanguage.Administative_data.ToUpper()</div>
-            }
+    <div class="form-accordion hide-arrow" style="display:@(chapterIsActive || allowCollapsingChapters ? "block" : "none");" id="@Html.HtmlContainerId(FormInstanceConstants.AdministrativeChapter, isContainer: true)">
+        <div @Html.ChapterInstanceHeaderAttributes(allowCollapsingChapters, chapterIsActive, FormInstanceConstants.AdministrativeChapter, FormInstanceConstants.AdministrativeChapter) >
+            @await Html.PartialAsync("~/Views/FormInstance/ChapterHeaderIconAndTitle.cshtml", new ViewDataDictionary(ViewData) { { "AllowChapterCollapse", allowCollapsingChapters }, { "ChapterIsActive", chapterIsActive }, { "ChapterHeaderTitle", sReportsV2.Cache.Resources.TextLanguage.Administative_data.ToUpper() } })
         </div>
-        <div class="collapse chapter @(chapterIsActive ? "show" : "")" id="administrativeChapter">
+        <div class="collapse chapter @(chapterIsActive ? "show" : "")" id="@FormInstanceConstants.AdministrativeChapter">
             <div class="card">
                 <div class='card-body'>
                     <div class="field-group">
@@ -63,7 +49,7 @@
                                     { "id", "date" },
                                     { "name", "Date" },
                                     { "data-parent-field", ".datetime-picker-container" },
-                                    { "value", date.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) },
+                                    { "value", date.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) },
                                     { disabled, null }
                                 },
                                 InputBtnAttributes = new Dictionary<object, object> {
@@ -114,7 +100,7 @@
                             {
                                 InputAttributes = new Dictionary<object, object> {
                                     { "class", "filter-input d-inline-block administrative-input date-field-input" },
-                                    { "value", formInstanceSignInfo.CreatedOn.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) },
+                                    { "value", formInstanceSignInfo.CreatedOn.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) },
                                     { "readonly", null },
                                     { "id", "changedOnDisplay" },
                                     { "name", "changedOnDisplay" },

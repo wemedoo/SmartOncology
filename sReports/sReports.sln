@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sReportsV2.DAL.MongoDb", "sReportsV2.Domain\sReportsV2.DAL.MongoDb.csproj", "{F6570A48-CAE5-4412-940E-05A081AAD9C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sReportsV2.DAL.MongoDb", "sReportsV2.DAL.MongoDb\sReportsV2.DAL.MongoDb.csproj", "{F6570A48-CAE5-4412-940E-05A081AAD9C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PdfClasses", "PdfClasses\PdfClasses.csproj", "{CFF63EDB-8011-4472-9082-F81E227A2F6F}"
 EndProject
@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		platforms.props = platforms.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UmlsClient", "UmlsClient\UmlsClient.csproj", "{E73FBB54-341D-4C9F-BEA4-7CC29443EF6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UMLSClient", "UMLSClient\UMLSClient.csproj", "{E73FBB54-341D-4C9F-BEA4-7CC29443EF6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sReportsV2.Api", "sReportsV2.Api\sReportsV2.Api.csproj", "{A712C0E4-D9F2-4479-A045-99E53A7CEDBC}"
 EndProject
@@ -60,7 +60,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sReportsV2.HL7", "sReportsV
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sReportsV2", "sReportsV2\sReportsV2.csproj", "{0A39AAF6-2B6B-49ED-9074-CE851A282989}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sReportsV2.Domain.MongoDb", "sReportsV2.Domain.MongoDb\sReportsV2.Domain.MongoDb.csproj", "{7FC3661A-DD13-460A-A9D7-46CEDF248A49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sReportsV2.Domain.MongoDb", "sReportsV2.Domain.MongoDb\sReportsV2.Domain.MongoDb.csproj", "{7FC3661A-DD13-460A-A9D7-46CEDF248A49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

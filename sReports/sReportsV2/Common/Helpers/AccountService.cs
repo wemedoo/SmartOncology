@@ -9,6 +9,8 @@ using sReportsV2.SqlDomain.Interfaces;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using sReportsV2.Common.Extensions;
+using System;
 
 namespace sReportsV2.Common.Helpers
 {
@@ -18,13 +20,15 @@ namespace sReportsV2.Common.Helpers
         private readonly IGlobalThesaurusUserDAL _globalThesaurusUserDAL;
         private readonly IGlobalThesaurusRoleDAL _globalThesaurusRoleDAL;
         private readonly IMapper _mapper;
+        private readonly IServiceProvider _serviceProvider;
 
-        public AccountService(IHttpContextAccessor httpContextAccessor, IGlobalThesaurusUserDAL globalThesaurusUserDAL, IGlobalThesaurusRoleDAL globalThesaurusRoleDAL, IMapper mapper)
+        public AccountService(IHttpContextAccessor httpContextAccessor, IGlobalThesaurusUserDAL globalThesaurusUserDAL, IGlobalThesaurusRoleDAL globalThesaurusRoleDAL, IMapper mapper, IServiceProvider serviceProvider)
         {
             _httpContextAccessor = httpContextAccessor;
             _globalThesaurusRoleDAL = globalThesaurusRoleDAL;
             _globalThesaurusUserDAL = globalThesaurusUserDAL;
             _mapper = mapper;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task SignOutAsync()
@@ -41,7 +45,7 @@ namespace sReportsV2.Common.Helpers
             await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
-        public async Task SignInUserAsync(List<Claim> claims)
+        public async Task SignInUserAsync(List<Claim> claims, string email = null)
         {
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
@@ -54,6 +58,13 @@ namespace sReportsV2.Common.Helpers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity),
                 authProperties).ConfigureAwait(false);
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                _httpContextAccessor.HttpContext.Session.SetObjectAsJson("userData", 
+                    UserCookieDataHelper.PrepareUserCookie(_serviceProvider, isEmail: true, identifier: email)
+                    );
+            }
         }
 
         public async Task SignExternalUser(ClaimsPrincipal user, int? sourceCD, int? activeStatusCD)

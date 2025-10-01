@@ -1,0 +1,27 @@
+﻿@using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.FormInstance;
+@using sReportsV2.DTOs.Pagination;
+@using sReportsV2.DTOs.FormInstance.DataOut;
+@using sReportsV2.DTOs.DTOs.PatientQuery.DataIn;
+@using sReportsV2.DTOs.DTOs.PatientQuery.DataOut;
+@model PatientSemanticQueryResultDataOut
+
+@{
+    object jsonData = Html.Raw(Model.PatientQueryResultData.GraphData.JsonSerialize(lowerCamelCase: true));
+}
+
+
+@await Html.PartialAsync("~/Views/FormInstance/FormInstancesByFormThesaurusTable.cshtml", Model.FormInstanceData)
+@if (Model.PatientQueryResultData.GraphData.ShowGraph() && !Model.FormInstanceData.DataIn.InitialLoad)
+{
+    <div>
+        <p>Included thesaurus</p>
+        <div id="thesaurusNetwork"></div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            loadThesaurusGraph(@jsonData);
+        });
+
+    </script>
+}

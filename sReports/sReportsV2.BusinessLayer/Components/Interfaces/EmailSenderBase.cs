@@ -5,7 +5,6 @@ using sReportsV2.DTOs.Common.DTO;
 using System.Collections.Generic;
 using sReportsV2.Common.Extensions;
 using Microsoft.Extensions.Configuration;
-using sReportsV2.SqlDomain.Interfaces;
 using sReportsV2.Common.Helpers;
 
 namespace sReportsV2.BusinessLayer.Components.Interfaces
@@ -13,6 +12,7 @@ namespace sReportsV2.BusinessLayer.Components.Interfaces
     public abstract class EmailSenderBase : IEmailSender
     {
         public abstract void SendAsync(EmailDTO messageDto);
+        protected abstract void AddAttachmentsToMail(string outputPath, string zipFileName);
         protected readonly IConfiguration configuration;
         protected readonly string outputDirectory;
 
@@ -22,34 +22,19 @@ namespace sReportsV2.BusinessLayer.Components.Interfaces
             this.outputDirectory = DirectoryHelper.AppDataFolder;
         }
 
-        protected void CreateFileZip(Stream file, string fileName, string outputPath, bool isCsv)
+        protected void AddAttachments(EmailDTO messageDto)
         {
-            try
+            if (messageDto.Attachments != null)
             {
-                using (MemoryStream zipStream = new MemoryStream())
+                foreach (KeyValuePair<string, Stream> file in messageDto.Attachments)
                 {
-                    using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
-                    {
-                        using (var fileStream = file)
-                        {
-                            ZipArchiveEntry zipArchiveEntry;
-                            if (isCsv)
-                                zipArchiveEntry = archive.CreateEntry(fileName + ".csv");
-                            else
-                                zipArchiveEntry = archive.CreateEntry(fileName + ".xlsx");
+                    string sanitizedFileName = file.Key.SanitizeFileName();
+                    string outputPath = outputDirectory.CombineFilePath(sanitizedFileName);
+                    CreateFileZip(file.Value, sanitizedFileName, outputPath, messageDto);
+                    AddAttachmentsToMail(outputPath, $"{sanitizedFileName}.zip");
 
-                            using (var entryStream = zipArchiveEntry.Open())
-                            {
-                                fileStream.CopyTo(entryStream);
-                            }
-                        }
-                    }
-                    System.IO.File.WriteAllBytes(outputPath, zipStream.ToArray());
+                    file.Value.Dispose();
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
             }
         }
 
@@ -63,6 +48,38 @@ namespace sReportsV2.BusinessLayer.Components.Interfaces
                     string outputPath = outputDirectory.CombineFilePath(sanitizedFileName);
                     File.Delete(outputPath);
                 }
+            }
+        }
+
+        private void CreateFileZip(Stream file, string fileName, string outputPath, EmailDTO messageDto)
+        {
+            try
+            {
+                using (MemoryStream zipStream = new MemoryStream())
+                {
+                    using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
+                    {
+                        using (var fileStream = file)
+                        {
+                            ZipArchiveEntry zipArchiveEntry;
+                            if (messageDto.IsCsv)
+                                zipArchiveEntry = archive.CreateEntry(fileName + ".csv");
+                            else
+                                zipArchiveEntry = archive.CreateEntry(fileName + ".xlsx");
+                            zipArchiveEntry.LastWriteTime = DateTimeOffset.UtcNow.GetDateTimeByTimeZone(messageDto.UserTimezone);
+
+                            using (var entryStream = zipArchiveEntry.Open())
+                            {
+                                fileStream.CopyTo(entryStream);
+                            }
+                        }
+                    }
+                    System.IO.File.WriteAllBytes(outputPath, zipStream.ToArray());
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Error("Error: " + ex.GetExceptionStackMessages());
             }
         }
     }

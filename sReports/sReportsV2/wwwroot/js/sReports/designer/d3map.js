@@ -10,7 +10,6 @@ var data = [];
 var color;
 
 $(document).ready(function () {
-    console.log(d3.geo);
     projection = d3.geoEquirectangular();
         
     path = d3.geoPath(projection);
@@ -24,7 +23,6 @@ $(document).ready(function () {
         url: `/FormConsensus/GetMapObject`,
         success: function (data) {
             world = JSON.parse(data);
-            console.log(d3);
             drawMap();
         },
         error: function (xhr, textStatus, thrownError) {

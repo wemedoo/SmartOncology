@@ -1,0 +1,40 @@
+﻿@using sReportsV2.DTOs.DTOs.Prompt.DataOut;
+@using sReportsV2.DTOs.Field.DataOut;
+@using sReportsV2.Common.Extensions;
+@model PromptFormVersionDataOut
+
+@if (Model == null)
+{
+    <div>There are no prompts yet</div>
+}
+else
+{
+    <div class="prompt-title text-center mb-4">Prompt version @Model.Version.GetVersion() created by @Model.CreatedBy.Name on @Model.CreatedOn.ToTimeZoned(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string)</div>
+    <div class="row prompt-display">
+        <div class="col-md-6 prompt-stat">Total CDEs No: @Model.TotalCDEs</div>
+        <div class="col-md-6 prompt-stat">Total prompts defined: @Model.TotalPrompts</div>
+    </div>
+    @if (!string.IsNullOrEmpty(Model.Prompt))
+    {
+        <div class="row prompt-display">
+            <div class="col-md-6 text-center">@Model.FormName</div>
+            <div class="col-md-6">
+                <textarea class="designer-form-input form-control" rows="5" disabled>@Model.Prompt</textarea>
+            </div>
+        </div>
+    }
+    @foreach (PromptFieldDataOut promptField in Model.PromptFields)
+    {
+        if (promptField.Field != null && !string.IsNullOrEmpty(promptField.Prompt))
+        {
+            <div class="row prompt-display">
+                <div class="col-md-6">
+                    <div>@await Html.PartialAsync(promptField.Field.NestableView, promptField.Field, new ViewDataDictionary(ViewData) { { "IsMatrixLayout", false }, { "ShowBtnGroupSection", false } })</div>
+                </div>                
+                <div class="col-md-6">
+                    <textarea class="designer-form-input form-control" rows="5" disabled>@promptField.Prompt</textarea>
+                </div>
+            </div>
+        }
+    }
+}

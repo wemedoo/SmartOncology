@@ -219,11 +219,11 @@ function editTelecom(e, telecomEntity) {
 }
 
 function setTelecomFormValues(telecomRow) {
-    $("#telecomEntityId").val($(telecomRow).data("value"));
+    $("#telecomEntityId").val($(telecomRow).attr("data-value"));
     $("#telecomEntityVersion").val($(telecomRow).attr("data-version"));
     $(telecomRow).children("[data-property]").each(function (index, telecomCell) {
-        let propertyName = $(telecomCell).data("property");
-        let propertyValue = $(telecomCell).data("value");
+        let propertyName = $(telecomCell).attr("data-property");
+        let propertyValue = $(telecomCell).attr("data-value");
 
         let inactiveSystem = inactiveTelecomSystems.find(system => system.Id == propertyValue);
         let inactiveUseType = inactiveTelecomUseTypes.find(useType => useType.Id == propertyValue);

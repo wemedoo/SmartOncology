@@ -29,8 +29,8 @@ function addNewAlias(e) {
         request['Inbound'] = $("#newAliasInbound").val();
         request['Outbound'] = $("#newAliasOutbound").val();
         request['CodeId'] = $("#codeValue").val();
-        request['ActiveFrom'] = calculateDateWithOffset($("#validFromDefault").val());
-        request['ActiveTo'] = calculateDateWithOffset($("#validToDefault").val());
+        request['ActiveFrom'] = calculateDateWithOffset("#validFromDefault");
+        request['ActiveTo'] = calculateDateWithOffset("#validToDefault");
 
         let action = aliasId != 0 ? 'EditAlias' : 'CreateAlias';
         callServer({

@@ -13,6 +13,7 @@ using sReportsV2.Common.Enums;
 using sReportsV2.HL7.DTO;
 using sReportsV2.Common.Helpers;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace sReportsV2.HL7.Handlers.IncomingHandlers
 {
@@ -22,7 +23,7 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
         {
         }
 
-        public override void Process(SReportsContext dbContext)
+        public override async Task Process(SReportsContext dbContext)
         {
             Domain.Sql.Entities.Patient.Patient patient = CreatePatientFromMessage();
 
@@ -47,7 +48,7 @@ namespace sReportsV2.HL7.Handlers.IncomingHandlers
             {
                 throw new HL7RejectMessageException("There is already discharde date set");
             }
-            CommitTransaction(dbContext, patientDAL, patientDB, procedeedEncounter: dbEncounter, hasToUpdatePatient: false);
+            await CommitTransaction(dbContext, patientDAL, patientDB, procedeedEncounter: dbEncounter, hasToUpdatePatient: false);
         }
 
         private Domain.Sql.Entities.Patient.Patient CreatePatientFromMessage()

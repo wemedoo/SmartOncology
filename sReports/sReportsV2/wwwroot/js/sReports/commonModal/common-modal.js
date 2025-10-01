@@ -3,13 +3,14 @@
 
     let cellValue = cellObject["value"];
     let cellDisplayValue = cellObject["display"];
+    let cellDisplayValueFormatted = displayCellValueOrNe(cellDisplayValue);
 
     let el = document.createElement('td');
     $(el).attr("data-property", cellName);
     $(el).attr("data-value", cellValue);
     $(el).addClass(cellClass);
-    $(el).text(displayCellValueOrNe(cellDisplayValue));
-    $(el).attr("title", cellDisplayValue);
+    $(el).attr("title", cellDisplayValueFormatted);
+    $(el).text(cellDisplayValueFormatted);
     $(el).tooltip();
 
     return el;
@@ -103,7 +104,11 @@ function getSpecialValueString() {
 }
 
 function getSelectedOptionLabel(inputId) {
-    return $(`#${inputId}`).val() ? $(`#${inputId} option:selected`).text().trim() : '';
+    return $(`#${inputId}`).val() ? readSelectedOptionLabel($(`#${inputId} option:selected`)) : '';
+}
+
+function readSelectedOptionLabel($input) {
+    return $input.text().trim();
 }
 
 function addInactiveOption(selectElement, id, term) {
@@ -136,4 +141,74 @@ function handleModalAfterSubmitting(tableContainerName, tableRowClassName, modal
     if (callback) {
         callback();
     }
+}
+
+function destroyChartIfExist(chartId) {
+    let existingChart = Chart.getChart(chartId);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+  
+    if (myChart) {
+        myChart.destroy();
+        myChart = null;
+    }
+}
+
+$(document).on('click', 'a.pagination-item.disabled', function (e) {
+    e.preventDefault();
+});
+
+function preventMultipleSubmit(buttonId) {
+    $(`#${buttonId}`).prop("disabled", true);
+}
+
+function reAllowSubmit(buttonId) {
+    $(`#${buttonId}`).prop("disabled", false);
+}
+
+function executeCallback(callback) {
+    if (callback) {
+        callback();
+    }
+}
+
+function enableChangeTab(isEdit) {
+    if (!isEdit) {
+        $('.tab-disabled')
+            .removeAttr('data-toggle')
+            .removeAttr('data-original-title')
+            .removeClass("tab-disabled");
+    }
+}
+
+function arraysAreEqual(a, b) {
+    if (a.length !== b.length) return false;
+    return a.every((val, index) => {
+        const bVal = b[index];
+
+        if (typeof val === 'object' && val !== null &&
+            typeof bVal === 'object' && bVal !== null) {
+            return objectsAreEqual(val, bVal);
+        }
+
+        return val === bVal;
+    });
+}
+
+function objectsAreEqual(obj1, obj2) {
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+
+    if (keys1.length !== keys2.length) return false;
+
+    return keys1.every(key => obj1[key] === obj2[key]);
+}
+
+function logInfo(text) {
+    //console.debug(text);
+}
+
+function logError(text) {
+    console.error(text);
 }

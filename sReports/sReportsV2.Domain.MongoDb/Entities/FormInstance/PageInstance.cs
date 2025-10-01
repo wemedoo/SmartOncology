@@ -1,29 +1,30 @@
-﻿using sReportsV2.Common.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using sReportsV2.Domain.MongoDb.Entities.FormInstance;
 
 namespace sReportsV2.Domain.Entities.FormInstance
 {
-    public class PageInstance
+    public class PageInstance : ChapterPageFieldSetInstanceBase
     {
         public string PageId { get; set; }
-        public List<ChapterPageInstanceStatus> WorkflowHistory { get; set; }
-        public PageInstance(string pageId, int? createdById, DateTime createdOn)
+        public List<FieldSetInstance> FieldSetInstances { get; set; }
+
+        public PageInstance(string pageId, int? createdById, DateTime createdOn) : base(createdById, createdOn)
         {
             PageId = pageId;
-            WorkflowHistory = new List<ChapterPageInstanceStatus> {
-                new ChapterPageInstanceStatus(ChapterPageState.DataEntryOnGoing, createdById, createdOn)
-            };
-        }
-        public ChapterPageInstanceStatus GetLastChange()
-        {
-            return WorkflowHistory?.LastOrDefault();
+            FieldSetInstances = new List<FieldSetInstance>();
         }
 
-        public void RecordLatestWorkflowChangeState(ChapterPageInstanceStatus latestChangeState)
+        public FieldSetInstance GetFieldSetInstance(string fieldSetInstanceRepetitionId)
         {
-            WorkflowHistory.Add(latestChangeState);
+            return FieldSetInstances.Find(pI => pI.FieldSetInstanceRepetitionId == fieldSetInstanceRepetitionId);
+        }
+
+        public override void RecordLatestWorkflowChangeStateAndPropagate(ChapterPageFieldSetInstanceStatus latestChangeState)
+        {
+            this.RecordLatestWorkflowChangeState(latestChangeState);
+            foreach (var fieldSetInstance in FieldSetInstances)
+            {
+                fieldSetInstance.RecordLatestWorkflowChangeStateAndPropagate(latestChangeState);
+            }
         }
     }
 }

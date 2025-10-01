@@ -1,6 +1,13 @@
 ﻿function showChartModal(formId, event) {
     event.preventDefault();
-    $('#chartModal').modal('show');
+    $('#chartModal')
+        .attr('data-form-id', formId)
+        .modal('show');
+}
+
+$('#chartModal').on('shown.bs.modal', function (e) {
+    e.preventDefault();
+    let formId = $(this).attr('data-form-id');
 
     // If checkboxes already loaded -> skip fields retrieval
     if ($('#fields-chkbox-list').length == 0) {
@@ -14,7 +21,7 @@
             traditional: true,
             success: function (data) {
                 $('#checkbox-fields-to-plot').html(data);
-                createDataCaptureChart(); // creates empty chart
+                createDataCaptureChart();
             },
             error: function (xhr, textStatus, thrownError) {
                 handleResponseError(xhr);
@@ -24,8 +31,17 @@
     else {
         clearModal();
     }
+});
 
-
+function getEmptyChartData() {
+    return {
+        labels: [], // Replace with actual labels
+        datasets: [{
+            label: '',
+            data: [], // Empty data
+            tension: 0.1
+        }]
+    };
 }
 
 function submitFieldsToPlot(event, formId) {
@@ -39,16 +55,15 @@ function submitFieldsToPlot(event, formId) {
     copyDateToHiddenField($("#chartDateTimeFrom").val(), "dateTimeFrom");
     copyDateToHiddenField($("#chartDateTimeTo").val(), "dateTimeTo");
 
-    requestObject = {
+    let requestObject = {
         'formDefinitionId': formId,
         'fieldThesaurusIds': chkArray,
-        'DateTimeFrom': toLocaleDateStringIfValue($('#dateTimeFrom').val()),
-        'DateTimeTo': toLocaleDateStringIfValue($('#dateTimeTo').val())
+        'DateTimeFrom': toLocaleDateStringIfValue($('#dateTimeFrom').val(), undefined, true),
+        'DateTimeTo': toLocaleDateStringIfValue($('#dateTimeTo').val(), undefined, true)
     }
 
     if (validateChartFilters()) {
         callServer({
-            type: 'GET',
             url: `/FormInstance/GetFormInstanceFieldsById`,
             data: requestObject,
             traditional: true,
@@ -56,7 +71,6 @@ function submitFieldsToPlot(event, formId) {
             success: function (data) {
                 $.each(data, function () {
                     plotDataCaptureFields(this);
-
                 });
             },
             error: function (xhr, textStatus, thrownError) {
@@ -77,7 +91,7 @@ function plotDataCaptureFields(fieldsToPlotKeyVal) {
         
         for (let i = 0; i < fieldsToPlotKeyVal[key].value.length; i++) {
             dataSet.push({
-                t: new Date(fieldsToPlotKeyVal[this].date[i]),
+                x: new Date(fieldsToPlotKeyVal[this].date[i]),
                 y: fieldsToPlotKeyVal[this].value[i]
             });
         }
@@ -101,18 +115,44 @@ function plotDataCaptureFields(fieldsToPlotKeyVal) {
 }
 
 function createDataCaptureChart(data) {
+    destroyChartIfExist('data-capture-chart');
+    let ctx = document.getElementById('data-capture-chart').getContext('2d');
 
-    let ctx = document.getElementById('data-capture-chart');
-    return new Chart(ctx, {
+    let chart =
+        new Chart(ctx, createAndSetChartConfigObject(data));
+    return chart;
+}
+
+function createAndSetChartConfigObject(data) {
+    let chartConfigObject = getChartConfigObject();
+    if (data) {
+        chartConfigObject['data'] = data;
+    } else {
+        chartConfigObject['data'] = getEmptyChartData();
+        chartConfigObject.options.plugins.legend = {
+            display: false
+        };
+        chartConfigObject.options.scales.y = {
+            suggestedMin: 0,
+            suggestedMax: 1
+        };
+    }
+
+    return chartConfigObject;
+}
+
+function getChartConfigObject() {
+    return {
         type: 'line',
-        data: data,
         options: {
-            title: {
-                display: true,
-                text: $("#form-title").val()
+            plugins: {
+                title: {
+                    display: true,
+                    text: $("#form-title").val()
+                }
             },
             scales: {
-                xAxes: [{
+                x: {
                     type: 'time',
                     ticks: {
                         source: 'data',
@@ -128,11 +168,10 @@ function createDataCaptureChart(data) {
                         },
                         tooltipFormat: 'dd/MM/yyyy'
                     }
-                }],
-                bounds: 'ticks'
+                }
             }
         }
-    });
+    };
 }
 
 // Keep Dropdown selection open when selecting checkboxes

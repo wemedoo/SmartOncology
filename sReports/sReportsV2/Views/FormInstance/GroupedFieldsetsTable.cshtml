@@ -1,0 +1,79 @@
+﻿@using sReportsV2.DTOs.Field.DataOut
+@using sReportsV2.DTOs.Form.DataOut
+@model List<FormFieldSetDataOut>
+
+@{
+    bool readOnlyOrLocked = (bool)ViewData["ReadOnlyOrLocked"];
+}
+
+<table class="radio-table">
+    <thead class="radio-header-matrix">
+        <tr>
+            <th class="radio-header-cell width-0 matrix-border-left cursor-auto">@sReportsV2.Cache.Resources.TextLanguage.FieldsetLabel</th>
+            @foreach (var field in Model.First().Fields)
+            {
+                <th class="radio-header-cell radio-cell-middle fieldset-matrix cursor-auto">@field.Label</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var fieldSet in Model)
+        {
+            <tr>
+                <td class="radio-row-label matrix-border-left cursor-auto">@fieldSet.Label</td>
+                @foreach (var field in fieldSet.Fields)
+                {
+                    var fieldInstanceRepetitionInfo = field.GetFieldInstanceRepetitionInfo(0);
+                    var fieldType = fieldSet.Fields[0]?.Type;
+                    <td class="field-group radio-row-label matrix-border-left matrix-custom-padding fieldset-matrix-td">
+                        <div class="fieldset-missingvalue-content">
+                            <span name="@fieldInstanceRepetitionInfo.Item1" data-fieldId="@(field.Id)" class="missing-value-span @(field.IsSpecialValue() ? "show-missing-value" : "hide-missing-value")">
+                                <span>@sReportsV2.Cache.Resources.TextLanguage.MissingValue</span>
+                            </span>
+                            <div class="form-element custom-input-wrapper w-100">
+                                @if (fieldType == "number")
+                                {
+                                    var numericField = field as FieldNumericDataOut;
+                                    <input type="number"
+                                           value="@numericField.FirstValue"
+                                           class="custom-input height-30 @(numericField.IsSpecialValue() ? "hide-missing-value" : "")"
+                                           max="@numericField.Max"
+                                           min="@numericField.Min"
+                                           step="@numericField.Step"
+                                           placeholder="@sReportsV2.Cache.Resources.TextLanguage.Enter_value"
+                                    @(readOnlyOrLocked ? "disabled" : "")
+                                    @Html.Raw(numericField.GetFieldInstanceDataAttrs(fieldSet.Id, 1)) />
+                                }
+                                else
+                                {
+                                    <input type="text"
+                                           value="@field.FirstValue"
+                                           class="custom-input height-30 @(field.IsSpecialValue() ? "hide-missing-value" : "")"
+                                           placeholder="@sReportsV2.Cache.Resources.TextLanguage.Enter_value"
+                                    @(readOnlyOrLocked ? "disabled" : "")
+                                    @Html.Raw(field.GetFieldInstanceDataAttrs(fieldSet.Id, 1)) />
+                                }
+
+                                <div class="dropdown dropdown-center input-dropdown" style="display: none;">
+                                    <a class="dropdown-matrix" role="button" id="dropdownMenuButton-@field.Id" aria-haspopup="true" aria-expanded="false" data-display="static">
+                                        <img alt="" class="dots dots-center dots-rotate" src="/css/img/icons/dots_black.svg">
+                                    </a>
+                                    <div class="dropdown-menu  dropdown-menu-right dropleft mr-3 mt-3 matrix-menu" aria-labelledby="dropdownMenuButton-@field.Id">
+                                        @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml",
+                                                 field,
+                                                 new ViewDataDictionary(ViewData)
+                                                {
+                                                    { "repetitiveValue", field.GetValue() },
+                                                    { "isMatrixFieldSet", true },
+                                                    { "fieldSetId", fieldSet.Id }
+                                                })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

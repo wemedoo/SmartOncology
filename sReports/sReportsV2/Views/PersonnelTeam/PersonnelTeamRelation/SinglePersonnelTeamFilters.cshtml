@@ -41,7 +41,7 @@
 
     </div>
 
-    @if (hasCreateUpdatePerm)
+    @if (hasCreateUpdatePerm && !ViewBag.ReadOnly)
     {
         <button type="button" class="btn btn-add-new float-right new-personnel-team-button" onclick="showAddMembersModal(@(ViewBag.PersonnelTeamId != null ? ViewBag.PersonnelTeamId : 0))">
             <i class="fas fa-plus-circle resize-circle"></i> <span class="text-add-new">@sReportsV2.Cache.Resources.TextLanguage.Add_Members</span>

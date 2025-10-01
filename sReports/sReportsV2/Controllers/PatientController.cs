@@ -7,7 +7,6 @@ using sReportsV2.Common.Enums;
 using sReportsV2.Common.Extensions;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.DTOs.Autocomplete;
-using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.Common.DTO;
 using sReportsV2.DTOs.EpisodeOfCare;
 using sReportsV2.DTOs.Pagination;
@@ -35,7 +34,7 @@ namespace sReportsV2.Controllers
         private readonly ICodeSetBLL codeSetBLL;
         private readonly ICodeBLL codeBLL;
         private readonly IPatientListBLL patientListBLL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public PatientController(IPatientBLL patientBLL, 
             IEncounterBLL encounterBLL, 
@@ -46,15 +45,16 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.patientBLL = patientBLL;
             this.encounterBLL = encounterBLL;
             this.codeSetBLL = codeSetBLL;
             this.codeBLL = codeBLL;
             this.patientListBLL = patientListBLL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Patients)]
@@ -287,6 +287,13 @@ namespace sReportsV2.Controllers
             await patientBLL.Delete(patientContactTelecomDataIn).ConfigureAwait(false);
             return NoContent();
         }
+
+        [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Patients)]
+        public ActionResult GetPatientLanguages(int patientId)
+        {
+            ViewBag.PatientLanguages = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Language);
+            return PartialView("CommunicationsTable", patientBLL.GetById(patientId, false).Communications);
+        }
         #endregion /CRUD
 
         [SReportsAuthorize(Permission = PermissionNames.ViewEpisodeOfCare, Module = ModuleNames.Patients)]
@@ -374,13 +381,9 @@ namespace sReportsV2.Controllers
         {
             patientSearchFilter = Ensure.IsNotNull(patientSearchFilter, nameof(patientSearchFilter));
 
-            if (!patientSearchFilter.ComplexSearch)
-            {
-                patientSearchFilter.SearchValue = patientSearchFilter.SearchValue.RemoveDiacritics(); // Normalization
-            }
             patientSearchFilter.OrganizationId = userCookieData.ActiveOrganization;
             List<PatientTableDataOut> result = patientBLL.GetPatientsByFirstAndLastName(patientSearchFilter);
-            return PartialView("~/Views/Patient/" + (patientSearchFilter.ComplexSearch ? "PatientAutocomplete.cshtml" : "GetByName.cshtml"), result);
+            return PartialView("~/Views/Patient/PatientAutocomplete.cshtml", result);
         }
 
         public ActionResult GetAutoCompleteCodeData(AutocompleteDataIn dataIn, CodeSetList codeSetId)
@@ -389,7 +392,7 @@ namespace sReportsV2.Controllers
 
             var filtered = FilterCodeByName(dataIn.Term, (int)codeSetId);
             var enumDataOuts = filtered
-                .OrderBy(x => x.text).Skip(dataIn.Page * 15).Take(15)
+                .OrderBy(x => x.text).Skip(dataIn.GetHowManyElementsToSkip()).Take(FilterConstants.DefaultPageSize)
                 .Where(x => string.IsNullOrEmpty(dataIn.ExcludeId) || !x.id.Equals(dataIn.ExcludeId))
                 .ToList();
 
@@ -397,7 +400,7 @@ namespace sReportsV2.Controllers
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = enumDataOuts
             };
@@ -483,7 +486,7 @@ namespace sReportsV2.Controllers
 
         private JsonResult CreateOrEdit(PatientDataIn patient)
         {
-            ResourceCreatedDTO resourceCreatedDTO = patientBLL.InsertOrUpdate(patient, Mapper.Map<UserData>(userCookieData));
+            ResourceCreatedDTO resourceCreatedDTO = patientBLL.InsertOrUpdate(patient, mapper.Map<UserData>(userCookieData));
 
             Response.StatusCode = 201;
             return Json(resourceCreatedDTO);
@@ -600,11 +603,6 @@ namespace sReportsV2.Controllers
         {
             ViewBag.IdentifierTypes = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.PatientIdentifierType);
             ViewBag.IdentifierUseTypes = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.IdentifierUseType);
-        }
-
-        private void SetGenderTypesToViewBag()
-        {
-            ViewBag.Genders = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Gender);
         }
 
         private async Task SetPatientListsViewBag(PatientFilterDataIn dataIn, List<PatientDataOut> patients)

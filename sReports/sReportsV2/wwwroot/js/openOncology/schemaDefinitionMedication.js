@@ -85,6 +85,7 @@ function updateMedication(form, event) {
                 toastr.success("Schema medication is updated sucessfully!");
                 request['Id'] = data.id;
                 updateMedicationOnUI(request, isNewObject, data.rowVersion);
+                saveInitialFormData("#formMedication");
             },
             error: function (xhr, ajaxOptions, thrownError) {
                 handleResponseError(xhr);

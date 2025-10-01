@@ -15,7 +15,7 @@
         @if (userCookieData.UserHasPermission(PermissionNames.Create, ModuleNames.Thesaurus))
         {
             <button class="btn btn-create float-right" onclick="createThesaurusEntry()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
-            @Html.ActionLink(sReportsV2.Cache.Resources.TextLanguage.Start_Merge_Process, "MergeThesaurusOccurences", "ThesaurusEntry", new { }, new { target = "_blank", rel = "noreferrer", @class = "btn btn-filter-primary h-100 float-right mr-3 font-size-14px" })
+            <a id="startMergeBtn" class="btn btn-filter-primary h-100 float-right mr-3 font-size-14px" href="#" rel="noreferrer">@sReportsV2.Cache.Resources.TextLanguage.Start_Merge_Process</a>
         }
     </div>
     @await Html.PartialAsync("ThesaurusFilterGroup")

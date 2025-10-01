@@ -16,20 +16,12 @@ namespace sReportsV2.Domain.Sql.Entities.ThesaurusEntry
         [Column("AdministrativeDataId")]
         public int AdministrativeDataId { get; set; }
         public List<Version> VersionHistory { get; set; }
-        public int ThesaurusEntryId { get; set; }
         public AdministrativeData() { }
         public AdministrativeData(UserData userData, int? stateCD, int? typeCD)
         {
             VersionHistory = new List<Version>
             {
-                new Version()
-                {
-                    CreatedOn = DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone(),
-                    TypeCD = typeCD,
-                    PersonnelId = userData.Id,
-                    OrganizationId = userData.ActiveOrganization.GetValueOrDefault(),
-                    StateCD = stateCD
-                }
+                new Version(userData, stateCD, typeCD)
             };
         }
 
@@ -38,14 +30,7 @@ namespace sReportsV2.Domain.Sql.Entities.ThesaurusEntry
             VersionHistory = VersionHistory ?? new List<Version>();
             SetRevokedDateOfLastVersion();
 
-            VersionHistory.Add(new Version()
-            {
-                CreatedOn = DateTimeOffset.UtcNow.ConvertToOrganizationTimeZone(),
-                TypeCD = typeCD,
-                PersonnelId = userData.Id,
-                OrganizationId = userData.ActiveOrganization.GetValueOrDefault(),
-                StateCD = stateCD
-            });
+            VersionHistory.Add(new Version(userData, stateCD, typeCD));
         }
 
         private void SetRevokedDateOfLastVersion()

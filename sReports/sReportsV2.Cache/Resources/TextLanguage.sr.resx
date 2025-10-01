@@ -438,9 +438,6 @@
   <data name="Aliases" xml:space="preserve">
     <value>Alijasi</value>
   </data>
-  <data name="All episodes of care" xml:space="preserve">
-    <value>Sve epizode nege</value>
-  </data>
   <data name="Allergic disorder follow-up assessment" xml:space="preserve">
     <value>Procena praćenja alergijskog poremećaja</value>
   </data>
@@ -876,9 +873,6 @@
   <data name="BrowseDocsOrApps" xml:space="preserve">
     <value>Uvezi dokument ili aplikaciju</value>
   </data>
-  <data name="BrowseDocumentOrApps" xml:space="preserve">
-    <value>Pregledanje dokumenata ili aplikacija</value>
-  </data>
   <data name="Browse_File" xml:space="preserve">
     <value>Odabir fajla</value>
   </data>
@@ -984,9 +978,6 @@
   <data name="Centrelink" xml:space="preserve">
     <value>Centrelink</value>
   </data>
-  <data name="CF iteration stiop" xml:space="preserve">
-    <value>Trenutna iteracija je u toku, završena/prekinuta ili bez definisanih pitanja!</value>
-  </data>
   <data name="ch" xml:space="preserve">
     <value>Chamorro</value>
   </data>
@@ -1007,9 +998,6 @@
   </data>
   <data name="Chechen" xml:space="preserve">
     <value>Chechen</value>
-  </data>
-  <data name="Chem-Onc Compendium" xml:space="preserve">
-    <value>Chem-Onc_Kompedijum</value>
   </data>
   <data name="Chemists" xml:space="preserve">
     <value>Hemičari</value>
@@ -1956,17 +1944,11 @@
   <data name="Eating Disorder" xml:space="preserve">
     <value>Poremećaja u ishrani</value>
   </data>
-  <data name="ECOG/WHO/Zubrod score" xml:space="preserve">
-    <value>ECOG/WHO/Zubrod skor</value>
-  </data>
   <data name="Edema" xml:space="preserve">
     <value>Edem</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Izmeniti</value>
-  </data>
-  <data name="Edit episode of care" xml:space="preserve">
-    <value>Izmenite epizodu nege</value>
   </data>
   <data name="Edit Role" xml:space="preserve">
     <value>Izmena role</value>
@@ -2465,9 +2447,6 @@
   </data>
   <data name="Form Preview" xml:space="preserve">
     <value>Prikaz dokumenta</value>
-  </data>
-  <data name="FormDefinitionState_Archive" xml:space="preserve">
-    <value>Arhiva</value>
   </data>
   <data name="FormDefinitionState_Design" xml:space="preserve">
     <value>Dizajn</value>
@@ -3489,9 +3468,6 @@
   <data name="Logo" xml:space="preserve">
     <value>Logo</value>
   </data>
-  <data name="LogoUrl" xml:space="preserve">
-    <value>Logo url</value>
-  </data>
   <data name="Logout" xml:space="preserve">
     <value>Odjava</value>
   </data>
@@ -3971,9 +3947,6 @@
   </data>
   <data name="no" xml:space="preserve">
     <value>Norwegian</value>
-  </data>
-  <data name="No result found" xml:space="preserve">
-    <value>Nema pronađenih rezultata</value>
   </data>
   <data name="NoContent" xml:space="preserve">
     <value>Bez sadržaja</value>
@@ -4961,9 +4934,6 @@
   </data>
   <data name="Progesterone receptor" xml:space="preserve">
     <value>Receptori za progesteron</value>
-  </data>
-  <data name="Progress Note" xml:space="preserve">
-    <value>Praćenje napretka</value>
   </data>
   <data name="ProjectEndDateTime" xml:space="preserve">
     <value>Vreme završetka projekta</value>
@@ -6186,14 +6156,8 @@
   <data name="tn" xml:space="preserve">
     <value>Tswana</value>
   </data>
-  <data name="To" xml:space="preserve">
+  <data name="to" xml:space="preserve">
     <value>Do</value>
-  </data>
-  <data name="to1" xml:space="preserve">
-    <value>Tonga</value>
-  </data>
-  <data name="ToBeReplacedWithExternalOntologyTerm" xml:space="preserve">
-    <value>Za zamenu terminom eksterne ontologije</value>
   </data>
   <data name="Toggle" xml:space="preserve">
     <value>Uključi/Isključi</value>
@@ -6210,7 +6174,7 @@
   <data name="tr" xml:space="preserve">
     <value>Turkish</value>
   </data>
-  <data name="Track process" xml:space="preserve">
+  <data name="Track Process" xml:space="preserve">
     <value>Praćenje procesa</value>
   </data>
   <data name="Training &amp; Vocational Education" xml:space="preserve">
@@ -6729,9 +6693,6 @@
   <data name="Youth Services" xml:space="preserve">
     <value>Omladinske usluge</value>
   </data>
-  <data name="za" xml:space="preserve">
-    <value>Zhuang</value>
-  </data>
   <data name="zh" xml:space="preserve">
     <value>Chinese</value>
   </data>
@@ -6863,5 +6824,218 @@
   </data>
   <data name="FindThesaurus" xml:space="preserve">
     <value>Pronađite tezaurus</value>
+  </data>
+  <data name="FormDefinitionState_Archive" xml:space="preserve">
+    <value>Arhiva</value>
+  </data>
+  <data name="za" xml:space="preserve">
+    <value>Zhuang</value>
+  </data>
+  <data name="MissingValue" xml:space="preserve">
+    <value>Missing Value</value>
+  </data>
+  <data name="NominatorCodeSetName" xml:space="preserve">
+    <value>Naziv nominatorovog skupa kodova</value>
+  </data>
+  <data name="NominatorCodeSetNumber" xml:space="preserve">
+    <value>Broj nominatorovog skupa kodova</value>
+  </data>
+  <data name="ViewProjectData" xml:space="preserve">
+    <value>Pregledajte podatke o projektu</value>
+  </data>
+  <data name="ViewRole" xml:space="preserve">
+    <value>Videti rolu</value>
+  </data>
+  <data name="InvalidUploadedPdfFormat" xml:space="preserve">
+    <value>Učitani pdf je u nevalidnom formatu!</value>
+  </data>
+  <data name="MatrixType" xml:space="preserve">
+    <value>Tip matrice</value>
+  </data>
+  <data name="NonSelectable" xml:space="preserve">
+    <value>Neselektivan</value>
+  </data>
+  <data name="Selectable" xml:space="preserve">
+    <value>Selektivan</value>
+  </data>
+  <data name="FieldMatrix" xml:space="preserve">
+    <value>Field matrica</value>
+  </data>
+  <data name="FieldSetMatrix" xml:space="preserve">
+    <value>Field set matrica</value>
+  </data>
+  <data name="CodeValueManagement" xml:space="preserve">
+    <value>Upravljanja vrednostima koda</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="SystemAdministrationAndResources" xml:space="preserve">
+    <value>Sistemska administracija i resursi</value>
+  </data>
+  <data name="Add edge" xml:space="preserve">
+    <value>Dodajte strelicu</value>
+  </data>
+  <data name="Add node" xml:space="preserve">
+    <value>Dodajte čvor</value>
+  </data>
+  <data name="Arrows" xml:space="preserve">
+    <value>Strelice</value>
+  </data>
+  <data name="Decision" xml:space="preserve">
+    <value>Odluka</value>
+  </data>
+  <data name="Edit Node Information" xml:space="preserve">
+    <value>Uredite informacije o čvoru</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>Događaj</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="Shapes" xml:space="preserve">
+    <value>Oblici</value>
+  </data>
+  <data name="Statement" xml:space="preserve">
+    <value>Izjava</value>
+  </data>
+  <data name="Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Unidirectional" xml:space="preserve">
+    <value>Jednosmerno</value>
+  </data>
+  <data name="Update graph" xml:space="preserve">
+    <value>Ažurirajte grafikon</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>Uvećaj</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Umanji</value>
+  </data>
+  <data name="EditFormInstance" xml:space="preserve">
+    <value>Izmenite instancu forme</value>
+  </data>
+  <data name="Health_Care_Workers" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Health_Care_Worker" xml:space="preserve">
+    <value />
+  </data>
+  <data name="PatientTabTooltip" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Bezier" xml:space="preserve">
+    <value>Bezier</value>
+  </data>
+  <data name="Taxi" xml:space="preserve">
+    <value>Taxi</value>
+  </data>
+  <data name="Unbundled Bezier" xml:space="preserve">
+    <value>Unbundled Bezier</value>
+  </data>
+  <data name="Connected" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Thesaurus_ID" xml:space="preserve">
+    <value>Tezaurus ID</value>
+  </data>
+  <data name="Commands" xml:space="preserve">
+    <value>Komande</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Izvoz</value>
+  </data>
+  <data name="ExportMenu" xml:space="preserve">
+    <value>Meni za izvoz</value>
+  </data>
+  <data name="DataFile" xml:space="preserve">
+    <value>Fajl podataka (JSON)</value>
+  </data>
+  <data name="DocumentPdf" xml:space="preserve">
+    <value>Dokument (PDF)</value>
+  </data>
+  <data name="FileType" xml:space="preserve">
+    <value>Tip fajla</value>
+  </data>
+  <data name="ImageFile" xml:space="preserve">
+    <value>Slika (PNG)</value>
+  </data>
+  <data name="Hierarchy" xml:space="preserve">
+    <value />
+  </data>
+  <data name="NarrowerConcepts" xml:space="preserve">
+    <value />
+  </data>
+  <data name="BroaderConcepts" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Rich Text Paragraph" xml:space="preserve">
+    <value>Rich Text Paragraph</value>
+  </data>
+  <data name="PatientQueryWindow" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Extensions" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Query" xml:space="preserve">
+    <value>Upit</value>
+  </data>
+  <data name="FieldId" xml:space="preserve">
+    <value>Id polja</value>
+  </data>
+  <data name="QueryManagement" xml:space="preserve">
+    <value>Upravljanje upitima</value>
+  </data>
+  <data name="Instruction" xml:space="preserve">
+    <value>Instrukcije</value>
+  </data>
+  <data name="Queries" xml:space="preserve">
+    <value>Upiti</value>
+  </data>
+  <data name="QueryReason" xml:space="preserve">
+    <value>Razlog upita</value>
+  </data>
+  <data name="Reason" xml:space="preserve">
+    <value>Razlog</value>
+  </data>
+  <data name="ProvideAnAnwerWhyTheQueryIsRaised" xml:space="preserve">
+    <value>Navedite odgovor ili izaberite jedan od mogućih razloga zašto se postavlja upit.</value>
+  </data>
+  <data name="QueryText" xml:space="preserve">
+    <value>Tekst upita</value>
+  </data>
+  <data name="RaiseNewQuery" xml:space="preserve">
+    <value>Podignite novi upit</value>
+  </data>
+  <data name="DaysOpen" xml:space="preserve">
+    <value>Dana otvoren</value>
+  </data>
+  <data name="DaysSinceLastChange" xml:space="preserve">
+    <value>Dana od poslednje promene</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Tip polja</value>
+  </data>
+  <data name="QueryDate" xml:space="preserve">
+    <value>Datum upita</value>
+  </data>
+  <data name="RaisedBy" xml:space="preserve">
+    <value>Podigao</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Rezultat</value>
+  </data>
+  <data name="SendUpdate" xml:space="preserve">
+    <value>Pošalji ažuriranje</value>
+  </data>
+  <data name="ExportToQuestionnaire" xml:space="preserve">
+    <value />
   </data>
 </root>

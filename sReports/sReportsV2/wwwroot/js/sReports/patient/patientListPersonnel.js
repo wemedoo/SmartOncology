@@ -35,7 +35,7 @@ $(document).on('show.bs.modal', '#patientListModal', function () {
 function initSelect2PersonnelElements() {
 
     let selectsAndActions = [
-        { class: ".personnel-select2", action: `/User/GetAutocompleteData?organizationId=${0}` },  // setting organizationId = 0 we'll get Personnel from every Org
+        { class: ".personnel-select2", action: `/UserAdministration/GetAutocompleteData?organizationId=${0}` },  // setting organizationId = 0 we'll get Personnel from every Org
         { class: ".organization-select2", action: `/Organization/GetAutocompleteData` },
         { class: ".personnelteam-select2", action: `/PersonnelTeam/GetNameAutocompleteData?organizationId=${0}` } // setting organizationId = 0 we'll get PersonnelTeams from every Org
     ];

@@ -13,5 +13,10 @@ namespace sReportsV2.DTOs.Field.DataOut.Custom
 
         [DataProp]
         public CustomActionDataOut CustomAction { get; set; }
+
+        public override bool CanBeConnectedField()
+        {
+            return false;
+        }
     }
 }

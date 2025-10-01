@@ -12,20 +12,10 @@ namespace sReportsV2.DTOs.DigitalGuideline.DataOut
         public string Id { get; set; }
         public string Value { get; set; }
         public NodeState State { get; set; }
+        public int ThesaurusId { get; set; }
         public ThesaurusEntryDataOut Thesaurus { get; set; }
         public string Title { get; set; }
         public virtual string Type { get; set; }
         public EvidencePropertiesDataOut EvidenceProperties { get; set; }
-
-        public object ToJson()
-        {
-            var serializerSettings = new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore
-            };
-
-            return JsonConvert.DeserializeObject(JsonConvert.SerializeObject(this, serializerSettings));
-        }
     }
 }

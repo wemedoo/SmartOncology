@@ -2,7 +2,6 @@
 using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Entities.Common;
 using sReportsV2.Domain.Entities.Consensus;
-using sReportsV2.Domain.Entities.CustomFHIRClasses;
 using sReportsV2.Domain.Entities.FieldEntity;
 using sReportsV2.Domain.Entities.Form;
 using sReportsV2.Domain.Sql.Entities.Common;
@@ -165,19 +164,21 @@ namespace sReportsV2.MapperProfiles
             .ForMember(d => d.State, opt => opt.MapFrom(src => src.State))
             .ForMember(d => d.Title, opt => opt.MapFrom(src => src.Title))
             .ForMember(d => d.Language, opt => opt.MapFrom(src => src.Language))
-            .ForMember(d => d.Notes, opt => opt.MapFrom(src => src.Notes))
+            .ForMember(d => d.Notes, opt => opt.Ignore())
             .ForMember(d => d.FormState, opt => opt.MapFrom(src => src.FormState))
+            .ForMember(d => d.Notes, opt => opt.MapFrom(src => src.Notes))
             .ForMember(d => d.Date, opt => opt.MapFrom(src => src.Date))
             .ForMember(d => d.Version, opt => opt.MapFrom(src => src.Version))
             .ForMember(d => d.ThesaurusId, opt => opt.MapFrom(src => src.ThesaurusId))
             .ForMember(d => d.DocumentProperties, opt => opt.MapFrom(src => src.DocumentProperties))
+            .ForMember(d => d.DocumentLoincProperties, opt => opt.MapFrom(src => src.DocumentLoincProperties))
             .ForMember(d => d.LastUpdate, opt => opt.MapFrom(src => src.LastUpdate))
             .ForMember(d => d.WorkflowHistory, opt => opt.MapFrom(src => src.WorkflowHistory))
             .ForMember(d => d.CustomHeaderFields, opt => opt.MapFrom(src => src.CustomHeaderFields))
             .ForMember(d => d.AvailableForTask, opt => opt.MapFrom(src => src.AvailableForTask))
             .ForMember(d => d.NullFlavors, opt => opt.MapFrom(src => src.NullFlavors))
             .ForMember(d => d.OrganizationIds, opt => opt.MapFrom(src => src.OrganizationIds))
-            .ReverseMap();
+            ;
 
             CreateMap<FormDataIn, FormDataOut>()
                 .IgnoreAllNonExisting()
@@ -221,6 +222,7 @@ namespace sReportsV2.MapperProfiles
             .ForMember(d => d.ThesaurusId, opt => opt.MapFrom(src => src.ThesaurusId))
             .ForMember(d => d.LastUpdate, opt => opt.MapFrom(src => src.LastUpdate))
             .ForMember(d => d.DocumentProperties, opt => opt.MapFrom(src => src.DocumentProperties))
+            .ForMember(d => d.DocumentLoincProperties, opt => opt.MapFrom(src => src.DocumentLoincProperties))
             .ForMember(d => d.CustomHeaderFields, opt => opt.MapFrom(src => src.CustomHeaderFields))
             .ForMember(d => d.AvailableForTask, opt => opt.MapFrom(src => src.AvailableForTask))
             .ForMember(d => d.NullFlavors, opt => opt.MapFrom(src => src.NullFlavors))
@@ -280,16 +282,6 @@ namespace sReportsV2.MapperProfiles
                 .IgnoreAllNonExisting()
                 .ReverseMap();
             CreateMap<FormFieldValueDataIn, FormFieldValueDataOut>().ReverseMap();
-
-            CreateMap<O4CodeableConcept, O4CodeableConceptDataIn>()
-                .IgnoreAllNonExisting()
-                .ForMember(dest => dest.System, opt => opt.Ignore())
-                .ReverseMap();
-
-            CreateMap<O4CodeableConcept, O4CodeableConceptDataOut>()
-                .IgnoreAllNonExisting()
-                .ForMember(x => x.System, opt => opt.Ignore())
-                .ReverseMap();
 
             // Custom Headers
             CreateMap<CustomHeaderField, CustomHeaderFieldDataOut>().ReverseMap();

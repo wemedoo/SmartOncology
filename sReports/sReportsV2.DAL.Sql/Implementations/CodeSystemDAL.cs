@@ -40,17 +40,20 @@ namespace sReportsV2.SqlDomain.Implementations
             return context.CodeSystems.FirstOrDefault(s => s.Value == value);
         }
 
-        public void InsertMany(List<CodeSystem> codeSystems)
+        public int InsertMany(List<CodeSystem> codeSystems)
         {
+            int numberOfInserts = 0;
             IEnumerable<string> codeSystemsInDb = GetAll().Select(x => x.Value);
             foreach (var codeSystem in codeSystems) 
             {
                 if (!codeSystemsInDb.Contains(codeSystem.Value))
                 {
                     context.CodeSystems.Add(codeSystem);
+                    numberOfInserts++;
                 }
             }
             context.SaveChanges();
+            return numberOfInserts;
         }
 
         public void InsertOrUpdate(CodeSystem codeSystem)

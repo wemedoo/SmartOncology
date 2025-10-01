@@ -50,10 +50,10 @@
 };
 
 var selectableFields = ['checkbox', 'select', 'radio'];
-var stringFields = ['text', 'date', 'datetime', 'calculative', 'number', 'regex', 'long-text', 'file', 'email', 'coded', 'paragraph', 'link', 'audio'];
+var stringFields = ['text', 'date', 'datetime', 'calculative', 'number', 'regex', 'long-text', 'file', 'email', 'coded', 'paragraph', 'link', 'audio', 'rich-text-paragraph'];
 var specificTypeFields = ['paragraph', 'link'];
-var start, end, clicked;
 
+addUnsavedDesignerChangesEventHandler();
 $(document).ready(function () {
     configureImageMap();
 });
@@ -61,28 +61,11 @@ $(document).ready(function () {
 $(document).on('mousedown', '.dd-item', function (e) {
     if (!$(e.target).hasClass('add-item-button')) {
         e.stopPropagation();
-        start = +new Date();
-        clicked = e.currentTarget;
     } else {
         return;
     }
 
 });
-
-$(document).on('mouseup', '.dd-item', function (e) {
-    end = +new Date();
-    var diff = end - start;
-    if (diff <= 280) {
-        if (clicked) {
-            clickedEvent($(clicked).attr('data-id'));
-        }
-    }
-    clicked = undefined;
-});
-
-function clickedEvent(id) {
-    console.log('mouseup event, dd-item id: ' + id);
-}
 
 $(document).on('click', '.remove-button', function (e) {
     e.preventDefault();
@@ -99,14 +82,39 @@ $(document).on('click', '.remove-button', function (e) {
     }
 });
 
+$(document).on('click', '.remove-matrix-button', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    let element = $(e.currentTarget).closest('td').find('.fs-column-input');
+
+    if (element.length == 0) {
+        element = $(e.currentTarget).closest('.dd-item');
+    }
+    
+    if (canDelete(element)) {
+        let targetId = $(element).attr('data-id');
+        let parentId = $(element).attr('data-parentid');
+        var maxItems = parseInt($(element).attr('data-maxitems'), 10);
+        let row = $(e.currentTarget).closest('.fs-row');
+        let matrixId = $(element).attr('data-matrixid');
+
+        $('.remove-modal-button').attr('data-target', `${targetId}`);
+        $('.remove-modal-button').attr('data-parentid', `${parentId}`);
+        $('.remove-modal-button').attr('data-maxitems', `${maxItems}`);
+        $('.remove-modal-button').attr('data-row-id', row.index());
+        $('.remove-modal-button').attr('data-matrixid', matrixId);
+        showDeleteModal(e, "", "removeFieldsetRow");
+    }
+});
+
 function canDelete(element) {
     let canDelete = true;
     let itemType = element.attr('data-itemtype');
-    if (examineDependencyOnDelete(itemType)) {
+    if (examineConditionsBeforeDelete(itemType)) {
         let itemId = element.attr('data-id');
         let params = [];
-        let doesOccurredInDependency = getDoesOccurredInDependencyHandler(itemType);
-        if (doesOccurredInDependency(itemId, itemType, params, 'deleted')) {
+        let cannotDeleteHandler = getCannotActionHandler(itemType);
+        if (cannotDeleteHandler(itemId, itemType, params, 'deleted')) {
             canDelete = false;
             toastr.error(params[0]);
         }
@@ -119,6 +127,7 @@ function deleteFormItem(e) {
     if (status === 'confirm') {
         let itemToRemove = $(e.currentTarget).attr('data-target');
         $(`[data-id='${itemToRemove}']`).remove();
+        $(`[data-matrixid='${itemToRemove}']`).remove();
     }
     manageAddNewButton(e);
     $('#deleteModal').modal('hide');
@@ -176,6 +185,18 @@ $(document).on('click', '.edit-button', function (e) {
     showForm(type, element);
 });
 
+$(document).on('click', '.edit-matrix-button', function (e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    let $button = $(e.currentTarget);
+    let $input = $button.closest('td').find('.fs-column-input');
+    let type = $input.attr('data-itemtype');
+    parentId = $input.attr('data-parentid');
+
+    showForm(type, $input);
+});
+
 var parentId;
 $(document).on('click', '.add-item-button', function (e) {
     let type = $(e.currentTarget).attr('data-itemtype');
@@ -211,6 +232,8 @@ function setAndShowDesignerModal(html, title) {
     $('body').addClass('no-scrollable');
     $('.designer-form-title-text').html(title);
     $('.designer-form-modal').addClass('show');
+    $('.designer-form-modal-body').scrollTop(0);
+    adjustTableWidth();
 }
 
 function setAdditionShowFormRequestParams(type, requestObject) {
@@ -260,28 +283,32 @@ function submitFullFormDefinition(fullFormSubmit = false, reloadPartial = false,
 
     let createForm = isNewFormCreated(formDefinition);
     let action = formDefinition.id != "" ? 'Edit' : 'Create';
-    callServer({
-        method: 'post',
-        data: formDefinition,
-        url: `/Form/${action}`,
-        contentType: 'application/json',
-        success: function (data) {
-            updateFormWithLastUpdate(data);
-            if (fullFormSubmit || createForm || isNewFormGenerated(data, createForm)) {
-                toastr.success('Success', '', {
-                    timeOut: 100,
-                    onHidden: function () {
-                        window.location.href = `/Form/Edit?thesaurusId=${data.thesaurusId}&versionId=${data.versionId}`;
-                    }
-                });
-            } else {
-                reloadFormPartialIfNecessary(reloadPartial, data.lastUpdate, formDefinition);
+
+    if (!isMatrixFieldSet) {
+        callServer({
+            method: 'post',
+            data: formDefinition,
+            url: `/Form/${action}`,
+            contentType: 'application/json',
+            success: function (data) {
+                updateFormWithLastUpdate(data);
+                resetJsonEditorData();
+                if (fullFormSubmit || createForm || isNewFormGenerated(data, createForm)) {
+                    toastr.success('Success', '', {
+                        timeOut: 100,
+                        onHidden: function () {
+                            window.location.href = `/Form/Edit?thesaurusId=${data.thesaurusId}&versionId=${data.versionId}`;
+                        }
+                    });
+                } else {
+                    reloadFormPartialIfNecessary(reloadPartial, data.lastUpdate, formDefinition);
+                }
+            },
+            error: function (xhr, textStatus, thrownError) {
+                handleResponseError(xhr);
             }
-        },
-        error: function (xhr, textStatus, thrownError) {
-            handleResponseError(xhr);
-        }
-    });
+        });
+    }
 
     return createForm;
 }
@@ -420,8 +447,36 @@ function getChapterWithData(chapterElement) {
 function getPageWithData(pageElement) {
     let page = generateObjectFromDataProperties(pageElement, configByType['page'].excludeProperties);
     page.ListOfFieldSets = [];
-    $(pageElement).find(`li[data-itemtype='fieldset']:not(.add-item-button):not(.dd-item-placeholder)`).each(function (index, fieldsetElement) {
-        page.ListOfFieldSets.push(getFieldSetWithData(fieldsetElement));
+    let fieldsetMap = {}; 
+
+    $(pageElement).find(`[data-itemtype='fieldset']:not(.add-item-button):not(.dd-item-placeholder)`).each(function (index, fieldsetElement) {
+        let matrixId = $(fieldsetElement).attr("data-matrixid");
+        let fieldset = getFieldSetWithData(fieldsetElement); 
+
+        if (!matrixId) {
+            page.ListOfFieldSets.push(fieldset);
+        }
+        else {
+            let matrixFieldsetId = matrixId;
+            if (!fieldsetMap[matrixFieldsetId]) {
+                fieldsetMap[matrixFieldsetId] = { Fields: [], ListOfFieldSets: [] };
+            }
+            fieldsetMap[matrixFieldsetId].ListOfFieldSets.push(fieldset);
+        }
+    });
+
+    Object.keys(fieldsetMap).forEach(fieldsetId => {
+        if (fieldsetMap[fieldsetId].ListOfFieldSets.length > 0) {
+            let flatFieldSets = page.ListOfFieldSets.flat();
+            let parentFieldset = flatFieldSets.find(fs => fs.id === fieldsetId);
+            if (parentFieldset) {
+                parentFieldset.listoffieldsets.sort((a, b) => {
+                    let aElement = $(`li[data-id='${a.id}']`);
+                    let bElement = $(`li[data-id='${b.id}']`);
+                    return aElement.index() - bElement.index();
+                });
+            }
+        }
     });
 
     return page;
@@ -430,9 +485,11 @@ function getPageWithData(pageElement) {
 function getFieldSetWithData(fieldsetElement) {
     let fieldset = generateObjectFromDataProperties(fieldsetElement, configByType['fieldset'].excludeProperties);
     fieldset.Fields = [];
-    $(fieldsetElement).find(`li[data-itemtype='field']:not(.add-item-button):not(.dd-item-placeholder)`).each(function (index, fieldElement) {
-        fieldset.Fields.push(getFieldWithData(fieldElement));
-    })
+    if (!fieldset.listoffieldsets || fieldset.listoffieldsets.length == 0) {
+        $(fieldsetElement).find(`li[data-itemtype='field']:not(.add-item-button):not(.dd-item-placeholder)`).each(function (index, fieldElement) {
+            fieldset.Fields.push(getFieldWithData(fieldElement));
+        })
+    }
     return [fieldset];
 }
 
@@ -680,8 +737,14 @@ function getNestableFormElements() {
 }
 
 $(document).ready(function () {
-    getNestableFormElements();
-    setCanvasSize();
+    function initializeLayout() {
+        getNestableFormElements();
+        setCanvasSize();
+    }
+
+    initializeLayout();
+
+    $(window).on('resize', initializeLayout);
 });
 
 function setCanvasSize() {
@@ -706,13 +769,13 @@ function toggleDropdownButton(dropdown) {
     }
 }
 
-$('.dropdown-select').on('click', '.menu-state li a', function () {
+$(document).on('click', '#formStateDropdown a', function () {
     var target = $(this);
     var targetValue = $(target).attr('data-value');
     $('li[data-itemtype=form]').attr('data-state', decodeURIComponent(targetValue));
    
     //Adds active class to selected item
-    var previousSelected = $(target).parents('.dropdown-menu').find('.state-option.active');
+    var previousSelected = $(target).parents('.dropdown-menu').find('.form-definition-state.active');
     $(previousSelected).removeClass('active');
     $(target).addClass('active');
 
@@ -728,6 +791,7 @@ $('.dropdown-select').on('click', '.menu-state li a', function () {
         success: function (data) {
             $('li[data-itemtype=form]').attr('data-lastupdate', encodeURIComponent(data.lastUpdate));
             toastr.success('You have successfully changed the state');
+            resetJsonEditorData();
         },
         error: function (xhr, textStatus, thrownError) {
             handleResponseError(xhr);
@@ -775,6 +839,7 @@ function closDesignerFormModal(reloadFormPreview) {
 
 function showFormJson() {
     let formDefinition = getNestableFullFormDefinition($("#nestable").find(`li[data-itemtype='form']`).first());
+    setIsReadOnlyViewModeInRequest(formDefinition);
     callServer({
         method: 'post',
         data: formDefinition,
@@ -829,7 +894,6 @@ $(document).on('click', "#closeDragAndDrop", function (e) {
 
 $(document).on('hover', '.icon-container', function (e) {
     if ($('.dd-dragel').length > 0) {
-        console.log('stopping propagation on hover');
         e.stopPropagation();
         e.preventDefault();
     }

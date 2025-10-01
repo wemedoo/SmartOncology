@@ -1,0 +1,59 @@
+﻿@using sReportsV2.DTOs.Common.DataOut;
+@using sReportsV2.DTOs.Autocomplete;
+@using sReportsV2.DTOs.DTOs.ThesaurusEntry.DataOut;
+@model SkosDataOut
+
+<div>
+    <div>
+        @if (Model.Roots.Count == 0)
+        {
+            @await Html.PartialAsync("NoResultFound")
+        }
+        else
+        {
+            RenderChildren(Model.Roots, 1);
+        }
+    </div>
+</div>
+
+@functions {
+    private void RenderChildren(List<TreeNodeDataOut> children, int depth)
+    {
+        @foreach (var treeNode in children)
+        {
+            bool isLeaf = treeNode.IsLeaf();
+            <div>
+                <div class="@(isLeaf ? "concept-leaf" : "") concept-item" >
+                    @if (!isLeaf)
+                    {
+                        <img 
+                        alt="" 
+                        class="concept-arrow-tree collapsed-arrow">
+                    }
+                    <span class="concept-dot" style="background-color: @treeNode.CircleColor"></span>
+                    <span class="@(ViewBag.ThesaurusId == treeNode.Id ? "opened-thesaurus" : "")">@GetLabel(treeNode)</span>
+                    <img alt="" title="Thesaurus" class="ml-2 selected-concept click-selected-concept hover-icon" src="/css/img/icons/thesaurus_green.svg" data-value="@treeNode.Id">
+                </div>
+                <div class="collapse show" data-value="@treeNode.Id" style="margin-left:@(depth * 15)px">
+                    @{
+                        RenderChildren(treeNode.Children, depth + 1);
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    private string GetLabel(TreeNodeDataOut treeNode)
+    {
+        string label = treeNode.Label;
+        if (string.IsNullOrEmpty(label))
+        {
+            ThesaurusEntryViewDataOut selectedThesaurus = Model.SelectedThesauruses.Find(x => x.ThesaurusEntryId == treeNode.Id);
+            if (selectedThesaurus != null)
+            {
+                label = selectedThesaurus.PreferredTerm;
+            }
+        }
+        return label;
+    }
+}

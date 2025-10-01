@@ -18,8 +18,9 @@ namespace sReportsV2.Controllers
         public AdministrationApiController(IAdministrationApiBLL administrationApiBLL, IHttpContextAccessor httpContextAccessor,
             IServiceProvider serviceProvider,
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) :
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.administrationApiBLL = administrationApiBLL;
         }

@@ -27,7 +27,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPersonnelDAL userDAL;
         private readonly IFormDAL formDAL;
         private readonly IEmailSender emailSender;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public CommentBLL(ICommentDAL commentDAL, IPersonnelDAL userDAL, IFormDAL formDAL, IEmailSender emailSender, IMapper mapper)
         {
@@ -35,16 +35,16 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.userDAL = userDAL;
             this.formDAL = formDAL;
             this.emailSender = emailSender;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public List<FormCommentDataOut> GetComentsDataOut(string formId, List<string> formItemsOrderIds)
         {
             List<Comment> comments = commentDAL.FindCommentsByFormId(formId);
 
-            List<FormCommentDataOut> commentsDataOut = Mapper.Map<List<FormCommentDataOut>>(comments);
+            List<FormCommentDataOut> commentsDataOut = mapper.Map<List<FormCommentDataOut>>(comments);
             List<int> userIds = comments.Select(x => x.PersonnelId).Distinct().ToList();
-            List<UserDataOut> users = Mapper.Map<List<UserDataOut>>(userDAL.GetAllByIds(userIds));
+            List<UserDataOut> users = mapper.Map<List<UserDataOut>>(userDAL.GetAllByIds(userIds));
             foreach (var comment in commentsDataOut)
             {
                 comment.User = users.Find(x => x.Id == comment.UserId);
@@ -57,7 +57,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public void InsertOrUpdate(FormCommentDataIn commentDataIn)
         {
-            Comment comment = Mapper.Map<Comment>(commentDataIn);
+            Comment comment = mapper.Map<Comment>(commentDataIn);
             commentDAL.InsertOrUpdate(comment);
             NotifyTaggedUserInComments(commentDataIn.TaggedUsers, commentDataIn.FormRef, commentDataIn.UserId, comment.CommentId);
         }

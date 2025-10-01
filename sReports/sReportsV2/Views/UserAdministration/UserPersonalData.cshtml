@@ -11,15 +11,15 @@
     bool readOnly = ViewBag.ReadOnly;
     string activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
     bool passwordDisabled = Model != null && Model.Email == null;
-    var userRoles = Model != null && Model.PersonnelPossitions.Count > 0 ? Model.PersonnelPossitions.ToList() : new List<int>();
-    var userAcademicPositions = Model != null && Model.AcademicPositions.Count > 0 ? Model.AcademicPositions.ToList() : new List<UserAcademicPositionDTO>();
+    var userRoles = Model != null && Model.PersonnelPossitions.Count > 0 ? Model.PersonnelPossitions : new List<int>();
+    var userAcademicPositions = Model != null && Model.AcademicPositions.Count > 0 ? Model.AcademicPositions : new List<UserAcademicPositionDTO>();
     string academicPositionsJson = JsonConvert.SerializeObject(ViewBag.AcademicPositions);
     string inactiveAcademicPositionsJson = JsonConvert.SerializeObject(ViewBag.InactiveAcademicPositions);
     string selectedPositionIdsJson = JsonConvert.SerializeObject(userAcademicPositions);
     int userAcademicPositionsCount = userAcademicPositions.Count;
     string rolesJson = JsonConvert.SerializeObject(ViewBag.Roles);
     string inactiveRolesJson = JsonConvert.SerializeObject(ViewBag.InactiveRoles);
-    string selectedRolesIdsJson = JsonConvert.SerializeObject(userRoles.Select(position => position));
+    string selectedRolesIdsJson = JsonConvert.SerializeObject(userRoles);
     int userRolesCount = userRoles.Count;
 }
 
@@ -28,7 +28,7 @@
     <div class="user-input-group">
         <div class="organization-title">
             @sReportsV2.Cache.Resources.TextLanguage.Personal_Data
-            @if (Model != null && ViewBag.UserCookieData.Id == Model.Id && !readOnly)
+            @if (Model != null && ViewBag.UserCookieData.Id == Model.Id && !readOnly && !Model.IsQuickRegisteredUser())
             {
                 <button type="button" class="btn btn-add-new ml-2" onclick="showChangePasswordModal(event, @Model.Id)">
                     <i class="fas fa-edit resize-circle"></i> <span class="text-add-new"> @sReportsV2.Cache.Resources.TextLanguage.ChangePassword</span>
@@ -82,7 +82,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.FirstName <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.FirstName @await Html.PartialAsync("RequiredLabel")
             </div>
             <input required class="filter-input" type="text" id="firstName" name="FirstName" value="@(Model != null && Model.FirstName != null ? Model.FirstName : "")" @ViewBag.Disabled />
         </div>
@@ -94,7 +94,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.LastName <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.LastName @await Html.PartialAsync("RequiredLabel")
             </div>
             <input required class="filter-input" type="text" id="lastName" name="LastName" value="@(Model != null && Model.LastName != null ? Model.LastName : "")" @ViewBag.Disabled />
         </div>
@@ -109,7 +109,8 @@
                         { "class", "filter-input" },
                         { "id", "dayOfBirth" },
                         { "name", "dayOfBirth" },
-                        { "value", Model != null && Model.DayOfBirth != null ? Model.DayOfBirth.ToTimeZonedDateTime(ViewBag.UserCookieData.TimeZoneOffset as string).Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                        { "value", Model != null && Model.DayOfBirth != null ? Model.DayOfBirth.Value.ToTimeZonedDatePart(ViewBag.UserCookieData.TimeZoneOffset as string, ViewBag.DateFormat as string): "" },
+                        { "data-restrictage18", true},
                         { disabled, null }
                     },
                     InputBtnAttributes = new Dictionary<object, object> {
@@ -124,7 +125,7 @@
                 @sReportsV2.Cache.Resources.TextLanguage.BusinessEmail
                 @if (!passwordDisabled)
                 {
-                    <div id="emailRequired" class="label-required">*</div>
+                    @await Html.PartialAsync("RequiredLabel", new ViewDataDictionary(ViewData) {{"labelId", "emailRequired" }})
                 }
             </div>
             <div class="position-relative">
@@ -147,7 +148,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.PersonnelType <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.PersonnelType @await Html.PartialAsync("RequiredLabel")
             </div>
             <select required class="filter-input arrow-select bg-white" id="personnelType" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.PersonnelType)">
                 <option value=""></option>
@@ -179,7 +180,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.Username <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.Username @await Html.PartialAsync("RequiredLabel")
             </div>
             <div class="position-relative">
                 <input required class="filter-input" @Html.ReadOnly(Model != null && !string.IsNullOrWhiteSpace(Model.Username)) type="text" id="username" name="Username" value="@(Model != null && Model.Username != null ? Model.Username : "")" @ViewBag.Disabled />
@@ -188,7 +189,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.OccupationCategory <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.OccupationCategory @await Html.PartialAsync("RequiredLabel")
             </div>
             <select required class="filter-input arrow-select bg-white" id="occupationCategory" name="occupationCategory" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.OccupationCategory)">
                 <option value=""></option>
@@ -212,7 +213,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.OccupationSubCategory <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.OccupationSubCategory @await Html.PartialAsync("RequiredLabel")
             </div>
             <select required class="filter-input arrow-select bg-white" id="occupationSubCategory" name="occupationSubCategory" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.OccupationSubCategory)">
                 <option value=""></option>
@@ -236,7 +237,7 @@
         </div>
         <div class="advanced-filter-item input-margin">
             <div class="label filter-label">
-                @sReportsV2.Cache.Resources.TextLanguage.Occupation <div class="label-required">*</div>
+                @sReportsV2.Cache.Resources.TextLanguage.Occupation @await Html.PartialAsync("RequiredLabel")
             </div>
             <select required class="filter-input arrow-select bg-white" id="occupation" name="occupation" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.Occupation)">
                 <option value=""></option>
@@ -282,7 +283,7 @@
                 }
             </select>
         </div>
-        @await Html.PartialAsync("UserRolesForm", Model)
+        @await Html.PartialAsync("UserRolesForm", Model, new ViewDataDictionary(ViewData))
         @if (!ViewBag.UserAdministration)
         {
             @await Html.PartialAsync("UserRolesDisplay", Model)

@@ -14,18 +14,18 @@ namespace sReportsV2.BusinessLayer.Implementations
     {
         private readonly IModuleDAL moduleDAL;
         private readonly IPositionPermissionDAL positionPermissionDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public PositionPermissionBLL(IModuleDAL moduleDAL, IPositionPermissionDAL positionPermissionDAL, IMapper mapper)
         {
             this.moduleDAL = moduleDAL;
             this.positionPermissionDAL = positionPermissionDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public List<ModuleDataOut> GetModules()
         {
-            return Mapper.Map<List<ModuleDataOut>>(moduleDAL.GetAll());
+            return mapper.Map<List<ModuleDataOut>>(moduleDAL.GetAll());
         }
 
         public List<int> GetPermissionsForRole(int positionCD)
@@ -35,7 +35,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public CreateResponseResult InsertOrUpdate(PositionDataIn positionDataIn)
         {
-            positionPermissionDAL.InsertOrUpdate(Mapper.Map<List<PositionPermission>>(positionDataIn.CheckedPermissionModules));
+            positionPermissionDAL.InsertOrUpdate(mapper.Map<List<PositionPermission>>(positionDataIn.CheckedPermissionModules));
             return new CreateResponseResult()
             {
                 Id = positionDataIn.Id,

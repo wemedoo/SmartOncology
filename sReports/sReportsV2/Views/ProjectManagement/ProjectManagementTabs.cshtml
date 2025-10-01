@@ -12,20 +12,20 @@
     bool readOnly = ViewBag.ReadOnly;
     string id = Model != null && Model.ClinicalTrial != null ? Model.ClinicalTrial.ClinicalTrialId.ToString() : "0";
 }
-<div class="so-tabs">
-    <div data-id="TrialData" class="so-tab active" title="Edit Project Data">
-        <img alt="" class="pr-1" src="/css/img/icons/designer_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.EditProjectData
+<div class="custom-tabs">
+    <div data-id="TrialData" class="so-tab @(ViewBag.ActiveTab == "TrialData" ? "active" : "")" title="@(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.ViewProjectData : sReportsV2.Cache.Resources.TextLanguage.EditProjectData)">
+        <img alt="" class="pr-1" src="/css/img/icons/designer_silver.svg"> @(ViewBag.ReadOnly ? sReportsV2.Cache.Resources.TextLanguage.ViewProjectData : sReportsV2.Cache.Resources.TextLanguage.EditProjectData)
     </div>
-    <div data-id="TrialPersonnel" class="@(Model != null && Model.ClinicalTrial != null ? "so-tab" : "so-tab-disabled")" data-toggle="tooltip" title="@(Model == null || Model.ClinicalTrial == null ? sReportsV2.Cache.Resources.TextLanguage.ProjectTooltip : sReportsV2.Cache.Resources.TextLanguage.Manage_Organizations__Teams_and_Users)">
+    <div data-id="TrialPersonnel" class="so-tab @(ViewBag.ActiveTab == "TrialPersonnel" ? "active" : "") @(Model != null && Model.ClinicalTrial != null ? "" : "tab-disabled")" data-toggle="tooltip" title="@(Model == null || Model.ClinicalTrial == null ? sReportsV2.Cache.Resources.TextLanguage.ProjectTooltip : sReportsV2.Cache.Resources.TextLanguage.Manage_Organizations__Teams_and_Users)">
         <img alt="" class="pr-1" src="/css/img/icons/people_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.Manage_Organizations__Teams_and_Users
     </div>
-    <div data-id="TrialDocuments" class="@(Model != null && Model.ClinicalTrial != null ? "so-tab" : "so-tab-disabled")" data-toggle="tooltip" title="@(Model == null || Model.ClinicalTrial == null ? sReportsV2.Cache.Resources.TextLanguage.ProjectTooltip : sReportsV2.Cache.Resources.TextLanguage.Manage_Documentation)">
+    <div data-id="TrialDocuments" class="so-tab @(ViewBag.ActiveTab == "TrialDocuments" ? "active" : "") @(Model != null && Model.ClinicalTrial != null ? "" : "tab-disabled")" data-toggle="tooltip" title="@(Model == null || Model.ClinicalTrial == null ? sReportsV2.Cache.Resources.TextLanguage.ProjectTooltip : sReportsV2.Cache.Resources.TextLanguage.Manage_Documentation)">
         <img alt="" class="pr-1" src="/css/img/icons/documents_silver.svg"> @sReportsV2.Cache.Resources.TextLanguage.Manage_Documentation
     </div>
 </div>
 
 <div class="so-containers">
-    <div id="TrialData" class="so-tab-container element-background-grey pt-5">
+    <div id="TrialData" class="so-tab-container element-background-grey pt-5 @(ViewBag.ActiveTab != "TrialData" ? "d-none" : "")">
         @await Html.PartialAsync("ProjectData", Model)
 
         <div id="trialDataDiv" hidden>
@@ -40,10 +40,10 @@
             </div>
         }
     </div>
-    <div id="TrialPersonnel" class="so-tab-container element-background-grey pt-5" style="display:none">
+    <div id="TrialPersonnel" class="so-tab-container element-background-grey pt-5 @(ViewBag.ActiveTab != "TrialPersonnel" ? "d-none" : "")">
         @await Html.PartialAsync("~/Views/ProjectManagement/ProjectPersonnel/ProjectPersonnel.cshtml")
     </div>
-    <div id="TrialDocuments" class="so-tab-container element-background-grey pt-5" style="display:none">
+    <div id="TrialDocuments" class="so-tab-container element-background-grey pt-5 @(ViewBag.ActiveTab != "TrialDocuments" ? "d-none" : "")">
         @await Html.PartialAsync("~/Views/ProjectManagement/ProjectDocuments/ProjectDocuments.cshtml")
     </div>
 </div>

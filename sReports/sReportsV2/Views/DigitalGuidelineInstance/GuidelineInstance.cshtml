@@ -1,14 +1,16 @@
 @using System.Globalization
 @using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Extensions
 @using sReportsV2.DTOs.EpisodeOfCare
 @model sReportsV2.DTOs.Patient.PatientDataOut
 @section Scripts
 {
-    @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.15.2/cytoscape.min.js", "sha512-PqivlaNWoXvHYlvku80fbWO/yBiRmGhISj5uVdAodyqsGprDcVZy6aecJDVNE0fIIE/YeiOzp5yJTR5ZjFlR4Q==", "anonymous"))
+    @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/cytoscape-3.15.2/cytoscape.min.js"), "", ""))
 }
 
 @section Stylesheet
 {
+    @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"), "", "")
     @ScriptHelper.RenderStylesheet(Url.Content("/css/digital-guideline.css"), "", "")
     @ScriptHelper.RenderStylesheet(Url.Content("/css/newMain.css"), "", "")
 }
@@ -32,7 +34,7 @@
         </div>
         <div class="property">
             <div class="property-name">@sReportsV2.Cache.Resources.TextLanguage.BirthDate</div>
-            <div class="property-value">@(Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "Not known")</div>
+            <div class="property-value">@(Model.BirthDate != null ? Model.BirthDate.Value.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "Not known")</div>
         </div>
         <div class="property no-border">
             <button class="button-edit" id="@Model.Id" onclick="backToPatient('@Model.Id', '@eoc.Id')">

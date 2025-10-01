@@ -29,6 +29,5 @@ namespace sReportsV2.DTOs.Organization
         public List<PersonnelTeamOrganizationRelationDataOut> PersonnelTeamOrganizationRelations { get; set; }
         public List<OrganizationCommunicationEntityDataOut> OrganizationCommunicationEntities { get; set; }
         public string TimeZone { get; set; }
-        public string TimeZoneOffset { get; set; }
     }
 }

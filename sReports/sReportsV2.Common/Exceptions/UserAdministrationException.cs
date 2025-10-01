@@ -10,11 +10,12 @@ namespace sReportsV2.Common.Exceptions
         {
         }
 
-        public UserAdministrationException(string message) : base(message)
+        public UserAdministrationException(int httpStatusCode, string message) : base(message)
         {
+            this.HttpStatusCode = httpStatusCode;
         }
 
-        public UserAdministrationException(int httpStatusCode, string message) : this(message)
+        public UserAdministrationException(int httpStatusCode, string message, Exception innerException) : base(message, innerException)
         {
             this.HttpStatusCode = httpStatusCode;
         }

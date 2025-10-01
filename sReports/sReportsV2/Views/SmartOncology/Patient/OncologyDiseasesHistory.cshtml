@@ -1,5 +1,6 @@
 @using System.Globalization
 @using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 @using sReportsV2.DTOs.Patient.DataOut;
 @model PatientTableDataOut
 
@@ -12,7 +13,7 @@
 
 <div class="table-container border-0">
     <div class="header header-new">
-        @sReportsV2.Cache.Resources.TextLanguage.History_of_Oncological_Disease (@patientName@(Model.BirthDate != null ? ", " + Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : ""))
+        @sReportsV2.Cache.Resources.TextLanguage.History_of_Oncological_Disease (@patientName@(Model.BirthDate != null ? ", " + Model.BirthDate.Value.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : ""))
         <button class="btn btn-create float-right" onclick="newEntity()"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create</button>
     </div>
 

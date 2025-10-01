@@ -22,6 +22,8 @@ using sReportsV2.Domain.Sql.Entities.ProjectEntry;
 using sReportsV2.Domain.Sql.Entities.ApiRequest;
 using sReportsV2.Domain.Sql.Entities.PatientList;
 using Microsoft.EntityFrameworkCore;
+using sReportsV2.Domain.Sql.Entities.UploadPatientData;
+using sReportsV2.Domain.Sql.Entities.QueryManagement;
 
 namespace sReportsV2.DAL.Sql.Sql
 {
@@ -117,6 +119,9 @@ namespace sReportsV2.DAL.Sql.Sql
         public DbSet<PatientListPersonnelRelation> PatientListPersonnelRelations { get; set; }
         public DbSet<FormCodeRelation> FormCodeRelations { get; set; }
         public DbSet<PatientListPatientRelation> PatientListPatientRelations { get; set; }
+        public DbSet<UploadPatientData> UploadPatientData { get; set; }
+        public DbSet<Query> Queries { get; set; }
+        public DbSet<QueryHistory> QueryHistories { get; set; }
 
         #endregion /Tables
 
@@ -126,6 +131,7 @@ namespace sReportsV2.DAL.Sql.Sql
         public DbSet<PersonnelView> PersonnelViews { get; set; }
         public DbSet<EncounterView> EncounterViews { get; set; }
         public DbSet<ThesaurusEntryView> ThesaurusEntryViews { get; set; }
+        public DbSet<FormThesaurusReportView> FormThesaurusReportViews { get; set; }
 
         #endregion /Views
 
@@ -339,12 +345,27 @@ namespace sReportsV2.DAL.Sql.Sql
                .WithMany()
                .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Query>()
+                .HasOne(e => e.Status)
+                .WithMany()
+                .HasForeignKey(e => e.StatusCD)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Query>()
+                .HasOne(e => e.Reason)
+                .WithMany()
+                .HasForeignKey(e => e.ReasonCD)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            #endregion
+
+            #region Additional Configuration for Views
             modelBuilder.Entity<PersonnelPositionPermissionView>().ToView("PersonnelPositionPermissionViews");
             modelBuilder.Entity<EncounterView>().ToView("EncounterViews");
             modelBuilder.Entity<CodeAliasView>().ToView("CodeAliasViews");
             modelBuilder.Entity<PersonnelView>().ToView("PersonnelViews");
-
-            #endregion
+            modelBuilder.Entity<FormThesaurusReportView>().ToView("FormThesaurusReportViews");
+            #endregion Additional Configuration for Views
         }
     }
 }

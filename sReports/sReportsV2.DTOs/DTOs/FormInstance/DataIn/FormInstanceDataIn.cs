@@ -1,9 +1,6 @@
 ﻿using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
-using sReportsV2.DTOs.Field.DataIn;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 
 namespace sReportsV2.DTOs.FormInstance.DataIn
 {
@@ -29,5 +26,30 @@ namespace sReportsV2.DTOs.FormInstance.DataIn
         public int EpisodeOfCareId { get; set; } 
         #endregion
 
+        public string GetVersionId()
+        {
+            return string.IsNullOrWhiteSpace(this.EditVersionId) ? this.VersionId : this.EditVersionId;
+        }
+
+        public void UpdateCachedData(FormInstanceDataIn incoming)
+        {
+            this.Notes = incoming.Notes;
+            this.FormState = incoming.FormState;
+            this.Date = incoming.Date;
+            this.LastUpdate = incoming.LastUpdate;
+
+            foreach (FieldInstanceDTO incomingFieldInstance in incoming.FieldInstances)
+            {
+                FieldInstanceDTO existingFieldInstance = this.FieldInstances.SingleOrDefault(fI => fI.FieldInstanceRepetitionId == incomingFieldInstance.FieldInstanceRepetitionId);
+                if (existingFieldInstance != null)
+                {
+                    existingFieldInstance.UpdateCachedData(incomingFieldInstance);
+                }
+                else
+                {
+                    this.FieldInstances.Add(incomingFieldInstance);
+                }
+            }
+        }
     }
 }

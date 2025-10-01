@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Serilog;
 using sReportsV2.BusinessLayer.Interfaces;
 using sReportsV2.Cache.Singleton;
 using sReportsV2.Common.Constants;
@@ -14,8 +13,6 @@ using sReportsV2.DTOs.FormInstance.DataIn;
 using sReportsV2.DTOs.Patient;
 using sReportsV2.SqlDomain.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -28,54 +25,25 @@ namespace sReportsV2.Controllers
     public class DiagnosticReportCommonController : FormCommonController
     {
         private readonly IDiagnosticReportBLL diagnosticReportBLL;
-        private readonly IMapper Mapper;
 
-        public DiagnosticReportCommonController(IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL,
-            IEncounterDAL encounterDAL, 
-            IUserBLL userBLL, 
+        public DiagnosticReportCommonController(IUserBLL userBLL, 
             IOrganizationBLL organizationBLL, 
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL, 
             IFormBLL formBLL, 
-            IThesaurusDAL thesaurusDAL, 
             IDiagnosticReportBLL diagnosticReportBLL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL, 
             IMapper mapper, 
             IHttpContextAccessor httpContextAccessor, 
             IServiceProvider serviceProvider,
-            IConfiguration configuration) :
-            base(patientDAL, episodeOfCareDAL, encounterDAL, userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration) 
+            IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService) :
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService) 
         {
             this.diagnosticReportBLL = diagnosticReportBLL;
-            Mapper = mapper;
         }
 
-        protected EpisodeOfCareListFormsDataOut GetEpisodeOfCareListFormsDataOut(int episodeOfCareId, List<string> referrals, string encounterId)
-        {
-            EpisodeOfCareDataOut episodeOfCareDataOut = Mapper.Map<EpisodeOfCareDataOut>(episodeOfCareDAL.GetById(episodeOfCareId));
-
-            EpisodeOfCareListFormsDataOut episodeOfCareListFormsDataOut = new EpisodeOfCareListFormsDataOut()
-            {
-                EpisodeOfCare = episodeOfCareDataOut,
-                Forms = Mapper.Map<List<FormEpisodeOfCareDataOut>>(formDAL.GetAllByOrganizationAndLanguage(userCookieData.ActiveOrganization, userCookieData.ActiveLanguage)),
-                Patient = Mapper.Map<PatientDataOut>(patientDAL.GetById(episodeOfCareDataOut.PatientId)),
-                Referrals = referrals,
-                EncounterId = encounterId
-
-            };
-
-            return episodeOfCareListFormsDataOut;
-        }
-
-        protected List<Form> GetRefeerals(List<string> referrals)
-        {
-            List<FormInstance> formInstancesReferrals = referrals != null ? formInstanceDAL.GetByIds(referrals).ToList() : new List<FormInstance>();
-            return formBLL.GetFormsFromReferrals(formInstancesReferrals);
-        }
-
-        protected async Task<ActionResult> GetEditFormInstanceFromPatient(FormInstanceReloadDataIn reloadDataIn, string partialViewName)
+        protected async Task<ActionResult> GetEditFormInstanceFromPatient(FormInstanceReloadDataIn reloadDataIn, string partialViewName, bool formInstanceLoaded)
         {
             var diagnosticReportCreateFromPatientDataOut = await diagnosticReportBLL.GetReportAsync(reloadDataIn, userCookieData)
                .ConfigureAwait(false);
@@ -93,19 +61,20 @@ namespace sReportsV2.Controllers
             ViewBag.Action = GetSubmitActionEndpoint(EndpointConstants.Edit, diagnosticReportCreateFromPatientDataOut.Encounter.EpisodeOfCareId, diagnosticReportCreateFromPatientDataOut.Encounter.PatientId);
             SetReadOnlyAndDisabledViewBag(reloadDataIn.IsReadOnlyViewMode);
             SetPatientViewBags();
+            HttpContext.Session?.UpdateUserCookieDataInSession(formInstanceLoaded);
             return PartialView(partialViewName, diagnosticReportCreateFromPatientDataOut.CurrentForm);
         }
 
         protected async Task<ActionResult> CreateOrEditFromPatient(int episodeOfCareId, int patientId, FormInstanceDataIn formInstanceDataIn)
         {
             formInstanceDataIn = Ensure.IsNotNull(formInstanceDataIn, nameof(formInstanceDataIn));
-            Form form = formDAL.GetForm(formInstanceDataIn.FormDefinitionId);
+            Form form = formBLL.GetFormById(formInstanceDataIn.FormDefinitionId);
             if (form == null)
             {
                 return NotFound(TextLanguage.FormNotExists, formInstanceDataIn?.FormDefinitionId);
             }
             FormInstance formInstance = formInstanceBLL.GetFormInstanceSet(form, formInstanceDataIn, userCookieData);
-            formInstance.EncounterRef = GetEncounterFromRequestOrCreateDefault(episodeOfCareId, formInstanceDataIn.EncounterId);
+            formInstance.EncounterRef = formInstanceBLL.GetEncounterFromRequestOrCreateDefault(episodeOfCareId, formInstanceDataIn.EncounterId);
             formInstance.EpisodeOfCareRef = episodeOfCareId;
             formInstance.PatientId = patientId;
 

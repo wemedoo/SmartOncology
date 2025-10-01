@@ -1,0 +1,71 @@
+﻿@using sReportsV2.DTOs.DTOs.Prompt.DataOut
+@using sReportsV2.Common.Helpers
+
+@{
+    ViewBag.Title = "Prompt Configuration";
+}
+
+@model PromptDataOut
+
+@ScriptHelper.RenderStylesheet(Url.Content("/css/nestable.min.css"))
+
+
+@await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", sReportsV2.Cache.Resources.TextLanguage.ProjectsManagement }, { "linkLevel1", "/ProjectManagement/GetAll" }, { "level2", Model.ProjectName }, { "linkLevel2", "/ProjectManagement/Edit?projectId=" + Model.ProjectId }, { "level3", Model.Form.Id }, { "activeLevel", 3 } })
+
+<div class="prompt-main-title">
+    @Model.Form.Title
+</div>
+<div class="row">
+    <div class="prompt-title col-md-6">Edit Common Data Prompts</div>
+    <div class="col-md-6 prompts-actions">
+        <div>
+            <button id="updatePrompt" class="submit-patient m-0 @(!Model.LatestVersion ? "d-none" : "")">
+                <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.Update</span>
+            </button>
+        </div>
+        <div>
+            <button class="btn btn-secondary" id="previewPrompts">
+                @sReportsV2.Cache.Resources.TextLanguage.Preview Prompts
+            </button>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Version: <span id="prompt-current-version">@Model.Versions.Find(v => v.Id == Model.CurrentVersionId).GetVersion()</span>
+            </button>
+            <div class="dropdown-menu" id="version-dropdown">
+                @foreach (sReportsV2.DTOs.Common.DTO.VersionDTO version in Model.Versions)
+                {
+                    <a class="dropdown-item version-link @(version.Id == Model.CurrentVersionId ? "selected" : "")" href="#" data-version-id="@version.Id">@version.GetVersion()</a>
+                }
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-create @(string.IsNullOrEmpty(Model.CurrentVersionId) ? "d-none" : "")" id="addNewPromptVersion"><i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.Create New Version</button>
+        </div>
+    </div>
+</div>
+<div class="dd-main-container" id="formTreeContainer">
+    <div class="nestable-main-container">
+        <div id="formTreeNestable" class="form-tree-nestable prompt-tree">
+            @await Html.PartialAsync("~/Views/Form/DragAndDrop/FormTreeNestable.cshtml", Model.Form)
+        </div>
+    </div>
+    <div id="promptDisplayContainer" class="form-container">
+        
+    </div>
+</div>
+
+<div class="modal fade " id="promptPreviewModal" tabindex="-1" role="dialog" aria-labelledby="promptPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="float-right filter-close-btn">
+                <img alt="" class="close-modal" src="/css/img/icons/close_black.svg">
+            </div>
+            <div id="prompt-form-modal-body" class="modal-body pl-5 pr-5">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@Html.Raw(ScriptHelper.RenderBundle("js/prompt-bundle.min.js"))

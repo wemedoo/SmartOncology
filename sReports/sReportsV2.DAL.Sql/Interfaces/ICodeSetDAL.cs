@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace sReportsV2.SqlDomain.Interfaces
 {
-    public interface ICodeSetDAL
+    public interface ICodeSetDAL : IReplaceThesaurusDAL
     {
         void Insert(CodeSet codeSet);
         Task InsertAsync(CodeSet codeSet);
@@ -19,11 +19,9 @@ namespace sReportsV2.SqlDomain.Interfaces
         CodeSet GetById(int codeSetId);
         Task<CodeSet> GetByIdAsync(int codeSetId);
         int GetThesaurusId(int codeSetId);
-        bool ThesaurusExist(int thesaurusId);
         bool ExistCodeSet(int codeSetId);
         bool ExistCodeSetByPreferredTerm(string preferredTerm);
         int GetIdByThesaurusId(int thesaurusId);
-        int UpdateManyWithThesaurus(int oldThesaurus, int newThesaurus);
         int GetNextCodeSetId();
         IQueryable<CodeSet> GetAllByPreferredTerm(string preferredTerm);
         void Delete(int codeSetId);

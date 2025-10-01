@@ -27,11 +27,6 @@ namespace Chapters
         private readonly Form formJson;
         private List<FieldInstance> fieldInstances = new List<FieldInstance>();
 
-        public PdfFormParser(string jsonFormPath)
-        {
-            formJson = JsonConvert.DeserializeObject<Form>(File.ReadAllText(jsonFormPath));
-        }
-
         public PdfFormParser(Form form, PdfDocument document)
         {
             this.pdfDocument = document;
@@ -107,6 +102,7 @@ namespace Chapters
                 if (partsOfKey.Count() > 1)
                 {
                     (FieldSet fieldSet, int fieldSetPosition) = GetFieldSet(partsOfKey);
+                    fieldSet.FieldSetInstanceRepetitionId = fieldSet.FieldSetInstanceRepetitionId.GenerateGuidIfNotDefined();
                     Field field = fieldSet.Fields.Find(x => x.Id.Equals(partsOfKey[1]));
 
                     RemoveIfExist(fieldInstances, fieldSet.Id, fieldSetPosition, field?.Id);
@@ -131,6 +127,10 @@ namespace Chapters
         {
             string fieldSetId = partsOfKey[0];
             List<FieldSet> listFieldSet = formJson.GetListOfFieldSetsByFieldSetId(fieldSetId);
+
+            if (listFieldSet.Count == 1)
+                return (listFieldSet[0], 0);
+
             int fieldSetPosition = Int32.Parse(GetFieldSetPosition(partsOfKey));
             return (listFieldSet[fieldSetPosition], fieldSetPosition);
         }

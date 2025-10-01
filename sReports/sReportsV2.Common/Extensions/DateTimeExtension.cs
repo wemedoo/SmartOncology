@@ -2,81 +2,86 @@
 using sReportsV2.Common.Constants;
 using System;
 using System.Globalization;
+using System.Linq;
 
 namespace sReportsV2.Common.Extensions
 {
     public static class DateTimeExtension
     {
-        private static readonly string defaultTimezone = "Europe/London";
-        public static DateTime? ToTimeZonedDateTime(this DateTime? dateTime, string timeZone)
+        public static readonly string DefaultTimezone = "Europe/Zurich";
+
+        #region DateTime extensions
+        public static DateTime GetCurrentDateTime(string timeZone)
         {
-            if (dateTime.HasValue) 
-            {
-                return ToTimeZoned(dateTime.Value, timeZone);
-            } 
-            else
-            {
-                return null;
-            }
+            return DateTime.Now.ToTimeZoned(timeZone);
         }
 
         public static DateTime ToTimeZoned(this DateTime dateTime, string timeZone)
         {
-            TimeZoneInfo windowsTZ = TimeZoneInfo.FindSystemTimeZoneById(timeZone ?? defaultTimezone);
-            DateTime utc = dateTime.ToUniversalTime();
-            return TimeZoneInfo.ConvertTimeFromUtc(utc, windowsTZ);
+            return TimeZoneInfo.ConvertTime(dateTime, GetTimeZoneInfo(timeZone));
         }
 
+        public static string ToTimeZonedDateTime(this DateTime? dateTime, string timeZone, string dateFormat)
+        {
+            return dateTime.HasValue ? ToTimeZoned(dateTime.Value, timeZone, dateFormat) : string.Empty;
+        }
+
+        public static string ToTimeZoned(this DateTime dateTime, string timeZone, string dateFormat)
+        {
+            return ToTimeZoned(dateTime, timeZone).GetDateTimeDisplay(dateFormat);
+        }
+
+        public static string ToTimeZonedDatePart(this DateTime dateTime, string timeZone, string dateFormat)
+        {
+            return ToTimeZoned(dateTime, timeZone).GetDateTimeDisplay(dateFormat, excludeTimePart: true);
+        }
+
+        public static string GetTimePart(this DateTime date)
+        {
+            return date.ToString(DateTimeConstants.TimeFormat);
+        }
+
+        public static string GetTimePart(this DateTime? date)
+        {
+            return date.HasValue ? date.Value.GetTimePart() : string.Empty;
+        }
+
+        public static string GetDateTimeDisplay(this DateTime? date, string dateFormat, bool excludeTimePart = false, bool showSeconds = false)
+        {
+            return date.HasValue ? date.Value.GetDateTimeDisplay(dateFormat, excludeTimePart, showSeconds) : string.Empty;
+        }
+
+        public static string GetDateTimeDisplay(this DateTime date, string dateFormat, bool excludeTimePart = false, bool showSeconds = false)
+        {
+            string timePart = excludeTimePart ? string.Empty : $" {date.GetTimePart()}";
+            timePart = excludeTimePart || !showSeconds ? timePart : $"{timePart}:{date:ss.fff}";
+            return $"{date.ToString(dateFormat, CultureInfo.InvariantCulture)}{timePart}";
+        }
+
+        public static DateTime AppendDays(this DateTime date, int dayNumber)
+        {
+            return date.AddDays(GetDayOffset(dayNumber));
+        }
+
+        private static bool IsDateInUtcFormat(string datePart, out DateTime parsedDate)
+        {
+            return DateTime.TryParseExact(datePart, DateTimeConstants.UTCDatePartFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate);
+        }
+        #endregion /DateTime extensions
+
+        #region DateTimeOffset extensions
         public static string ToTimeZoned(this DateTimeOffset? dateTime, string dateFormat, string timezoneOffset = null, bool seconds = false, bool milliseconds = false)
         {
-            if (dateTime.HasValue)
-            {
-                return dateTime.Value.ToTimeZoned(dateFormat, timezoneOffset, seconds, milliseconds);
-            }
-            else 
-            {
-                return null;
-            }
-        }
-        
-        public static string ToTimeZonedTime(this DateTimeOffset? dateTime, string dateFormat)
-        {
-            if (dateTime.HasValue)
-            {
-                TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-                var localTime = dateTime.Value.ToUniversalTime().ToOffset(timeSpan);
-                var timePart = localTime.ToString("HH:mm");
-
-                return $"{timePart}";
-            }
-            else 
-            {
-                return null;
-            }
+            return dateTime.HasValue ? dateTime.Value.ToTimeZoned(dateFormat, timezoneOffset, seconds, milliseconds) : string.Empty;
         }
 
-        public static string ToTimeZonedDate(this DateTimeOffset? dateTime, string dateFormat)
+        public static string ToTimeZoned(this DateTimeOffset dateTime, string dateFormat, string customTimezoneId = null, bool seconds = false, bool milliseconds = false)
         {
-            if (dateTime.HasValue)
-            {
-                TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-                var localTime = dateTime.Value.ToUniversalTime().ToOffset(timeSpan);
-                var datePart = localTime.ToString(dateFormat, CultureInfo.InvariantCulture);
+            string timeZoneId = string.IsNullOrEmpty(customTimezoneId) ? GlobalConfig.GetTimeZoneId() : customTimezoneId;
+            DateTimeOffset localTime = dateTime.GetDateTimeByTimeZone(timeZoneId);
 
-                return $"{datePart}";
-            }
-            else 
-            {
-                return null;
-            }
-        }
-
-        public static string ToTimeZoned(this DateTimeOffset dateTime, string dateFormat, string timezoneOffset = null, bool seconds = false, bool milliseconds = false)
-        {
-            TimeSpan timeSpan = TimeSpan.Parse(GetTimezoneOffset(timezoneOffset));
-            var localTime = dateTime.ToUniversalTime().ToOffset(timeSpan);
-            var datePart = localTime.ToString(dateFormat, CultureInfo.InvariantCulture);
-            var timePart = localTime.ToString("HH:mm");
+            var datePart = localTime.ToDateZoned(dateFormat);
+            var timePart = localTime.GetTimePart();
 
             string dateTimeString = $"{datePart} {timePart}";
             if (seconds)
@@ -98,61 +103,97 @@ namespace sReportsV2.Common.Extensions
 
         public static string ToDateZoned(this DateTimeOffset? dateTime, string dateFormat)
         {
-            if (dateTime.HasValue)
-            {
-                TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-                var localTime = dateTime.Value.ToUniversalTime().ToOffset(timeSpan);
-                var datePart = localTime.ToString(dateFormat, CultureInfo.InvariantCulture);
-
-                return datePart;
-            }
-            else 
-            {
-                return null;
-            }
+            return dateTime.HasValue ? dateTime.Value.ToDateZoned(dateFormat) : string.Empty;
         }
 
-        public static DateTime AppendDays(this DateTime date, int dayNumber)
+        public static string GetTimePart(this DateTimeOffset? date)
         {
-            return date.AddDays(GetOffset(dayNumber));
+            return date.HasValue ? date.Value.GetTimePart() : string.Empty;
         }
 
-        private static int GetOffset(int dayNumber)
+        public static string GetTimePart(this DateTimeOffset date)
+        {
+            return date.ToString(DateTimeConstants.TimeFormat);
+        }
+
+        public static string ToActiveToDateTimeFormat(this DateTimeOffset dateTime, string dateFormat)
+        {
+            return dateTime.Date != DateTimeOffset.MaxValue.Date ? dateTime.ToTimeZoned(dateFormat) : string.Empty;
+        }
+
+        public static string ToActiveToDateFormat(this DateTimeOffset dateTime, string dateFormat)
+        {
+            return dateTime.Date != DateTimeOffset.MaxValue.Date ? dateTime.ToDateZoned(dateFormat) : string.Empty;
+        }
+
+        public static string ConvertFormInstanceDateTimeToOrganizationTimeZone(this DateTimeOffset date)
+        {
+            return date.GetDateTimeByTimeZone(GlobalConfig.GetTimeZoneId()).ToString(DateTimeConstants.UTCZonedFormat);
+        }
+
+        public static DateTimeOffset GetDateTimeByTimeZone(this DateTimeOffset dateTime, string timeZoneId)
+        {
+            return TimeZoneInfo.ConvertTime(dateTime, GetTimeZoneInfo(timeZoneId));
+        }
+
+        public static string GetDateTimeDisplay(this DateTimeOffset? date, string dateFormat)
+        {
+            return date.HasValue ? date.Value.GetDateTimeDisplay(dateFormat) : string.Empty;
+        }
+
+        public static string GetDateTimeDisplay(this DateTimeOffset date, string dateFormat)
+        {
+            var datePart = date.ToDateZoned(dateFormat);
+            var timePart = date.GetTimePart();
+
+            return $"{datePart} {timePart}";
+        }
+
+        public static DateTimeOffset? ConvertToOrganizationTimeZone(this DateTimeOffset? date)
+        {
+            return date.HasValue ? date.Value.ConvertToOrganizationTimeZone() : date;
+        }
+
+        public static DateTimeOffset ConvertToOrganizationTimeZone(this DateTimeOffset date, string organizationTimeZone = null)
+        {
+            return date.GetDateTimeByTimeZone(GlobalConfig.GetTimeZoneId(organizationTimeZone));
+        }
+
+        #endregion /DateTimeOffset extensions
+
+        #region Offset extensions
+        public static string GetOffsetValue(string customOrganizationTimeZoneId = null, bool showPlusForPositiveValues = true)
+        {
+            string timeZoneId = string.IsNullOrEmpty(customOrganizationTimeZoneId) ? GlobalConfig.GetTimeZoneId() : customOrganizationTimeZoneId;
+            return GetTimeZoneInfo(timeZoneId).GetUtcOffset(DateTime.UtcNow).GetOffsetValue(showPlusForPositiveValues);
+        }
+
+        private static string GetOffsetValue(this TimeSpan offset, bool showPlusForPositiveValues)
+        {
+            string sign = offset >= TimeSpan.Zero ? (showPlusForPositiveValues ? "+" : string.Empty) : "-";
+            return $"{sign}{offset:hh\\:mm}";
+        }
+
+        private static int GetDayOffset(int dayNumber)
         {
             int sign = dayNumber > 0 ? -1 : 0;
             return dayNumber + 1 * sign;
         }
 
-        public static string ToTimeZonedDateTime(this DateTime? dateTime, string timeZone, string dateFormat)
+        public static string GetTimeZoneInfoId(this string timeZoneDisplayName)
         {
-            return dateTime.HasValue ? ToTimeZoned(dateTime.Value, timeZone, dateFormat) : string.Empty;
+            TimeZoneInfo timeZone = TimeZoneInfo.GetSystemTimeZones().First(tz => tz.DisplayName == timeZoneDisplayName);
+
+            return timeZone.Id;
         }
 
-        public static string ToTimeZoned(this DateTime dateTime, string timeZone, string dateFormat)
+        public static TimeZoneInfo GetTimeZoneInfo(string timeZoneId)
         {
-            return ToTimeZoned(dateTime, timeZone).GetDateTimeDisplay(dateFormat);
+            return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId ?? DefaultTimezone);
         }
+        #endregion /Offset extensions
 
-        public static string ToTimeZonedDatePart(this DateTime dateTime, string timeZone, string dateFormat)
-        {
-            return ToTimeZoned(dateTime, timeZone).GetDateTimeDisplay(dateFormat, excludeTimePart: true);
-        }
-
-        public static string GetTimePart(this DateTime date)
-        {
-            string fullTimePart = date.ToString("s").Split('T')[1];
-            int secondsSeparatorIndex = fullTimePart.LastIndexOf(':');
-            return fullTimePart.Substring(0, secondsSeparatorIndex);
-        }
-
-        public static string GetTimePart(this DateTimeOffset date)
-        {
-            TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-            date.ToUniversalTime().ToOffset(timeSpan);
-            string fullTimePart = date.ToString("s").Split('T')[1];
-            int secondsSeparatorIndex = fullTimePart.LastIndexOf(':');
-            return fullTimePart.Substring(0, secondsSeparatorIndex);
-        }
+        #region DateTime(-offset) string extensions
 
         public static string RenderDate(this string dateTimeValue)
         {
@@ -162,10 +203,10 @@ namespace sReportsV2.Common.Extensions
                 string datePart = dateTimeParts[0];
                 datePart = HandleValueDuplication(datePart);
 
-                if(IsDateInUtcFormat(datePart, out DateTime parsedDate))
+                if (IsDateInUtcFormat(datePart, out DateTime parsedDate))
                 {
-                    return parsedDate.GetDateTimeDisplay(DateConstants.DateFormat, excludeTimePart: true);
-                } 
+                    return parsedDate.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true);
+                }
                 else
                 {
                     return datePart;
@@ -197,92 +238,25 @@ namespace sReportsV2.Common.Extensions
         {
             if (!string.IsNullOrWhiteSpace(dateTimeValue) && DateTimeOffset.TryParse(dateTimeValue, out DateTimeOffset parsedDate))
             {
-                return parsedDate.GetDateTimeDisplay(DateConstants.DateFormat);
+                return parsedDate.GetDateTimeDisplay(DateTimeConstants.DateFormat);
             }
             return "";
         }
 
-        public static string ConvertNullableDateForDisplay(this DateTime? dateTime, string dateFormat)
+        public static bool HasOffset(this string dateTimeString)
         {
-            return dateTime.HasValue ? dateTime.Value.ToString(dateFormat, CultureInfo.InvariantCulture) : string.Empty;
+            int tIndex = dateTimeString.IndexOf('T');
+            if (tIndex == -1) return false;
+
+            string timePart = dateTimeString.Substring(tIndex + 1);
+
+            return timePart.Contains("+") || timePart.Contains("-") || timePart.EndsWith('Z');
         }
 
         private static string HandleValueDuplication(string dateTimeValue)
         {
             return dateTimeValue.Contains(',') ? dateTimeValue.Split(',')[0] : dateTimeValue;
         }
-
-        public static string ToActiveToFormat(this DateTime dateTime, string dateFormat)
-        {
-            return dateTime.Date != DateTime.MaxValue.Date ? dateTime.ToString(dateFormat, CultureInfo.InvariantCulture) : string.Empty;
-        }
-
-        public static string ToActiveToDateTimeFormat(this DateTimeOffset dateTime, string dateFormat)
-        {
-            return dateTime.Date != DateTimeOffset.MaxValue.Date ? dateTime.ToTimeZoned(dateFormat) : string.Empty;
-        }
-
-        public static string ToActiveToDateFormat(this DateTimeOffset dateTime, string dateFormat)
-        {
-            return dateTime.Date != DateTimeOffset.MaxValue.Date ? dateTime.ToDateZoned(dateFormat) : string.Empty;
-        }
-
-        public static string GetDateTimeDisplay(this DateTime date, string dateFormat, bool excludeTimePart = false)
-        {
-            string timePart = excludeTimePart ? string.Empty : $" {date.GetTimePart()}";
-            return $"{date.ToString(dateFormat, CultureInfo.InvariantCulture)}{timePart}";
-        }
-
-        public static string GetDateTimeDisplay(this DateTimeOffset date, string dateFormat)
-        {
-            TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-            date.ToUniversalTime().ToOffset(timeSpan);
-            var datePart = date.ToString(dateFormat, CultureInfo.InvariantCulture);
-            var timePart = date.ToString("HH:mm");
-
-            return $"{datePart} {timePart}";
-        }
-
-        public static DateTimeOffset? ConvertToOrganizationTimeZone(this DateTimeOffset? date)
-        {
-            if (date.HasValue) 
-            {
-                TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-                return date.Value.ToUniversalTime().ToOffset(timeSpan);
-            }
-
-            return date;
-        }
-
-        public static DateTimeOffset ConvertToOrganizationTimeZone(this DateTimeOffset date, string organizationTimeZone = null)
-        {
-            TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset(organizationTimeZone: organizationTimeZone));
-            return date.ToUniversalTime().ToOffset(timeSpan);
-        }
-
-        public static string ConvertFormInstanceDateTimeToOrganizationTimeZone(this DateTimeOffset date)
-        {
-            TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
-            return date.ToOffset(timeSpan).ToString("yyyy-MM-ddTHH:mmzzz");
-        }
-
-        private static bool IsDateInUtcFormat(string datePart, out DateTime parsedDate)
-        {
-            return DateTime.TryParseExact(datePart, DateConstants.UTCDatePartFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate);
-        }
-
-        private static string GetTimezoneOffset(string timezoneOffset)
-        {
-            if (timezoneOffset == null)
-            {
-                timezoneOffset = GlobalConfig.GetUserOffset();
-            }
-            else
-            {
-                timezoneOffset = timezoneOffset.StartsWith('+') ? timezoneOffset.Substring(1) : timezoneOffset;
-            }
-
-            return timezoneOffset;
-        }
+        #endregion /DateTime(-offset) string extensions
     }
 }

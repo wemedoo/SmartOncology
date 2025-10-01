@@ -23,7 +23,7 @@
 }
 
 <input type="hidden" id="consensusId" value="@(consensus != null ? consensus.Id : string.Empty)">
-<input type="hidden" id="iterationId" value="@(consensus != null ? iteration.Id.ToString() : string.Empty)">
+<input type="hidden" id="iterationId" value="@(consensus != null ? iteration.Id : string.Empty)">
 @if (iterationState != IterationState.Terminated)
 {
     <div class="consensus-tree">

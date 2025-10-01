@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using sReportsV2.Common.Helpers;
 using Microsoft.EntityFrameworkCore;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 
 namespace sReportsV2.SqlDomain.Implementations
 {
@@ -29,27 +30,12 @@ namespace sReportsV2.SqlDomain.Implementations
             }
         }
 
-        public async Task<List<EpisodeOfCare>> GetAllAsync(EpisodeOfCareFilter filter)
-        {
-            return await GetFiltered(filter)
-                 .OrderByDescending(x => x.EntryDatetime)
-                 .Skip((filter.Page - 1) * filter.PageSize)
-                 .Take(filter.PageSize)
-                 .ToListAsync();
-        }
-
-        public async Task<long> GetAllEntriesCountAsync(EpisodeOfCareFilter filter)
-        {
-            return await GetFiltered(filter).CountAsync();
-        }
-
         public EpisodeOfCare GetById(int id)
         {
             return context.EpisodeOfCares
                 .Include(x => x.Patient)
                 .Include(x => x.Encounters)
                     .ThenInclude(x => x.Tasks)
-                .Include(x => x.WorkflowHistory)
                 .Include(x => x.PersonnelTeam)
                 .WhereEntriesAreActive()
                 .FirstOrDefault(x => x.EpisodeOfCareId == id);
@@ -61,8 +47,9 @@ namespace sReportsV2.SqlDomain.Implementations
                 .Include(x => x.Patient)
                 .Include(x => x.Encounters)
                     .ThenInclude(x => x.Tasks)
-                .Include(x => x.WorkflowHistory)
                 .Include(x => x.PersonnelTeam)
+                .Include(x => x.DiagnosisCondition)
+                .Include(x => x.DiagnosisCondition.Translations)
                 .WhereEntriesAreActive()
                 .FirstOrDefaultAsync(x => x.EpisodeOfCareId == id).ConfigureAwait(false);
         }
@@ -79,14 +66,12 @@ namespace sReportsV2.SqlDomain.Implementations
         {
             if (entity.EpisodeOfCareId == 0)
             {
-                entity.SetWorkflow(user);
                 context.EpisodeOfCares.Add(entity);
             }
             else 
             {
                 EpisodeOfCare episodeOfCare = this.GetById(entity.EpisodeOfCareId);
                 episodeOfCare.Copy(entity);
-                episodeOfCare.SetWorkflow(user);
             }
 
             context.SaveChanges();
@@ -98,14 +83,12 @@ namespace sReportsV2.SqlDomain.Implementations
         {
             if (entity.EpisodeOfCareId == 0)
             {
-                entity.SetWorkflow(user);
                 context.EpisodeOfCares.Add(entity);
             }
             else
             {
                 EpisodeOfCare episodeOfCare = await this.GetByIdAsync(entity.EpisodeOfCareId);
                 episodeOfCare.Copy(entity);
-                episodeOfCare.SetWorkflow(user);
                 episodeOfCare.SetLastUpdate();
             }
 
@@ -116,57 +99,22 @@ namespace sReportsV2.SqlDomain.Implementations
 
         public bool ThesaurusExist(int thesaurusId)
         {
-            return context.EpisodeOfCares.Any(x => x.TypeCD == thesaurusId || x.DiagnosisRole == thesaurusId);
+            return context.EpisodeOfCares.Any(x => x.DiagnosisConditionId == thesaurusId);
         }
 
-        public void UpdateManyWithThesaurus(int oldThesaurus, int newThesaurus)
+        public int ReplaceThesaurus(ThesaurusMerge thesaurusMerge, UserData userData = null)
         {
-            List<EpisodeOfCare> episodes = context.EpisodeOfCares.Where(x => x.DiagnosisRole == oldThesaurus).ToList();
+            int i = 0;
+            List<EpisodeOfCare> episodes = context.EpisodeOfCares.Where(x => x.DiagnosisConditionId == thesaurusMerge.OldThesaurus).ToList();
             foreach (EpisodeOfCare eoc in episodes)
             {
-                eoc.ReplaceThesauruses(oldThesaurus, newThesaurus);
+                eoc.ReplaceThesauruses(thesaurusMerge);
+                i++;
             }
 
             context.SaveChanges();
-        }
 
-        private IQueryable<EpisodeOfCare> GetFiltered(EpisodeOfCareFilter filter)
-        {
-            IQueryable<EpisodeOfCare> filteredData = context.EpisodeOfCares
-                .Include(x => x.WorkflowHistory)
-                .WhereEntriesAreActive();
-            if (!string.IsNullOrEmpty(filter.Description))
-            {
-                filteredData = filteredData.Where(x => x.Description.Contains(filter.Description));
-            }
-
-            if (filter.PeriodStartDate != null)
-            {
-                DateTime beginStartDate = filter.PeriodStartDate ?? DateTime.Now;
-                DateTime endStartDate = beginStartDate.AddDays(1);
-                filteredData = filteredData.Where(x => x.Period.Start >= beginStartDate && x.Period.Start < endStartDate);
-            }
-
-            if (filter.PeriodEndDate != null)
-            {
-                DateTime beginEndDate = filter.PeriodEndDate ?? DateTime.Now;
-                DateTime endEndDate = beginEndDate.AddDays(1);
-                filteredData = filteredData.Where(x => x.Period.End >= beginEndDate && x.Period.End < endEndDate);
-            }
-
-            if (filter.TypeCD != 0)
-            {
-                filteredData = filteredData.Where(x => x.TypeCD.Equals(filter.TypeCD));
-            }
-
-            if (filter.FilterByIdentifier)
-            {
-                filteredData = filteredData.Where(x => x.PatientId.Equals(filter.PatientId));
-            }
-
-            filteredData = filteredData.Where(x => x.OrganizationId == filter.OrganizationId);
-
-            return filteredData;
+            return i;
         }
 
         public async Task<List<EpisodeOfCare>> GetByPatientIdFilteredAsync(EpisodeOfCareFilter filter)

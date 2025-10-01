@@ -32,13 +32,9 @@ function clearNoResultContent() {
 }
 
 function reloadTrialDocumentsTable() {
+    let requestObject = applyActionsBeforeServerReloadSimple(true, false, undefined, "TrialDocumentsTable");
 
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject("#TrialDocumentsTable");
-    setFilterTagsFromObj(requestObject, "TrialDocumentsTable");
     hideTrialIdFilterTag();
-
-    setTableProperties(requestObject);
     addPropertyToObject(requestObject, 'IsReadOnly', $("#isReadOnly").val());
 
     callServer({
@@ -91,11 +87,10 @@ $(document).on('hidden.bs.modal', '#AddTrialDocumentsModal', function (event) {
 function viewDocumentation(event, formId, versionId, thesaurusId, showUserProjects) {
     event.stopPropagation();
     event.preventDefault();
-    if (showUserProjects != "")
+    if (showUserProjects)
         window.open(`/FormInstance/GetAllByUserProject?VersionId=${versionId}&FormId=${formId}&ThesaurusId=${thesaurusId}&ProjectId=${$('#projectId').val()}`, "newTab");
     else
         window.open(`/FormInstance/GetAllByProject?VersionId=${versionId}&FormId=${formId}&ThesaurusId=${thesaurusId}&ProjectId=${$('#projectId').val()}`, "newTab");
-
 }
 
 function removeDocumentation(event, formId) {
@@ -118,4 +113,10 @@ function removeDocumentation(event, formId) {
             handleResponseError(xhr);
         }
     });
+}
+
+function editPrompt(event, formId, projectId) {
+    event.stopPropagation();
+    event.preventDefault();
+    window.location.href = `/PromptConfiguration/ConfigurePrompts?formId=${formId}&projectId=${projectId}`;
 }

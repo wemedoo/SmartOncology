@@ -8,7 +8,6 @@ namespace sReportsV2.Domain.Entities.FieldEntity
     public class FieldRadio : FieldSelectable
     {
         public override string Type { get; set; } = FieldTypes.Radio;
-        public override bool IsDistributiveField() => true;
 
         public override string GetDistributiveSelectedOptionId(string distibutedValue)
         {

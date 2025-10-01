@@ -34,6 +34,11 @@ function scrollToElement(element, duration, additionalOffset) {
     }
 }
 
+$('.collapse').on('shown.bs.collapse', function (e) {
+    e.preventDefault();
+    scrollToElement(this, 1000, 50);
+});
+
 function getScrollOffset() {
     let offset = 70;
     if ($(window).width() <= 768) {

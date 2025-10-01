@@ -1,0 +1,101 @@
+﻿@using System.Globalization
+@using sReportsV2.Common.Extensions;
+@using sReportsV2.Common.Constants;
+@using sReportsV2.Common.Helpers
+@using sReportsV2.DTOs.DTOs.UploadPatientData.DataIn;
+
+@{
+    UploadPatientFilterDataIn filter = ViewBag.FilterData as UploadPatientFilterDataIn;
+    string timeFrom = filter != null ? filter.DateTimeFrom.GetTimePart() : "";
+    string timeTo = filter != null ? filter.DateTimeTo.GetTimePart() : "";
+    string dateFrom = filter != null ? filter.DateTimeFrom.ToDateZoned(ViewBag.DateFormat as string) : "";
+    string dateTo = filter != null ? filter.DateTimeTo.ToDateZoned(ViewBag.DateFormat as string) : "";
+}
+
+<div class="d-flex">
+    <div class="d-flex main-filter mb-2">
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Given
+            </div>
+            <input type="text" class="filter-input" id="nameGiven">
+        </div>
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.Family
+            </div>
+            <input type="text" class="filter-input" id="nameFamily">
+        </div>
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.From
+            </div>
+            <div class="filter-date-time datetime-picker-container">
+                <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                    @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                   {
+                       InputAttributes = new Dictionary<object, object> {
+                        { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
+                        { "value", dateFrom },
+                        { "id", "dateFrom"},
+                        { "name", "dateFrom"}
+                        }
+                   })
+                    <input id="dateTimeFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.DateTimeFrom != null ? filter.DateTimeFrom.Value.ToString("s") : "")" />
+                    <div class="img-wrapper">
+                        <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
+                    </div>
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+               {
+                   InputAttributes = new Dictionary<object, object> {
+                    { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                    { "value", timeFrom },
+                    { "id", "timeFrom"},
+                    { "name", "timeFrom"}
+                    }
+               })
+            </div>
+        </div>
+        <div class="filter-item advanced-filter-item margin-right-10 advanced-max-width">
+            <div class="label filter-label">
+                @sReportsV2.Cache.Resources.TextLanguage.To_
+            </div>
+            <div class="filter-date-time datetime-picker-container">
+                <div class="date-wrapper input-border mr-auto w-60 d-flex">
+                    @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
+                   {
+                       InputAttributes = new Dictionary<object, object> {
+                        { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
+                        { "value", dateTo },
+                        { "id", "dateTo"},
+                        { "name", "dateTo"}
+                        }
+                   })
+                    <input id="dateTimeTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.DateTimeTo != null ? filter.DateTimeTo.Value.ToString("s") : "")" />
+                    <div class="img-wrapper">
+                        <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
+                    </div>
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+               {
+                   InputAttributes = new Dictionary<object, object> {
+                    { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                    { "value", timeTo },
+                    { "id", "timeTo"},
+                    { "name", "timeTo"}
+                    }
+               })
+            </div>
+        </div>        
+        <div class="filter-item border-0 margin-top-15" style="margin-right:10px;">
+            <div class="button-wrapper-filter button-filter" id="submitFilterButton">
+                <button class="btn btn-filter-primary w-100 h-100 float-right" onclick="mainFilter()">  @sReportsV2.Cache.Resources.TextLanguage.Filter</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="filterElements" class="d-flex">
+
+</div>

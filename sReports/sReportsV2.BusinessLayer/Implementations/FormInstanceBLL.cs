@@ -8,7 +8,6 @@ using sReportsV2.Common.Extensions;
 using sReportsV2.Common.File;
 using sReportsV2.Common.File.Implementations;
 using sReportsV2.Common.File.Interfaces;
-using sReportsV2.Common.Helpers;
 using sReportsV2.DAL.Sql.Interfaces;
 using sReportsV2.Domain.Entities.FieldEntity;
 using sReportsV2.Domain.Entities.Form;
@@ -47,6 +46,17 @@ using sReportsV2.Cache.Singleton;
 using Microsoft.Extensions.Configuration;
 using sReportsV2.DAL.Sql.Sql;
 using sReportsV2.Domain.Sql.Entities.Common;
+using sReportsV2.DTOs.DTOs.FormInstanceChart.DataOut;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
+using sReportsV2.Common.Entities.User;
+using sReportsV2.DTOs.CTCAE.DataIn;
+using sReportsV2.Domain.Sql.Entities.Patient;
+using sReportsV2.DTOs.Encounter;
+using sReportsV2.DTOs.EpisodeOfCare;
+using sReportsV2.Domain.Sql.Entities.EpisodeOfCare;
+using sReportsV2.Domain.Sql.Entities.Encounter;
+using Chapters;
+using sReportsV2.Domain.Sql.Entities.QueryManagement;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -61,16 +71,38 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IFieldInstanceHistoryDAL fieldInstanceHistoryDAL;
         private readonly IEmailSender emailSender;
         private readonly IEncounterDAL encounterDAL;
+        private readonly IEpisodeOfCareDAL episodeOfCareDAL;
         private readonly IPdfBLL pdfBLL;
         private readonly IFormCodeRelationDAL formCodeRelationDAL;
         private readonly IAsyncRunner asyncRunner;
         private readonly IProjectManagementDAL projectManagementDAL;
         private readonly ICodeAssociationDAL codeAssociationDAL;
-        private readonly IMapper Mapper;
+        private readonly IQueryManagementDAL queryManagementDAL;
+        private readonly ICodeDAL codeDAL;
+        private readonly IMapper mapper;
         private readonly IConfiguration configuration;
+        private readonly ISkosConnector skosConnector;
         private readonly SReportsContext dbContext;
 
-        public FormInstanceBLL(IPersonnelDAL userDAL, IFormInstanceDAL formInstanceDAL, IPatientDAL patientDAL, IFormDAL formDAL, IFieldInstanceHistoryDAL fieldInstanceHistoryDAL, IEmailSender emailSender, IOrganizationDAL organizationDAL, IThesaurusDAL thesaurusDAL, IEncounterDAL encounterDAL, IPdfBLL pdfBLL, IFormCodeRelationDAL formCodeRelationDAL, IAsyncRunner asyncRunner, IProjectManagementDAL projectManagementDAL, ICodeAssociationDAL codeAssociationDAL, IMapper mapper, IConfiguration configuration, SReportsContext dbContext)
+
+        public FormInstanceBLL(IPersonnelDAL userDAL,
+            IFormInstanceDAL formInstanceDAL,
+            IPatientDAL patientDAL,
+            IFormDAL formDAL,
+            IFieldInstanceHistoryDAL fieldInstanceHistoryDAL,
+            IEmailSender emailSender,
+            IOrganizationDAL organizationDAL,
+            IThesaurusDAL thesaurusDAL,
+            IEncounterDAL encounterDAL,
+            IPdfBLL pdfBLL,
+            IFormCodeRelationDAL formCodeRelationDAL,
+            IAsyncRunner asyncRunner,
+            IProjectManagementDAL projectManagementDAL,
+            ICodeAssociationDAL codeAssociationDAL,
+            IEpisodeOfCareDAL episodeOfCareDAL,
+            IQueryManagementDAL queryManagementDAL,
+            ICodeDAL codeDAL,
+            IMapper mapper, IConfiguration configuration, SReportsContext dbContext, ISkosConnector skosConnector)
         {
             this.userDAL = userDAL;
             this.patientDAL = patientDAL;
@@ -81,21 +113,25 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.organizationDAL = organizationDAL;
             this.thesaurusDAL = thesaurusDAL;
             this.encounterDAL = encounterDAL;
+            this.episodeOfCareDAL = episodeOfCareDAL;
             this.pdfBLL = pdfBLL;
             this.formCodeRelationDAL = formCodeRelationDAL;
             this.asyncRunner = asyncRunner;
             this.projectManagementDAL = projectManagementDAL;
             this.codeAssociationDAL = codeAssociationDAL;
-            Mapper = mapper;
+            this.queryManagementDAL = queryManagementDAL;
+            this.codeDAL = codeDAL;
+            this.mapper = mapper;
             this.configuration = configuration;
             this.dbContext = dbContext;
+            this.skosConnector = skosConnector;
         }
 
         #region Basic actions
 
-        public async Task<PaginationDataOut<FormInstanceTableDataOut, FormInstanceFilterDataIn>> ReloadData(FormInstanceFilterDataIn dataIn, List<EnumDTO> languages, UserCookieData userCookieData)
+        public async Task<PaginationDataOut<FormInstanceTableDataOut, FormInstanceFilterDataIn>> ReloadData(FormInstanceFilterDataIn dataIn, UserCookieData userCookieData)
         {
-            (FormInstanceFilterData filterData, List<Field> customHeaderFields) = PrepareFormInstanceFilter(dataIn, languages, userCookieData);
+            (FormInstanceFilterData filterData, List<Field> customHeaderFields) = PrepareFormInstanceFilter(dataIn, userCookieData);
             PaginationData<FormInstancePreview> filteredInstances = await formInstanceDAL.GetFormInstancesFilteredAsync(filterData);
             return new PaginationDataOut<FormInstanceTableDataOut, FormInstanceFilterDataIn>()
             {
@@ -111,12 +147,24 @@ namespace sReportsV2.BusinessLayer.Implementations
             string formInstanceId = await formInstanceDAL.InsertOrUpdateAsync(formInstance, formInstanceStatus).ConfigureAwait(false);
             if (isUpdate)
             {
-                await InsertOrUpdateManyFieldHistoriesAsync(formInstance).ConfigureAwait(false); // needs to wait for InsrrtOrUpdate to finish
+                await InsertOrUpdateManyFieldHistoriesAsync(formInstance).ConfigureAwait(false);
+                await InsertQueriesAsync(formInstance).ConfigureAwait(false);
             }
-           
+
             ExecuteAdditionalFormInstanceTriggersAfterSave(formInstance, userCookieData);
 
             return formInstanceId;
+        }
+
+        public void InsertListOfFormInstances(List<FormInstance> formInstances)
+        {
+            int skip = 0;
+            int take = 50;
+            while (skip < formInstances.Count)
+            {
+                formInstanceDAL.InsertMany(formInstances.Skip(skip).Take(take).ToList());
+                skip += take;
+            }
         }
 
         public FormInstance GetById(string id)
@@ -150,20 +198,20 @@ namespace sReportsV2.BusinessLayer.Implementations
             formInstanceDAL.Delete(formInstanceId, lastUpdate);
         }
 
+        public int CountByDefinition(string id)
+        {
+            return formInstanceDAL.CountByDefinition(id);
+        }
+
         public async Task DeleteAsync(string formInstanceId, DateTime lastUpdate, int userId)
         {
             await formInstanceDAL.DeleteAsync(formInstanceId, lastUpdate);
             await UpdateManyFieldHistoriesOnDeleteAsync(formInstanceId, userId);
         }
 
-        public List<FormInstanceDataOut> GetByEpisodeOfCareId(int episodeOfCareId, int organizationId)
+        public List<AutocompleteOptionDataOut> SearchByTitle(int episodeOfCareId, string title, UserCookieData userCookieData)
         {
-            return Mapper.Map<List<FormInstanceDataOut>>(formInstanceDAL.GetByEpisodeOfCareId(episodeOfCareId, organizationId));
-        }
-
-        public List<FormInstanceDataOut> SearchByTitle(int episodeOfCareId, string title)
-        {
-            return Mapper.Map<List<FormInstanceDataOut>>(formInstanceDAL.SearchByTitle(episodeOfCareId, title));
+            return formInstanceDAL.SearchByTitle(episodeOfCareId, title).Select(x => new AutocompleteOptionDataOut(x, userCookieData)).ToList();
         }
 
         public void LockUnlockFormInstance(FormInstanceLockUnlockRequest formInstanceSign, UserCookieData userCookieData)
@@ -208,20 +256,21 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public FormInstanceMetadataDataOut GetFormInstanceKeyDataFirst(int createdById)
         {
-            return Mapper.Map<FormInstanceMetadataDataOut>(formInstanceDAL.GetFormInstanceKeyDataFirst(createdById));
+            return mapper.Map<FormInstanceMetadataDataOut>(formInstanceDAL.GetFormInstanceKeyDataFirst(createdById));
         }
 
-        public void LockUnlockChapterOrPage(FormInstancePartialLock formInstancePartialLock, UserCookieData userCookieData)
+        public void LockUnlockChapterOrPageOrFieldSet(FormInstancePartialLock formInstancePartialLock, UserCookieData userCookieData)
         {
-            formInstanceDAL.LockUnlockChapterOrPage(formInstancePartialLock);
+            formInstanceDAL.LockUnlockChapterOrPageOrFieldSet(formInstancePartialLock);
             ExecuteAdditionalFormInstanceTriggersAfterLock(new LockActionToOomniaApiDTO
-            {
-                IsLocked = formInstancePartialLock.IsLockAction(),
-                FormInstanceId = formInstancePartialLock.FormInstanceId,
-                ChapterId = formInstancePartialLock.ChapterId,
-                PageId = formInstancePartialLock.PageId
-            }
-            , userCookieData
+                {
+                    IsLocked = formInstancePartialLock.IsLockAction(),
+                    FormInstanceId = formInstancePartialLock.FormInstanceId,
+                    ChapterId = formInstancePartialLock.ChapterId,
+                    PageId = formInstancePartialLock.PageId,
+                    FieldSetInstanceRepetitionId = formInstancePartialLock.FieldSetInstanceRepetitionId
+                }
+                , userCookieData
             );
         }
 
@@ -238,7 +287,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                     }).ToList();
 
                 formInstance.FieldsToDisplay = fields;
-                return Mapper.Map<FormInstanceTableDataOut>(formInstance);
+                return mapper.Map<FormInstanceTableDataOut>(formInstance);
             }).ToList();
 
             return PopulateUsersAndPatients(formInstances, filterData);
@@ -254,10 +303,10 @@ namespace sReportsV2.BusinessLayer.Implementations
                 );
 
             List<int> patientIds = formInstances.Select(x => x.PatientId).ToList();
-            List<PatientTableDataOut> patients = Mapper.Map<List<PatientTableDataOut>>(patientDAL.GetAllByIds(patientIds));
+            List<PatientTableDataOut> patients = mapper.Map<List<PatientTableDataOut>>(patientDAL.GetAllByIds(patientIds));
 
             List<int?> projectIds = formInstances.Select(x => x.ProjectId).ToList();
-            List<ProjectTableDataOut> projects = Mapper.Map< List<ProjectTableDataOut>>(projectManagementDAL.GetAllByIds(projectIds));
+            List<ProjectTableDataOut> projects = mapper.Map< List<ProjectTableDataOut>>(projectManagementDAL.GetAllByIds(projectIds));
 
             var orderedFormInstances = GetOrderedFormInstances(formInstances, filterData, users, patients, projects);
 
@@ -283,15 +332,15 @@ namespace sReportsV2.BusinessLayer.Implementations
                 {
                     case AttributeNames.User:
                         return OrderFormInstancesByUser(formInstances, filterData, users)
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                     case AttributeNames.Patient:
                         return OrderFormInstancesByPatient(formInstances, filterData, patients)
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                     case AttributeNames.ProjectName:
                         return OrderFormInstancesByProject(formInstances, filterData, projects)
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                     default:
                         return formInstances;
@@ -332,17 +381,41 @@ namespace sReportsV2.BusinessLayer.Implementations
             return formDAL.GetForm(formId)?.GetFieldsByCustomHeader();
         }
 
-        private (FormInstanceFilterData, List<Field>) PrepareFormInstanceFilter(FormInstanceFilterDataIn dataIn, List<EnumDTO> languages, UserCookieData userCookieData)
+        private (FormInstanceFilterData, List<Field>) PrepareFormInstanceFilter(FormInstanceFilterDataIn dataIn, UserCookieData userCookieData)
         {
             List<Field> customHeaderFields = GetCustomHeaderFields(dataIn.FormId);
-            dataIn.CustomHeaderFields = Mapper.Map<List<FieldDataIn>>(customHeaderFields);
-            FormInstanceFilterData filterData = Mapper.Map<FormInstanceFilterData>(dataIn);
-            filterData.Languages = languages.ToDictionary(x => x.Value, x => x.Label);
+            dataIn.CustomHeaderFields = mapper.Map<List<FieldDataIn>>(customHeaderFields);
+            FormInstanceFilterData filterData = mapper.Map<FormInstanceFilterData>(dataIn);
+            filterData.Languages = SingletonDataContainer.Instance.GetLanguages().ToDictionary(x => x.Value, x => x.Label);
             var nullFlavors = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.NullFlavor);
             filterData.SpecialValues = nullFlavors.ToDictionary(x => x.Id.ToString(), x => x.Thesaurus.GetPreferredTermByTranslationOrDefault(userCookieData.ActiveLanguage));
             filterData.PersonnelProjectsIds = projectManagementDAL.GetAllProjectsIdsFor(userCookieData.Id);
 
             return (filterData, customHeaderFields);
+        }
+
+        private async Task InsertQueriesAsync(FormInstance formInstance)
+        {
+            foreach (var field in formInstance.FieldInstances)
+            {
+                foreach (var fieldValue in field.FieldInstanceValues) 
+                {
+                    if (fieldValue.ValidationError != null)
+                    {
+                        var query = new Query
+                        {
+                            FieldId = fieldValue.ValidationError.FieldId,
+                            FormInstanceId = formInstance.Id,
+                            Title = fieldValue.ValidationError.Title,
+                            Description = fieldValue.ValidationError.Description,
+                            ReasonCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.QueryReason, CodeAttributeNames.DataValidation),
+                            StatusCD = codeDAL.GetByCodeSetIdAndPreferredTerm((int)CodeSetList.QueryStatus, CodeAttributeNames.New)
+                        };
+
+                        await queryManagementDAL.Create(query).ConfigureAwait(false);
+                    }
+                }
+            }
         }
 
         #endregion /Basic actions
@@ -355,6 +428,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             string notes = formInstanceDataIn?.Notes ?? string.Empty;
             string date = formInstanceDataIn?.Date ?? string.Empty;
             string formState = formInstanceDataIn?.FormState;
+
             FormInstance parsedFormInstanceFromInput = new FormInstance(form)
             {
                 UserId = (userCookieData?.Id).GetValueOrDefault(),
@@ -363,20 +437,13 @@ namespace sReportsV2.BusinessLayer.Implementations
                 EpisodeOfCareRef = formInstanceFromDatabase != null ? formInstanceFromDatabase.EpisodeOfCareRef : formInstanceDataIn != null ? formInstanceDataIn.EpisodeOfCareId : 0,
                 EncounterRef = formInstanceFromDatabase != null ? formInstanceFromDatabase.EncounterRef : formInstanceDataIn != null ? formInstanceDataIn.EncounterId : 0,
                 Notes = notes,
-                Date = string.IsNullOrWhiteSpace(date) ? DateTime.Now : DateTime.ParseExact(date, DateConstants.DateFormat, CultureInfo.InvariantCulture).ToLocalTime(),
+                Date = string.IsNullOrWhiteSpace(date) ? DateTime.Now : DateTime.ParseExact(date, DateTimeConstants.DateFormat, CultureInfo.InvariantCulture).ToLocalTime(),
                 FormState = string.IsNullOrWhiteSpace(formState) ? FormState.OnGoing : (FormState)Enum.Parse(typeof(FormState), formState),
                 Id = formInstanceDataIn?.FormInstanceId,
                 Referrals = formInstanceDataIn?.Referrals ?? new List<string>(),
                 ProjectId = formInstanceFromDatabase != null ? formInstanceFromDatabase.ProjectId : formInstanceDataIn?.ProjectId
             };
-            if (string.IsNullOrWhiteSpace(formInstanceDataIn?.LastUpdate))
-            {
-                parsedFormInstanceFromInput.SetLastUpdate();
-            }
-            else
-            {
-                parsedFormInstanceFromInput.LastUpdate = Convert.ToDateTime(formInstanceDataIn.LastUpdate);
-            }
+            parsedFormInstanceFromInput.ParseOrAddLastUpdate(formInstanceDataIn?.LastUpdate);
 
             if (setFieldsFromRequest)
             {
@@ -399,7 +466,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                     List<FieldInstanceValue> fieldInstanceValues = new List<FieldInstanceValue>();
                     foreach (var fieldDataIn in groupedByField)
                     {
-                        fieldInstanceValues.Add(new FieldInstanceValue(fieldDataIn.GetCleanedValue(), fieldDataIn.FlatValueLabel, fieldDataIn.FieldInstanceRepetitionId, fieldDataIn.IsSpecialValue));
+                        fieldInstanceValues.Add(new FieldInstanceValue(fieldDataIn.GetCleanedValue(), fieldDataIn.FlatValueLabel, fieldDataIn.FieldInstanceRepetitionId, fieldDataIn.IsSpecialValue, fieldDataIn.ConnectedFieldInstanceRepetitionId, fieldDataIn.ValidationError));
                     }
 
                     fieldValues.Add(new FieldInstance()
@@ -409,7 +476,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                         Type = groupedByField.FirstOrDefault()?.Type,
                         FieldId = groupedByField.Key,
                         FieldSetId = groupedByFieldSet.Key.FieldSetId,
-                        FieldSetInstanceRepetitionId = fieldSetInstanceRepetitionId
+                        FieldSetInstanceRepetitionId = fieldSetInstanceRepetitionId,
                     });
                 }
             }
@@ -420,6 +487,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             return string.IsNullOrEmpty(existingFieldSetInstanceRepetitionId) ? GuidExtension.NewGuidStringWithoutDashes() : existingFieldSetInstanceRepetitionId;
         }
+
         #endregion /Set data for FormInstance from input
 
         #region Export
@@ -442,12 +510,13 @@ namespace sReportsV2.BusinessLayer.Implementations
                         forms,
                         organization,
                         userCookieData,
-                        DateConstants.DateFormat,
+                        DateTimeConstants.DateFormat,
                         tableFormat,
                         fileFormat);
                     string emailContent = EmailHelpers.GetExportEmailContent(userCookieData, files.Keys);
                     emailSender.SendAsync(new EmailDTO(userCookieData.Email, emailContent, $"Export Ready for Download: {EmailSenderNames.SoftwareName} Data Capture")
                     {
+                        UserTimezone = userCookieData.TimeZoneOffset,
                         Attachments = files,
                         IsCsv = fileFormat == FormInstanceConstants.CsvFormat
                     });
@@ -477,7 +546,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             return files;
         }
 
-        private Stream CreateCsvTableStream(Form form, KeyValuePair<int, string> organization, UserCookieData userCookieData, string dateFormat, string tableFormat=FormInstanceConstants.LongFormat)
+        private Stream CreateCsvTableStream(Form form, KeyValuePair<int, string> organization, UserCookieData userCookieData, string dateFormat, string tableFormat = FormInstanceConstants.LongFormat)
         {
             Stream stream = new MemoryStream();
             CsvWriter csvWriter = new CsvWriter(stream);
@@ -619,7 +688,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             Form form = formDAL.GetForm(formInstance.FormDefinitionId);
             form.SetFieldInstances(formInstance.FieldInstances);
-            return Mapper.Map<List<FieldDataOut>>(form.GetAllFields());
+            return mapper.Map<List<FieldDataOut>>(form.GetAllFields());
         }
 
         private void WriteNotesToStream(FormInstance formInstance, TextWriter tw)
@@ -632,7 +701,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private void WriteDateToStream(FormInstance formInstance, TextWriter tw, string dateFormat)
         {
             tw.WriteLine("Date:");
-            tw.WriteLine(formInstance.Date.HasValue ? formInstance.Date.Value.ToString(dateFormat, CultureInfo.InvariantCulture) : "");
+            tw.WriteLine(formInstance.Date.GetDateTimeDisplay(dateFormat, excludeTimePart: true));
             tw.WriteLine();
         }
 
@@ -647,16 +716,15 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         #region Plot
 
-        public DataCaptureChartUtility GetPlottableFieldsByThesaurusId(FormInstancePlotDataIn dataIn, List<FieldDataOut> fieldsDataOut)
+        public FormInstanceChartDataOut GetPlottableFieldsByThesaurusId(FormInstancePlotDataIn dataIn, List<FieldDataOut> fieldsDataOut)
         {
-            DataCaptureChartUtility chartUtilityDataStructure = new DataCaptureChartUtility();
+            FormInstanceChartDataOut chartUtilityDataStructure = new FormInstanceChartDataOut();
             foreach (int fieldThesaurusId in dataIn.FieldThesaurusIds)
             {
                 List<BsonDocument> bsonDocuments = formInstanceDAL.GetPlottableFieldsByThesaurusId(dataIn.FormDefinitionId, dataIn.OrganizationId, fieldThesaurusId);
                 foreach (BsonDocument bsonDocument in bsonDocuments)
                 {
                     BsonValue dateTimeToPlot = GetBsonValueHelper(bsonDocument, "Date") ?? GetBsonValueHelper(bsonDocument, "EntryDateTimeValue");
-
                     if (dateTimeToPlot.ToUniversalTime() >= dataIn.DateTimeFrom.GetValueOrDefault().ToUniversalTime() &&
                          dateTimeToPlot.ToUniversalTime() <= dataIn.DateTimeTo.GetValueOrDefault().ToUniversalTime())
                     {
@@ -687,5 +755,139 @@ namespace sReportsV2.BusinessLayer.Implementations
         }
 
         #endregion /Plot
+
+        #region PatientRelatedData
+        public void SetFormInstanceAdditionalData(Form form, FormInstance formInstance, UserCookieData userCookieData)
+        {
+            if (!form.DisablePatientData)
+            {
+                UserData userData = mapper.Map<UserData>(userCookieData);
+                int patientId = ParseAndInsertPatient(form, userCookieData);
+                int eocId = InsertEpisodeOfCare(patientId, form.EpisodeOfCare, "Simulator", DateTimeExtension.GetCurrentDateTime(userCookieData.OrganizationTimeZoneIana), userData);
+                formInstance.PatientId = patientId;
+                formInstance.EpisodeOfCareRef = eocId;
+                formInstance.EncounterRef = InsertEncounter(eocId);
+            }
+
+            formInstance.UserId = userCookieData.Id;
+            formInstance.OrganizationId = userCookieData.ActiveOrganization;
+            formInstance.Copy(null, new FormInstanceStatus(FormState.OnGoing, formInstance.UserId, isSigned: false));
+            formInstance.InitOrUpdateChapterPageFieldSetWorkflowHistory(form, formInstance.UserId);
+        }
+
+        public void SetCTCAEPatient(Form form, FormInstance formInstance, CTCAEPatient patient, UserCookieData userCookieData)
+        {
+            if (!form.DisablePatientData)
+            {
+                UserData userData = mapper.Map<UserData>(userCookieData);
+                int patientId = 0;
+                Patient patientEntity = patientDAL.GetById(patient.PatientId);
+                if (patientEntity == null)
+                {
+                    patientEntity = new Patient("Unknown", "Unknown");
+                    patient.PatientId = 0;
+                    patientEntity.PatientId = patient.PatientId;
+                    patientEntity.OrganizationId = userData.ActiveOrganization.GetValueOrDefault();
+                    patientDAL.InsertOrUpdate(patientEntity, null);
+                }
+
+                formInstance.PatientId = patientEntity.PatientId;
+                int eocId = InsertEpisodeOfCare(patientId, form.EpisodeOfCare, "Engine", DateTimeExtension.GetCurrentDateTime(userCookieData.OrganizationTimeZoneIana), userData);
+                int encounterId = InsertEncounter(eocId);
+                formInstance.EpisodeOfCareRef = eocId;
+                formInstance.EncounterRef = encounterId;
+            }
+        }
+
+        public int GetEncounterFromRequestOrCreateDefault(int episodeOfCareId, int encounterId)
+        {
+            if (encounterId == 0)
+            {
+                encounterId = InsertEncounter(episodeOfCareId);
+            }
+
+            return encounterId;
+        }
+
+        protected int InsertPatient(Patient patient, UserCookieData userCookieData)
+        {
+            //TO DO FIX THIS FUNCTION
+            Patient patientDb = patient == null || patient.PatientIdentifiers == null || patient.PatientIdentifiers.Count <= 0 ?
+                patient
+                :
+                patientDAL.GetByIdentifier(patient.PatientIdentifiers[0]);
+
+            if (patientDb?.PatientId == 0)
+            {
+                patientDb.CreatedById = userCookieData.Id;
+                patientDAL.InsertOrUpdate(patientDb, null);
+            }
+
+            return patientDb != null ? patientDb.PatientId : 0;
+        }
+
+        private int ParseAndInsertPatient(Form form, UserCookieData userCookieData)
+        {
+            PatientParser patientParser = new PatientParser();
+            Patient patient = patientParser.ParsePatientChapter(form.Chapters.Find(x => x.ThesaurusId.ToString().Equals(ResourceTypes.PatientThesaurus)));
+            patient.OrganizationId = GetOrganizationId(form, userCookieData);
+
+            return InsertPatient(patient, userCookieData);
+        }
+
+        private int GetOrganizationId(Form form, UserCookieData userCookieData)
+        {
+            return form.GetActiveOrganizationId(userCookieData.ActiveOrganization);
+        }
+
+        private int InsertEpisodeOfCare(int patientId, FormEpisodeOfCare episodeOfCare, string source, DateTime startDate, UserData user)
+        {
+            startDate = startDate.Date;
+            EpisodeOfCare eoc;
+            if (episodeOfCare != null)
+            {
+                eoc = mapper.Map<EpisodeOfCare>(episodeOfCare);
+                eoc.Period = new Domain.Sql.Entities.Common.PeriodDatetime() { Start = startDate };
+                eoc.Description = $"Generated from {source}";
+                eoc.PatientId = patientId;
+                eoc.OrganizationId = 1;
+            }
+            else
+            {
+                eoc = mapper.Map<EpisodeOfCare>(new EpisodeOfCareDataIn()
+                {
+                    Description = $"Generated from {source}",
+                    PatientId = patientId,
+                    StatusCD = (int)EocStatus.Active,
+                    Period = new PeriodDTO() { StartDate = startDate }
+                }
+                );
+                eoc.OrganizationId = 1;
+            }
+
+            return episodeOfCareDAL.InsertOrUpdate(eoc, user);
+
+        }
+
+        private int InsertEncounter(int episodeOfCareId)
+        {
+            Encounter encounterEntity = mapper.Map<Encounter>(new EncounterDataIn()
+            {
+                ClassCD = 12246,
+                Period = new PeriodOffsetDTO
+                {
+                    StartDate = DateTimeOffset.Now,
+                    EndDate = DateTimeOffset.Now
+                },
+                StatusCD = 12218,
+                TypeCD = 12208,
+                ServiceTypeCD = 11087
+            }
+            );
+            encounterEntity.EpisodeOfCareId = episodeOfCareId;
+            return encounterDAL.InsertOrUpdate(encounterEntity);
+        }
+
+        #endregion
     }
 }

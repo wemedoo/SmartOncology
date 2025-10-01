@@ -1,7 +1,8 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using sReportsV2.Common.Constants;
-using sReportsV2.Domain.Entities.CustomFHIRClasses;
+using sReportsV2.Domain.Sql;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
 
 namespace sReportsV2.Domain.Entities.Form
 {
@@ -9,7 +10,6 @@ namespace sReportsV2.Domain.Entities.Form
     public class FormFieldValue
     {
         public string Id { get; set; }
-        public O4CodeableConcept Code { get; set; }
         public string Label { get; set; }
         public string Value { get; set; }
 
@@ -28,9 +28,9 @@ namespace sReportsV2.Domain.Entities.Form
                 return this.Value;
             }
         }
-        public void ReplaceThesauruses(int oldThesaurus, int newThesaurus)
+        public void ReplaceThesauruses(ThesaurusMerge thesaurusMerge)
         {
-            this.ThesaurusId = this.ThesaurusId == oldThesaurus ? newThesaurus : this.ThesaurusId;
+            this.ThesaurusId = this.ThesaurusId.ReplaceThesaurus(thesaurusMerge);
         }
     }
 }

@@ -1,20 +1,24 @@
-﻿function handleSuccessFormSubmitFromEngine(data, projectId, showUserProjects) {
+﻿function handleSuccessFormSubmitFromEngine(data, projectId, showUserProjects, callback) {
     $(document).off('click', '.dropdown-matrix');
     if (getFormInstanceId()) {
-        reloadAfterFormInstanceChange();
+        reloadAfterFormInstanceChange(callback);
     } else {
-        if (projectId != "") {
-            if (showUserProjects == "true") {
-                window.location.href = `/FormInstance/EditForUserProject?VersionId=${data.formVersionId}&FormInstanceId=${data.formInstanceId}&ProjectId=${projectId}`;
-            }
-            else {
-                window.location.href = `/FormInstance/EditForProject?VersionId=${data.formVersionId}&FormInstanceId=${data.formInstanceId}&ProjectId=${projectId}`;
-            }
-        }
-        else {
-            window.location.href = `/FormInstance/Edit?VersionId=${data.formVersionId}&FormInstanceId=${data.formInstanceId}`;
-        }
+        window.location.href = getEditFormInstanceUrl(data, projectId, showUserProjects);
     }
+}
+
+function getEditFormInstanceUrl(data, projectId, showUserProjects) {
+    let apiUrl;
+    if (projectId != "") {
+        if (showUserProjects) {
+            apiUrl = `/FormInstance/EditForUserProject?VersionId=${data.formVersionId}&FormInstanceId=${data.formInstanceId}&ProjectId=${projectId}`;
+        } else {
+            apiUrl = `/FormInstance/EditForProject?VersionId=${data.formVersionId}&FormInstanceId=${data.formInstanceId}&ProjectId=${projectId}`;
+        }
+    } else {
+        apiUrl = `/FormInstance/Edit?VersionId=${data.formVersionId}&FormInstanceId=${data.formInstanceId}`;
+    }
+    return apiUrl;
 }
 
 function handleBackInFormAction() {
@@ -22,14 +26,14 @@ function handleBackInFormAction() {
     let thesaurusId = $('input[name=thesaurusId]').val();
     let formDefinitionId = $('input[name=formDefinitionId]').val();
 
-    if (!compareForms("#fid")) {
-        if (confirm("You have unsaved changes. Are you sure you want to cancel?")) {
-            saveInitialFormData("#fid");
+    unsavedChangesCheck("#fid",
+        function () {
+            window.location.href = `/FormInstance/GetAllByFormThesaurus?versionId=${versionId}&thesaurusId=${thesaurusId}&formDefinitionId=${formDefinitionId}`;
+        },
+        function () {
             window.location.href = `/FormInstance/GetAllByFormThesaurus?versionId=${versionId}&thesaurusId=${thesaurusId}&formDefinitionId=${formDefinitionId}`;
         }
-    } else {
-        window.location.href = `/FormInstance/GetAllByFormThesaurus?versionId=${versionId}&thesaurusId=${thesaurusId}&formDefinitionId=${formDefinitionId}`;
-    }
+    );
 }
 
 function isPatientModule() {

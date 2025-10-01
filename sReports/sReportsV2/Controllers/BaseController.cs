@@ -13,10 +13,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
-using AutoMapper;
-using Microsoft.Extensions.DependencyInjection;
-using sReportsV2.DAL.Sql.Interfaces;
-using sReportsV2.SqlDomain.Interfaces;
 using sReportsV2.BusinessLayer.Interfaces;
 
 namespace sReportsV2.Controllers
@@ -27,14 +23,15 @@ namespace sReportsV2.Controllers
         protected readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly IServiceProvider _serviceProvider;
         protected readonly IAsyncRunner _asyncRunner;
+        protected readonly ICacheRefreshService _cacheRefreshService;
         public IConfiguration Configuration { get; }
 
-
-        public BaseController(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner)
+        public BaseController(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner, ICacheRefreshService cacheRefreshService)
         {
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _asyncRunner = asyncRunner ?? throw new ArgumentNullException(nameof(asyncRunner));
+            _cacheRefreshService = cacheRefreshService;
             Configuration = configuration;
         }
 
@@ -155,6 +152,13 @@ namespace sReportsV2.Controllers
                 : SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.TelecommunicationUseType);
         }
 
+        protected void SetGenderTypesToViewBag()
+        {
+            ViewBag.Genders = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.Gender);
+            ViewBag.MaleCodeId = SingletonDataContainer.Instance.GetCodeIdForPreferredTerm(Gender.Male.ToString(), (int)CodeSetList.Gender);
+            ViewBag.FemaleCodeId = SingletonDataContainer.Instance.GetCodeIdForPreferredTerm(Gender.Female.ToString(), (int)CodeSetList.Gender);
+        }
+
         protected void SetCountryNameIfFilterByCountryIsIncluded(dynamic dataIn)
         {
             if (dataIn != null)
@@ -168,27 +172,23 @@ namespace sReportsV2.Controllers
             }
         }
 
-        public void RefreshCache(int? resourceId = null, ModifiedResourceType? modifiedResourceType = null, bool callAsyncRunner = true)
+        protected void RefreshCache(int? resourceId = null, ModifiedResourceType? modifiedResourceType = null, bool callAsyncRunner = true)
         {
-            if (callAsyncRunner)
+            _asyncRunner.Run<ICacheRefreshService>((service) =>
             {
-                _asyncRunner.Run<BaseController>((controller) => controller.RefreshCache(resourceId, modifiedResourceType, callAsyncRunner: false));
-            }
-            else
-            {
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
-                    var codeAliasViewDAL = scope.ServiceProvider.GetRequiredService<ICodeAliasViewDAL>();
-                    var codeDAL = scope.ServiceProvider.GetRequiredService<ICodeDAL>();
-                    SingletonDataContainer.Instance.RefreshSingleton(mapper, codeAliasViewDAL, codeDAL, resourceId, modifiedResourceType);
-                }
-            }
+                service.RefreshCache(resourceId, modifiedResourceType, callAsyncRunner: false);
+            });
+        }
+
+        protected void SetFileNameInResponse(string fileName, string fileType = "")
+        {
+            string fullName = string.IsNullOrEmpty(fileType) ? fileName : $"{fileName}.{fileType}";
+            HttpContext.Response.Headers.Append("Original-File-Name", fullName);
         }
 
         private void SetUserCookieDataForSReports(string email, bool isEmail = true)
         {
-            userCookieData = UserCookieDataHelper.PrepareUserCookie(_serviceProvider, isEmail, identifier: email, shouldResetOrganizations: false);
+            userCookieData = UserCookieDataHelper.PrepareUserCookie(_serviceProvider, isEmail, identifier: email);
             HttpContext.Session.SetObjectAsJson("userData", userCookieData);
         }
 
@@ -202,10 +202,10 @@ namespace sReportsV2.Controllers
         {
             if (userCookieData != null)
             {
-                ViewBag.DateFormatClient = DateConstants.DateFormatClient;
-                ViewBag.DateFormatDisplay = DateConstants.DateFormatDisplay;
-                ViewBag.TimeFormatDisplay = DateConstants.TimeFormatDisplay;
-                ViewBag.DateFormat = DateConstants.DateFormat;
+                ViewBag.DateFormatClient = DateTimeConstants.DateFormatClient;
+                ViewBag.DateFormatDisplay = DateTimeConstants.DateFormatDisplay;
+                ViewBag.TimeFormatDisplay = DateTimeConstants.TimeFormatDisplay;
+                ViewBag.DateFormat = DateTimeConstants.DateFormat;
             }
         }
 
@@ -215,6 +215,7 @@ namespace sReportsV2.Controllers
             {
                 ViewBag.IsDateCaptureMode = userCookieData.ActiveOrganization == ResourceTypes.OrganizationIdForDataCaptureMode && !userCookieData.UserHasAnyOfRole(PredifinedRole.SuperAdministrator.ToString());
                 ViewBag.ReadOnly = false;
+                ViewBag.ArchivedUserStateCD = SingletonDataContainer.Instance.GetCodeIdForPreferredTerm(CodeAttributeNames.Archived, (int)CodeSetList.UserState);
             }
         }
     }

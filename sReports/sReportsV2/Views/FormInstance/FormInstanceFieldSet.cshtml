@@ -14,7 +14,7 @@
     bool addFieldsetRepetition = ViewBag.AddFieldsetRepetition ?? false;
     bool newDependenciesShouldBeHandled = Model.AllParentFieldInstanceDependencies.Count > 0;
     bool isMatrixFieldSet = Model.IsMatrixFieldSet();
-    bool formInstanceMode = ViewBag.IsEngineModule || ViewBag.IsPatientModule;
+    bool formInstanceMode = (ViewBag.IsEngineModule ?? false) || (ViewBag.IsPatientModule ?? false);
 }
 
 <div class="field-set field-set-border @(isMatrixFieldSet ? "unset-border" : "") des-container @(isLastFieldsetOnPage ? "last-field-set-border" : "") @(Model.IsMatrixFieldSet() ? "unset-padding-bottom" : "")">
@@ -32,17 +32,19 @@
                 <table class="radio-table">
                     <thead class="radio-header-matrix">
                         <tr>
-                            <th class="radio-header-cell width-0 matrix-border-left">@sReportsV2.Cache.Resources.TextLanguage.SelectionType</th>
+                            <th class="radio-header-cell width-0 matrix-border-left cursor-auto">@sReportsV2.Cache.Resources.TextLanguage.SelectionType</th>
                             @foreach (var value in selectableField.Values)
                             {
-                                <th class="radio-header-cell radio-cell-middle">@value.Label</th>
+                                <th class="radio-header-cell radio-cell-middle cursor-auto">@value.Label</th>
                             }
-                            <th class="radio-header-cell width-0 matrix-border-right">@sReportsV2.Cache.Resources.TextLanguage.Action</th>
+                            <th class="radio-header-cell width-0 matrix-border-right cursor-auto">@sReportsV2.Cache.Resources.TextLanguage.Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (FieldSelectableDataOut fieldSelectableDataOut in Model.Fields.OfType<FieldSelectableDataOut>())
                         {
+                            fieldSelectableDataOut.IsDisabled = arguments[FormInstanceConstants.ReadOnlyOrLocked] || Model.IsLocked;
+                            fieldSelectableDataOut.HiddenFieldsShown = hiddenFieldsShown;
                             @Html.Raw(controller.RenderPartialViewToString("~/Views/FormInstance/FormInstanceMatrixFieldSet.cshtml", fieldSelectableDataOut, arguments[FormInstanceConstants.IsChapterReadOnly], Model.Id, formInstanceMode: formInstanceMode))
                         }
                     </tbody>
@@ -54,9 +56,9 @@
     {
         foreach (FieldDataOut field in Model.Fields)
         {
-            field.IsDisabled = arguments[FormInstanceConstants.ReadOnlyOrLocked];
+            field.IsReadonly = arguments[FormInstanceConstants.ReadOnlyOrLocked] || Model.IsLocked;
             field.HiddenFieldsShown = hiddenFieldsShown;
-            @Html.Raw(controller.RenderPartialViewToString(field.PartialView, field, arguments[FormInstanceConstants.IsChapterReadOnly], Model.Id, formInstanceMode: formInstanceMode))
+            @Html.Raw(controller.RenderPartialViewToString(field.PartialView, field, arguments[FormInstanceConstants.IsChapterReadOnly], Model.Id, formInstanceMode: formInstanceMode, readOnly: arguments[FormInstanceConstants.ReadOnlyMode]))
         }
     }
 </div>
@@ -67,33 +69,34 @@
         <div class="d-flex justify-content-between field-set-content">
             @if (!string.IsNullOrEmpty(fs.Label))
             {
-                <h3 class="field-set-title d-flex">
+                <div class="field-set-title d-flex">
                     <span>@Html.Raw(fs.IsBold ? "<b>" + fs.Label + "</b>" : fs.Label)</span>
-                </h3>
+                </div>
             }
-                @{
-                    RenderDescriptionAction("field-set-des", !string.IsNullOrWhiteSpace(fs.Description)); }
-                    <div class="fieldset-repetitive d-flex">
+            @{
+                RenderDescriptionAction("field-set-des", !string.IsNullOrWhiteSpace(fs.Description)); 
+            }
+            <div class="fieldset-actions d-flex">
                 @{ RenderFieldsetNote(fs); }
                 @if (fs.IsRepetitive)
                 {
-                    <div class="" style="font-size:12px; margin-right:10px; display:@(isLastFieldsetInRepetition ? "block" : "none")">
+                    <div class="add-repetitive-btn-container @(isLastFieldsetInRepetition ? "" : "d-none")">
                         <button type="button"
                                 class="btn btn-add-new button-fieldset-repetitive @(arguments[FormInstanceConstants.ReadOnlyOrLocked] ? "pe-none" : "")"
                                 fieldset-id="@fs.Id">
                             <i class="fas fa-plus-circle"></i> @sReportsV2.Cache.Resources.TextLanguage.AddNew
                         </button>
                     </div>
+                    <div class="remove-repetitive-btn-container @(hasAnyRepetitiveFieldset ? "" : "d-none")">
+                        <button type="button" class="btn remove-field-set float-right btn-remove">
+                            <img alt="" class="remove-repetitive-icon" src="/css/img/icons/remove_button.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove
+                        </button>
+                    </div>
+                }
+                @{
+                    RenderLockActions(Model, ViewBag.ChapterId, ViewBag.PageId, arguments);
                 }
             </div>
-            @if (fs.IsRepetitive)
-            {
-                <div>
-                    <button type="button" class="btn remove-field-set float-right btn-remove" @Html.Raw(hasAnyRepetitiveFieldset ? "" : "style=\"display:none\"")>
-                        <img alt="" class="remove-repetitive-icon" src="/css/img/icons/remove_button.svg">@sReportsV2.Cache.Resources.TextLanguage.Remove
-                    </button>
-                </div>
-            }
         </div>
     }
 
@@ -124,6 +127,35 @@
                     <img alt="" class="notes-svg-size" src="/css/img/icons/notes_button.svg">@sReportsV2.Cache.Resources.TextLanguage.Note
                 </span>
             </a>
+        }
+    }
+
+    private void RenderLockActions(FormFieldSetDataOut fs, string chapterId, string pageId, Dictionary<string, bool> arguments)
+    {
+        RenderLockAction(fs, chapterId, pageId, arguments);
+        RenderUnlockPageAction(fs, chapterId, pageId, arguments);
+    }
+
+    private void RenderLockAction(FormFieldSetDataOut fs, string chapterId, string pageId, Dictionary<string, bool> arguments)
+    {
+        if (fs.ShouldLockActionBeShown(arguments[FormInstanceConstants.CanLockFieldSet]))
+        {
+            <img class="lock-fs-action" src="/css/img/icons/partial_lock_black.svg" alt=""
+                 onclick="showLockOrUnlockPartialConfirmationModal(event, '@chapterId', '@pageId','@fs.FieldSetInstanceRepetitionId', false)"
+                 title="@sReportsV2.Cache.Resources.TextLanguage.Unlock @sReportsV2.Cache.Resources.TextLanguage.FieldSet"
+                 data-toggle="tooltip">
+        }
+    }
+
+    private void RenderUnlockPageAction(FormFieldSetDataOut fs, string chapterId, string pageId, Dictionary<string, bool> arguments)
+    {
+        bool showUnlockAction = fs.ShouldShowIndicatorWhenLocked(arguments[FormInstanceConstants.CanUnlockFieldSet]);
+        if (showUnlockAction)
+        {
+            <img class="lock-fs-action" src="/css/img/icons/partial_unlock_black.svg" alt=""
+                 onclick="showLockOrUnlockPartialConfirmationModal(event, '@chapterId', '@pageId','@fs.FieldSetInstanceRepetitionId', true)"
+                 title="@sReportsV2.Cache.Resources.TextLanguage.Lock @sReportsV2.Cache.Resources.TextLanguage.FieldSet"
+                 data-toggle="tooltip">
         }
     }
 }

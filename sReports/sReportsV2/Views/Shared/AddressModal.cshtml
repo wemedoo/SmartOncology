@@ -25,6 +25,7 @@
                         <div class="advanced-filter-item input-margin">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.AddressType
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <select required class="filter-input arrow-select patient-background" id="addressType" name="addressType" @ViewBag.Disabled data-codesetid="@((int)CodeSetList.AddressType)">
                                 <option value=""></option>
@@ -39,6 +40,7 @@
                         <div class="advanced-filter-item input-margin">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.City
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <input type="text" class="filter-input" required name="city" id="city" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
                         </div>
@@ -51,6 +53,7 @@
                         <div class="advanced-filter-item input-margin">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Street
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <input type="text" class="filter-input" required name="street" id="street" onkeyup="pressButtonOnEnterKey(event, 'address-modal-button')" @ViewBag.Disabled>
                         </div>
@@ -69,6 +72,7 @@
                         <div class="advanced-filter-item input-margin country-select-input">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Country
+                                @await Html.PartialAsync("RequiredLabel")
                             </div>
                             <select class="filter-input arrow-select" name="countryCD" id="countryCD" @ViewBag.Disabled required>
                                 <option value=""></option>

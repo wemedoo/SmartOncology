@@ -61,8 +61,20 @@ function validateFieldSets(fieldSets) {
                     message += '-Thesaurus <br/>';
                     addError(fieldSet.id);
                 }
-                message += validateFields(fieldSet.Fields);
 
+                if (fieldSet.listoffieldsets && Array.isArray(fieldSet.listoffieldsets) && fieldSet.listoffieldsets.length > 0) {
+                    fieldSet.listoffieldsets.forEach(function (nestedfieldset) {
+                        if (!nestedfieldset.thesaurusId && !nestedfieldset.ThesaurusId) {
+                            message += 'Please define the following fields for the nested field set: <br/>';
+                            message += '- Thesaurus <br/>';
+                            addError(nestedfieldset.id);
+                        }
+                        message += validateFields(nestedfieldset.fields);
+                    });
+
+                } else {
+                    message += validateFields(fieldSet.Fields);
+                }
             });
         });
     }
@@ -74,7 +86,7 @@ function validateFields(fields) {
     let message = '';
     if (fields) {
         fields.forEach(function (field, index) {
-            if (!field.thesaurusid && !specificTypeFields.includes(field.type)) {
+            if (!field.thesaurusid && !field.thesaurusId && !specificTypeFields.includes(field.type)) {
                 message = 'Please define the following fields for the field: <br/>';
                 message += '-Thesaurus <br/>';
                 addError(field.id);

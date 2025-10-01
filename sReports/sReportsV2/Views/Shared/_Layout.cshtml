@@ -5,25 +5,18 @@
     <head>
         @ScriptHelper.RenderHeadMetadata()
         <title>@ViewBag.Title - @sReportsV2.Common.Constants.ResourceTypes.SoftwareName by weMedoo</title>
-        @ScriptHelper.RenderStylesheet("https://use.fontawesome.com/releases/v5.6.1/css/all.css", "sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP", "anonymous")
-        @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.css"))
-        @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css")
-        @ScriptHelper.RenderStylesheet("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
-        @ScriptHelper.RenderStylesheet("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap")
-        @ScriptHelper.RenderStylesheet("//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css")
+        @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/font-awesome-5.15.4/css/all.min.css"))
+        @ScriptHelper.RenderStylesheet(Url.Content("/js/libs/select2-4.0.10/dist/css/select2.min.css"))
+        @ScriptHelper.RenderStylesheet(Url.Content("/css/libs/jquery-timepicker-1.3.5/jquery.timepicker.min.css"))
         @Html.Raw(ScriptHelper.RenderBundle("css/styles.min.css"))
-        @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
         @RenderSection("Stylesheet", false)
+        @Html.Raw(ScriptHelper.RenderBundle("js/jquery-bundle.min.js"))
         @RenderSection("Scripts", false)
     </head>
     @{ 
         var userCookieData = ViewBag.UserCookieData;
         bool isDateCaptureMode = ViewBag.IsDateCaptureMode;
         bool readOnly = ViewBag.ReadOnly;
-        var organizationOffset = userCookieData != null && !string.IsNullOrEmpty(userCookieData.OrganizationTimeZone) ? TimeZoneInfo.FindSystemTimeZoneById(userCookieData.OrganizationTimeZone).BaseUtcOffset : TimeZoneInfo.Utc.BaseUtcOffset;
-        var sign = (organizationOffset >= TimeSpan.Zero) ? "+" : "-";
-        var formattedOffset = organizationOffset.ToString("hh\\:mm");
-        var organizationOffsetWithSign = String.Format("{0}{1}", sign, formattedOffset);
     }
 
     <body class="sidebar-shrink">
@@ -35,7 +28,7 @@
 
         <div class="container-fluid" id="containerFluid">
             <div class="row">
-                <div class="col-12">
+                <div class="col-12 pr-0">
                     @await Html.PartialAsync(isDateCaptureMode ? "SidebarForDataCaptureMode" : "Sidebar")
 
                     <main role="main" class="main-content">
@@ -49,8 +42,6 @@
         </div>
 
         @await Html.PartialAsync("DeleteModal")
-        @await Html.PartialAsync("SessionBreakModal")
-
 
         <script>
             var noResultFound = '@sReportsV2.Cache.Resources.TextLanguage.NoResultFound';
@@ -62,14 +53,11 @@
             var dateFormatDisplay = '@ViewBag.DateFormatDisplay';
             var timeFormatDisplay = '@ViewBag.TimeFormatDisplay';
             var readOnlyViewModeViewBag = @readOnly.ToJsBoolean();
-            var organizationOffset = '@organizationOffsetWithSign';
+            var organizationTimeZoneOffset = '@userCookieData.OrganizationTimeZoneIana';
+            var userTimeZoneOffset = '@userCookieData.GetUserTimeZoneIana()';
         </script>
 
-        @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js"), "", ""))
-        @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/ajv/6.10.2/ajv.bundle.js", "", ""))
-        @Html.Raw(ScriptHelper.RenderScript("https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js", "", ""))
-        @Html.Raw(ScriptHelper.RenderScript("//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js", "", ""))
-        @Html.Raw(ScriptHelper.RenderScript("//d3js.org/d3.v6.min.js", "", ""))
-        @Html.Raw(ScriptHelper.RenderScript("//d3js.org/topojson.v1.min.js", "", ""))
+        @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/select2-4.0.10/dist/js/select2.min.js"), "", ""))
+        @Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/libs/jquery-timepicker-1.3.5/jquery.timepicker.min.js"), "", ""))
     </body>
 </html>

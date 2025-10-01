@@ -12,11 +12,26 @@ function viewEntity(event, thesaurusId, versionId) {
     window.location.href = `/Form/View?thesaurusId=${thesaurusId}&versionId=${versionId}`;
 }
 
+function generateReport(event, formId) {
+    event.preventDefault();
+    callServer({
+        type: 'GET',
+        url: '/Form/GenerateReport',
+        data: {formId},
+        success: function (data) {
+            toastr.success('Thesaurus Code Report is successfully generated. Please have a look at your email.');
+        },
+        error: function (xhr, textStatus, thrownError) {
+            handleResponseError(xhr);
+        }
+    });
+}
+
 function getFilterParametersObject() {
     let requestObject = {};
 
     if (defaultFilter) {
-        requestObject = defaultFilter;
+        requestObject = getDefaultFilter();
         defaultFilter = null;
     } else {
         addPropertyToObject(requestObject, 'Title', $('#TitleTemp').val());
@@ -30,29 +45,31 @@ function getFilterParametersObject() {
         addPropertyToObject(requestObject, 'ScopeOfValidity', $('#scopeOfValidity').val());
         addPropertyToObject(requestObject, 'ClinicalDomain', $('#clinicalDomain').val());
         addPropertyToObject(requestObject, 'ClinicalContext', $('#clinicalContext').val());
-        addPropertyToObject(requestObject, 'FollowUp', $('#documentFollowUpSelect').val());
+        addPropertyToObject(requestObject, 'FollowUp', $('#followUp').val());
         addPropertyToObject(requestObject, 'AdministrativeContext', $('#administrativeContext').val());
         addPropertyToObject(requestObject, 'DateTimeTo', toLocaleDateStringIfValue($('#dateTimeTo').val()));
         addPropertyToObject(requestObject, 'DateTimeFrom', toLocaleDateStringIfValue($('#dateTimeFrom').val()));
-    }
-    if (requestObject['DateTimeFrom']) {
-        addPropertyToObject(requestObject, 'DateTimeFrom', toValidTimezoneFormat(requestObject['DateTimeFrom']));
-    }
-    if (requestObject['DateTimeTo']) {
-        addPropertyToObject(requestObject, 'DateTimeTo', toValidTimezoneFormat(requestObject['DateTimeTo']));
     }
 
     return requestObject;
 }
 
+function getFilterParametersObjectForDisplay(filterObject) {
+    getFilterParameterObjectForDisplay(filterObject, 'State');
+    getFilterParameterObjectForDisplay(filterObject, 'Classes');
+    getFilterParameterObjectForDisplay(filterObject, 'GeneralPurpose');
+    getFilterParameterObjectForDisplay(filterObject, 'ContextDependent');
+    getFilterParameterObjectForDisplay(filterObject, 'ExplicitPurpose');
+    getFilterParameterObjectForDisplay(filterObject, 'ScopeOfValidity');
+    getFilterParameterObjectForDisplay(filterObject, 'ClinicalDomain');
+    getFilterParameterObjectForDisplay(filterObject, 'ClinicalContext');
+    getFilterParameterObjectForDisplay(filterObject, 'FollowUp');
+    getFilterParameterObjectForDisplay(filterObject, 'AdministrativeContext');
+    return filterObject;
+}
+
 function reloadTable(initLoad) {
-    hideAdvancedFilterModal();
-    setFilterTagsFromUrl();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    checkUrlPageParams();
-    setAdvancedFilterBtnStyle(requestObject, ['ThesaurusId', 'State', 'Title', 'page', 'pageSize']);
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReload(['ThesaurusId', 'State', 'Title', 'page', 'pageSize']);
     requestObject.ClinicalDomain = $('#clinicalDomain').find(':selected').attr('id');
 
     callServer({
@@ -91,7 +108,6 @@ function advanceFilter() {
     $('#StateTemp').val($('#state').val()).change();
     
     filterData();
-    //clearFilters();
 }
 
 function mainFilter() {
@@ -100,27 +116,17 @@ function mainFilter() {
     $('#state').val($('#StateTemp').val()).change();
 
     filterData();
-    //clearFilters();
 }
 
-function clearFilters() {
-    $('#title').val('');
-    $('#thesaurusId').val('');
-    $('#state').val('');
-    $('#TitleTemp').val('');
-    $('#ThesaurusIdTemp').val('');
-    $('#StateTemp').val('');
-    $('#classes').val('');
-    $('#generalPurpose').val('');
-    $('#documentClassOtherInput').val('');
-    $('#contextDependent').val('');
-    $('#explicitPurpose').val('');
-    $('#scopeOfValidity').val('');
-    $('#clinicalDomain').val('');
-    $('#clinicalContext').val('');
-    $('#administrativeContext').val('');
-    $('#documentFollowUpSelect').val('');
-    $('#dateTimeTo').val('');
-
+function exportToQuestionnaire(event, formId) {
+    event.preventDefault();
+    callServer({
+        url: `/Fhir/ExportFormToQuestionnaire?formId=${formId}`,
+        success: function (data, status, xhr) {
+            convertToBlobAndDownload(data, false, '', '', xhr.getResponseHeader('Original-File-Name'));
+        },
+        error: function (xhr, textStatus, thrownError) {
+            handleResponseError(xhr);
+        }
+    });
 }
-

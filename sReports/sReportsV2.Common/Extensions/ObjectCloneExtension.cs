@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Hl7.Fhir.Model;
+using Hl7.Fhir.Serialization;
+using Microsoft.AspNetCore.Http;
 using sReportsV2.Common.Extensions.ArrayExtensions;
 using System;
 using System.Collections.Generic;
@@ -27,12 +29,13 @@ namespace sReportsV2.Common.Extensions
             if (IsPrimitive(typeToReflect)) return originalObject;
             if (visited.ContainsKey(originalObject)) return visited[originalObject];
             if (typeof(Delegate).IsAssignableFrom(typeToReflect)) return null;
-            if (originalObject is IFormFile formFile) 
-            { 
-                FormFileClone formClone = new FormFileClone(formFile);
-                visited[originalObject] = formClone;
-                return formClone;
+            Object customTransformedObject = CustomTransformationOfSpecificObject(originalObject, visited);
+            if (customTransformedObject != null)
+            {
+                visited[originalObject] = customTransformedObject;
+                return customTransformedObject;
             }
+
             var cloneObject = CloneMethod.Invoke(originalObject, null);
             if (typeToReflect.IsArray)
             {
@@ -48,6 +51,27 @@ namespace sReportsV2.Common.Extensions
             CopyFields(originalObject, visited, cloneObject, typeToReflect);
             RecursiveCopyBaseTypePrivateFields(originalObject, visited, cloneObject, typeToReflect);
             return cloneObject;
+        }
+
+        private static Object CustomTransformationOfSpecificObject(Object originalObject, IDictionary<Object, Object> visited)
+        {
+            if (originalObject is IFormFile formFile)
+            {
+                FormFileClone formClone = new FormFileClone(formFile);
+                return formClone;
+            }
+            else if (originalObject is QuestionnaireResponse questionnaireResponse)
+            {
+                var serializer = new FhirJsonSerializer();
+                var parser = new FhirJsonParser();
+                string questionnaireResponseStringJson = serializer.SerializeToString(questionnaireResponse);
+                var questionnaireResponseCopy = parser.Parse<QuestionnaireResponse>(questionnaireResponseStringJson);
+                return questionnaireResponseCopy;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private static void RecursiveCopyBaseTypePrivateFields(object originalObject, IDictionary<object, object> visited, object cloneObject, Type typeToReflect)

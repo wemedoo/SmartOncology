@@ -1,9 +1,10 @@
 ﻿using sReportsV2.Common.CustomAttributes;
+using sReportsV2.DTOs.CustomAttributes;
 using System.Collections.Generic;
 
 namespace sReportsV2.DTOs.Form.DataOut
 {
-    public class FormChapterDataOut
+    public partial class FormChapterDataOut
     {
         [DataProp]
         public string Id { get; set; }
@@ -15,18 +16,12 @@ namespace sReportsV2.DTOs.Form.DataOut
         public int ThesaurusId { get; set; }
         [DataProp]
         public bool IsReadonly { get; set; }
+        [DataList]
         public List<FormPageDataOut> Pages { get; set; } = new List<FormPageDataOut>();
-        public bool DoesAllMandatoryFieldsHaveValue { get; set; }
-        public bool IsLocked { get; set; }
 
         public string GetHtmlId()
         {
             return $"chapter-{Id}";
-        }
-
-        public bool ShouldLockActionBeShown(bool hasPermissionToLock)
-        {
-            return DoesAllMandatoryFieldsHaveValue && !IsLocked && hasPermissionToLock;
         }
     }
 }

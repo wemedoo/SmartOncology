@@ -13,10 +13,13 @@ using sReportsV2.DTOs.DigitalGuideline.DataIn;
 using sReportsV2.DTOs.DigitalGuideline.DataOut;
 using sReportsV2.DTOs.DigitalGuidelineInstance.DataIn;
 using sReportsV2.DTOs.DigitalGuidelineInstance.DataOut;
+using sReportsV2.DTOs.DTOs.Autocomplete.DataOut;
+using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.EpisodeOfCare;
 using sReportsV2.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.Patient;
 using sReportsV2.DTOs.ThesaurusEntry.DataOut;
+using sReportsV2.DTOs.User.DTO;
 using sReportsV2.SqlDomain.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +34,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPatientDAL patientDAL;
         private readonly IFormInstanceDAL formInstanceDAL;
         private readonly IEpisodeOfCareDAL episodeOfCareDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public DigitalGuidelineInstanceBLL(IDigitalGuidelineDAL digitalGuidelineDAL, IDigitalGuidelineInstanceDAL digitalGuidelineInstanceDAL, IThesaurusDAL thesaurusDAL, IPatientDAL patientDAL, IEpisodeOfCareDAL episodeOfCareDAL, IFormInstanceDAL formInstanceDAL, IMapper mapper)
         {
@@ -41,14 +44,14 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.patientDAL = patientDAL;
             this.formInstanceDAL = formInstanceDAL;
             this.episodeOfCareDAL = episodeOfCareDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public ResourceCreatedDTO InsertOrUpdate(GuidelineInstanceDataIn guidelineInstanceDataIn)
         {
             guidelineInstanceDataIn = Ensure.IsNotNull(guidelineInstanceDataIn, nameof(guidelineInstanceDataIn));
             SetGuidelineInstanceNodeValues(guidelineInstanceDataIn);
-            GuidelineInstance guidelineInstance = Mapper.Map<GuidelineInstance>(guidelineInstanceDataIn);
+            GuidelineInstance guidelineInstance = mapper.Map<GuidelineInstance>(guidelineInstanceDataIn);
             digitalGuidelineInstanceDAL.Insert(guidelineInstance);
 
             return new ResourceCreatedDTO()
@@ -63,13 +66,13 @@ namespace sReportsV2.BusinessLayer.Implementations
             return digitalGuidelineInstanceDAL.Delete(guidelineInstanceId);
         }
 
-        public List<string> GetConditions(string nodeId, string digitalGuidelineId)
+        public List<AutocompleteOptionDataOut> GetConditions(string nodeId, string digitalGuidelineId)
         {
-            List<string> conditionList = new List<string>();
+            List<AutocompleteOptionDataOut> conditionList = new List<AutocompleteOptionDataOut>();
             foreach (GuidelineEdgeElementData item in digitalGuidelineDAL.GetEdges(nodeId, digitalGuidelineId).Item1)
             {
-                if (!conditionList.Contains(item.Condition) && item.Condition != null)
-                    conditionList.Add(item.Condition);
+                if (!conditionList.Select(x => x.text).Contains(item.Condition) && item.Condition != null)
+                    conditionList.Add(new AutocompleteOptionDataOut(item));
             }
             return conditionList;
         }
@@ -77,7 +80,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public GuidelineDataOut GetGraph(string guidelineInstanceId, string guidelineId)
         {
             GuidelineInstance guidelineInstance = digitalGuidelineInstanceDAL.GetById(guidelineInstanceId);
-            GuidelineDataOut dataOut = Mapper.Map<GuidelineDataOut>(digitalGuidelineDAL.GetById(guidelineId));
+            GuidelineDataOut dataOut = mapper.Map<GuidelineDataOut>(digitalGuidelineDAL.GetById(guidelineId));
             foreach (var item in dataOut.GuidelineElements.Nodes)
             {
                 NodeValue nodeValue = guidelineInstance.GetNodeValueById(item.Data.Id);
@@ -92,9 +95,9 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public PatientDataOut GetGuidelineInstance(int episodeOfCareId)
         {
-            EpisodeOfCareDataOut episodeOfCareDataOut = Mapper.Map<EpisodeOfCareDataOut>(episodeOfCareDAL.GetById(episodeOfCareId));
-            PatientDataOut patientDataOut = Mapper.Map<PatientDataOut>(patientDAL.GetById(episodeOfCareDataOut.PatientId));
-            episodeOfCareDataOut.ListGuidelines = Mapper.Map<List<GuidelineInstanceDataOut>>(digitalGuidelineInstanceDAL.GetGuidelineInstancesByEOC(episodeOfCareId));
+            EpisodeOfCareDataOut episodeOfCareDataOut = mapper.Map<EpisodeOfCareDataOut>(episodeOfCareDAL.GetById(episodeOfCareId));
+            PatientDataOut patientDataOut = mapper.Map<PatientDataOut>(patientDAL.GetById(episodeOfCareDataOut.PatientId));
+            episodeOfCareDataOut.ListGuidelines = mapper.Map<List<GuidelineInstanceDataOut>>(digitalGuidelineInstanceDAL.GetGuidelineInstancesByEOC(episodeOfCareId));
             patientDataOut.ReplaceEpisodeOfCare(episodeOfCareId, episodeOfCareDataOut);
 
             return patientDataOut;
@@ -102,7 +105,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public List<GuidelineInstanceDataOut> GetGuidelineInstancesByEOC(int episodeOfCareId)
         {
-            return Mapper.Map<List<GuidelineInstanceDataOut>>(digitalGuidelineInstanceDAL.GetGuidelineInstancesByEOC(episodeOfCareId));
+            return mapper.Map<List<GuidelineInstanceDataOut>>(digitalGuidelineInstanceDAL.GetGuidelineInstancesByEOC(episodeOfCareId));
         }
 
         public string GetValueFromDocument(string formInstanceId, int thesaurusId)
@@ -112,7 +115,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             return field != null && field.HasValue() ? field.GetFirstFieldInstanceValue() : "";
         }
 
-        public GuidelineInstanceViewDataOut ListDigitalGuidelineDocuments(int episodeOfCareId, int organizationId)
+        public GuidelineInstanceViewDataOut ListDigitalGuidelineDocuments(int episodeOfCareId, UserCookieData userCookieData)
         {
             GuidelineInstanceViewDataOut result = new GuidelineInstanceViewDataOut()
             {
@@ -120,13 +123,13 @@ namespace sReportsV2.BusinessLayer.Implementations
                 {
                     EpisodeOfCareId = episodeOfCareId
                 },
-                FormInstances = Mapper.Map<List<FormInstanceDataOut>>(formInstanceDAL.GetByEpisodeOfCareId(episodeOfCareId, organizationId))
+                FormInstances = formInstanceDAL.GetByEpisodeOfCareId(episodeOfCareId, userCookieData.ActiveOrganization).Select(x => new AutocompleteOptionDataOut(x, userCookieData)).ToList()
             };
 
             return result;
         }
 
-        public GuidelineInstanceViewDataOut ListDigitalGuidelines(int? episodeOfCareId)
+        public GuidelineInstanceViewDataOut ListDigitalGuidelines(int? episodeOfCareId, UserCookieData userCookieData)
         {
             GuidelineInstanceViewDataOut result = new GuidelineInstanceViewDataOut()
             {
@@ -134,7 +137,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 {
                     EpisodeOfCareId = episodeOfCareId.GetValueOrDefault()
                 },
-                Guidelines = Mapper.Map<List<GuidelineDataOut>>(digitalGuidelineDAL.GetAll())
+                Guidelines = digitalGuidelineDAL.GetAll().Select(x => new AutocompleteOptionDataOut(x, userCookieData)).ToList()
             };
 
             return result;
@@ -146,18 +149,14 @@ namespace sReportsV2.BusinessLayer.Implementations
             Guideline guideline = digitalGuidelineDAL.GetById(guidelineInstance.DigitalGuidelineId);
             SetNodeValue(guidelineInstance, value, nodeId);
             guidelineInstance.SetNextNodeState(nodeId, guideline);
-            digitalGuidelineInstanceDAL.Insert(Mapper.Map<GuidelineInstance>(guidelineInstance));
+            digitalGuidelineInstanceDAL.Insert(mapper.Map<GuidelineInstance>(guidelineInstance));
         }
 
         public GuidelineElementDataDataOut PreviewInstanceNode(GuidelineElementDataDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            GuidelineElementDataDataOut data = Mapper.Map<GuidelineElementDataDataOut>(dataIn);
-
-            if (dataIn.Thesaurus != null)
-            {
-                data.Thesaurus = Mapper.Map<ThesaurusEntryDataOut>(this.thesaurusDAL.GetById(dataIn.Thesaurus.Id));
-            }
+            GuidelineElementDataDataOut data = mapper.Map<GuidelineElementDataDataOut>(dataIn);
+            data.Thesaurus = mapper.Map<ThesaurusEntryDataOut>(this.thesaurusDAL.GetById(dataIn.ThesaurusId));
 
             return data;
         }
@@ -172,7 +171,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
 
             guidelineInstance.NodeValues.Find(x => x.Id.Equals(nodeId)).State = NodeState.Completed;
-            digitalGuidelineInstanceDAL.Insert(Mapper.Map<GuidelineInstance>(guidelineInstance));
+            digitalGuidelineInstanceDAL.Insert(mapper.Map<GuidelineInstance>(guidelineInstance));
         }
 
         private void SetGuidelineInstanceNodeValues(GuidelineInstanceDataIn guidelineInstanceDataIn)
@@ -187,14 +186,14 @@ namespace sReportsV2.BusinessLayer.Implementations
                 };
                 guidelineInstanceDataIn.NodeValues.Add(nodeValue);
             }
-            GuidelineInstance guidelineInstance = Mapper.Map<GuidelineInstance>(guidelineInstanceDataIn);
+            GuidelineInstance guidelineInstance = mapper.Map<GuidelineInstance>(guidelineInstanceDataIn);
             guidelineInstance.SetStartNode(digitalGuidelineDAL.GetEdges(guidelineInstance.NodeValues[0].Id, guidelineInstance.DigitalGuidelineId).Item1);
         }
 
         private void SetNodeValue(GuidelineInstance guidelineInstance, string value, string nodeId)
         {
             guidelineInstance.SetNodeValue(value, nodeId);
-            digitalGuidelineInstanceDAL.Insert(Mapper.Map<GuidelineInstance>(guidelineInstance));
+            digitalGuidelineInstanceDAL.Insert(mapper.Map<GuidelineInstance>(guidelineInstance));
         }
     }
 }

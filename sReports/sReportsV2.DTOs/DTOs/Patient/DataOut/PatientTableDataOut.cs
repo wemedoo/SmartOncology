@@ -11,7 +11,15 @@ namespace sReportsV2.DTOs.Patient.DataOut
         public string LastName { get; set; }
         public DateTime? BirthDate { get; set; }
 
-        public string GetPatientShortInfoString(string birthDateFormat=DateConstants.DateFormat)
+        public string FullName
+        {
+            get
+            {
+                return $"{FirstName} {LastName}";
+            }
+        }
+
+        public string GetPatientShortInfoString(string birthDateFormat=DateTimeConstants.DateFormat)
         {
             string birthDate = BirthDate != null ? BirthDate.Value.ToString(birthDateFormat) : string.Empty;
             return $"{FirstName} {LastName} {birthDate}";

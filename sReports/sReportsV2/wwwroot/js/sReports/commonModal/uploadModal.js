@@ -14,7 +14,7 @@ $(document).on("change", ".upload-input", function () {
         $(".upload-plus-btn").addClass('remove-file');
         $(".upload-plus-btn").removeClass('upload-plus-btn');
     } else {
-        $("#uploadSubmit").attr("disabled", true);
+        preventMultipleSubmit('uploadSubmit');
         $(".remove-file").attr("src", "/css/img/icons/browse.svg");
         $(".remove-file").addClass('upload-plus-btn');
         $(".remove-file").removeClass('remove-file');
@@ -26,7 +26,7 @@ $(document).on("click", ".remove-file", function () {
 });
 
 function removeFile() {
-    $("#uploadSubmit").attr("disabled", true);
+    preventMultipleSubmit('uploadSubmit');
     $(".upload-input").val("");
     $("#uploadFile").val("");
     $(".remove-file").attr("src", "/css/img/icons/browse.svg");

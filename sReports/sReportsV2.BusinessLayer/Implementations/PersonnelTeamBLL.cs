@@ -17,23 +17,23 @@ namespace sReportsV2.BusinessLayer.Implementations
     public class PersonnelTeamBLL : IPersonnelTeamBLL
     {
         private readonly IPersonnelTeamDAL personnelTeamDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public PersonnelTeamBLL(IPersonnelTeamDAL personnelTeamDAL, IMapper mapper)
         {
             this.personnelTeamDAL = personnelTeamDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public PersonnelTeamDataOut GetById(int personnelTeamId)
         {
             PersonnelTeam personnelTeam = personnelTeamDAL.GetByIdJoinActiveRelations(personnelTeamId);
-            return Mapper.Map<PersonnelTeamDataOut>(personnelTeam);
+            return mapper.Map<PersonnelTeamDataOut>(personnelTeam);
         }
 
         public void InsertOrUpdate(PersonnelTeamDataIn personnelTeamDataIn)
         {
-            PersonnelTeam personnelTeam = Mapper.Map<PersonnelTeam>(personnelTeamDataIn);
+            PersonnelTeam personnelTeam = mapper.Map<PersonnelTeam>(personnelTeamDataIn);
 
             if (personnelTeam.PersonnelTeamId != 0)
             {
@@ -50,11 +50,11 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            PersonnelTeamFilter filter = Mapper.Map<PersonnelTeamFilter>(dataIn);
+            PersonnelTeamFilter filter = mapper.Map<PersonnelTeamFilter>(dataIn);
             PaginationDataOut<PersonnelTeamDataOut, DataIn> result = new PaginationDataOut<PersonnelTeamDataOut, DataIn>()
             {
                 Count = personnelTeamDAL.GetAllEntriesCount(filter),
-                Data = Mapper.Map<List<PersonnelTeamDataOut>>(personnelTeamDAL.GetAll(filter)),
+                Data = mapper.Map<List<PersonnelTeamDataOut>>(personnelTeamDAL.GetAll(filter)),
                 DataIn = dataIn
             };
             return result;

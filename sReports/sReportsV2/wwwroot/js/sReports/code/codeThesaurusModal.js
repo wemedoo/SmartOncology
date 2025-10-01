@@ -17,7 +17,7 @@ function thesaurusFilterModal(e, preferredTerm) {
     $('#applySearchButton').click();
 }
 
-function reloadThesaurusTable() {
+function reloadModalTable() {
     let inputVal = encodeURIComponent($('#thesaurusSearchInput').val());
 
     if (inputVal) {
@@ -72,7 +72,7 @@ function closeThesaurusPreview(e) {
     currentPage = 1;
     $('.review-container').hide();
     $('.codeset-thesaurus-group').show();
-    reloadThesaurusTable();
+    reloadModalTable();
 }
 
 $(document).on('blur', ".item-title", function (e) {
@@ -84,10 +84,10 @@ $(document).on('blur', ".item-title", function (e) {
 
 $(document).on('click', '#applySearchButton', function (e) {
     currentPage = 1;
-    isThesaurusFilterTable = true;
+    isModalTable = true;
     if (document.getElementById("pageSizeSelector") != null)
         document.getElementById("pageSizeSelector").id = "pageSizeThesaurusSelector";
-    reloadThesaurusTable();
+    reloadModalTable();
 });
 
 $(document).on('click', '.search-thesaurus-table input[name="radioThesaurus"]:checked', function (e) {
@@ -153,8 +153,8 @@ function submitCodeSetForm(event, isPopulate, preferredTerm) {
             if (codeSetId != null)
                 request['CodeSetId'] = codeSetId;
 
-            request['ActiveFrom'] = calculateDateWithOffset($("#activeFromDate").val());
-            request['ActiveTo'] = calculateDateWithOffset($("#activeToDate").val());
+            request['ActiveFrom'] = calculateDateWithOffset("#activeFromDate");
+            request['ActiveTo'] = calculateDateWithOffset("#activeToDate");
             request['ApplicableInDesigner'] = $('#applicableInDesigner-yes').is(':checked'); 
 
             callServer({
@@ -218,7 +218,6 @@ function editEntry(e, preferredTerm, id, selectedThesaurusId) {
 }
 
 function openCodeValues(e, codeSetId, codeSetDisplay) {
-    codeSetDisplay = encodeURIComponent(codeSetDisplay);
     const targetClasses = ['dropdown-button', 'fa-bars', 'dropdown-item', 'dots', 'table-more'];
     const isDropdownRelated = targetClasses.some(cls => $(e.target).hasClass(cls));
 
@@ -228,8 +227,7 @@ function openCodeValues(e, codeSetId, codeSetDisplay) {
 }
 
 function viewCodeValues(e, codeSetId, codeSetDisplay) {
-    codeSetDisplay = encodeURIComponent(codeSetDisplay);
-    window.location.href = `/Code/ViewCodes?CodeSetId=${codeSetId}&CodeSetDisplay=${encodeURIComponent(codeSetDisplay)}`;
+    window.location.href = `/Code/ViewCodes?CodeSetId=${codeSetId}&CodeSetDisplay=${codeSetDisplay}`;
 }
 
 $(document).on('click', '.search-button', function (e) {
@@ -242,7 +240,7 @@ function populateCodeSetName(thesaurusId, preferredTerm) {
     document.getElementById("thesaurusSearchInputCode").value = preferredTerm;
     $("#thesaurusSearchInputCode").attr('data-value', thesaurusId);
     if ($('#codeSetsForm').valid()) {
-        console.log('The form is valid');
+        logInfo('The form is valid');
     }
 }
 
@@ -264,8 +262,8 @@ function createCodeSetFromCode(request, thesaurusId) {
         request['ThesaurusEntryId'] = thesaurusId;
         request['NewCodeSetId'] = $('#newCodeSetNumberForCode').val();
         request['CodeSetId'] = $('#codeSetNumberForCode').val();
-        request['ActiveFrom'] = calculateDateWithOffset($("#newCodeSetActiveFromForCode").val());
-        request['ActiveTo'] = calculateDateWithOffset($("#newCodeSetActiveToForCode").val());
+        request['ActiveFrom'] = calculateDateWithOffset("#newCodeSetActiveFromForCode");
+        request['ActiveTo'] = calculateDateWithOffset("#newCodeSetActiveToForCode");
         request['ApplicableInDesigner'] = $('#applicableInDesigner-yes').is(':checked'); 
 
         if (!isInvalidThesaurus) {
@@ -318,7 +316,7 @@ $(document).ready(function () {
 });
 
 function isInvalidThesaurusEntry() {
-    return thesaurusId === null && !isSelectThesaurus && document.getElementById("thesaurusSearchInputCode") === null;
+    return !thesaurusId && !isSelectThesaurus && document.getElementById("thesaurusSearchInputCode") === null;
 }
 
 function codeSetExistsThesaurusModal() {

@@ -1,12 +1,6 @@
 function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setAdvancedFilterBtnStyle(requestObject, ['Given', 'Family', 'BirthDate', 'page', 'pageSize']);
+    let requestObject = applyActionsBeforeServerReload(['Given', 'Family', 'BirthDate', 'page', 'pageSize']);
     setCodeValues(requestObject);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
 
     callServer({
         type: 'GET',

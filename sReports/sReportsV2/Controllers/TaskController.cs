@@ -12,7 +12,6 @@ using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.Pagination;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -23,7 +22,14 @@ namespace sReportsV2.Controllers
         private readonly ITaskBLL taskBLL;
         private readonly ICodeBLL codeBLL;
 
-        public TaskController(ITaskBLL taskBLL, ICodeBLL codeBLL, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public TaskController(ITaskBLL taskBLL, 
+            ICodeBLL codeBLL, IHttpContextAccessor 
+            httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.taskBLL = taskBLL;
             this.codeBLL = codeBLL;

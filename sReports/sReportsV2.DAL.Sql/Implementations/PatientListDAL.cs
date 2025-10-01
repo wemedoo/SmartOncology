@@ -174,7 +174,7 @@ namespace sReportsV2.SqlDomain.Implementations
         private IQueryable<PatientList> ApplyOrderByAndPaging(EntityFilter entityFilter, IQueryable<PatientList> query)
         {
             query = query.OrderBy(x => x.EntryDatetime)
-                .Skip((entityFilter.Page - 1) * entityFilter.PageSize)
+                .Skip(entityFilter.GetHowManyElementsToSkip())
                 .Take(entityFilter.PageSize);
             return query;
         }

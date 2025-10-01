@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Serilog;
+using System.IO;
 
 namespace sReportsV2.Controllers
 {
@@ -19,7 +20,14 @@ namespace sReportsV2.Controllers
         private readonly IBlobStorageBLL blobStorageBLL;
         private readonly IWebHostEnvironment hostingEnvironment;
 
-        public BlobController(IWebHostEnvironment hostingEnvironment, IBlobStorageBLL blobStorageBLL, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public BlobController(IWebHostEnvironment hostingEnvironment, 
+            IBlobStorageBLL blobStorageBLL, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.hostingEnvironment = hostingEnvironment;
             this.blobStorageBLL = blobStorageBLL;
@@ -83,9 +91,26 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize]
         public async Task<IActionResult> Download(BinaryMetadataDataIn data)
         {
+            return await DownloadResource(data).ConfigureAwait(false);
+        }
+
+        public async Task<IActionResult> DownloadInternally(BinaryMetadataDataIn data)
+        {
+            if (Request.Headers.ContainsKey("InternalDownloadRequest"))
+            {
+                return await DownloadResource(data).ConfigureAwait(false);
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+
+        private async Task<IActionResult> DownloadResource(BinaryMetadataDataIn data)
+        {
             try
             {
-                var fileContent = await blobStorageBLL.DownloadAsync(data).ConfigureAwait(false);
+                Stream fileContent = await blobStorageBLL.DownloadAsync(data).ConfigureAwait(false);
                 if (fileContent == null)
                 {
                     return NotFound(new ErrorDTO("Object does not exit"));
@@ -97,7 +122,20 @@ namespace sReportsV2.Controllers
                     contentType = "application/octet-stream";
                 }
 
-                return File(fileContent, contentType);
+                SetFileNameInResponse(data.ResourceId);
+                if (contentType == "application/json")
+                {
+                    using var reader = new StreamReader(fileContent);
+                    string rawJson = await reader.ReadToEndAsync();
+
+                    // Return the raw text with JSON content-type (in case JSON is not well formated)
+                    return Content(rawJson, "text/plain");
+                }
+                else
+                {
+                    return File(fileContent, contentType);
+                }
+
             }
             catch (Exception ex)
             {

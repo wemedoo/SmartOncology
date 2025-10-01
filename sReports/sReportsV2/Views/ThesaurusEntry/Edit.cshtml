@@ -1,13 +1,15 @@
-@using sReportsV2.Common.Helpers
+@using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 @model sReportsV2.DTOs.ThesaurusEntry.DataOut.ThesaurusEntryDataOut
 
 @{
-    bool isEdit = Model != null;
+    bool isEdit = Model.Id != 0;
     ViewBag.Title = isEdit ? @sReportsV2.Cache.Resources.TextLanguage.EditThesaurus : sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus;
+    var conceptSchemes = Html.Raw(Model.SkosData.AllConceptSchemes.JsonSerialize(lowerCamelCase: true));
 }
 
 <div>
-    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", sReportsV2.Cache.Resources.TextLanguage.Thesaurus }, { "linkLevel1", "/ThesaurusEntry/GetAll" }, { "level2", Model != null && Model.Id != 0 ? Model.Id.ToString() : @sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus }, { "activeLevel", 2 } })
+    @await Html.PartialAsync("Breadcrumb", new ViewDataDictionary(ViewData) { { "level1", sReportsV2.Cache.Resources.TextLanguage.Thesaurus }, { "linkLevel1", "/ThesaurusEntry/GetAll" }, { "level2", isEdit ? Model.Id.ToString() : @sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus }, { "activeLevel", 2 } })
     <div class="col-12">
         <div class="row margin-bottom-8">
             <div class="thesaurus-id padding-bottom-5 @(isEdit ? "" : "margin-bottom-8")">@(isEdit ? Model.Id.ToString() : @sReportsV2.Cache.Resources.TextLanguage.CreateThesaurus)</div>
@@ -25,9 +27,23 @@
             <img alt="" class="search-img search-pointer" src="/css/img/icons/search_green.svg" onclick="quickSearchTerm()">
         </div>
 
+        @if (Model.ShowSkosData)
+        {
+            <div class="thesaurus-properties">
+                <div class="eoc-main-content umls-content reset-padding umls-border thesaurus-collapse" data-toggle="collapse" data-target="#collapsethHierarchy" aria-expanded="false" aria-controls="collapsethHierarchy" id="thHierarchy">
+                    <img alt="" id="hierarchyArrow" class="arrow-tree-inactive">
+                    <span class="umls-found-in-title umls-title-padding">@sReportsV2.Cache.Resources.TextLanguage.Hierarchy</span>
+                </div>
+                <div class="collapse tree-background" id="collapsethHierarchy">
+                    @await Html.PartialAsync("~/Views/Skos/SkosHierarchyPreview.cshtml", Model.SkosData , new ViewDataDictionary(ViewData) { { "thesaurusId", Model.Id } })
+                </div>
+            </div>
+        }
+
+
         <div class="thesaurus-properties">
-            <div class="eoc-main-content umls-content reset-padding umls-border" data-toggle="collapse" data-target="#collapseFoundIn" aria-expanded="false" aria-controls="collapseFoundIn" id="foundIn">
-                <img alt="" id="foundArrow" class="arrow-tree">
+            <div class="eoc-main-content umls-content reset-padding umls-border thesaurus-collapse" data-toggle="collapse" data-target="#collapseFoundIn" aria-expanded="false" aria-controls="collapseFoundIn" id="foundIn">
+                <img alt="" id="foundArrow" class="arrow-tree-inactive">
                 <span class="umls-found-in-title umls-title-padding">@sReportsV2.Cache.Resources.TextLanguage.FoundIn</span>
                 <span class="found-in-count-thesaurus" id="foundInTotal" style="display: none">@ViewBag.TotalAppeareance</span>
             </div>
@@ -36,8 +52,8 @@
             </div>
         </div>
 
-        <div class="thesaurus-document-properties">
-            <div class="eoc-main-content umls-content reset-padding document-border-bottom" data-toggle="collapse" data-target="#collapseDocumentProperties" aria-expanded="false" aria-controls="collapseDocumentProperties" id="documentProperties">
+        <div class="thesaurus-properties">
+            <div class="eoc-main-content umls-content reset-padding document-border-bottom thesaurus-collapse" data-toggle="collapse" data-target="#collapseDocumentProperties" aria-expanded="false" aria-controls="collapseDocumentProperties" id="documentProperties">
                 <img alt="" class="arrow-tree-inactive" id="documentArrow">
                 <span class="umls-found-in-title umls-title-padding">@sReportsV2.Cache.Resources.TextLanguage.DocumentProperties</span>
             </div>
@@ -59,7 +75,7 @@
                 @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
                 <div class="eoc-information margin-bottom-10">
-                    <div class="eoc-main-content umls-content-active" data-toggle="collapse" data-target="#collapseO4MTSpecificFields" aria-expanded="false" aria-controls="collapseO4MTSpecificFields" id="collapseO4MTSpecificField">
+                    <div class="eoc-main-content umls-content-active thesaurus-collapse" data-toggle="collapse" data-target="#collapseO4MTSpecificFields" aria-expanded="false" aria-controls="collapseO4MTSpecificFields" id="collapseO4MTSpecificField">
                         <i class="administrative-state-arrow-up arrow-icon-umls" id="specificFieldsArrow"></i>
                         <span class="umls-title">@sReportsV2.Cache.Resources.TextLanguage.MTSpecificFields</span>
                     </div>
@@ -67,6 +83,19 @@
                         @await Html.PartialAsync("TranslationsPartial")
                     </div>
                 </div>
+
+                @if (Model.ShowSkosData)
+                {
+                    <div class="eoc-information margin-bottom-10">
+                        <div class="eoc-main-content umls-content thesaurus-collapse" data-toggle="collapse" data-target="#collapseSkosProperties" aria-expanded="false" aria-controls="collapseSkosProperties" id="skosProperties">
+                            <i class="administrative-state-arrow-down arrow-icon-umls" id="skosArrow"></i>
+                            <span class="umls-title">SKOS</span>
+                        </div>
+                        <div class="collapse translations-style padding-bottom-10" id="collapseSkosProperties">
+                            @await Html.PartialAsync("~/Views/Skos/SkosProperties.cshtml", Model.SkosData)
+                        </div>
+                    </div>
+                }
 
                 @await Html.PartialAsync("CodesTable")
 
@@ -100,11 +129,10 @@
 </div>
 
 @await Html.PartialAsync("CodeModal")
-@*@await Html.PartialAsync("SimilarTermModal")*@
 
 @Html.Raw(ScriptHelper.RenderBundle("js/thesaurusGetAll-bundle.min.js"))
 
 <script>
     var languages =  @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Languages as List<sReportsV2.DTOs.EnumDTO>, Newtonsoft.Json.Formatting.Indented));
-    var activeLanguage = '@(ViewBag.UserCookieData.ActiveLanguage as string)';
+    var conceptSchemes = @conceptSchemes;
 </script>

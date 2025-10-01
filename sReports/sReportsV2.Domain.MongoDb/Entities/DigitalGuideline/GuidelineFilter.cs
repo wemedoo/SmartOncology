@@ -1,5 +1,4 @@
 ﻿using sReportsV2.Common.Entities;
-using System;
 
 namespace sReportsV2.Domain.Entities.DigitalGuideline
 {
@@ -8,6 +7,7 @@ namespace sReportsV2.Domain.Entities.DigitalGuideline
         public string Title { get; set; }
         public int Major { get; set; }
         public int Minor { get; set; }
+        public int ThesaurusId { get; set; }
         public DateTime? DateTimeTo { get; set; }
         public DateTime? DateTimeFrom { get; set; }
     }

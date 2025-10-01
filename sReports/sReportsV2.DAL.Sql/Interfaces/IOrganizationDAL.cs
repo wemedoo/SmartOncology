@@ -29,6 +29,5 @@ namespace sReportsV2.DAL.Sql.Interfaces
         List<OrganizationCommunicationEntity> GetOrgCommunicationByOrgId(OrganizationFilter organizationFilter);
         Task<int> InsertOrganizationCommunication(OrganizationCommunicationEntity organizationCommunicationEntity);
         Task<OrganizationCommunicationEntity> GetOrgCommunicationEntityIdByIdAsync(int orgCommunicationEntityId);
-        string GetTimeZoneOffset(int organizationId);
     }
 }

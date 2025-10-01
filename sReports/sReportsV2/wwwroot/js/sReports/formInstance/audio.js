@@ -16,10 +16,20 @@
         let startTime;
         let elapsedTime = 0;
         let timerInterval;
+        const isReadOnly = container.dataset.readonly === 'true';
+
+        if (isReadOnly) {
+            startRecord.disabled = true;
+            startRecord.style.opacity = '0.5';
+            startRecord.removeAttribute("data-toggle");
+            startRecord.removeAttribute("title");
+        }
 
         startRecord.addEventListener('click', function (event) {
-            executeEventFunctions(event, true);
-            startRecording();
+            if (!isReadOnly) {
+                executeEventFunctions(event, true);
+                startRecording();
+            }
         });
 
         stopRecord.addEventListener('click', function (event) {
@@ -178,7 +188,6 @@ async function sendAudioFileData(fileData, setFieldCallback, filesUploadedCallBa
                     success: function (data) {
                         if (lastChunkUploaded(data)) {
                             if (setFieldCallback) {
-                                console.log('setting field: ' + file.id);
                                 setFieldCallback(file.id, data);
                             }
                             if (isLastElement) {

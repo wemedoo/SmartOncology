@@ -1,49 +1,60 @@
 ﻿using AutoMapper;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using Newtonsoft.Json;
+using sReportsV2.BusinessLayer.Components.Interfaces;
+using sReportsV2.BusinessLayer.Helpers;
+using sReportsV2.BusinessLayer.Helpers.TabularExportGenerator;
 using sReportsV2.BusinessLayer.Interfaces;
+using sReportsV2.Cache.Resources;
+using sReportsV2.Cache.Singleton;
+using sReportsV2.Common.Constants;
+using sReportsV2.Common.Entities.User;
+using sReportsV2.Common.Enums;
+using sReportsV2.Common.Exceptions;
+using sReportsV2.Common.Extensions;
+using sReportsV2.Common.File;
 using sReportsV2.DAL.Sql.Interfaces;
+using sReportsV2.Domain.Entities.Common;
+using sReportsV2.Domain.Entities.DocumentProperties;
+using sReportsV2.Domain.Entities.FieldEntity;
 using sReportsV2.Domain.Entities.Form;
+using sReportsV2.Domain.Entities.FormInstance;
+using sReportsV2.Domain.MongoDb.Entities.FormInstance;
 using sReportsV2.Domain.Services.Interfaces;
+using sReportsV2.Domain.Sql.Entities.CodeEntry;
+using sReportsV2.Domain.Sql.Entities.Common;
+using sReportsV2.Domain.Sql.Entities.OrganizationEntities;
+using sReportsV2.Domain.Sql.Entities.TaskEntry;
+using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
+using sReportsV2.Domain.Sql.Entities.User;
+using sReportsV2.DTOs.Autocomplete;
 using sReportsV2.DTOs.Common.DataOut;
+using sReportsV2.DTOs.Common.DTO;
+using sReportsV2.DTOs.CTCAE.DataIn;
+using sReportsV2.DTOs.DTOs.Form.DataIn;
+using sReportsV2.DTOs.DTOs.Form.DataOut;
+using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
+using sReportsV2.DTOs.DTOs.QueryManagement.DataOut;
+using sReportsV2.DTOs.Field.DataIn;
+using sReportsV2.DTOs.Field.DataOut;
 using sReportsV2.DTOs.Form;
+using sReportsV2.DTOs.Form.DataIn;
 using sReportsV2.DTOs.Form.DataOut;
+using sReportsV2.DTOs.Form.DataOut.Tree;
+using sReportsV2.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.Organization;
 using sReportsV2.DTOs.Pagination;
+using sReportsV2.DTOs.User.DataOut;
 using sReportsV2.DTOs.User.DTO;
+using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using sReportsV2.DTOs.FormInstance.DataOut;
-using sReportsV2.Domain.Entities.FormInstance;
-using sReportsV2.DTOs.Common.DTO;
-using sReportsV2.DTOs.Form.DataOut.Tree;
-using sReportsV2.SqlDomain.Interfaces;
-using sReportsV2.Domain.Sql.Entities.ThesaurusEntry;
-using sReportsV2.Common.Entities.User;
-using sReportsV2.DTOs.DTOs.Form.DataIn;
-using sReportsV2.Domain.Entities.Common;
-using sReportsV2.Domain.Sql.Entities.OrganizationEntities;
-using sReportsV2.Domain.Sql.Entities.User;
-using sReportsV2.DTOs.Field.DataOut;
-using sReportsV2.Domain.Entities.FieldEntity;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson;
-using sReportsV2.DTOs.User.DataOut;
-using sReportsV2.Common.Extensions;
-using System.Threading.Tasks;
-using sReportsV2.DTOs.DTOs.Form.DataOut;
-using sReportsV2.DTOs.Form.DataIn;
-using sReportsV2.Common.Enums;
-using sReportsV2.Domain.Sql.Entities.Common;
-using sReportsV2.Domain.Sql.Entities.TaskEntry;
-using sReportsV2.DTOs.Autocomplete;
-using sReportsV2.Domain.Sql.Entities.CodeEntry;
-using Newtonsoft.Json;
-using sReportsV2.DTOs.Field.DataIn;
-using sReportsV2.Common.Constants;
-using sReportsV2.Cache.Resources;
 using System.Data;
-using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
-using sReportsV2.Cache.Singleton;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -52,6 +63,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPersonnelDAL userDAL;
         private readonly IOrganizationDAL organizationDAL;
         private readonly IFormDAL formDAL;
+        private readonly IFormInstanceDAL formInstanceDAL;
         private readonly IThesaurusDAL thesaurusDAL;
         private readonly ITaskDAL taskDAL;
         private readonly ICodeDAL codeDAL;
@@ -59,8 +71,11 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IFormCodeRelationDAL formCodeRelationDAL;
         private readonly IAsyncRunner asyncRunner;
         private readonly IMapper mapper;
+        private readonly IEmailSender emailSender;
+        private readonly ICacheRefreshService cacheRefreshService;
+        private readonly IQueryManagementDAL queryManagementDAL;
 
-        public FormBLL(IPersonnelDAL userDAL, IOrganizationDAL organizationDAL, IFormDAL formDAL, IThesaurusDAL thesaurusDAL, ITaskDAL taskDAL, ICodeDAL codeDAL, ICodeAssociationDAL codeAssociationDAL, IFormCodeRelationDAL formCodeRelationDAL, IAsyncRunner asyncRunner, IMapper mapper)
+        public FormBLL(IPersonnelDAL userDAL, IOrganizationDAL organizationDAL, IFormDAL formDAL, IThesaurusDAL thesaurusDAL, ITaskDAL taskDAL, ICodeDAL codeDAL, ICodeAssociationDAL codeAssociationDAL, IFormCodeRelationDAL formCodeRelationDAL, IAsyncRunner asyncRunner, IMapper mapper, IEmailSender emailSender, IFormInstanceDAL formInstanceDAL, ICacheRefreshService cacheRefreshService, IQueryManagementDAL queryManagementDAL)
         {
             this.organizationDAL = organizationDAL;
             this.userDAL = userDAL;
@@ -72,13 +87,19 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.formCodeRelationDAL = formCodeRelationDAL;
             this.asyncRunner = asyncRunner;
             this.mapper = mapper;
+            this.emailSender = emailSender;
+            this.formInstanceDAL = formInstanceDAL;
+            this.cacheRefreshService = cacheRefreshService;
+            this.queryManagementDAL = queryManagementDAL;
         }
 
         #region Get Filtered Forms
         public List<FormInstancePerDomainDataOut> GetFormInstancePerDomain(string activeLanguage)
         {
             return mapper.Map<List<FormInstancePerDomainDataOut>>(this.formDAL.GetFormInstancePerDomain(),
-                opts => opts.Items["Language"] = activeLanguage);
+                opts => opts.Items["Language"] = activeLanguage)
+                .Where(f => !string.IsNullOrEmpty(f.Label))
+                .ToList();
         }
 
         public PaginationDataOut<FormDataOut, FormFilterDataIn> ReloadData(FormFilterDataIn dataIn, UserCookieData userCookieData)
@@ -121,9 +142,11 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 Title = dataIn.Term,
                 OrganizationId = userCookieData.ActiveOrganization,
-                ActiveLanguage = userCookieData.ActiveLanguage
+                ActiveLanguage = userCookieData.ActiveLanguage,
+                Page = dataIn.Page,
+                PageSize = FilterConstants.DefaultPageSize
             };
-            Task<List<Form>> formsTask = formDAL.GetByTitleForAutoComplete(formFilterData, dataIn.Page);
+            Task<List<Form>> formsTask = formDAL.GetByTitleForAutoComplete(formFilterData);
             Task<long> countTask = formDAL.CountByTitle(formFilterData);
 
             await System.Threading.Tasks.Task.WhenAll(formsTask, countTask);
@@ -132,17 +155,27 @@ namespace sReportsV2.BusinessLayer.Implementations
                 .Select(x => new AutocompleteDataOut()
                 {
                     id = x.Id,
-                    text = x.Title + $" ({x.Version.GetFullVersionString()})",
+                    text = x.GetTitleWithVersion(),
                 })
                 .ToList();
 
             AutocompleteResultDataOut result = new AutocompleteResultDataOut()
             {
                 results = autocompleteDataDataOuts,
-                pagination = new AutocompletePaginatioDataOut() { more = countTask.Result > dataIn.Page * 10, }
+                pagination = new AutocompletePaginatioDataOut() { more = dataIn.ShouldLoadMore((int)countTask.Result) }
             };
 
             return result;
+        }
+
+        public long GetThesaurusAppereanceCount(int o4mtId, string searchTerm, int? organizationId = null)
+        {
+            return formDAL.GetThesaurusAppereanceCount(o4mtId, searchTerm, organizationId);
+        }
+
+        public DocumentProperties GetDocumentProperties(string formId)
+        {
+            return formDAL.GetDocumentProperties(formId);
         }
 
         private FormFilterData GetFormFilterData(FormFilterDataIn formDataIn, UserCookieData userCookieData)
@@ -189,7 +222,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             return result;
         }
-        public Form GetForm(FormInstance formInstance, UserCookieData userCookieData)
+        private Form GetForm(FormInstance formInstance, UserCookieData userCookieData)
         {
             Form form = null;
             if (!formInstance.Language.Equals(userCookieData.ActiveLanguage))
@@ -205,16 +238,28 @@ namespace sReportsV2.BusinessLayer.Implementations
             return new Form(formInstance, form);
         }
 
-        public FormDataOut GetFormDataOut(FormInstance formInstance, List<FormInstance> referrals, UserCookieData userCookieData, FormInstanceReloadDataIn formInstanceReloadData)
+        public FormDataOut GetFormDataOut(FormInstance formInstance, UserCookieData userCookieData, FormInstanceReloadDataIn formInstanceReloadData)
         {
             Form form = this.GetForm(formInstance, userCookieData);
             form.LastUpdate = formInstance.LastUpdate;
-            FormDataOut data = this.SetFormDependablesAndReferrals(form, GetFormsFromReferrals(referrals), userCookieData);
+
+            FormDataOut data = this.SetFormDependablesAndReferrals(
+                form, 
+                new FormInstanceReferralDTO
+                {
+                    ActiveLanguage = userCookieData.ActiveLanguage,
+                    FormInstance = formInstance,
+                    SetReferralValues = formInstanceReloadData.SetReferrableValues
+                }
+            );
+
+            PopulateFieldQueries(data, queryManagementDAL, mapper);
+
             data.Organizations = new List<OrganizationDataOut> { mapper.Map<OrganizationDataOut>(organizationDAL.GetById(formInstance.OrganizationId)) };
 
             data.SetDoesAllMandatoryFieldsHaveValue();
-            (Dictionary<string, bool> chaptersState, Dictionary<string, bool> pagesState, _) = formInstance.ExamineIfChaptersAndPagesAreLocked();
-            data.SetIfChaptersAndPagesAreLocked(chaptersState, pagesState);
+            FormInstanceItemLockingStatus formInstanceLockingStatus = formInstance.ExamineIfChaptersAndPagesAndFieldsetsAreLocked();
+            data.SetIfChaptersAndPagesAreLocked(formInstanceLockingStatus);
             data.SetActiveChapterAndPageId(formInstanceReloadData);
 
             return data;
@@ -260,7 +305,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             form.SetFieldInstances(
                 fieldInstances
             );
-            FormDataOut formDataOut = this.SetFormDependablesAndReferrals(form, referrals: null, userCookieData: null);
+            FormDataOut formDataOut = this.SetFormDependablesAndReferrals(form);
             FormFieldSetDataOut fieldSetDataOut = formDataOut.GetAllFieldSets().Find(fs => fs.FieldSetInstanceRepetitionId == fieldSetInstanceRepetitionIdForNew);
             fieldSetDataOut.SetParentFieldInstanceDependencies(formDataOut);
 
@@ -294,6 +339,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<FormGenerateNewLanguageDataOut> GetGenerateNewLanguage(string formId, int activeOrganization)
         {
             Form form = await formDAL.GetFormAsync(formId).ConfigureAwait(false);
+            if (form.Invalid) throw new UserAdministrationException((int)HttpStatusCode.Conflict, "Cannot generate new translation! Form is invalid!");
             List<string> alreadyGeneratedLanguages = await formDAL.GetGeneratedLanguages(form.ThesaurusId, activeOrganization, form.Version).ConfigureAwait(false);
             return new FormGenerateNewLanguageDataOut
             {
@@ -301,6 +347,49 @@ namespace sReportsV2.BusinessLayer.Implementations
                 Title = form.Title,
                 PossibleLanguages = SingletonDataContainer.Instance.GetLanguages().Where(l => !alreadyGeneratedLanguages.Contains(l.Value)).ToList()
             };
+        }
+
+        public async System.Threading.Tasks.Task GenerateReport(string formId, UserCookieData userCookieData)
+        {
+            Form form = await formDAL.GetFormAsync(formId);
+            Stream stream = new MemoryStream();
+            ExcelWriter excelWriter = new ExcelWriter(stream);
+            List<FormThesaurusReportView> formThesaurusReport = await thesaurusDAL.GetFormThesaurusReportView(form.ThesaurusIdsList);
+            FormThesaurusReportExportGenerator formThesaurusReportExport = new FormThesaurusReportExportGenerator(
+                new TabularExportGeneratorInputParams
+                {
+                    FileWriter = excelWriter,
+                    CurrentForm = form,
+                    DateFormat = "dd-MMM-yyyy"
+                }, 
+                formThesaurusReport
+            );
+            formThesaurusReportExport.GenerateReportInExcel();
+            excelWriter.FinalizeWriting(stream);
+
+            string reportFileName = $"Thesaurus Code Report {form.Title}".GetSafeFileName();
+            Dictionary<string, Stream> files = new Dictionary<string, Stream>()
+            {
+                { reportFileName, stream }
+            };
+
+            string emailContent = EmailHelpers.GetExportEmailContent(userCookieData, files.Keys);
+            emailSender.SendAsync(new EmailDTO(userCookieData.Email, emailContent, $"Ready for Download: {reportFileName}")
+            {
+                Attachments = files,
+                IsCsv = false
+            });
+        }
+
+        public IEnumerable<FieldSet> GetFieldSetsByFieldLabels(string formId, FormFieldSetDataIn fieldset)
+        {
+            var firstFieldSet = fieldset?.ListOfFieldSets?.FirstOrDefault()?.Fields;
+            List<string> fieldLabels = firstFieldSet?.Select(x => x.Label).ToList() ?? new List<string>();
+            string fieldType = firstFieldSet?.Select(x => x.Type).FirstOrDefault();
+
+            return fieldLabels.Any()
+                ? formDAL.GetFieldSetsByFieldLabels(formId, fieldLabels, fieldType)
+                : Enumerable.Empty<FieldSet>();
         }
 
         private string AddFieldSetRepetition(string fieldSetId, List<FieldInstance> fieldInstances)
@@ -314,26 +403,57 @@ namespace sReportsV2.BusinessLayer.Implementations
             return fieldsetRepetitionIdForNew;
         }
 
+        public string GetFormJson(FormDataIn formDataIn)
+        {
+            FormDataOut dataOut = mapper.Map<FormDataOut>(formDataIn);
+            return dataOut.GetCustomMarkedPropertiesObject().JsonSerialize(true);
+        }
+
+        public bool ExistsFormByThesaurus(int thesaurusId)
+        {
+            return formDAL.ExistsFormByThesaurus(thesaurusId);
+        }
+
+        public bool ExistsForm(string formId)
+        {
+            return formDAL.ExistsForm(formId);
+        }
+
+        public Form GetFormByThesaurus(int thesaurusId)
+        {
+            return formDAL.GetFormByThesaurus(thesaurusId);
+        }
+
+        public Form GetFormByThesaurusAndVersion(int thesaurusId, string versionId)
+        {
+            return formDAL.GetFormByThesaurusAndVersion(thesaurusId, versionId);
+        }
+
         #endregion /Get Form
 
         #region Save Actions
-        public bool Delete(string formId, DateTime lastUpdate, string organizationTimeZone)
+        public async Task<bool> Delete(string formId, DateTime lastUpdate, string organizationTimeZone)
         {
             bool deleted = formDAL.Delete(formId, lastUpdate);
-            SetCodeAndFormCodeRelationToInactive(formId, organizationTimeZone);
+            await formCodeRelationDAL.SetFormCodeRelationAndCodeToInactive(formId, organizationTimeZone);
+            SetCodeAndTaskDocumentToInactive(formId, organizationTimeZone);
+
             return deleted;
         }
 
-        public Form InsertOrUpdate(Form form, UserCookieData userCookieData, bool updateVersion = true)
+        public Form InsertOrUpdate(Form form, UserCookieData userCookieData, bool executeBackgroundTask = true)
         {
             var addedForm = formDAL.InsertOrUpdate(form, mapper.Map<UserData>(userCookieData));
-            ExecuteFormBackgroundTasks(addedForm, new FormBackgroundTaskDataIn
+            if (executeBackgroundTask)
             {
-                CreatedById = userCookieData.Id,
-                AddCodeRelation = true,
-                AddTaskDocument = form.State == FormDefinitionState.ReadyForDataCapture && form.AvailableForTask,
-                UpdateTaskDocument = form.State != FormDefinitionState.ReadyForDataCapture || !form.AvailableForTask
-            }, userCookieData);
+                ExecuteFormBackgroundTasks(addedForm, new FormBackgroundTaskDataIn
+                {
+                    CreatedById = userCookieData.Id,
+                    AddCodeRelation = true,
+                    AddTaskDocument = form.State == FormDefinitionState.ReadyForDataCapture && form.AvailableForTask,
+                    UpdateTaskDocument = form.State != FormDefinitionState.ReadyForDataCapture || !form.AvailableForTask
+                }, userCookieData);
+            }
 
             return addedForm;
         }
@@ -410,14 +530,13 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 form.Id = null;
                 form.Language = language;
-                formDAL.InsertOrUpdate(form, userData, false);
             }
             else
             {
                 form.Id = null;
-                form.GenerateTranslation(entries, language);
-                formDAL.InsertOrUpdate(form, userData, false);
+                form.GenerateTranslation(entries, language, form.Language);
             }
+            formDAL.InsertOrUpdate(form, userData, false);
 
             return true;
         }
@@ -553,6 +672,8 @@ namespace sReportsV2.BusinessLayer.Implementations
         private void AddFormToTaskDocumentTable(Form form, UserCookieData userCookieData)
         {
             int codeId = InsertTaskDocumentCode(form.ThesaurusId, userCookieData);
+            cacheRefreshService.RefreshCache(codeId, ModifiedResourceType.Code);
+
             InsertTaskDocument(new TaskDocument(userCookieData.Id, userCookieData.OrganizationTimeZone)
             {
                 TaskDocumentCD = codeId,
@@ -584,6 +705,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             TaskDocument taskDocument = taskDAL.GetTaskDocumentByFormId(formId);
             taskDAL.SetTaskDocumentToInactive(taskDocument, organizationTimeZone);
             codeDAL.SetCodeToInactive(taskDocument.TaskDocumentCD, organizationTimeZone);
+            cacheRefreshService.RefreshCache(taskDocument.TaskDocumentCD, ModifiedResourceType.Code);
         }
 
         private void AddFormCodeRelation(Form form, UserCookieData userCookieData)
@@ -603,11 +725,6 @@ namespace sReportsV2.BusinessLayer.Implementations
                     }, userCookieData.OrganizationTimeZone
                 );
             }
-        }
-
-        private void SetCodeAndFormCodeRelationToInactive(string formId, string organizationTimeZone)
-        {
-            formCodeRelationDAL.SetFormCodeRelationAndCodeToInactive(formId, organizationTimeZone);
         }
         #endregion /Code Methods
 
@@ -651,12 +768,12 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             return forms;
         }
-        private List<ReferralInfoDTO> GetReferrableFields(Form form, List<Form> referrals, UserCookieData userCookieData)
+        private List<ReferralInfoDTO> GetReferrableFields(Form form, List<Form> referrals, string activeLanguage)
         {
             List<ReferralInfoDTO> result = new List<ReferralInfoDTO>();
             if (referrals != null)
             {
-                Dictionary<int, Dictionary<int, string>> missingValuesDict = codeAssociationDAL.InitializeMissingValueList(userCookieData.ActiveLanguage);
+                Dictionary<int, Dictionary<int, string>> missingValuesDict = codeAssociationDAL.InitializeMissingValueList(activeLanguage);
                 result = MapReferralInfo(form.GetValuesFromReferrals(referrals, missingValuesDict));
             }
             return result;
@@ -679,6 +796,74 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             return result;
         }
+
+        public FormInstance SetFormInstanceIdForUpdate(CTCAEPatient patient, FormInstance formInstance)
+        {
+            FormInstance formInstanceForUpdate = formInstanceDAL.GetById(patient.FormInstanceId);
+            Form formForUpdate = formDAL.GetForm(formInstanceForUpdate.FormDefinitionId);
+            formForUpdate.SetValuesFromReferrals(this.GetFormsFromReferrals(new List<FormInstance>() { formInstance, formInstanceForUpdate }));
+
+            foreach (List<FieldSet> fieldSets in formForUpdate.GetAllListOfFieldSets())
+            {
+                foreach (FieldSet fieldSet in fieldSets)
+                {
+                    foreach (Field field in fieldSet.Fields)
+                    {
+                        field.FieldSetId = fieldSet.Id;
+                    }
+                }
+            }
+
+            SetFormInstanceForUpdateFields(formInstanceForUpdate, formForUpdate);
+
+            return formInstanceForUpdate;
+        }
+
+        private void SetFormInstanceForUpdateFields(FormInstance formInstanceForUpdate, Form formForUpdate)
+        {
+            formInstanceForUpdate.FieldInstances = formForUpdate
+                .GetAllFields()
+                .Where(x => x.FieldInstanceValues != null)
+                .Select(x => new FieldInstance(x, x.FieldSetId, x.FieldSetInstanceRepetitionId)
+                {
+                    FieldInstanceValues = x.FieldInstanceValues.ToList()
+                }
+            ).ToList();
+        }
         #endregion /Referrals
+
+        #region Query
+        public void PopulateFieldQueries(FormDataOut data, IQueryManagementDAL queryManagementDAL, IMapper mapper)
+        {
+            var allFieldInstanceIds = data.GetAllFields()
+                .SelectMany(f => f.FieldInstanceValues)
+                .Select(fiv => fiv.FieldInstanceRepetitionId)
+                .ToList();
+
+            var allQueries = queryManagementDAL.GetByFieldIds(allFieldInstanceIds);
+            var allQueriesMapped = allQueries.Select(q => mapper.Map<QueryDataOut>(q)).ToList();
+
+            var queriesByFieldId = allQueriesMapped
+                .GroupBy(q => q.FieldId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var field in data.GetAllFields())
+            {
+                foreach (var fiv in field.FieldInstanceValues)
+                {
+                    if (queriesByFieldId.TryGetValue(fiv.FieldInstanceRepetitionId, out var queries))
+                    {
+                        fiv.Queries = queries;
+                    }
+                    else
+                    {
+                        fiv.Queries = new List<QueryDataOut>();
+                    }
+                }
+            }
+
+        }
+        #endregion /Query
+
     }
 }

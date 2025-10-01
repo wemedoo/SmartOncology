@@ -14,6 +14,7 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
 {
     public class SendGridEmailSender : EmailSenderBase
     {
+        private SendGridMessage _message;
         public SendGridEmailSender(IConfiguration configuration) : base(configuration)
         {
         }
@@ -24,33 +25,27 @@ namespace sReportsV2.BusinessLayer.Components.Implementations
             var email = configuration["AppEmail"];
             var sendGridClient = new SendGridClient(apiKey);
             var from = new EmailAddress(email, EmailSenderNames.SoftwareName);
-            var msg = MailHelper.CreateSingleEmail(from, new EmailAddress(messageDto.EmailAddress), messageDto.Subject, string.Empty, messageDto.Body);
+            _message = MailHelper.CreateSingleEmail(from, new EmailAddress(messageDto.EmailAddress), messageDto.Subject, string.Empty, messageDto.Body);
 
-            if (messageDto.Attachments != null)
-            {
-                foreach (KeyValuePair<string, Stream> file in messageDto.Attachments)
-                {
-                    string extension = ".zip";
-                    string sanitizedFileName = file.Key.SanitizeFileName();
-                    string outputPath = outputDirectory.CombineFilePath(sanitizedFileName);
-                    CreateFileZip(file.Value, sanitizedFileName, outputPath, messageDto.IsCsv);
-                    using (var attachmentStream = new MemoryStream(System.IO.File.ReadAllBytes(outputPath)))
-                    {
-                        var attachment = new Attachment
-                        {
-                            Content = Convert.ToBase64String(attachmentStream.ToArray()),
-                            Filename = sanitizedFileName + extension
-                        };
-                        msg.Attachments = new List<Attachment> { attachment };
-                    }
+            AddAttachments(messageDto);
 
-                    file.Value.Dispose();
-                }
-            }
-
-            await sendGridClient.SendEmailAsync(msg).ConfigureAwait(false);
+            await sendGridClient.SendEmailAsync(_message).ConfigureAwait(false);
+            _message = null;
 
             DeleteFile(messageDto.Attachments, outputDirectory);
+        }
+
+        protected override void AddAttachmentsToMail(string outputPath, string zipFileName)
+        {
+            using (var attachmentStream = new MemoryStream(System.IO.File.ReadAllBytes(outputPath)))
+            {
+                var attachment = new Attachment
+                {
+                    Content = Convert.ToBase64String(attachmentStream.ToArray()),
+                    Filename = zipFileName
+                };
+                _message.Attachments = new List<Attachment> { attachment };
+            }
         }
     }
 }

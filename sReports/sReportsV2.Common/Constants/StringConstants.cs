@@ -36,11 +36,11 @@
         public const string NotDefined = "N/E";
 
         public const string OomniaExternalId = "Oomnia External ID";
-        public const string ApplicationName = "sReports";
         public const string SmartOncology = "Smart Oncology";
         public const string ConsensusInstance = "ConsensusInstance";
         public const string CountryCodingSystem = "urn:iso:std:iso:3166";
         public const string OomniaScreeningNumber = "Oomnia Screening Number";
+        public const string DefaultSkosConceptSchema = "Default Skos Concept Schema";
 
         public const string NotApplicable = "Not Applicable";
         public const string HTML_BR = "<br>";
@@ -48,6 +48,9 @@
         public const string TextPlainMimeExtension = "text/plain";
 
         public const string DefaultThesaurusState = "Draft";
+        public const string DefaultEndpoint = "/";
 
+        public const string CountriesFolder = "Countries";
+        public const string OntologyFolder = "Ontologies";
     }
 }

@@ -7,12 +7,12 @@ using iText.Kernel.Pdf;
 using iText.Layout.Properties;
 using sReportsV2.Common.Constants;
 using sReportsV2.Common.Extensions;
-using sReportsV2.Domain.Entities.Form;
 using System;
 using iText.Layout;
 using iText.Layout.Element;
 using sReportsV2.Domain.Sql.Entities.OrganizationEntities;
 using System.Globalization;
+using Chapters.Resources;
 
 namespace Chapters.Helpers
 {
@@ -50,11 +50,11 @@ namespace Chapters.Helpers
 
             RenderContent(pdfDoc, page, headerFooterTable);
 
-            new Canvas(pdfCanvas, pdfDoc, page.GetPageSize()).Add(headerFooterTable);
+            new Canvas(pdfCanvas, page.GetPageSize()).Add(headerFooterTable);
             pdfCanvas.Release();
         }
 
-        public abstract void RenderContent(PdfDocument pdfDoc, PdfPage page, Table headerFooterTable);
+        protected abstract void RenderContent(PdfDocument pdfDoc, PdfPage page, Table headerFooterTable);
 
         protected void SetCellPaddingAndWidth(Cell cell1, Cell cell2)
         {
@@ -67,18 +67,23 @@ namespace Chapters.Helpers
 
     public class HeaderEventHandler : HeaderFooterEventHandler
     {
-        private readonly Form form;
+        private const int _headerPositionFromBottom = 790;
+        private readonly FormPdfMetadata form;
 
-        public HeaderEventHandler(Document document, string basePath, int rectangleWidth, int footerMargin, Form form, PdfFont pdfFont) : base(document, basePath, rectangleWidth, footerMargin, pdfFont)
+        public HeaderEventHandler(Document document, string basePath, int rectangleWidth, int footerMargin, FormPdfMetadata form, PdfFont pdfFont) : base(document, basePath, rectangleWidth, footerMargin, pdfFont)
         {
             this.form = form;
         }
 
-        public override void RenderContent(PdfDocument pdfDoc, PdfPage page, Table headerFooterTable)
+        protected override void RenderContent(PdfDocument pdfDoc, PdfPage page, Table headerFooterTable)
         {
             int pageNumber = pdfDoc.GetPageNumber(page);
-            string formInfoText = $"{form.Title} v{form.Version.Major}.{form.Version.Minor} {form.EntryDatetime.ToString(DateConstants.DateFormat, CultureInfo.InvariantCulture)}";
-            Cell cell1 = new Cell().Add(new Paragraph(formInfoText));
+            string formInfoText = $"{form.Title} v{form.Version.Major}.{form.Version.Minor} {form.EntryDatetime.GetDateTimeDisplay(DateTimeConstants.DateFormat, excludeTimePart: true)}";
+            if (!string.IsNullOrEmpty(form.PatientIdentifier))
+            {
+                formInfoText = $"{formInfoText} \n Screening Number {form.PatientIdentifier}";
+            }
+            Cell cell1 = new Cell().Add(new Paragraph(formInfoText).SetMultipliedLeading(0.8f));
             cell1.SetVerticalAlignment(VerticalAlignment.MIDDLE);
 
             string imagePath = $@"{_basePath}\AppResource\footerLogo.png";
@@ -93,8 +98,7 @@ namespace Chapters.Helpers
             headerFooterTable.AddCell(cell1);
             headerFooterTable.AddCell(cell2);
 
-            float bottom = page.GetPageSize().GetTop() - _document.GetTopMargin() - footerY;
-            headerFooterTable.SetFixedPosition(pageNumber, _footerMargin, bottom, _rectangleWidth);
+            headerFooterTable.SetFixedPosition(pageNumber, _footerMargin, _headerPositionFromBottom, _rectangleWidth);
         }
     }
 
@@ -109,12 +113,15 @@ namespace Chapters.Helpers
             this.organization = organization;
         }
 
-        public override void RenderContent(PdfDocument pdfDoc, PdfPage page, Table headerFooterTable)
+        protected override void RenderContent(PdfDocument pdfDoc, PdfPage page, Table headerFooterTable)
         {
             int pageNumber = pdfDoc.GetPageNumber(page);
             int totalPageNumber = pdfDoc.GetNumberOfPages();
-            string organizationDateNow = DateTimeOffset.Now.ToTimeZoned(DateConstants.DateFormat, timezoneOffset: organization.TimeZoneOffset, seconds: true);
-            string printedByText = $"Printed by: {activeUserNameInfo} \n {organizationDateNow} (UTC {organization.TimeZoneOffset})";
+            DateTimeOffset now = DateTimeOffset.Now;
+            string organizationTimeZoneId = organization.GetOrganizationTimeZoneId();
+            string organizationOffsetPrinted = DateTimeExtension.GetOffsetValue(organizationTimeZoneId);
+            string organizationDateNow = now.ToTimeZoned(DateTimeConstants.DateFormat, customTimezoneId: organizationTimeZoneId, seconds: true);
+            string printedByText = $"Printed by: {activeUserNameInfo} \n {organizationDateNow} (UTC {organizationOffsetPrinted})";
             Cell cell1 = new Cell().Add(new Paragraph(printedByText).SetMultipliedLeading(0.8f));
             Cell cell2 = new Cell().Add(new Paragraph($"Page {pageNumber} of {totalPageNumber}"));
             SetCellPaddingAndWidth(cell1, cell2);

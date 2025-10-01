@@ -1,4 +1,5 @@
-﻿using sReportsV2.DTOs.O4CodeableConcept.DataIn;
+﻿using sReportsV2.DTOs.DTOs.ThesaurusEntry.DataIn;
+using sReportsV2.DTOs.O4CodeableConcept.DataIn;
 using sReportsV2.DTOs.ThesaurusEntry.DTO;
 using System;
 using System.Collections.Generic;
@@ -40,7 +41,8 @@ namespace sReportsV2.DTOs.ThesaurusEntry
 
         [DataMember(Name = "preferredLanguage")]
         public string PreferredLanguage { get; set; }
-
+        [DataMember(Name = "skosData")]
+        public SkosDataIn SkosData { get; set; }
         public string UriClassLink { get; set; }
         public string UriClassGUI { get; set; }
         public string UriSourceLink { get; set; }

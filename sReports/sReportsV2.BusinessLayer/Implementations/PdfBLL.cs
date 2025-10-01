@@ -24,6 +24,11 @@ using sReportsV2.SqlDomain.Interfaces;
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using sReportsV2.Cache.Singleton;
+using sReportsV2.Common.Constants;
+using sReportsV2.Common.Exceptions;
+using System.Net;
+using sReportsV2.Cache.Resources;
 
 namespace sReportsV2.BusinessLayer.Implementations
 {
@@ -37,7 +42,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IPatientDAL patientDAL;
         private readonly IEncounterDAL encounterDAL;
         private readonly IPersonnelDAL personnelDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public PdfBLL(IOrganizationDAL organizationDAL, IFormDAL formDAL, IFormInstanceDAL formInstanceDAL, IEpisodeOfCareDAL episodeOfCareDAL, IPatientDAL patientDAL, IEncounterDAL encounterDAL, IPersonnelDAL personnelDAL, IFormBLL formBLL, IMapper mapper)
         {
@@ -49,7 +54,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.encounterDAL = encounterDAL;
             this.personnelDAL = personnelDAL;
             this.formBLL = formBLL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         #region Generate PDF
@@ -82,14 +87,18 @@ namespace sReportsV2.BusinessLayer.Implementations
             SynopticPdfGenerator pdfGenerator = new SynopticPdfGenerator(
                 data, 
                 signingUserCompleteName, 
-                organizationDAL.GetById(userCookieData.ActiveOrganization)
+                organizationDAL.GetById(userCookieData.ActiveOrganization),
+                userCookieData.GetFirstAndLastName(),
+                patientDAL.GetIdentifierByPatientId(
+                    formInstance.PatientId, 
+                    SingletonDataContainer.Instance.GetCodeId((int)CodeSetList.PatientIdentifierType, ResourceTypes.OomniaScreeningNumber))?.IdentifierValue
                 );
 
             return new PdfDocumentDataOut
             {
                 Content = pdfGenerator.Generate(),
                 ContentType = "application/pdf",
-                DocumentName = $"{formInstance.Title}.pdf"
+                DocumentName = $"{pdfGenerator.GetDownloadedSynopticPdfName()}.pdf"
             };
         }
 
@@ -109,9 +118,10 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             Form form = new Form(formInstance, formDAL.GetForm(formInstance.FormDefinitionId))
             {
-                LastUpdate = formInstance.LastUpdate
+                LastUpdate = formInstance.LastUpdate,
+                EntryDatetime = formInstance.EntryDatetime
             };
-            FormDataOut data = formBLL.SetFormDependablesAndReferrals(form, null, null);
+            FormDataOut data = formBLL.SetFormDependablesAndReferrals(form);
 
             return data;
         }
@@ -123,15 +133,14 @@ namespace sReportsV2.BusinessLayer.Implementations
         public void UploadFile(IFormFile file, UserCookieData userCookieData)
         {
             Ensure.IsNotNull(file, nameof(file));
-            UserData userData = Mapper.Map<UserData>(userCookieData);
+            UserData userData = mapper.Map<UserData>(userCookieData);
 
             using (PdfReader reader = new PdfReader(file.OpenReadStream()))
             {
                 using (PdfDocument pdfDocument = new PdfDocument(reader))
                 {
-                    var formId = pdfDocument.GetDocumentInfo().GetMoreInfo("formId");
-                    Form form = formDAL.GetForm(formId);
-                    Ensure.IsNotNull(form, nameof(form));
+                    string formId = pdfDocument.GetDocumentInfo().GetMoreInfo("formId") ?? throw new UserAdministrationException((int)HttpStatusCode.BadRequest, TextLanguage.InvalidUploadedPdfFormat);
+                    Form form = formDAL.GetForm(formId) ?? throw new UserAdministrationException((int)HttpStatusCode.NotFound, string.Format(TextLanguage.FormNotExists, string.Empty));
 
                     PdfFormParser parser = new PdfFormParser(form, pdfDocument);
                     Form parsedForm = parser.ReadFieldsFromPdf();
@@ -201,19 +210,17 @@ namespace sReportsV2.BusinessLayer.Implementations
             EpisodeOfCare eoc;
             if (episodeOfCare != null)
             {
-                eoc = Mapper.Map<EpisodeOfCare>(episodeOfCare);
+                eoc = mapper.Map<EpisodeOfCare>(episodeOfCare);
                 eoc.Period = new Domain.Sql.Entities.Common.PeriodDatetime() { Start = startDate };
                 eoc.Description = $"Generated from {source}";
                 eoc.PatientId = patientId;
-                eoc.DiagnosisRole = 12227;
                 eoc.OrganizationId = 1;
             }
             else
             {
-                eoc = Mapper.Map<EpisodeOfCare>(new EpisodeOfCareDataIn()
+                eoc = mapper.Map<EpisodeOfCare>(new EpisodeOfCareDataIn()
                     {
                         Description = $"Generated from {source}",
-                        DiagnosisRole = 12227,
                         PatientId = patientId,
                         StatusCD = (int)EocStatus.Active,
                         Period = new PeriodDTO() { StartDate = startDate }
@@ -227,13 +234,13 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         private int InsertEncounter(int episodeOfCareId)
         {
-            Encounter encounterEntity = Mapper.Map<Encounter>(new EncounterDataIn()
+            Encounter encounterEntity = mapper.Map<Encounter>(new EncounterDataIn()
             {
                 ClassCD = 12246,
-                Period = new PeriodDTO
+                Period = new PeriodOffsetDTO
                 {
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now
+                    StartDate = DateTimeOffset.Now,
+                    EndDate = DateTimeOffset.Now
                 },
                 StatusCD = 12218,
                 TypeCD = 12208,

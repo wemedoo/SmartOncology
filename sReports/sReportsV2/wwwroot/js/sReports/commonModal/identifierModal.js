@@ -12,6 +12,7 @@
         rules: {
             identifierValue: {
                 required: true,
+                maxlength: 128,
                 duplicate: true,
                 duplicateRemote: true
             }
@@ -71,6 +72,9 @@ function addNewIdentifier(e) {
                 url: `/${identifierActiveEntity}/${isEdit ? 'Edit' : 'Create'}Identifier`,
                 data: getIdentifierForServer(identifierEntity),
                 success: function (data) {
+                    if (showIdentifierFeedbackMessage()) {
+                        toastr.success('Identifier saved successfully!');
+                    }
                     identifierEntity.identifierEntityVersion = data.rowVersion;
                     let identifierRow;
                     if (isEdit) {
@@ -93,6 +97,10 @@ function addNewIdentifier(e) {
             submitParentForm();
         }
     }
+}
+
+function showIdentifierFeedbackMessage() {
+    return identifierActiveEntity == 'UserAdministration';
 }
 
 function getIdentifierFromForm() {
@@ -136,8 +144,10 @@ function editIdentifierInTable(identifierEntity) {
     $(identifierRow).children("[data-property]").each(function (index, identifierCell) {
         let propertyName = $(identifierCell).attr("data-property");
         let newPropertyValue = identifierEntity[propertyName];
+        let cellDisplayValueFormatted = displayCellValueOrNe(newPropertyValue["display"]);
         $(identifierCell).attr("data-value", newPropertyValue["value"]);
-        $(identifierCell).text(displayCellValueOrNe(newPropertyValue["display"]));
+        $(identifierCell).attr("title", cellDisplayValueFormatted);
+        $(identifierCell).text(cellDisplayValueFormatted);
     });
 
     return identifierRow;
@@ -209,6 +219,9 @@ function confirmDeletingIdentifier() {
         url: `/${identifierActiveEntity}/DeleteIdentifier`,
         data: requestData,
         success: function (data) {
+            if (showIdentifierFeedbackMessage()) {
+                toastr.success('Identifier removed successfully!');
+            }
             let identifierRow = $(`.identifier-entry[data-value=${requestData.id}]`);
             $(identifierRow).remove();
             modifyTableBorder("identifierContainer", ".identifier-entry");
@@ -255,11 +268,11 @@ function resetIdentifierForm() {
 }
 
 function setIdentifierFormValues(identifierRow) {
-    $("#identifierEntityId").val($(identifierRow).data("value"));
-    $("#identifierEntityVersion").val($(identifierRow).data("version"));
+    $("#identifierEntityId").val($(identifierRow).attr("data-value"));
+    $("#identifierEntityVersion").val($(identifierRow).attr("data-version"));
     $(identifierRow).children("[data-property]").each(function (index, addressCell) {
-        let propertyName = $(addressCell).data("property");
-        let propertyValue = $(addressCell).data("value");
+        let propertyName = $(addressCell).attr("data-property");
+        let propertyValue = $(addressCell).attr("data-value");
 
         let inactiveType = inactiveIdentifierTypes.find(type => type.Id == propertyValue);
         let inactiveUseType = inactiveIdentifierUseTypes.find(useType => useType.Id == propertyValue);

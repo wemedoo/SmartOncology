@@ -18,7 +18,7 @@ $(document).on('keyup', '.comment-text', function (e) {
     let commentText = $commentTextInput.html();
     let lastCharacterIndex = getLastCharacterIndex(commentText);
 
-    if (isCommentTyping(e.which)) {
+    if (isInputCharacter(e.which)) {
         let lastCharacter = commentText[lastCharacterIndex];
         if (isDeleteAction(tagIndex, lastCharacterIndex)) {
             tagIndex = -1;
@@ -50,10 +50,6 @@ $(document).on('keyup', '.comment-text', function (e) {
             $commentTextInput.removeData((lastCharacterIndex - closingATagOffset - minSearchLength).toString());
         }
     }
-});
-
-$(document).on('keydown', '.search-user', function (e) {
-    handleSearchUserTagging(e);
 });
 
 $(document).on("click", '.sidebar-shrink', function (e) {
@@ -122,27 +118,23 @@ function getLastCharacterIndex(commentText) {
     return lastCharacterIndex;
 }
 
-function isCommentTyping(inputKeyCode) {
-    return inputKeyCode !== downArrow && inputKeyCode !== upArrow && inputKeyCode !== enter;
-}
-
 function isDeleteAction(tagIndex, lastCharacterIndex) {
     return tagIndex - lastCharacterIndex >= 1;
 }
 
 function handleSearchUserProposal(commentId, lastCharacterIndex, lastCharacter, tagIndex, commentText, $commentInput) {
-    log('**********************', "");
-    log('commentText', commentText);
-    log('tagIndex', tagIndex);
-    log('lastCharterIndex', lastCharacterIndex);
-    log('lastCharter', lastCharacter);
+    logInfo('**********************');
+    logInfo(`commentText: ${commentText}`);
+    logInfo(`tagIndex: ${tagIndex}`);
+    logInfo(`lastCharacterIndex: ${lastCharacterIndex}`);
+    logInfo(`lastCharter: ${lastCharter}`);
 
     if (lastCharacter === '@') {
         searchWords[commentId] = "";
         tagIndexes[commentId] = lastCharacterIndex;
     } else if (tagIndex !== -1 && tagIndex != undefined) {
         let searchWord = commentText.substring(tagIndex + 1, lastCharacterIndex + 1);
-        log('search word', searchWord);
+        logInfo(`search word: ${searchWord}`);
         searchWords[commentId] = searchWord;
         if (searchWord.length >= minSearchLength) {
             if (isHtmlCharacter(searchWord)) {
@@ -201,39 +193,6 @@ function decideIfUserShouldBeUntaged(commentId, lastCharacterIndex) {
 function resetCommentMetadata(commentId) {
     searchWords[commentId] = "";
     tagIndexes[commentId] = -1;
-}
-
-function handleSearchUserTagging(e) {
-    let next;
-    if (e.which === downArrow) {
-        if (liSelected) {
-            $(liSelected).removeClass('selected');
-            next = $(liSelected).next();
-            if (next.length > 0) {
-                liSelected = $(next).addClass('selected');
-            } else {
-                liSelected = $('.option').eq(0).addClass('selected');
-            }
-        } else {
-            liSelected = $('.option').eq(0).addClass('selected');
-        }
-    } else if (e.which === upArrow) {
-        if (liSelected) {
-            $(liSelected).removeClass('selected');
-            next = $(liSelected).prev();
-            if (next.length > 0) {
-                liSelected = $(next).addClass('selected');
-            } else {
-                liSelected = $('.option').last().addClass('selected');
-            }
-        } else {
-            liSelected = $('.option').last().addClass('selected');
-        }
-    } else if (e.which === enter) {
-        $(liSelected).click();
-    }
-
-    e.stopImmediatePropagation();
 }
 
 function userOptionClicked(e, userIdentifier, name, commentId) {
@@ -320,10 +279,6 @@ function isUserTagData(value) {
     return !isNaN(value);
 }
 
-function log(text, value) {
-    //console.log(text + ': ' + value);
-}
-
 var closingDivTagOffset = 6; //num of chars for: </div>
 var closingATagOffset = 4; //num of chars for: </a>
 var brTagOffset = 4; //num of chars for: <br>
@@ -332,7 +287,5 @@ var indexOfset = 1;
 var minSearchLength = 2;
 var backSpace = 8;
 
-var li = $('.option');
-var liSelected = null;
 var tagIndexes = {};
 var searchWords = {};

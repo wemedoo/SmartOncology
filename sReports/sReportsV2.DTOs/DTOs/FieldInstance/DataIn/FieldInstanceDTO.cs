@@ -1,8 +1,10 @@
-﻿using sReportsV2.Common.Configurations;
-using sReportsV2.Common.Constants;
+﻿using sReportsV2.Common.Constants;
 using sReportsV2.Common.Extensions;
+using sReportsV2.Domain.Entities.FormInstance;
+using sReportsV2.Domain.MongoDb.Entities.FormInstance;
 using sReportsV2.DTOs.DTOs.FormInstance.DataOut;
 using sReportsV2.DTOs.Field.DataOut;
+using sReportsV2.DTOs.FormInstance.DataIn;
 using System;
 using System.Collections.Generic;
 
@@ -19,6 +21,8 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
         public string Type { get; set; }
         public int ThesaurusId { get; set; }
         public bool IsSpecialValue { get; set; }
+        public string ConnectedFieldInstanceRepetitionId { get; set; }
+        public FieldValidationError ValidationError { get; set; }
 
         public FieldInstanceDTO()
         {
@@ -35,8 +39,23 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
             IsSpecialValue = fieldInstanceValue.IsSpecialValue;
             FlatValueLabel = fieldInstanceValue.ValueLabel;
             FlatValues = fieldInstanceValue.Values;
+            ConnectedFieldInstanceRepetitionId = fieldInstanceValue.ConnectedFieldInstanceRepetitionId;
         }
 
+        public FieldInstanceDTO(Domain.Entities.FormInstance.FieldInstance fieldInstance, FieldInstanceValue fieldInstanceRepetition)
+        {
+            FieldSetId = fieldInstance.FieldSetId;
+            FieldSetInstanceRepetitionId = fieldInstance.FieldSetInstanceRepetitionId;
+            FieldId = fieldInstance.FieldId;
+            ThesaurusId = fieldInstance.ThesaurusId;
+            Type = fieldInstance.Type;
+            FieldInstanceRepetitionId = fieldInstanceRepetition.FieldInstanceRepetitionId;
+            ValidationError = fieldInstanceRepetition.ValidationError;
+            IsSpecialValue = fieldInstanceRepetition.IsSpecialValue;
+            FlatValueLabel = fieldInstanceRepetition.ValueLabel;
+            FlatValues = fieldInstanceRepetition.Values;
+            ConnectedFieldInstanceRepetitionId = fieldInstanceRepetition.ConnectedFieldInstanceRepetitionId;
+        }
 
         public List<string> GetCleanedValue()
         {
@@ -49,10 +68,15 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
                     string processedValue = value;
                     if (this.Type == FieldTypes.Datetime && !IsSpecialValue)
                     {
-                        if (DateTimeOffset.TryParse(value, out DateTimeOffset dateTime) && HasOffset(value))
+                        if (DateTimeOffset.TryParse(value, out DateTimeOffset dateTime) && value.HasOffset())
+                        {
                             processedValue = dateTime.ConvertFormInstanceDateTimeToOrganizationTimeZone();
+                        }
                         else
-                            processedValue += GlobalConfig.GetUserOffset(isOffsetForFormInstance: true);
+                        {
+                            string organizationOffsetPrinted = DateTimeExtension.GetOffsetValue();
+                            processedValue += organizationOffsetPrinted;
+                        }
 
                         FlatValueLabel = processedValue;
                     }
@@ -63,14 +87,12 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataIn
             return processedValues;
         }
 
-        private bool HasOffset(string dateTimeString)
+        public void UpdateCachedData(FieldInstanceDTO incomingFieldInstance)
         {
-            int tIndex = dateTimeString.IndexOf('T');
-            if (tIndex == -1) return false;
-
-            string timePart = dateTimeString.Substring(tIndex + 1);
-
-            return timePart.Contains("+") || timePart.Contains("-") || timePart.EndsWith('Z');
+            this.FlatValueLabel = incomingFieldInstance.FlatValueLabel;
+            this.FlatValues = incomingFieldInstance.FlatValues;
+            this.ValidationError = incomingFieldInstance.ValidationError;
+            this.IsSpecialValue = incomingFieldInstance.IsSpecialValue;
         }
     }
 }

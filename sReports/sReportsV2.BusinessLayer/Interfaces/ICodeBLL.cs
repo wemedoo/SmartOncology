@@ -6,6 +6,7 @@ using sReportsV2.DTOs.CodeEntry.DataIn;
 using sReportsV2.DTOs.Pagination;
 using System.Collections.Generic;
 using sReportsV2.Common.Constants;
+using System.Threading.Tasks;
 
 namespace sReportsV2.BusinessLayer.Interfaces
 {
@@ -14,7 +15,7 @@ namespace sReportsV2.BusinessLayer.Interfaces
         Dictionary<string, List<EnumData>> GetDocumentPropertiesEnums();
         int Insert(CodeDataIn codeDataIn);
         int InsertWithPreferredTerm(CodeDataIn codeDataIn, string preferredTerm);
-        void Delete(int codeId);
+        Task Delete(int codeId);
         PaginationDataOut<CodeDataOut, DataIn> GetAllFiltered(CodeFilterDataIn dataIn);
         Code GetById(int codeId);
         List<CodeDataOut> GetByCodeSetId(int codeSetId);

@@ -23,7 +23,7 @@
     })
 }
 
-<div id="editPatientContainer">
+<div>
     <input type="hidden" id="patientId" value="@Model.Id">
     <div class="row patient-basic-content" id="patientBasicInfo">
         @await Html.PartialAsync("~/Views/Patient/PatientBasicInfo.cshtml", Model)

@@ -1,5 +1,4 @@
 ﻿using sReportsV2.Common.Constants;
-using System.Net;
 using sReportsV2.Common.CustomAttributes;
 using System.Threading.Tasks;
 using sReportsV2.BusinessLayer.Interfaces;
@@ -17,7 +16,13 @@ namespace sReportsV2.Controllers
     {
         private readonly IPatholinkBLL patholinkBLL;
 
-        public PatholinkController(IPatholinkBLL patholinkBLL, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, IConfiguration configuration, IAsyncRunner asyncRunner) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+        public PatholinkController(IPatholinkBLL patholinkBLL, 
+            IHttpContextAccessor httpContextAccessor, 
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.patholinkBLL = patholinkBLL;
         }

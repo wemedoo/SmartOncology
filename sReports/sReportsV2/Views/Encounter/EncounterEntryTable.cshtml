@@ -22,7 +22,7 @@
     bool readOnly = ViewBag.ReadOnly;
 }
 
-<div id="encounterTableContent" class="table-responsive @(reloadEncounterFromPatient ? "encounters-fix-head patient-encounters-border" : "filter-border")"
+<div id="encounterTableContent" class="table-responsive @(reloadEncounterFromPatient ? "encounters-fix-head patient-encounters-border table-with-sticked-header" : "overflow-unset")"
      @if (reloadEncounterFromPatient) { <text> onscroll="encounterTableIsScrolled()" </text>  }>
     <table id="encounterTable" class="table table-striped @(!reloadEncounterFromPatient ? "table-border" : "")">
         @{
@@ -37,10 +37,10 @@
                     <td id="name-@entry.EncounterId">@entry.NameGiven</td>
                     <td id="familyName-@entry.EncounterId">@entry.NameFamily</td>
                     <td id="gender-@entry.EncounterId">@entry.ConvertGenderCDToDisplayName(genders, activeLanguage)</td>
-                    <td id="birthDate-@entry.EncounterId">@entry.BirthDate.ConvertNullableDateForDisplay(dateFormat)</td>
+                    <td id="birthDate-@entry.EncounterId">@entry.BirthDate.GetDateTimeDisplay(dateFormat, true)</td>
                     <td id="episodeOfCareType-@entry.EncounterId">@entry.ConvertEOCTypeCDToDisplayName(episodeOfCareTypes, activeLanguage)</td>
-                    <td id="admissionDate-@entry.EncounterId">@(entry.AdmissionDate != null ? entry.AdmissionDate.Value.GetDateTimeDisplay(dateFormat) : string.Empty)</td>
-                    <td id="dischargeDate-@entry.EncounterId">@(entry.DischargeDate != null ? entry.DischargeDate.Value.GetDateTimeDisplay(dateFormat) : string.Empty)</td>
+                        <td id="admissionDate-@entry.EncounterId">@entry.AdmissionDate.GetDateTimeDisplay(dateFormat)</td>
+                        <td id="dischargeDate-@entry.EncounterId">@entry.DischargeDate.GetDateTimeDisplay(dateFormat)</td>
                     <td>
                         @{
                             RenderDropdown(permissions, entry, reloadEncounterFromPatient, readOnly);
@@ -52,11 +52,7 @@
     </table>
     @if (Model.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
     @if (Model.Data.Count > 0 && !reloadEncounterFromPatient)
     {
@@ -108,7 +104,7 @@
                 }>
                                             <img alt="" class="dots" src="/css/img/icons/3dots.png">
                                         </a>
-                <div class="dropdown-menu ecnounter-dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.EncounterId">
+                <div class="dropdown-menu expand-dropdown-menu" aria-labelledby="dropdownMenuLink-@entry.EncounterId">
                     @if (hasViewPerm)
                     {
                         <a class="dropdown-item pointer hover view-a" onclick="showEncounterModal(event, true, '@entry.EncounterId', true, true)">

@@ -19,7 +19,7 @@ $(document).on('change', '#generalPurpose', function () {
 });
 
 $(document).on('change', '#clinicalContext', function () {
-    $('#documentFollowUpSelect').attr('selectedIndex', 0);
+    $('#followUp').attr('selectedIndex', 0);
 
     if (this.value === "FollowUp") {
         $('#documentFollowUp').removeClass('d-none');
@@ -47,7 +47,7 @@ function getFilterParametersObject() {
         addPropertyToObject(requestObject, 'ScopeOfValidity', $('#scopeOfValidity').val());
         addPropertyToObject(requestObject, 'ClinicalDomain', $('#clinicalDomain').val());
         addPropertyToObject(requestObject, 'ClinicalContext', $('#clinicalContext').val());
-        addPropertyToObject(requestObject, 'FollowUp', $('#documentFollowUpSelect').val());
+        addPropertyToObject(requestObject, 'FollowUp', $('#followUp').val());
         addPropertyToObject(requestObject, 'AdministrativeContext', $('#administrativeContext').val());
 
 

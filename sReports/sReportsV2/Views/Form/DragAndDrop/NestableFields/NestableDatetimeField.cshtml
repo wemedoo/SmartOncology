@@ -6,7 +6,7 @@
 <fieldset class="form-input">
     <div class="filter-label form-label-size d-inline-block">
         <span class="comment-target-item" id="@Model.Id">   @Html.Raw(Model.FullLabel) </span>
-</div>
+    </div>
     <div class="repetitive-field filter-input d-inline-block">
         <div class="row date-time-row datetime-picker-container">
             <div class="date-wrapper input-border mr-auto w-60 d-flex">
@@ -22,16 +22,19 @@
                     <img alt="" class=" d-inline-block" src="/css/img/icons/datetime_field.svg">
                 </div>
             </div>
-            <div class="time-wrapper w-35 input-border">
-                <input type="text"                                
-                     placeholder="@DateConstants.TimeFormatDisplay"
-                     class="time-part time-helper d-inline-block border-0"
-                       readonly
-                       >
-                <div class="clock-wrapper">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
+            @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+            {
+                InputAttributes = new Dictionary<object, object> {
+                    { "class", "time-helper d-inline-block border-0" },
+                    {"readonly", null}
+                    },
+                InputBtnAttributes = new Dictionary<object, object>
+                {
+                    {
+                        "readOnly", true
+                    }
+                }
+             })
         </div>
     </div>
     @await Html.PartialAsync("~/Views/Form/Common/FieldButtonGroup.cshtml", Model)

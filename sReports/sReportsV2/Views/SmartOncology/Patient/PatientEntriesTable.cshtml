@@ -2,6 +2,7 @@
 @using sReportsV2.DTOs.Patient.DataIn;
 @using sReportsV2.DTOs.CodeEntry.DataOut;
 @using sReportsV2.DTOs.Patient.DataOut;
+@using sReportsV2.Common.Extensions;
 
 @model  sReportsV2.DTOs.Pagination.PaginationDataOut<PatientTableDataOut, PatientFilterDataIn>
 
@@ -17,7 +18,7 @@
     string genderTranslated = genderEnum != null ? genderEnum.Thesaurus.GetPreferredTermByTranslationOrDefault(activeLanguage) : string.Empty;
     <div class="patient-table-entry @(Model.DataIn.SelectedPatientId == patient.Id ? "active" : "")" data-id="@patient.Id">
         <span>
-            @patient.FirstName @patient.LastName@(patient.BirthDate != null ? ", " + patient.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : ""), @genderTranslated
+            @patient.FirstName @patient.LastName@(patient.BirthDate != null ? ", " + patient.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : ""), @genderTranslated
         </span>
         <i class="fas fa-chevron-right"></i>
     </div>

@@ -1,59 +1,231 @@
-@using sReportsV2.Common.Helpers;
+﻿@using sReportsV2.Common.Helpers;
+@using sReportsV2.Common.Extensions;
 @using sReportsV2.DTOs.DigitalGuideline.DataOut;
+@model GuidelineDataOut
 
-<div class="cy" id="cy"></div>
+<div class="canvas-guidline">
+    <div class="cy" id="cy"></div>
+    <div id="cy-export" style="position: absolute; top: -9999px; left: -9999px; width: 4000px; height: 3000px;"></div>
+
+    <div id="visual-editor-menu">
+        <input id="id" value="@Model?.Id" hidden />
+        <div class="menu-settings">
+            <div class="button-settings ">
+                <button id="settings-btn" data-toggle="tooltip_2" title="Settings" style="display: none;">
+                    <img id="settingsIcon" alt="" src="/css/img/icons/ClinicalPathway/settings.svg" />
+                </button>
+            </div>
+            <div id="settingsMenu" class="settings-menu">
+                <button id="inner-settings-btn" data-toggle="tooltip_2" title="@sReportsV2.Cache.Resources.TextLanguage.Settings">
+                    <img id="innerSettingsIcon" alt="" src="/css/img/icons/ClinicalPathway/settings.svg" />
+                </button>
+                <div class="flex">
+                    <div class="padding-left-12">
+                        <div class="settings-version">
+                            <div class="version-display" id="versionDisplay">
+                                @sReportsV2.Cache.Resources.TextLanguage.Version.ToUpper(): @(Model?.Version?.Major > 0 ? Model.Version.Major : 1).@(Model?.Version?.Minor > 0 ? Model.Version.Minor : 0)
+                            </div>
+                        </div>
+                        <input class="settings-title" type="text" id="pathway-title" placeholder="Enter title" value="@(Model?.Title ?? "")" title="@(Model?.Title ?? "")">
+                        <div class="thesaurus-input">@sReportsV2.Cache.Resources.TextLanguage.Thesaurus_ID: <span id="thesaurusDisplay">@(Model?.ThesaurusId ?? 0)</span></div>
+                    </div>
+                    <img alt="" class="settings-dots" src="/css/img/icons/3dots.png">
+                </div>
+                <div id="settingsDropdownMenu" class="settings-dropdown-menu" style="display: none;">
+                    <ul>
+                        <li>
+                            <img alt="" src="/css/img/icons/ClinicalPathway/thesaurus_ID_icon.svg" />
+                            <a href="#" class="dropdown-option" data-action="edit-thesaurus">@sReportsV2.Cache.Resources.TextLanguage.ThesaurusEntry</a>
+                        </li>
+                        <li>
+                            <img alt="" src="/css/img/icons/ClinicalPathway/version_history_icon.svg" />
+                            <a href="#" class="dropdown-option" data-action="edit-version">@sReportsV2.Cache.Resources.TextLanguage.Version</a>
+                        </li>
+                        @if (Model != null)
+                        {
+                            <li>
+                                <img alt="" src="/css/img/icons/ClinicalPathway/export_icon.svg" />
+                                <a href="#" class="dropdown-option" data-action="export">@sReportsV2.Cache.Resources.TextLanguage.Export</a>
+                            </li>
+                        }
+                        <li>
+                            <img alt="" src="/css/img/icons/ClinicalPathway/commands_icon.svg" />
+                            <a href="#" class="dropdown-option" data-action="commands">@sReportsV2.Cache.Resources.TextLanguage.Commands</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-left">
+            <button id="select-btn" data-toggle="tooltip_2" title="@sReportsV2.Cache.Resources.TextLanguage.Select">
+                <img id="selectIcon" alt="" src="/css/img/icons/ClinicalPathway/select hover.svg" />
+            </button>
+            <button id="add-node-btn" data-toggle="tooltip_2" title="@sReportsV2.Cache.Resources.TextLanguage.Add_node">
+                <img id="addNodeIcon" alt="" src="/css/img/icons/ClinicalPathway/add_node.svg" />
+            </button>
+            <button id="add-edge-btn" data-toggle="tooltip_2" title="@sReportsV2.Cache.Resources.TextLanguage.Add_edge">
+                <img id="addEdgeIcon" alt="" src="/css/img/icons/ClinicalPathway/add_arrow.svg" />
+            </button>
+        </div>
+        <div class="menu-right">
+            <button class="border-radius" id="undo-btn" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Undo">
+                <img class="undo" alt="" src="/css/img/icons/ClinicalPathway/turn-right.svg" />
+            </button>
+            <button class="border-radius" id="redo-btn" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Redo">
+                <img class="undo" alt="" src="/css/img/icons/ClinicalPathway/turn-left.svg" />
+            </button>
+            <button class="border-radius" id="zoom-out-btn" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.ZoomOut">
+                <img class="zoom" alt="" src="/css/img/icons/ClinicalPathway/zoom-out.svg" />
+            </button>
+            <button class="border-radius" id="reset-btn" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Reset">
+                <span class="undo reset">@sReportsV2.Cache.Resources.TextLanguage.Reset</span>
+            </button>
+            <button class="border-radius" id="zoom-in-btn" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.ZoomIn">
+                <img class="zoom" alt="" src="/css/img/icons/ClinicalPathway/zoom-in.svg" />
+            </button>
+        </div>
+        <div id="shape-dropdown">
+            <div class="arrow-style">@sReportsV2.Cache.Resources.TextLanguage.Shapes</div>
+            <div class="flex">
+                @{
+                    RenderShapeDropdown();
+                }
+            </div>
+        </div>
+        <div id="change-shape-dropdown">
+            <div class="arrow-style">@sReportsV2.Cache.Resources.TextLanguage.Shapes</div>
+            <div class="flex">
+                @{
+                    RenderShapeDropdown();
+                }
+            </div>
+        </div>
+        <div id="shape-dropdown-up">
+            <div class="flex">
+                @{
+                    RenderShapeDropdown();
+                }
+            </div>
+        </div>
+        <div id="shape-dropdown-right">
+            <div>
+                @{
+                    RenderShapeDropdown();
+                }
+            </div>
+        </div>
+        <div id="arrow-dropdown">
+            <div class="arrow-style">@sReportsV2.Cache.Resources.TextLanguage.Arrows</div>
+            <div class="flex">
+                <button class="arrow-option" data-arrow="unidirectional" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Unidirectional">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/one dir arrow.svg" />
+                </button>
+                <button class="arrow-option" data-arrow="bezier" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Bezier">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/two dir arrow.svg" />
+                </button>
+                <button class="arrow-option" data-arrow="unbundled-bezier" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Unbundled_Bezier">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/u_bezier arrow.svg" />
+                </button>
+                <button class="arrow-option" data-arrow="taxi" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Taxi">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/taxi arrow.svg" />
+                </button>
+            </div>
+        </div>
+
+        <div id="change-arrow-dropdown">
+            <div class="arrow-style">@sReportsV2.Cache.Resources.TextLanguage.Arrows</div>
+            <div class="flex">
+                <button class="arrow-option" data-arrow="unidirectional" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Unidirectional">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/one dir arrow.svg" />
+                </button>
+                <button class="arrow-option" data-arrow="bezier" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Bezier">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/two dir arrow.svg" />
+                </button>
+                <button class="arrow-option" data-arrow="unbundled-bezier" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Unbundled_Bezier">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/u_bezier arrow.svg" />
+                </button>
+                <button class="arrow-option" data-arrow="taxi" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Taxi">
+                    <img alt="" src="/css/img/icons/ClinicalPathway/taxi arrow.svg" />
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="node-info-dropdown" class="node-info-dropdown">
+        <div class="arrow-style">Element properties</div>
+        <div class="node-info-content">
+            <div class="property-group">
+                <div class="arrow-style node-info-text">@sReportsV2.Cache.Resources.TextLanguage.Type</div>
+                <select class="node-info-input arrow-select" id="node-type">
+                    <option value="Statement">Statement</option>
+                    <option value="Decision">Decision</option>
+                    <option value="Event">Event</option>
+                </select>
+            </div>
+
+            <div class="property-group">
+                <div class="arrow-style node-info-text">@sReportsV2.Cache.Resources.TextLanguage.Label</div>
+                <input class="node-info-input" type="text" id="node-title">
+            </div>
+
+            <div class="property-group">
+                <div class="arrow-style node-info-text">@sReportsV2.Cache.Resources.TextLanguage.ThesaurusId</div>
+                <input class="node-info-input" type="number" id="node-thesaurusId">
+            </div>
+
+            <div class="button-group-property">
+                <button id="cancel-node-info" class="cancel-node-btn">@sReportsV2.Cache.Resources.TextLanguage.Cancel</button>
+                <button id="save-node-info" class="save-node-btn">@sReportsV2.Cache.Resources.TextLanguage.Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edge-info-dropdown" class="node-info-dropdown">
+        <div class="arrow-style">Edge properties</div>
+        <div class="node-info-content">
+            <div class="property-group">
+                <div class="arrow-style node-info-text">@sReportsV2.Cache.Resources.TextLanguage.Label</div>
+                <input class="node-info-input" type="text" id="edge-title">
+            </div>
+            <div class="property-group">
+                <div class="arrow-style node-info-text">@sReportsV2.Cache.Resources.TextLanguage.ThesaurusId</div>
+                <input class="node-info-input" type="number" id="edge-thesaurusId">
+            </div>
+            <div class="button-group-property">
+                <button id="cancel-edge-info" class="cancel-node-btn">@sReportsV2.Cache.Resources.TextLanguage.Cancel</button>
+                <button id="save-edge-info" class="save-node-btn">@sReportsV2.Cache.Resources.TextLanguage.Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="guideline-button-container">
+        <button type="button" class="btn btn-filter-primary submit-data" onclick="submitGuidline(event)">@sReportsV2.Cache.Resources.TextLanguage.Submit</button>
+    </div>
+    <div id="direction-arrows" style="position: absolute; display: none; z-index: 10;">
+        <button class="direction-arrow top-arrow" data-direction="top"></button>
+        <button class="direction-arrow bottom-arrow" data-direction="bottom"></button>
+        <button class="direction-arrow left-arrow" data-direction="left"></button>
+        <button class="direction-arrow right-arrow" data-direction="right"></button>
+    </div>
+</div>
 
 <script>
-    var cy;
-    var elementData = @(Model != null ? Html.Raw(Model.ToJsonNodeElements()): null)
-
-        $(document).ready(function () {
-            if (elementData) {
-                initializeGraph(elementData);
-            }
-           showJsonEditor(@Html.Raw(Model != null ? Newtonsoft.Json.JsonConvert.SerializeObject(Model.ToJson()) : new GuidelineDataOut().ToJson()));
-
-        /*fetch('/js/sReports/DigitalGuideline/pathway-elements-example.json')
-            .then(response => response.json())
-            .then(data => showJsonEditor(data));*/
-        })
-
-    function initializeGraph(elementData) {
-        cy = cytoscape({
-            container: document.getElementById('cy'),
-            elements: elementData, //fetch('/js/sReports/DigitalGuideline/pathway-elements-example.json').then(toJson),
-            layout: {
-                name: 'preset'
-            },
-            style: guidelineStyle
-        });
-
-        /*cy.on('tap', 'node', function (evt) {
-            var node = evt.target;
-            console.log('tapped ' + node.id());
-        });*/
-
-        cy.on('select', 'node', function (evt) {
-            var node = evt.target;
-            console.log('selected ' + node.id());
-            previewNode(node.data());
-        });
-
-        cy.on('unselect', 'node', function (evt) {
-            var node = evt.target;
-            console.log('unselected ' + node.id());
-            $('#showJsonDataButton').click();
-        })
-
-        cy.on('dragfreeon', 'node', function (evt) {
-            var node = evt.target;
-            let guidelineData = editorCode.get();
-            let data = cy.json();
-            guidelineData.guidelineElements = data.elements;
-            showJsonEditor(guidelineData);
-
-        })
-    }
+    var elementData = @(Model != null ? Html.Raw(Model.ToJsonNodeElements()) : "null");
+    var guidelineData = @Html.Raw((Model != null ? Model : new GuidelineDataOut()).JsonSerialize(true));
 </script>
 
-@Html.Raw(ScriptHelper.RenderBundle("js/digitalGuideline-bundle.min.js"))
+@functions {
+    private void RenderShapeDropdown()
+    {
+        <button class="shape-option" data-shape="ellipse" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Event">
+            <img alt="" src="/css/img/icons/ClinicalPathway/circle.svg" />
+        </button>
+        <button class="shape-option" data-shape="round-rectangle" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Statement">
+            <img alt="" src="/css/img/icons/ClinicalPathway/rectangle.svg" />
+        </button>
+        <button class="shape-option" data-shape="round-diamond" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.Decision">
+            <img alt="" src="/css/img/icons/ClinicalPathway/ellipsis.svg" />
+        </button>
+    }
+}

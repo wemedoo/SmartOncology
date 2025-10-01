@@ -39,31 +39,23 @@ namespace sReportsV2.Controllers
 {
     public class FormDistributionController : FormCommonController
     {
-        private readonly IFormDistributionDAL formDistributionService;
         private readonly IFormDistributionBLL formDistributionBLL;
-        private readonly IMapper Mapper;
 
         public FormDistributionController(IFormDistributionBLL formDistributionBLL,
-            IPatientDAL patientDAL, 
-            IEpisodeOfCareDAL episodeOfCareDAL,
             IUserBLL userBLL, 
             IOrganizationBLL organizationBLL, 
             ICodeBLL codeBLL, 
             IFormInstanceBLL formInstanceBLL, 
             IFormBLL formBLL, 
-            IEncounterDAL encounterDAL, 
-            IThesaurusDAL thesaurusDAL, 
             IAsyncRunner asyncRunner, 
-            IPdfBLL pdfBLL, 
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
             IServiceProvider serviceProvider,
-            IConfiguration configuration) : 
-            base(patientDAL, episodeOfCareDAL,encounterDAL,userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, thesaurusDAL, asyncRunner, pdfBLL, mapper, httpContextAccessor, serviceProvider, configuration)
+            IConfiguration configuration,
+            ICacheRefreshService cacheRefreshService) : 
+            base(userBLL, organizationBLL, codeBLL, formInstanceBLL, formBLL, asyncRunner, mapper, httpContextAccessor, serviceProvider, configuration, cacheRefreshService)
         {
-            formDistributionService = new FormDistributionDAL();
             this.formDistributionBLL = formDistributionBLL;
-            Mapper = mapper;
         }
 
         [SReportsAuditLog]
@@ -78,14 +70,7 @@ namespace sReportsV2.Controllers
         public ActionResult ReloadTable(FormDistributionFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-
-            PaginationDataOut<FormDistributionTableDataOut, FormDistributionFilterDataIn> result = new PaginationDataOut<FormDistributionTableDataOut, FormDistributionFilterDataIn>()
-            {
-                Count = formDistributionService.GetAllCount(),
-                Data = Mapper.Map<List<FormDistributionTableDataOut>>(formDistributionService.GetAll(dataIn.Page, dataIn.PageSize)),
-                DataIn = dataIn
-            };
-            return PartialView("ReloadTable", result);
+            return PartialView("ReloadTable", formDistributionBLL.GetAll(dataIn));
         }
 
         [SReportsAuthorize]
@@ -93,6 +78,7 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             dataIn.State = FormDefinitionState.ReadyForDataCapture;
+            dataIn.WorkOnlyWithValidForms();
 
             PaginationDataOut<FormDataOut, FormFilterDataIn> result = formBLL.ReloadData(dataIn, userCookieData);
 
@@ -103,10 +89,7 @@ namespace sReportsV2.Controllers
 
         public ActionResult Edit(string formDistributionId)
         {
-            var fd = formDistributionService.GetById(formDistributionId);
-            var result = Mapper.Map<FormDistributionDataOut>(fd);
-
-            return View(result);
+            return View(formDistributionBLL.GetById(formDistributionId));
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View, Module = ModuleNames.Simulator)]
@@ -136,24 +119,23 @@ namespace sReportsV2.Controllers
         [SReportsAuditLog]
         public ActionResult GenerateDocuments(string formId, int numOfDocuments)
         {
-            Form form = formDAL.GetForm(formId);
+            Form form = formBLL.GetFormById(formId);
             if (form == null) return NotFound(TextLanguage.FormNotExists, formId);
 
-            FormDistribution formDistribution = formDistributionService.GetByThesaurusIdAndVersion(form.ThesaurusId, form.Version.Id);
+            FormDistribution formDistribution = formDistributionBLL.GetByThesaurusIdAndVersion(form.ThesaurusId, form.Version.Id);
             if (formDistribution == null) return NotFound();
-            UserData userData = Mapper.Map<UserData>(userCookieData);
 
             List<FormInstance> generated = FormInstanceGenerator.Generate(form, formDistribution, numOfDocuments);
             foreach (FormInstance formInstance in generated)
             {
-                SetFormInstanceAdditionalData(form, formInstance, userData);
+                formInstanceBLL.SetFormInstanceAdditionalData(form, formInstance, userCookieData);
             }
 
-            InsertListOfFormInstances(generated);
+            formInstanceBLL.InsertListOfFormInstances(generated);
 
             if(formDistribution.ThesaurusId == 14573)
             {
-                GenerateDailyFormInstances(generated, userData);
+                GenerateDailyFormInstances(generated);
             }
             return StatusCode(StatusCodes.Status201Created);
         }
@@ -168,7 +150,7 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.Update, Module = ModuleNames.Simulator)]
         public ActionResult RenderInputsForDependentVariable(DependentVariableRelatedVariables dataIn)
         {
-            Form form = formDAL.GetFormByThesaurusAndVersion(dataIn.ThesaurusId, dataIn.VersionId);
+            Form form = formBLL.GetFormByThesaurusAndVersion(dataIn.ThesaurusId, dataIn.VersionId);
             List<Field> formFields = form.GetAllFields();
             List<FormFieldDistributionSingleParameterDataOut> variables = new List<FormFieldDistributionSingleParameterDataOut>();
 
@@ -265,7 +247,7 @@ namespace sReportsV2.Controllers
 
         private void ReloadFormDataOut(List<FormDataOut> forms)
         {
-            var formDistributions = formDistributionService.GetAllVersionAndThesaurus();
+            var formDistributions = formDistributionBLL.GetAllVersionAndThesaurus();
 
             foreach (FormDataOut form in forms)
             {
@@ -353,65 +335,28 @@ namespace sReportsV2.Controllers
             return result;
         }
 
-        private int ParseAndInsertPatient(Form form)
-        {
-            PatientParser patientParser = new PatientParser();
-            Patient patient = patientParser.ParsePatientChapter(form.Chapters.Find(x => x.ThesaurusId.ToString().Equals(ResourceTypes.PatientThesaurus)));
-            patient.OrganizationId = GetOrganizationId(form);
-
-            return InsertPatient(patient);
-        }
-
         /*HACKATON*/
 
-        private void GenerateDailyFormInstances(List<FormInstance> generated, UserData user)
+        private void GenerateDailyFormInstances(List<FormInstance> generated)
         {
-            FormDistribution dailyFormDistribution = formDistributionService.GetByThesaurusId(14911);
-            Form formDaily = formDAL.GetFormByThesaurus(dailyFormDistribution.ThesaurusId);
+            FormDistribution dailyFormDistribution = formDistributionBLL.GetByThesaurusId(14911);
+            Form formDaily = formBLL.GetFormByThesaurus(dailyFormDistribution.ThesaurusId);
             List<FormInstance> dailyGenerated = FormInstanceGenerator.GenerateDailyForms(generated, formDaily, dailyFormDistribution);
 
             foreach (FormInstance formInstance in dailyGenerated)
             {
-                SetFormInstanceAdditionalData(formDaily, formInstance, user);
+                formInstanceBLL.SetFormInstanceAdditionalData(formDaily, formInstance, userCookieData);
             }
 
-            InsertListOfFormInstances(dailyGenerated);
+            formInstanceBLL.InsertListOfFormInstances(dailyGenerated);
 
-        }
-
-        private void SetFormInstanceAdditionalData(Form form, FormInstance formInstance, UserData user)
-        {
-            if (!form.DisablePatientData)
-            {
-                int patientId = ParseAndInsertPatient(form);
-                int eocId = InsertEpisodeOfCare(patientId, form.EpisodeOfCare, "Simulator", DateTime.Now, user);
-                formInstance.PatientId = patientId;
-                formInstance.EpisodeOfCareRef = eocId;
-                formInstance.EncounterRef = InsertEncounter(eocId);
-            }
-
-            formInstance.UserId = userCookieData.Id;
-            formInstance.OrganizationId = userCookieData.ActiveOrganization;
-            formInstance.Copy(null, new FormInstanceStatus(FormState.OnGoing, formInstance.UserId, isSigned: false));
-            formInstance.InitOrUpdateChapterPageWorkflowHistory(form, formInstance.UserId);
-        }
-
-        private void InsertListOfFormInstances(List<FormInstance> formInstances)
-        {
-            int skip = 0;
-            int take = 50;
-            while (skip < formInstances.Count)
-            {
-                formInstanceDAL.InsertMany(formInstances.Skip(skip).Take(take).ToList());
-                skip += take;
-            }
         }
 
         private void SetFieldDefinitionForView(string formDistributionId, FormFieldDistributionDataOut formFieldDistribution, UserCookieData userCookieData)
         {
-            FormDistribution formDistribution = formDistributionService.GetById(formDistributionId);
+            FormDistributionDataOut formDistribution = formDistributionBLL.GetById(formDistributionId);
             Field fieldDefinition = formDistributionBLL.GetFormField(formDistribution.ThesaurusId, formDistribution.VersionId, userCookieData, formFieldDistribution.Id);
-            FieldDataOut fieldDefinitionDataOut = Mapper.Map<FieldDataOut>(fieldDefinition);
+            FieldDataOut fieldDefinitionDataOut = mapper.Map<FieldDataOut>(fieldDefinition);
             ViewBag.FieldDefinition = fieldDefinitionDataOut;
         }
 

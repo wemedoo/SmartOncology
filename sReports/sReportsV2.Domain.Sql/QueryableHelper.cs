@@ -15,10 +15,7 @@ namespace sReportsV2.Common.Helpers
 
         public static IQueryable<T> WhereCodeRelationsAreActive<T>(this IQueryable<T> query, string organizationTimeZone) where T : Domain.Sql.EntitiesBase.Entity
         {
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(organizationTimeZone);
-            now = TimeZoneInfo.ConvertTime(now, timeZone);
-            return WhereEntriesAreActive(query, now);
+            return WhereEntriesAreActive(query, DateTimeOffset.UtcNow.GetDateTimeByTimeZone(organizationTimeZone));
         }
 
         public static IQueryable<T> WhereEntriesAreActive<T>(this IQueryable<T> query, DateTimeOffset date) where T : Domain.Sql.EntitiesBase.Entity

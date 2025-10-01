@@ -57,7 +57,7 @@
         string fieldInstanceRepetitionId = fieldInstanceRepetitionInfo.Item1;
         bool specialValue = fieldInstanceRepetitionInfo.Item2;
         repetitiveValue = !specialValue ? repetitiveValue : "";
-        <div class="filter-input file-field w-100">
+        <div class="filter-input file-field w-100" title="@sReportsV2.Cache.Resources.TextLanguage.UploadFile" data-toggle="tooltip">
             <input type="text"
                    class="file-hid"
                    id="field-@fieldInstanceRepetitionId"
@@ -82,7 +82,8 @@
                 { "isReadonly", objectModel.IsReadonly },
                 { "isChapterReadonly", isChapterReadonly },
                 { "repetitiveValue", repetitiveValue },
-                { "specialValue", specialValue }
+                { "specialValue", specialValue },
+                { "extractFieldInstanceRepetitionId", Model.DataExtractionEnabled ? fieldInstanceRepetitionId : "" }
             }
         )
     }

@@ -86,18 +86,20 @@
                         </div>
                         <input required class="filter-input" type="hidden" id="newActiveFromDefault">
                         @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
-                   {
-                       InputAttributes = new Dictionary<object, object> {
-                                    { "class", "filter-input" },
-                                    { "id", "activeFromDefault" },
-                                    { "value", Model != null && Model.ActiveFrom != default(DateTimeOffset) ? Model.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string) : "" },
-                                    { @disabled, null}
-                                },
-                       InputBtnAttributes = new Dictionary<object, object> {
-                                    { "class", "date-img" },
-                                    { "onClick", "showDatePicker(event)"}
-                                },
-                   })
+                        {
+                            InputAttributes = new Dictionary<object, object> 
+                            {
+                                { "class", "filter-input" },
+                                { "id", "activeFromDefault" },
+                                { "value", Model != null && Model.ActiveFrom != default(DateTimeOffset) ? Model.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string) : "" },
+                                { @disabled, null}
+                            },
+                            InputBtnAttributes = new Dictionary<object, object> 
+                            {
+                                { "class", "date-img" },
+                                { @Html.DateDisabled(((bool?)readOnly)), null }
+                            },
+                        })
                     </div>
 
                     <div class="advanced-filter-item input-margin">
@@ -115,7 +117,7 @@
                             },
                             InputBtnAttributes = new Dictionary<object, object> {
                                 { "class", "date-img" },
-                                { "onClick", "showDatePicker(event)"}
+                                { @Html.DateDisabled(((bool?)readOnly)), null }
                             },
                         })
                     </div>

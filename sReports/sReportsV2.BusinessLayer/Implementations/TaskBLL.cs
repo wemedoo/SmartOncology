@@ -15,25 +15,25 @@ namespace sReportsV2.BusinessLayer.Implementations
     public class TaskBLL : ITaskBLL
     {
         private readonly ITaskDAL taskDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public TaskBLL(ITaskDAL taskDAL, IMapper mapper) 
         {
             this.taskDAL = taskDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public async Task<TaskDataOut> GetByIdAsync(int taskId)
         {
             Domain.Sql.Entities.TaskEntry.Task task = await taskDAL.GetByIdAsync(taskId);
 
-            return Mapper.Map<TaskDataOut>(task);
+            return mapper.Map<TaskDataOut>(task);
         }
 
         public async Task<int> InsertOrUpdateAsync(TaskDataIn taskData)
         {
             taskData = Ensure.IsNotNull(taskData, nameof(taskData));
-            Domain.Sql.Entities.TaskEntry.Task task = Mapper.Map<Domain.Sql.Entities.TaskEntry.Task>(taskData);
+            Domain.Sql.Entities.TaskEntry.Task task = mapper.Map<Domain.Sql.Entities.TaskEntry.Task>(taskData);
 
             return await taskDAL.InsertOrUpdateAsync(task).ConfigureAwait(false);
         }
@@ -42,7 +42,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            TaskFilter filter = Mapper.Map<TaskFilter>(dataIn);
+            TaskFilter filter = mapper.Map<TaskFilter>(dataIn);
 
             var dataTask = await taskDAL.GetAllAsync(filter);
             var countTask = await taskDAL.GetAllEntriesCountAsync(filter);
@@ -50,7 +50,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             PaginationDataOut<TaskDataOut, DataIn> result = new PaginationDataOut<TaskDataOut, DataIn>()
             {
                 Count = countTask,
-                Data = Mapper.Map<List<TaskDataOut>>(dataTask),
+                Data = mapper.Map<List<TaskDataOut>>(dataTask),
                 DataIn = dataIn
             };
 

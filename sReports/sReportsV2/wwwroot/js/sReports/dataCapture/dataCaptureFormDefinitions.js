@@ -1,11 +1,5 @@
 ﻿function reloadTable(initLoad) {
-    hideAdvancedFilterModal();
-    setFilterTagsFromUrl();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setAdvancedFilterBtnStyle(requestObject, ['Title', 'State', 'ThesaurusId', 'page', 'pageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReload(['Title', 'State', 'ThesaurusId', 'page', 'pageSize', 'Content']);
     requestObject.ClinicalDomain = $('#clinicalDomain').find(':selected').attr('id');
 
     callServer({
@@ -25,7 +19,7 @@ function getFilterParametersObject() {
     let requestObject = {};
 
     if (defaultFilter) {
-        requestObject = defaultFilter;
+        requestObject = getDefaultFilter();
         defaultFilter = null;
     } else {
         addPropertyToObject(requestObject, 'Content', $('#ContentTemp').val());
@@ -40,19 +34,26 @@ function getFilterParametersObject() {
         addPropertyToObject(requestObject, 'ScopeOfValidity', $('#scopeOfValidity').val());
         addPropertyToObject(requestObject, 'ClinicalDomain', $('#clinicalDomain').val());
         addPropertyToObject(requestObject, 'ClinicalContext', $('#clinicalContext').val());
-        addPropertyToObject(requestObject, 'FollowUp', $('#documentFollowUpSelect').val());
+        addPropertyToObject(requestObject, 'FollowUp', $('#followUp').val());
         addPropertyToObject(requestObject, 'AdministrativeContext', $('#administrativeContext').val());
         addPropertyToObject(requestObject, 'DateTimeTo', toLocaleDateStringIfValue($('#dateTimeTo').val()));
         addPropertyToObject(requestObject, 'DateTimeFrom', toLocaleDateStringIfValue($('#dateTimeFrom').val()));
     }
-    if (requestObject['DateTimeFrom']) {
-        addPropertyToObject(requestObject, 'DateTimeFrom', toValidTimezoneFormat(requestObject['DateTimeFrom']));
-    }
-    if (requestObject['DateTimeTo']) {
-        addPropertyToObject(requestObject, 'DateTimeTo', toValidTimezoneFormat(requestObject['DateTimeTo']));
-    }
-
     return requestObject;
+}
+
+function getFilterParametersObjectForDisplay(filterObject) {
+    getFilterParameterObjectForDisplay(filterObject, 'State');
+    getFilterParameterObjectForDisplay(filterObject, 'Classes');
+    getFilterParameterObjectForDisplay(filterObject, 'GeneralPurpose');
+    getFilterParameterObjectForDisplay(filterObject, 'ContextDependent');
+    getFilterParameterObjectForDisplay(filterObject, 'ExplicitPurpose');
+    getFilterParameterObjectForDisplay(filterObject, 'ScopeOfValidity');
+    getFilterParameterObjectForDisplay(filterObject, 'ClinicalDomain');
+    getFilterParameterObjectForDisplay(filterObject, 'ClinicalContext');
+    getFilterParameterObjectForDisplay(filterObject, 'FollowUp');
+    getFilterParameterObjectForDisplay(filterObject, 'AdministrativeContext');
+    return filterObject;
 }
 
 function loadFormInstances(event, formId, thesaurusId, versionId) {
@@ -170,12 +171,12 @@ $(document).on('change', '#selectAllCheckboxes', function () {
 });
 
 function advanceFilter() {
+    $('#ContentTemp').val($('#content').val());
     $('#TitleTemp').val($('#title').val());
     $('#ThesaurusIdTemp').val($('#thesaurusId').val());
     $('#StateTemp').val($('#state').val()).change();
 
     filterData();
-    //clearFilters();
 }
 
 function mainFilter() {
@@ -185,25 +186,4 @@ function mainFilter() {
     $('#state').val($('#StateTemp').val()).change();
 
     filterData();
-    //clearFilters();
-}
-
-function clearFilters() {
-    $('#content').val('');
-    $('#title').val('');
-    $('#thesaurusId').val('');
-    $('#state').val('');
-    $('#TitleTemp').val('');
-    $('#ThesaurusIdTemp').val('');
-    $('#StateTemp').val('');
-    $('#classes').val('');
-    $('#generalPurpose').val('');
-    $('#documentClassOtherInput').val('');
-    $('#contextDependent').val('');
-    $('#explicitPurpose').val('');
-    $('#scopeOfValidity').val('');
-    $('#clinicalDomain').val('');
-    $('#clinicalContext').val('');
-    $('#administrativeContext').val('');
-    $('#documentFollowUpSelect').val('');
 }

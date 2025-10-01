@@ -36,4 +36,4 @@ Ll]ogs/
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
 /sReports/sReportsV2/UploadedFiles/
-/sReports/.sonarqube
+/.sonarqube

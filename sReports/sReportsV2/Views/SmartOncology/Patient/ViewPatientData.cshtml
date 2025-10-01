@@ -5,6 +5,7 @@
 @using sReportsV2.DTOs.Patient;
 @using sReportsV2.DTOs.DTOs.Patient.DataOut;
 @using sReportsV2.Cache.Extensions;
+@using sReportsV2.Common.Extensions;
 @model PatientDataOut
 
 @{
@@ -44,21 +45,20 @@
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.FirstName, Model.Name);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.SecondName, Model.FamilyName);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Gender, genderTranslated);
-                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Date_of_birth, Model.BirthDate != null ? Model.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
+                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Date_of_birth, Model.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true));
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Identification_number, patientChemotherapyData.IdentificationNumber);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Allergies, patientChemotherapyData.Allergies != null ? patientChemotherapyData.Allergies.Replace(";", ", ") : "");
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Patient_is_informed_for, patientChemotherapyData.PatientInformedFor);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Patient_Informed_by, patientChemotherapyData.PatientInformedBy);
-                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Patient_info_signed_on, patientChemotherapyData.PatientInfoSignedOn != null ? patientChemotherapyData.PatientInfoSignedOn.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
-                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Copy_delivered_on, patientChemotherapyData.CopyDeliveredOn != null ? patientChemotherapyData.CopyDeliveredOn.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
+                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Patient_info_signed_on, patientChemotherapyData.PatientInfoSignedOn.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true));
+                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Copy_delivered_on, patientChemotherapyData.CopyDeliveredOn.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true));
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Capability_to_work, string.Concat(patientChemotherapyData.CapabilityToWork, " ", "%"));
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Desire_to_have_children, patientChemotherapyData.DesireToHaveChildren ? sReportsV2.Cache.Resources.TextLanguage.Yes : sReportsV2.Cache.Resources.TextLanguage.No_);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Fertility_conservation, patientChemotherapyData.FertilityConservation ? sReportsV2.Cache.Resources.TextLanguage.Yes : sReportsV2.Cache.Resources.TextLanguage.No_);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Semen_cryopreservation, patientChemotherapyData.SemenCryopreservation ? sReportsV2.Cache.Resources.TextLanguage.Yes : sReportsV2.Cache.Resources.TextLanguage.No_, Model.GenderName == Gender.Male.ToString());
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Egg_cell_cryopreservation, patientChemotherapyData.EggCellCryopreservation ? sReportsV2.Cache.Resources.TextLanguage.Yes : sReportsV2.Cache.Resources.TextLanguage.No_, Model.GenderName == Gender.Female.ToString());
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Sexual_health_addressed, patientChemotherapyData.SexualHealthAddressed ? sReportsV2.Cache.Resources.TextLanguage.Yes : sReportsV2.Cache.Resources.TextLanguage.No_);
-                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Copy_delivered_on, patientChemotherapyData.CopyDeliveredOn != null ? patientChemotherapyData.CopyDeliveredOn.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
-                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Copy_delivered_on, patientChemotherapyData.CopyDeliveredOn != null ? patientChemotherapyData.CopyDeliveredOn.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
+                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Copy_delivered_on, patientChemotherapyData.CopyDeliveredOn.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true));
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Contraception, @patientChemotherapyData.ConvertContraceptionCDToDisplayName(contraceptions, activeLanguage));
                     @*RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Clinical_trials, Model.ClinicalTrials != null ? string.Join(", ", Model.ClinicalTrials.Select(x => x.Name)) : "")*@
                 }
@@ -86,7 +86,7 @@
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Type, patientChemotherapyData.ChemotherapyType);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Course, patientChemotherapyData.ChemotherapyCourse);
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Chemotherapy_Cycle, patientChemotherapyData.ChemotherapyCycle);
-                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.First_Day_of_Chemotherapy, patientChemotherapyData.FirstDayOfChemotherapy != null ? patientChemotherapyData.FirstDayOfChemotherapy.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "");
+                    RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.First_Day_of_Chemotherapy, patientChemotherapyData.FirstDayOfChemotherapy.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true));
                     RenderPatientCellData(sReportsV2.Cache.Resources.TextLanguage.Consecutive_chemotherapy_days, patientChemotherapyData.ConsecutiveChemotherapyDays.HasValue ? patientChemotherapyData.ConsecutiveChemotherapyDays.Value : 1);
                 }
             </text>

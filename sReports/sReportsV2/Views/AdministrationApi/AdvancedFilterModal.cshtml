@@ -2,6 +2,15 @@
 @using sReportsV2.Common.Enums;
 @using sReportsV2.Common.Constants;
 @using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.AdministrationApi.DataIn;
+
+@{
+    AdministrationApiFilterDataIn filter = ViewBag.FilterData as AdministrationApiFilterDataIn;
+    string timeFrom = filter != null ? filter.RequestTimestampFrom.GetTimePart() : "";
+    string timeTo = filter != null ? filter.RequestTimestampTo.GetTimePart() : "";
+    string dateFrom = filter != null ? filter.RequestTimestampFrom.ToDateZoned(ViewBag.DateFormat as string) : "";
+    string dateTo = filter != null ? filter.RequestTimestampTo.ToDateZoned(ViewBag.DateFormat as string) : "";
+}
 
 <form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
     <div class="modal fade" id="advancedFilterModal" tabindex="-1" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
@@ -26,27 +35,25 @@
                                     {
                                         InputAttributes = new Dictionary<object, object> {
                                             { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                            { "value", ViewBag.FilterData != null && ViewBag.FilterData.RequestTimestampFrom != null ? ViewBag.FilterData.RequestTimestampFrom.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                            { "value", dateFrom },
                                             { "id", "dateFrom"},
                                             { "name", "dateFrom"}
                                         }
                                     })
-                                    <input id="requestTimestampFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(ViewBag.FilterData != null && ViewBag.FilterData.RequestTimestampFrom != null ? ViewBag.FilterData.RequestTimestampFrom.ToString("s") : "")" />
+                                    <input id="requestTimestampFrom" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.RequestTimestampFrom != null ? filter.RequestTimestampFrom.Value.ToString("s") : "")" />
                                     <div class="img-wrapper">
                                         <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
                                     </div>
                                 </div>
-                                <div class="time-wrapper w-35 input-border">
-                                    <input type="text"
-                                           placeholder="@DateConstants.TimeFormatDisplay"
-                                           class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
-                                           value="@(ViewBag.FilterData != null && ViewBag.FilterData.RequestTimestampFrom != null ? ViewBag.FilterData.RequestTimestampFrom.GetTimePart() : "")"
-                                           id="timeFrom"
-                                           name="timeFrom">
-                                    <div class="clock-wrapper">
-                                        <i class="fas fa-clock" @Html.TimeDisabled(readOnly: false)></i>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                               {
+                                   InputAttributes = new Dictionary<object, object> {
+                                    { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                    { "value", timeFrom },
+                                    { "id", "timeFrom"},
+                                    { "name", "timeFrom"}
+                                    }
+                               })
                             </div>
                         </div>
                         <div class="advanced-filter-item filter-item">
@@ -59,27 +66,25 @@
                                     {
                                         InputAttributes = new Dictionary<object, object> {
                                             { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                            { "value", ViewBag.FilterData != null && ViewBag.FilterData.RequestTimestampTo != null ? ViewBag.FilterData.RequestTimestampTo.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                            { "value", dateTo },
                                             { "id", "dateTo"},
                                             { "name", "dateTo"}
                                         }
                                     })
-                                    <input id="requestTimestampTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(ViewBag.FilterData != null && ViewBag.FilterData.RequestTimestampTo != null ? ViewBag.FilterData.RequestTimestampTo.ToString("s") : "")" />
+                                    <input id="requestTimestampTo" type="text" class="date-time-local d-none form-element-field filter-input" value="@(filter != null && filter.RequestTimestampTo != null ? filter.RequestTimestampTo.Value.ToString("s") : "")" />
                                     <div class="img-wrapper">
                                         <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly: false)>
                                     </div>
                                 </div>
-                                <div class="time-wrapper w-35 input-border">
-                                    <input type="text"
-                                           placeholder="@DateConstants.TimeFormatDisplay"
-                                           class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
-                                           value="@(ViewBag.FilterData != null && ViewBag.FilterData.RequestTimestampTo != null ? ViewBag.FilterData.RequestTimestampTo.GetTimePart() : "")"
-                                           id="timeTo"
-                                           name="timeTo">
-                                    <div class="clock-wrapper">
-                                        <i class="fas fa-clock" @Html.TimeDisabled(readOnly: false)></i>
-                                    </div>
-                                </div>
+                                @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                               {
+                                   InputAttributes = new Dictionary<object, object> {
+                                    { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                                    { "value", timeTo },
+                                    { "id", "timeTo"},
+                                    { "name", "timeTo"}
+                                    }
+                               })
                             </div>
                         </div>
                     </div>
@@ -92,7 +97,7 @@
                                 <option value=""></option>
                                 @foreach (KeyValuePair<short, string> option in ViewBag.HttpStatusCodes)
                                 {
-                                    <option id="HttpStatusCode_@option.Key" data-display="@option.Value" value="@option.Key" @(ViewBag.FilterData.HttpStatusCode == option.Key ? "selected" : "")>@option.Value</option>
+                                    <option id="HttpStatusCode_@option.Key" data-display="@option.Value" value="@option.Key" @(filter.HttpStatusCode == option.Key ? "selected" : "")>@option.Value</option>
                                 }
                             </select>
                         </div>
@@ -105,7 +110,7 @@
                                 @foreach (ApiRequestDirection option in Enum.GetValues(typeof(ApiRequestDirection)))
                                 {
                                     int optionNum = (int)option;
-                                    <option id="ApiRequestDirection_@optionNum" data-display="@option" value="@optionNum" @(ViewBag.FilterData.ApiRequestDirection == option ? "selected" : "")>@option</option>
+                                    <option id="ApiRequestDirection_@optionNum" data-display="@option" value="@optionNum" @(filter.ApiRequestDirection == option ? "selected" : "")>@option</option>
                                 }
                             </select>
                         </div>
@@ -115,13 +120,13 @@
                             <div class="label filter-label">
                                 Contains
                             </div>
-                            <input type="text" class="filter-input" id="requestContains" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.RequestContains : "")">
+                            <input type="text" class="filter-input" id="requestContains" value="@(filter != null ? filter.RequestContains : "")">
                         </div>
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 Api Name
                             </div>
-                            <input type="text" class="filter-input" id="apiName" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.ApiName : "")">
+                            <input type="text" class="filter-input" id="apiName" value="@(filter != null ? filter.ApiName : "")">
                         </div>
                     </div>
                     <div class="d-flex margin-top-10">
@@ -129,7 +134,7 @@
                             <div class="label filter-label">
                                 Screening Number
                             </div>
-                            <input type="text" class="filter-input" id="screeningNumber" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.ScreeningNumber : "")">
+                            <input type="text" class="filter-input" id="screeningNumber" value="@(filter != null ? filter.ScreeningNumber : "")">
                         </div>
                         <div class="advanced-filter-item filter-item">
                             

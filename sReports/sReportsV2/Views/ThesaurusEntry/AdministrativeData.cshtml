@@ -5,13 +5,14 @@
 @model ThesaurusEntryDataOut
 
 @{
+    bool isEdit = Model.Id != 0;
     var userCookieData = ViewBag.UserCookieData;
     string activeLanguage = userCookieData.ActiveLanguage;
     List<CodeDataOut> versionTypes = ViewBag.VersionTypes as List<CodeDataOut>;
     List<CodeDataOut> states = ViewBag.ThesaurusStates as List<CodeDataOut>;
 }
 
-@if (Model != null && userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Thesaurus))
+@if (isEdit && userCookieData.UserHasPermission(PermissionNames.ViewAdministrativeData, ModuleNames.Thesaurus))
 {
     <div class="margin-bottom-8">
         <button class="eoc-main-content administrative-content administrative-button" id="administrativeButton">

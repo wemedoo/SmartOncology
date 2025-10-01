@@ -59,13 +59,13 @@
                 {
                     for (int i = 0; i < Model.FormInstances.Count; i++)
                     {
-                        string showPencilAction = hasUpdateDocumentPerm ? string.Format("onclick=\"showFormInstanceDetails('{0}')\"", Model.FormInstances[i].Id) : string.Format("onclick=\"showFormInstanceDetails('{0}', null, true)\"", Model.FormInstances[i].Id);
+                        string showPencilAction = hasUpdateDocumentPerm ? string.Format("onclick=\"showFormInstanceDetails('{0}')\"", Model.FormInstances[i].Id) : string.Format("onclick=\"showFormInstanceDetails('{0}', true)\"", Model.FormInstances[i].Id);
                         <div class="documents-expand documents-div-expandable">
                             <div class="document-section document-header-expandable flex" id="id-@Model.FormInstances[i].Id" data-toggle="collapse" aria-expanded="true">
                                 <div class="numberCircle">
                                     @(Model.FormInstances.Count - i)
                                 </div>
-                                <div @Html.Raw(hasViewDocumentPerm ? string.Format("onclick=\"showFormInstanceDetails('{0}', null, true)\"", Model.FormInstances[i].Id) : "")>
+                                <div @Html.Raw(hasViewDocumentPerm ? string.Format("onclick=\"showFormInstanceDetails('{0}', true)\"", Model.FormInstances[i].Id) : "")>
                                     <p class="documents-title forminstance-title margin-bottom-unset" data-form-instance-title="@Model.FormInstances[i].Title" id="forminstance-@Model.FormInstances[i].Id" title="@Model.FormInstances[i].Title">
                                         @Model.FormInstances[i].Title
                                     </p>
@@ -78,7 +78,7 @@
                                     <img alt="" class="view gray-eye" id="eye-@Model.FormInstances[i].Id" onclick="showExtended('@Model.FormInstances[i].Id')" />
                                     @if (hasRemoveDocumentPerm && !readOnly)
                                     {
-                                        <i class="fa fa-trash-o fa-sm pl-2 delete-btn-document-encounter" onclick="showDeleteModal(event, '@Model.FormInstances[i].Id', 'deleteDocumentFromEncounter', '@(Model.FormInstances[i].LastUpdate != null ? Model.FormInstances[i].LastUpdate.Value.ToString("o") : null)', null)" aria-hidden="true"></i>
+                                        <i class="fas fa-trash-alt fa-sm pl-2 delete-btn-document-encounter" onclick="showDeleteModal(event, '@Model.FormInstances[i].Id', 'deleteDocumentFromEncounter', '@(Model.FormInstances[i].LastUpdate != null ? Model.FormInstances[i].LastUpdate.Value.ToString("o") : null)', null)" aria-hidden="true"></i>
                                     }
                                 </div>
                             </div>

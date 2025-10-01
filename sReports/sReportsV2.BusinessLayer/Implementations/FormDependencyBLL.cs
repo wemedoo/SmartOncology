@@ -5,6 +5,7 @@ using sReportsV2.Cache.Singleton;
 using sReportsV2.Common.Constants;
 using sReportsV2.Common.Enums;
 using sReportsV2.Domain.Entities.Form;
+using sReportsV2.Domain.Entities.FormInstance;
 using sReportsV2.DTOs.DTOs.FieldInstance.DataIn;
 using sReportsV2.DTOs.DTOs.FieldInstance.DataOut;
 using sReportsV2.DTOs.DTOs.FormInstance.DataIn;
@@ -49,14 +50,22 @@ namespace sReportsV2.BusinessLayer.Implementations
             return result;
         }
 
-        public FormDataOut SetFormDependablesAndReferrals(Form form, List<Form> referrals, UserCookieData userCookieData)
+        public FormDataOut SetFormDependablesAndReferrals(Form form, FormInstanceReferralDTO formInstanceReferralDTO = null)
         {
+            List<Form> referralsTransformed = null;
+            if (formInstanceReferralDTO != null)
+            {
+                List<FormInstance> referrals = formInstanceDAL.GetByIds(formInstanceReferralDTO.FormInstance.Referrals).ToList();
+                referralsTransformed = GetFormsFromReferrals(referrals);
+                if (formInstanceReferralDTO.SetReferralValues)
+                {
+                    form.SetValuesFromReferrals(referralsTransformed);
+                }
+            }
             FormDataOut data = mapper.Map<FormDataOut>(form);
             SetDependables(data);
-            if (referrals != null && referrals.Count > 0)
-            {
-                data.ReferrableFields = GetReferrableFields(form, referrals, userCookieData);
-            }
+            data.SetConnectionsForConnectedField();
+            data.ReferrableFields = GetReferrableFields(form, referralsTransformed, formInstanceReferralDTO?.ActiveLanguage);
 
             return data;
         }
@@ -129,5 +138,12 @@ namespace sReportsV2.BusinessLayer.Implementations
                 throw new InvalidFormulaException("Some of variables are assigned to more than one field");
             }
         }
+    }
+
+    public class FormInstanceReferralDTO
+    {
+        public FormInstance FormInstance { get; set; }
+        public string ActiveLanguage { get; set; }
+        public bool SetReferralValues { get; set; }
     }
 }

@@ -1,0 +1,212 @@
+﻿@using sReportsV2.DTOs.Form.DataOut
+@model FormFieldSetDataOut
+
+@{
+    ViewData["Title"] = "Matrix Grid";
+}
+
+<div class="flex">
+    <div class="matrix-container">
+        <table class="matrix-table">
+            <thead>
+                <tr class="header-row">
+                    <th class="cursor-default">
+                        <input class="custom-input matrix-cell" readonly/>
+                    </th>
+                    @if (Model != null && Model.ListOfFieldSets.Count > 0)
+                    {
+                        var groupedFields = Model.ListOfFieldSets
+                        .SelectMany(fs => fs.Fields)
+                        .GroupBy(f => f.Label)
+                        .Select(g => new
+                        {
+                            Label = g.Key,
+                            FieldIds = string.Join(",", g.Select(f => f.Id))
+                        });
+
+                        int i = 1;
+
+                        foreach (var entry in groupedFields)
+                        {
+                            var fieldIdArray = entry.FieldIds.Split(',');
+                            string specificFieldId = fieldIdArray.Length > (i - 1) ? fieldIdArray[i - 1] : "";
+
+                            <th onclick="toggleFieldsetDropdown(event, true)">
+                                <input class="custom-input matrix-cell fieldLabel"
+                                       type="text"
+                                       data-id="@entry.FieldIds"
+                                       data-label="@entry.Label"
+                                       value="@entry.Label"
+                                       title="@entry.Label" readonly>
+                                <i class="remove-fieldset" onclick="removeColumn(this, @i)"></i>
+
+                                <div class="dropdown dropdown-center field-dropdown" style="display: none;">
+                                    <div class="dropdown-menu  dropdown-menu-right dropleft matrix-fieldset-menu show" aria-labelledby="dropdownMenuButton-@specificFieldId">
+                                        <input class="column-zoom-input"
+                                               onkeydown="handleFieldsetDropdownInput(event, this, true)"
+                                               type="text"
+                                               placeholder="Enter Field" />
+                                    </div>
+                                </div>
+                            </th>
+
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= 3; i++)
+                        {
+                            <th onclick="toggleFieldsetDropdown(event, true)">
+                                <input class="custom-input matrix-cell fieldLabel"
+                                       type="text"
+                                       placeholder="Enter Field"
+                                       title="Enter Field">
+                                <i class="remove-fieldset" onclick="removeColumn(this, @i)"></i>
+
+                                <div class="dropdown dropdown-center field-dropdown" style="display: none;">
+                                    <div class="dropdown-menu  dropdown-menu-right dropleft matrix-fieldset-menu show" aria-labelledby="dropdownMenuButton-@i">
+                                        <input class="column-zoom-input"
+                                               onkeydown="handleFieldsetDropdownInput(event, this, true)"
+                                               type="text"
+                                               placeholder="Enter Field" />
+                                    </div>
+                                </div>
+                            </th>
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody class="matrix-body">
+                @if (Model?.ListOfFieldSets.Count > 0)
+                {
+                    foreach (var entry in Model.ListOfFieldSets)
+                    {
+                        <tr class="matrix-row" data-row-index="@entry.Id">
+                            <td onclick="toggleFieldsetDropdown(event, false)">
+                                <input class="custom-input matrix-cell fieldSetLabel" type="text"
+                                       data-id="@entry.Id"
+                                       data-label="@entry.Label"
+                                       data-description="@entry.Description"
+                                       data-isbold="@entry.IsBold"
+                                       data-thesaurusid="@entry.ThesaurusId"
+                                       data-fields='@Html.Raw(Json.Serialize(entry.Fields))'
+                                       value="@entry.Label"
+                                       title="@entry.Label" readonly />
+                                <i class="remove-fieldset" onclick="removeRow(this)"></i>
+
+                                <div class="dropdown dropdown-center fieldset-dropdown" style="display: none;">
+                                    <div class="dropdown-menu  dropdown-menu-right dropleft matrix-fieldset-menu show" aria-labelledby="dropdownMenuButton-@entry.Id">
+                                        <input class="column-zoom-input"
+                                               list="fieldsetOptions"
+                                               onkeydown="handleFieldsetDropdownInput(event, this, false)"
+                                               type="text"
+                                               placeholder="Enter Fieldset" />
+
+                                        <datalist id="fieldsetOptions">
+                                            @foreach (var fieldSet in ViewBag.SelectedFieldSets)
+                                            {
+                                                <option value="@fieldSet.Label"
+                                                        data-id="@fieldSet.Id"
+                                                        data-label="@fieldSet.Label"
+                                                        data-description="@fieldSet.Description"
+                                                        data-isbold="@fieldSet.IsBold"
+                                                        data-thesaurusid="@fieldSet.ThesaurusId"
+                                                        data-fields='@Html.Raw(Json.Serialize(fieldSet.Fields))'>
+                                                    @fieldSet.Label
+                                                </option>
+                                            }
+                                        </datalist>
+                                    </div>
+                                </div>
+                            </td>
+                            @foreach (var field in entry.Fields)
+                            {
+                                <td class="cursor-default">
+                                    <input class="custom-input matrix-cell" readonly="">
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        <tr class="matrix-row" data-row-index="new-@i">
+                            <td onclick="toggleFieldsetDropdown(event, false)">
+                                <input class="custom-input matrix-cell fieldSetLabel"
+                                       type="text"
+                                       placeholder="Enter Fieldset"
+                                       title="Enter Fieldset" readonly />
+                                <i class="remove-fieldset" onclick="removeRow(this)"></i>
+
+                                <div class="dropdown dropdown-center fieldset-dropdown" style="display: none;">
+                                    <div class="dropdown-menu  dropdown-menu-right dropleft matrix-fieldset-menu show" aria-labelledby="dropdownMenuButton-@i">
+                                        <input class="column-zoom-input"
+                                               onkeydown="handleFieldsetDropdownInput(event, this, false)"
+                                               type="text"
+                                               placeholder="Enter Fieldset" />
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="cursor-default">
+                                <input class="custom-input matrix-cell" readonly="">
+                            </td>
+                            <td class="cursor-default">
+                                <input class="custom-input matrix-cell" readonly="">
+                            </td class="cursor-default">
+                            <td class="cursor-default">
+                                <input class="custom-input matrix-cell" readonly="">
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+            <tfoot id="addFieldsetArea" class="border-bottom-matrix @GetFieldsetVisibilityClass()">
+                <tr class="add-row-row">
+                    <td class="full-width colspan-row" colspan="@((Model?.ListOfFieldSets.FirstOrDefault()?.Fields.Count ?? 3) + 1)">
+                        <div id="addOptionButton" class="add-opt-button">
+                            <button class="btn btn-add-option d-flex align-items-center" onclick="addRow(event)">
+                                <img alt="" class="add-option-btn" src="/css/img/icons/add_new.svg">
+                                <span class="plus-option">@sReportsV2.Cache.Resources.TextLanguage.Add @sReportsV2.Cache.Resources.TextLanguage.Option.ToLower()</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="add-column-wrapper">
+        <button class="btn btn-add-option d-flex align-items-center" onclick="addColumn(event)">
+            <img alt="" class="add-option-btn" src="/css/img/icons/add_new.svg">
+        </button>
+    </div>
+</div>
+
+@functions {
+    public string GetFieldsetVisibilityClass()
+    {
+        if (Model?.ListOfFieldSets?.Count == 0 ||
+            (Model?.LayoutStyle?.MaxItems is not null
+             && int.TryParse(Model.LayoutStyle.MaxItems, out int maxItems)
+             && Model.ListOfFieldSets?.Count < maxItems))
+        {
+            return "show";
+        }
+        return "hide";
+    }
+}
+
+<script>
+    document.querySelectorAll(".matrix-cell.fieldSetLabel").forEach(input => {
+        updateLabel(input, true);
+    });
+
+    document.querySelectorAll(".matrix-cell.fieldLabel").forEach(input => {
+        updateLabel(input, false);
+    });
+
+    window.selectedFieldSets = @Html.Raw(Json.Serialize(ViewBag.SelectedFieldSets));
+</script>

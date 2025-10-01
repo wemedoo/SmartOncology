@@ -36,7 +36,7 @@ namespace sReportsV2.SqlDomain.Implementations
                     codeRow["Link"] = code.Link;
                     codeRow["VersionPublishDate"] = code.VersionPublishDate;
                     codeRow["ThesaurusEntryId"] = bulkedThesauruses[i];
-                    codeRow["CodeSystemId"] = code.CodeSystemId;
+                    codeRow["CodeSystemId"] = code.CodeSystemId > 0 ? code.CodeSystemId : code.System.CodeSystemId;
                     codeRow["EntryDateTime"] = code.EntryDateTime.ConvertToOrganizationTimeZone();
                     codeRow["IsDeleted"] = false;
                     codesTable.Rows.Add(codeRow);

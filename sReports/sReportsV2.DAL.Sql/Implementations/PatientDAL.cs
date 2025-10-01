@@ -476,10 +476,11 @@ namespace sReportsV2.SqlDomain.Implementations
 
             if (filter.EntryDatetime.HasValue)
             {
+                DateTimeOffset filterEntryDateTime = filter.EntryDatetime.Value;
                 patientQuery = patientQuery
-                    .AsEnumerable()
-                    .Where(x => x.EntryDatetime.ToLocalTime().Date == filter.EntryDatetime.Value.Date)
-                    .AsQueryable();
+                    .Where(e => e.EntryDatetime.Year == filterEntryDateTime.Year &&
+                            e.EntryDatetime.Month == filterEntryDateTime.Month &&
+                            e.EntryDatetime.Day == filterEntryDateTime.Day);
             }
 
             patientQuery = FilterByIdentifier(patientQuery, filter.IdentifierType, filter.IdentifierValue);
@@ -489,7 +490,7 @@ namespace sReportsV2.SqlDomain.Implementations
 
         public List<Patient> GetPatientsFilteredByFirstAndLastName(PatientByNameSearchFilter patientSearchFilter)
         {
-            var splitedSearchValue = patientSearchFilter.SearchValue.Split(Delimiters.delimiterCharacters);
+            var splitedSearchValue = patientSearchFilter.Name.Split(Delimiters.delimiterCharacters);
             return context.Patients
                 .WhereEntriesAreActive()
                 .Where(x => x.OrganizationId == patientSearchFilter.OrganizationId)
@@ -500,14 +501,19 @@ namespace sReportsV2.SqlDomain.Implementations
                                           && x.Family != null ? 
                                             x.Family.Contains(splitedSearchValue[1]) 
                                              : (x.Given.Contains(splitedSearchValue[1]) && x.Family != null) && x.Family.Contains(splitedSearchValue[0])
-                                        : x.Family == null ? x.Given.Contains(patientSearchFilter.SearchValue)
-                                                             : x.Given.Contains(patientSearchFilter.SearchValue) || x.Family.Contains(patientSearchFilter.SearchValue))
+                                        : x.Family == null ? x.Given.Contains(patientSearchFilter.Name)
+                                                             : x.Given.Contains(patientSearchFilter.Name) || x.Family.Contains(patientSearchFilter.Name))
                 .OrderBy(x => x.GivenName)
                 .ThenBy(x => x.FamilyName)
-                .Skip((patientSearchFilter.Page - 1) * patientSearchFilter.PageSize)
+                .Skip(patientSearchFilter.GetHowManyElementsToSkip())
                 .Take(patientSearchFilter.PageSize)
                 .Select(x => new Patient { PatientId = x.PatientId, NameGiven = x.GivenName, NameFamily = x.FamilyName, BirthDate = x.BirthDate })
                 .ToList();
+        }
+
+        public PatientIdentifier GetIdentifierByPatientId(int patientId, int? identifierTypeCD)
+        {
+            return context.PatientIdentifiers.FirstOrDefault(pI => pI.PatientId == patientId && pI.IdentifierTypeCD == identifierTypeCD);
         }
 
         private IQueryable<Patient> SortByField(IQueryable<Patient> result, PatientFilter filterData)
@@ -526,7 +532,7 @@ namespace sReportsV2.SqlDomain.Implementations
                                 x.GenderCD == femaleCodeId ? femaleCodeValue : 
                                 x.GenderCD == otherCodeId ? otherCodeValue : unknownCodeValue
                             )
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                     else
                         return result.OrderByDescending(x =>
@@ -534,11 +540,11 @@ namespace sReportsV2.SqlDomain.Implementations
                                 x.GenderCD == femaleCodeId ? femaleCodeValue :
                                 x.GenderCD == otherCodeId ? otherCodeValue : unknownCodeValue
                             )
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                 default:
                     return SortTableHelper.OrderByField(result, filterData.ColumnName, filterData.IsAscending)
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
             }
         }
@@ -565,7 +571,7 @@ namespace sReportsV2.SqlDomain.Implementations
                 query = SortByField(query, filter);
             else
                 query = query.OrderByDescending(x => x.PatientId)
-                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Skip(filter.GetHowManyElementsToSkip())
                     .Take(filter.PageSize);
             return query;
         }

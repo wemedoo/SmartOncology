@@ -105,7 +105,14 @@ namespace sReportsV2.Domain.Sql.Entities.Patient
             CopyEntries(patient.PatientIdentifiers);
             CopyEntries(patient.PatientAddresses);
             CopyEntries(patient.PatientTelecoms);
-            PatientChemotherapyData?.Copy(patient.PatientChemotherapyData);
+            if (PatientChemotherapyData == null)
+            {
+                PatientChemotherapyData = patient.PatientChemotherapyData;
+            }
+            else
+            {
+                PatientChemotherapyData.Copy(patient.PatientChemotherapyData);
+            }
             if (doHL7CopyContacts)
             {
                 CopyEntriesFromHL7(patient.PatientContacts);

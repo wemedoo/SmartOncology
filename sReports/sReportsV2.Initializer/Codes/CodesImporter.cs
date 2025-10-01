@@ -103,6 +103,8 @@ namespace sReportsV2.Initializer.Codes
             UpdateCodes(CodeSetValues.CommentState, CodeSetAttributeNames.CommentState);
             UpdateCodes(CodeSetValues.GlobalUserSource, CodeSetAttributeNames.GlobalUserSource);
             UpdateCodes(CodeSetValues.GlobalUserStatus, CodeSetAttributeNames.GlobalUserStatus);
+            UpdateCodes(CodeSetValues.QueryStatus, CodeSetAttributeNames.QueryStatus);
+            UpdateCodes(CodeSetValues.QueryReason, CodeSetAttributeNames.QueryReason);
         }
 
         private void UpdateCodes(List<string> codes, string preferredTerm, bool addInitialAssociations = false)

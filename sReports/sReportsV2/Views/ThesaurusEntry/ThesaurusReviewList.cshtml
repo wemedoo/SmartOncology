@@ -59,11 +59,7 @@
     </div>
     @if (Model.Data.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="margin-top-10">No result found!</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
 </div>
 

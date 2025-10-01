@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using sReportsV2.DAL.Sql.Sql;
 using System.Net;
+using sReportsV2.Common.Extensions;
 
 namespace sReportsV2.HL7.Components
 {
@@ -54,7 +55,7 @@ namespace sReportsV2.HL7.Components
             catch (Exception ex)
             {
                 LogHelper.Error("Error while starting Tcp server");
-                LogHelper.Error(ex.Message);
+                LogHelper.Error(ex.GetExceptionStackMessages());
             }
             finally
             {
@@ -102,7 +103,7 @@ namespace sReportsV2.HL7.Components
                                     messageType,
                                     GetDateTimeOfMessage(parsedMessage)
                                 );
-                                string ackMessageResponse = ProcessMessage(messageMetadata, dbContext);
+                                string ackMessageResponse = await ProcessMessage(messageMetadata, dbContext);
                                 LogHelper.Info("ACK message: \n" + ackMessageResponse);
                                 WriteResponse(ackMessageResponse, netStream);
                             }
@@ -116,7 +117,7 @@ namespace sReportsV2.HL7.Components
                 }
                 catch (Exception e)
                 {
-                    LogMessageWithError(CreateMessageMetadataWithError(hl7MessageLogId, messageFromStream, ExceptionHelper.GetExceptionStackMessages(e), HL7Constants.APPLICATION_ERROR_CODE), dbContext);
+                    LogMessageWithError(CreateMessageMetadataWithError(hl7MessageLogId, messageFromStream, e.Message, HL7Constants.APPLICATION_ERROR_CODE), dbContext);
                     WriteResponse(ProcessErrorMessage(parsedMessage, HL7Constants.APPLICATION_ERROR_CODE, "Application error"), netStream);
                 }
                 finally
@@ -163,10 +164,10 @@ namespace sReportsV2.HL7.Components
             }
         }
         
-        private string ProcessMessage(IncomingMessageMetadataDTO messageMetadata, SReportsContext dbContext)
+        private async Task<string> ProcessMessage(IncomingMessageMetadataDTO messageMetadata, SReportsContext dbContext)
         {
             HL7IncomingMessageHandler hL7MessageHandler = HL7IncomingMessageHandlerFactory.GetHandler(messageMetadata);
-            hL7MessageHandler?.Process(dbContext);
+            await hL7MessageHandler?.Process(dbContext);
             MSH mshSegment = GetMshSegment(messageMetadata.ParsedMessage);
             return GetSimpleAcknowledgementMessage(mshSegment);
         }
@@ -183,7 +184,7 @@ namespace sReportsV2.HL7.Components
             }
             catch (Exception ex)
             {
-                throw new ArgumentException("Error while retrieving port for MLLP server: " + ex.Message);
+                throw new ArgumentException("Error while retrieving port for MLLP server: " + ex.GetExceptionStackMessages);
             }
         }
 
@@ -218,7 +219,7 @@ namespace sReportsV2.HL7.Components
 
         private ErrorMessageLog CreateErrorMessageLog(IncomingMessageMetadataDTO messageMetadata)
         {
-            TimeSpan timeSpan = TimeSpan.Parse(GlobalConfig.GetUserOffset());
+            DateTimeOffset transactionDateTime = new DateTimeOffset(messageMetadata.TransactionDatetime.Value.ToUniversalTime());
 
             return new ErrorMessageLog()
             {
@@ -228,7 +229,7 @@ namespace sReportsV2.HL7.Components
                 HL7EventType = messageMetadata.HL7EventType,
                 SourceSystemCD = messageMetadata.SourceSystemCD,
                 TransactionDatetime = messageMetadata.TransactionDatetime.HasValue
-                ? new DateTimeOffset(messageMetadata.TransactionDatetime.Value.ToUniversalTime(), timeSpan)
+                ? transactionDateTime.GetDateTimeByTimeZone(GlobalConfig.GetTimeZoneId())
                 : (DateTimeOffset?)null
             };
         }

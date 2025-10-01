@@ -1,10 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
+﻿using sReportsV2.Common.Extensions;
 using sReportsV2.DTOs.Common.DTO;
-using sReportsV2.DTOs.ThesaurusEntry.DataOut;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace sReportsV2.DTOs.DigitalGuideline.DataOut
 {
@@ -12,39 +10,90 @@ namespace sReportsV2.DTOs.DigitalGuideline.DataOut
     {
         public string Id { get; set; }
         public string Title { get; set; }
-        public ThesaurusEntryDataOut Thesaurus { get; set; }
+        public int ThesaurusId { get; set; }
         public DateTime? EntryDatetime { get; set; }
-
         public DateTime? LastUpdate { get; set; }
-
         public GuidelineElementsDataOut GuidelineElements { get; set; }
         public VersionDTO Version { get; set; }
 
-
-        public JObject ToJsonNodeElements()
+        public object ToJsonNodeElements()
         {
-            var serializerSettings = new JsonSerializerSettings
+            return new
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore
-            };
-            JObject result = new JObject(
-                new JProperty("nodes", JsonConvert.DeserializeObject(JsonConvert.SerializeObject(GuidelineElements?.Nodes ?? null, serializerSettings))), 
-                new JProperty("edges", JsonConvert.DeserializeObject(JsonConvert.SerializeObject(GuidelineElements?.Edges ?? null, serializerSettings)))
-            );
-
-            return result;
+                nodes = GuidelineElements?.Nodes,
+                edges = GuidelineElements?.Edges,
+                title = Title,
+                thesaurusId = ThesaurusId,
+                version = Version
+            }.JsonSerialize(true);
         }
 
-        public object ToJson()
+        public object ToExportJson()
         {
-            var serializerSettings = new JsonSerializerSettings
+            return new
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore
-            };
+                id = this.Id,
+                title = this.Title,
+                thesaurusId = this.ThesaurusId,
+                entryDatetime = this.EntryDatetime,
+                lastUpdate = this.LastUpdate,
+                guidelineElements = new
+                {
+                    nodes = this.GuidelineElements?.Nodes?.Select(n => new
+                    {
+                        data = new
+                        {
+                            id = n.Data.Id,
+                            state = n.Data.State,
+                            thesaurusId = n.Data.ThesaurusId,
+                            title = n.Data.Title,
+                            type = n.Data.Type
+                        },
+                        position = n.Position,
+                        group = n.Group,
+                        removed = n.Removed,
+                        selected = n.Selected,
+                        selectable = n.Selectable,
+                        locked = n.Locked,
+                        grabbable = n.Grabbable,
+                        pannable = n.Pannable,
+                        classes = n.Classes
+                    }),
+                    edges = this.GuidelineElements?.Edges?.Select(e =>
+                    {
+                        var edgeData = e.Data as GuidelineEdgeElementDataDataOut;
 
-            return JsonConvert.DeserializeObject(JsonConvert.SerializeObject(this, serializerSettings));
+                        return new
+                        {
+                            data = new
+                            {
+                                source = edgeData?.Source,
+                                target = edgeData?.Target,
+                                id = edgeData?.Id,
+                                state = edgeData?.State,
+                                thesaurusId = edgeData?.ThesaurusId,
+                                title = edgeData?.Title,
+                                type = edgeData?.Type
+                            },
+                            position = e.Position,
+                            group = e.Group,
+                            removed = e.Removed,
+                            selected = e.Selected,
+                            selectable = e.Selectable,
+                            locked = e.Locked,
+                            grabbable = e.Grabbable,
+                            pannable = e.Pannable,
+                            classes = e.Classes
+                        };
+                    })
+                },
+                version = new
+                {
+                    id = this.Version?.Id,
+                    major = this.Version?.Major,
+                    minor = this.Version?.Minor
+                }
+            };
         }
     }
 

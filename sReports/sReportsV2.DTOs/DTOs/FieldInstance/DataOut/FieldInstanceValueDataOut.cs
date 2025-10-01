@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using sReportsV2.Common.Extensions;
+using sReportsV2.DTOs.DTOs.QueryManagement.DataOut;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,6 +12,8 @@ namespace sReportsV2.DTOs.DTOs.FormInstance.DataOut
         public string ValueLabel { get; set; }
         public string FieldInstanceRepetitionId { get; set; }
         public bool IsSpecialValue { get; set; }
+        public string ConnectedFieldInstanceRepetitionId { get; set; }
+        public List<QueryDataOut> Queries { get; set; } = new List<QueryDataOut>();
 
         public FieldInstanceValueDataOut()
         {

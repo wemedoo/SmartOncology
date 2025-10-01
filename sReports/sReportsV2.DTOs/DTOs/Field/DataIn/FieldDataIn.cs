@@ -24,9 +24,11 @@ namespace sReportsV2.DTOs.Field.DataIn
     [JsonSubtypes.KnownSubType(typeof(FieldTextDataIn), FieldTypes.Text)]
     [JsonSubtypes.KnownSubType(typeof(CustomFieldButtonDataIn), FieldTypes.CustomButton)]
     [JsonSubtypes.KnownSubType(typeof(FieldCodedDataIn), FieldTypes.Coded)]
+    [JsonSubtypes.KnownSubType(typeof(FieldConnectedDataIn), FieldTypes.Connected)]
     [JsonSubtypes.KnownSubType(typeof(FieldParagraphDataIn), FieldTypes.Paragraph)]
     [JsonSubtypes.KnownSubType(typeof(FieldLinkDataIn), FieldTypes.Link)]
     [JsonSubtypes.KnownSubType(typeof(FieldAudioDataIn), FieldTypes.Audio)]
+    [JsonSubtypes.KnownSubType(typeof(FieldRichTextParagraphDataIn), FieldTypes.RichTextParagraph)]
     public class FieldDataIn : IViewModeDataIn
     {
         public string FhirType { get; set; }

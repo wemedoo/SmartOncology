@@ -13,12 +13,10 @@ using sReportsV2.DTOs.DTOs.CodeSetEntry.DataIn;
 using sReportsV2.DTOs.CodeEntry.DataIn;
 using sReportsV2.DTOs.Pagination;
 using System.Collections.Generic;
-using System.Net;
 using sReportsV2.Common.Enums;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.Configuration;
 
@@ -32,15 +30,16 @@ namespace sReportsV2.Controllers
         private readonly ICodeAssociationBLL codeAssociationBLL;
 
         public CodeController(
-               ICodeBLL codeBLL,
-               ICodeSetBLL codeSetBLL,
-               ICodeAliasBLL aliasBLL,
-               ICodeAssociationBLL codeAssociationBLL,
-               IHttpContextAccessor httpContextAccessor,
-               IServiceProvider serviceProvider, 
-               IConfiguration configuration, 
-               IAsyncRunner asyncRunner
-           ) : base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            ICodeBLL codeBLL,
+            ICodeSetBLL codeSetBLL,
+            ICodeAliasBLL aliasBLL,
+            ICodeAssociationBLL codeAssociationBLL,
+            IHttpContextAccessor httpContextAccessor,
+            IServiceProvider serviceProvider, 
+            IConfiguration configuration, 
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.codeBLL = codeBLL;
             this.codeSetBLL = codeSetBLL;
@@ -52,7 +51,6 @@ namespace sReportsV2.Controllers
         public ActionResult GetAll(CodeFilterDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            dataIn.CodeSetDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeSetDisplay);
             ViewBag.FilterData = dataIn;
             ViewBag.ReadOnly = false;
             return View();
@@ -102,7 +100,6 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             dataIn.CodeDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeDisplay);
-            dataIn.CodeSetDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeSetDisplay);
             ViewBag.FilterData = dataIn;
             ViewBag.IsEdit = false;
             SetCommunicationSystemsToViewBag();
@@ -114,7 +111,6 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             dataIn.CodeDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeDisplay);
-            dataIn.CodeSetDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeSetDisplay);
             ViewBag.FilterData = dataIn;
             ViewBag.IsEdit = true;
             var result = codeBLL.GetById(dataIn.CodeId);
@@ -141,9 +137,9 @@ namespace sReportsV2.Controllers
         [SReportsAuthorize(Permission = PermissionNames.DeleteCode, Module = ModuleNames.CodeSet)]
         [SReportsAuditLog]
         [HttpDelete]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            codeBLL.Delete(id);
+            await codeBLL.Delete(id).ConfigureAwait(false);
             RefreshCache(id, ModifiedResourceType.Code);
             return NoContent();
         }
@@ -190,7 +186,6 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             dataIn.ActiveLanguage = userCookieData.ActiveLanguage;
-            dataIn.CodeSetDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeSetDisplay);
             PaginationDataOut<CodeDataOut, DataIn> result = codeBLL.GetAllAssociationsFiltered(dataIn);
 
             return PartialView("NominatorCodeAssociationTable", result);
@@ -201,7 +196,6 @@ namespace sReportsV2.Controllers
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             dataIn.ActiveLanguage = userCookieData.ActiveLanguage;
-            dataIn.CodeSetDisplay = System.Net.WebUtility.UrlDecode(dataIn.CodeSetDisplay);
             PaginationDataOut<CodeDataOut, DataIn> result = codeBLL.GetAllAssociationsFiltered(dataIn);
 
             return PartialView("NomineeCodeAssociationTable", result);
@@ -273,7 +267,7 @@ namespace sReportsV2.Controllers
                 codeDataOuts = codeBLL.GetAssociatedCodes(associationChildIds);
             else 
                 if (codeSetId != 0)
-                    codeDataOuts = SingletonDataContainer.Instance.GetCodesByCodeSetId(codeSetId);
+                    codeDataOuts = SingletonDataContainer.Instance.GetFilteredCodesByCodeSetId(codeSetId);
 
             return Json(codeDataOuts);
         }

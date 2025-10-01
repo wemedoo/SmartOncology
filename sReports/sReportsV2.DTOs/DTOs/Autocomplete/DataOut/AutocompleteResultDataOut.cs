@@ -13,6 +13,13 @@ namespace sReportsV2.DTOs.Autocomplete
         public List<AutocompleteDataOut> results { get; set; }
 
         public AutocompletePaginatioDataOut pagination { get; set; }
+    }
+
+    public class AutocompleteResultDataOut<T> where T : AutocompleteDataOut
+    {
+        public List<T> results { get; set; }
+
+        public AutocompletePaginatioDataOut pagination { get; set; }
 
     }
 }

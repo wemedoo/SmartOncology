@@ -5,7 +5,7 @@
 {
     <div class="tree-item tree-item-thesaurus" style="padding-bottom: 10px;">
 
-        <span>@(form.Title)@DisplayThesaurus(form.ThesaurusId) <span class="thesaurus-count">@form.ThesaurusAppearances</span></span>
+        <span>@(form.Title)@DisplayThesaurus(form.ThesaurusId) <div class="thesaurus-count-one">@form.ThesaurusAppearances</div></span>
 
         @foreach (FormTreeChapterDataOut chapter in form.SelectChapters(Model.O4MtId))
         {

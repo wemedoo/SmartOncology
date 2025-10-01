@@ -8,7 +8,6 @@ namespace sReportsV2.Domain.Sql.Entities.ThesaurusEntry
         public int? ThesaurusId { get; set; }
         public string PreferredTerm { get; set; }
         public string Synonym { get; set; }
-        public string SimilarTerm { get; set; }
         public string Abbreviation { get; set; }
         public string UmlsCode { get; set; }
         public string UmlsName { get; set; }

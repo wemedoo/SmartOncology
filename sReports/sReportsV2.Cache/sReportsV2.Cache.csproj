@@ -14,11 +14,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TextLanguage.resx</DependentUpon>
     </Compile>
-    <Compile Update="Resources\TextLanguage.sr-Cyrl-RS.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TextLanguage.sr-Cyrl-RS.resx</DependentUpon>
-    </Compile>
     <Compile Update="Resources\TextLanguage.sr.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -30,18 +25,14 @@
     <ProjectReference Include="..\sReportsV2.Common\sReportsV2.Common.csproj" />
     <ProjectReference Include="..\sReportsV2.DAL.Sql\sReportsV2.DAL.Sql.csproj" />
     <ProjectReference Include="..\sReportsV2.Domain.Sql\sReportsV2.Domain.Sql.csproj" />
-    <ProjectReference Include="..\sReportsV2.Domain\sReportsV2.DAL.MongoDb.csproj" />
+    <ProjectReference Include="..\sReportsV2.DAL.MongoDb\sReportsV2.DAL.MongoDb.csproj" />
     <ProjectReference Include="..\sReportsV2.DTOs\sReportsV2.DTOs.csproj" />
+    <ProjectReference Include="..\sReportsV2.LoincParser\sReportsV2.LoincParser.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\TextLanguage.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TextLanguage.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\TextLanguage.sr-Cyrl-RS.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TextLanguage.sr-Cyrl-RS.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources\TextLanguage.sr.resx">

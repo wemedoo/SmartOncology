@@ -1,109 +1,208 @@
-﻿var MIN_WIDTH = 220;
-
-var guidelineStyle = [
-        {
-            selector: 'node',
-            style: {
-                'label': 'data(title)',
-                "shape": function (element) {
-                    let elementData = element.data();
-                    let result = '';
-                    switch (elementData.type) {
-                        case 'Statement':
-                            result = 'round-rectangle';
-                            break;
-                        case 'Decision':
-                            result = 'round-diamond';
-                            break;
-                        case 'Event':
-                            result = 'ellipse';
-                            break;
-                        default:
-                            result = 'round-rectangle';
-                            
-                            break;
-                    }
-                    return result;
-                },
-                //"height": 40,
-                "width": function (element) {
-                    let data = element.data();
-                    if (data.title) {
-                        console.log(data.title.length * 5);
-                        return data.title.length * 5 > 200 ? data.title.length * 5 : MIN_WIDTH
-                    } else {
-                        return MIN_WIDTH;
-                    }
-                },
-                'padding': '20',
-                "background-color": function (element) {
-                    let elementData = element.data();
-                    if (elementData.state == "Completed") {
-                        return '#0000ff';
-                    }
-                    else if (elementData.state == "Active") {
-                        return '#00ff00';
-                    }
-                    else {
-                        return '#f0f1f1';
-                    }
-                },
-                "color": function (element) {
-                    let elementData = element.data();
-                    if (elementData.state == "Completed") {
-                        return 'white';
-                    }
-                    else
-                        return 'black';
-                },
-                'border-width': '1px',
-                'border-color': 'black',
-                'text-halign': 'center',
-                'text-valign': 'center',
-                'text-max-width': '200',
-                'text-wrap': 'wrap',
-                'text-overflow-wrap': 'break-word'
-            }
-        },
-        {
-            selector: 'node:selected',
-            style: {
-                'background-color': '#1c94a3',
-                'color': 'white'
-            }
-        },
-        /*{
-            selector: 'node:active',
-            style: {
-                'background-color': 'green',
-            }
-        },*/
-        {
-            selector: 'node:active',
-            style: {
-                //'background-color': '#eef6ec',
-                //'overlay-color': '#eef6ec'
-            }
-        },
-        {
-            selector: 'edge',
-            style: {
-                'width': '1',
-                'label': 'data(title)',
-                'text-valign': 'top',
-                'curve-style': 'straight',
-                //'line-style':'dotted',
-                'line-color': 'black',
-                'target-arrow-shape': 'triangle', // there are far more options for this property here: http://js.cytoscape.org/#style/edge-arrow,
-                'target-arrow-color': 'black'
-            }
-        },
-        {
-            selector: '.edge-label-background',
-            style: {
-                "text-background-opacity": 1,
-                'text-background-color': 'white'
-            }
+﻿const guidelineStyle = [
+    {
+        selector: 'node',
+        style: {
+            'background-opacity': 0,
+            'border-width': 0,
+            'label': '',
+            'width': 1,
+            'height': 1,
+            'opacity': 0
         }
-
-    ]
+    },
+    {
+        selector: 'node[type="Event"]',
+        style: {
+            'shape': 'ellipse',
+            'width': 135,
+            'height': 48,
+            'border-radius': 24
+        }
+    },
+    {
+        selector: 'node[type="Statement"]',
+        style: {
+            'shape': 'round-rectangle',
+            'width': 135,
+            'height': 48,
+        }
+    },
+    {
+        selector: 'node[type="Decision"]',
+        style: {
+            'shape': 'round-diamond',
+            'width': 89.5,
+            'height': 89.5,
+            'padding': '20px'
+        }
+    },
+    {
+        selector: '.placeholder-node',
+        style: {
+            'width': '1px',
+            'height': '1px',
+            'background-color': 'transparent',
+            'border-width': '0px',
+            'shape': 'ellipse',
+            'label': '',
+            'cursor': 'pointer',
+            'opacity': 0
+        }
+    },
+    {
+        selector: 'edge',
+        style: {
+            'width': 1,
+            'line-color': 'black',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': 'black',
+            'label': 'data(title)',
+            'font-family': 'Nunito Sans, sans-serif',
+            'font-weight': 600,
+            'font-size': 16,
+            'text-background-color': 'white',
+            'text-background-opacity': 1,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center',
+            'curve-style': 'bezier',
+            'control-point-distance': 30,
+            'control-point-weight': 0.5
+        }
+    },
+    {
+        selector: 'edge.highlighted',
+        style: {
+            'width': 3,
+            'line-color': 'black',
+            'target-arrow-color': 'black',
+            'shadow-blur': 10,
+            'shadow-color': '#888',
+            'shadow-opacity': 0.7,
+            'shadow-offset-x': 0,
+            'shadow-offset-y': 0,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center'
+        }
+    },
+    {
+        selector: 'edge.temp-bezier',
+        style: {
+            'width': 1,
+            'line-color': 'black',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': 'black',
+            'source-arrow-shape': 'triangle',
+            'source-arrow-color': 'black',
+            'label': 'data(title)',
+            'font-family': 'Nunito Sans, sans-serif',
+            'font-weight': 600,
+            'font-size': 16,
+            'text-background-color': 'white',
+            'text-background-opacity': 1,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center',
+            'curve-style': 'bezier',
+            'control-point-distance': 30,
+            'control-point-weight': 0.5
+        }
+    },
+    {
+        selector: 'edge.unbundled-bezier',
+        style: {
+            'width': 1,
+            'line-color': 'black',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': 'black',
+            'label': 'data(title)',
+            'font-family': 'Nunito Sans, sans-serif',
+            'font-weight': 600,
+            'font-size': 16,
+            'text-background-color': 'white',
+            'text-background-opacity': 1,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center',
+            'curve-style': 'unbundled-bezier',
+            'control-point-distances': [40, -40],
+            'control-point-weights': [0.25, 0.75]
+        }
+    },
+    {
+        selector: 'edge.unbundled-bezier.highlighted',
+        style: {
+            'width': 3,
+            'line-color': 'black',
+            'target-arrow-color': 'black',
+            'shadow-blur': 10,
+            'shadow-color': '#888',
+            'shadow-opacity': 0.7,
+            'shadow-offset-x': 0,
+            'shadow-offset-y': 0,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center'
+        }
+    },
+    {
+        selector: 'edge.taxi',
+        style: {
+            'width': 1,
+            'line-color': 'black',
+            'target-arrow-shape': 'triangle',
+            'target-arrow-color': 'black',
+            'label': 'data(title)',
+            'font-family': 'Nunito Sans, sans-serif',
+            'font-weight': 600,
+            'font-size': 16,
+            'text-background-color': 'white',
+            'text-background-opacity': 1,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center',
+            'curve-style': 'taxi',
+            'taxi-direction': 'auto',
+            'taxi-turn': 50,
+            'taxi-turn-min-distance': 10
+        }
+    },
+    {
+        selector: 'edge.taxi.highlighted',
+        style: {
+            'width': 3,
+            'line-color': 'black',
+            'target-arrow-color': 'black',
+            'shadow-blur': 10,
+            'shadow-color': '#888',
+            'shadow-opacity': 0.7,
+            'shadow-offset-x': 0,
+            'shadow-offset-y': 0,
+            'text-max-width': '100px',
+            'text-wrap': 'ellipsis',
+            'text-overflow-wrap': 'ellipsis',
+            'text-justification': 'center',
+            'text-halign': 'center',
+            'text-valign': 'center'
+        }
+    }
+];

@@ -23,7 +23,8 @@
     <tbody class="color-header">
         @foreach (OrganizationCommunicationEntityDataOut entry in Model)
         {
-            <tr id="row-@entry.OrgCommunicationEntityId" class="table-content-row @(!entry.IsActive() ? "grayed-out" : "")" onclick="editOrganizationCommunicationModal(event, '@entry.OrgCommunicationEntityId', false)">
+            <tr id="row-@entry.OrgCommunicationEntityId" class="table-content-row @(!entry.IsActive() ? "grayed-out" : "")"
+                onclick="@(ViewBag.ReadOnly ? $"viewOrganizationCommunicationModal(event, '{entry.OrgCommunicationEntityId}', true)" : $"editOrganizationCommunicationModal(event, '{entry.OrgCommunicationEntityId}', false)")">
                 <td>@entry.DisplayName </td>
                 <td>@(entry.OrgCommunicationEntityCD.HasValue ? entry.ConvertOrgCommunicationEntityCDToDisplayName(orgCommunicationEntities, activeLanguage) : "")</td>
                 <td>@(entry.PrimaryCommunicationSystemCD.HasValue ? entry.ConvertPrimaryCommunicationSystemCDToDisplayName(primaryCommunicationSystems, activeLanguage) : "")</td>
@@ -55,9 +56,5 @@
 
 @if (Model.Count == 0)
 {
-    <div class="no-result-content">
-        <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-        <br>
-        <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-    </div>
+    @await Html.PartialAsync("NoResultFound")
 }

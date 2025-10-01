@@ -9,13 +9,23 @@ $.fn.initDatePicker = function (chooseSepareteMonthYear = false, yearRange = fal
 		datePickerOptions['maxDate'] = new Date();
 	}
 
+	if (shouldRestrictAge(this)) {
+		const today = new Date();
+		const minDateFor18 = new Date(today.setFullYear(today.getFullYear() - 18));
+		datePickerOptions['maxDate'] = minDateFor18;
+
+		if (!yearRange) {
+			datePickerOptions['yearRange'] = `c-100:${minDateFor18.getFullYear()}`;
+		}
+	}
+
 	if (chooseSepareteMonthYear) {
 		datePickerOptions['changeMonth'] = true;
 		datePickerOptions['changeYear'] = true;
 	}
 
 	if (yearRange) {
-		datePickerOptions['yearRange'] = 'c-100:9999';
+		datePickerOptions['yearRange'] = 'c-100:c+100';
 	}
 
 	if (beforeShow) {
@@ -29,9 +39,18 @@ $.fn.initDatePicker = function (chooseSepareteMonthYear = false, yearRange = fal
     return this.datepicker(datePickerOptions);
 }
 
-$(document).on("change", ".field-date-input", function () {
-	removeFieldErrorIfValid($(this), $(this).attr("id"));
-	removeFieldErrorIfValidForTimeInput($(this));
+$(document).ready(function () {
+	$("[data-date-validation]").on("change blur", function () {
+		const $input = $(this);
+
+		if (!validateDateInput($input)) {
+			markDateInputInvalid($input, `Please put your date in [${getDateFormatDisplay()}] format.`);
+		} else if ($input.is("[data-preventfuturedates]") && !validateFutureDates($input)) {
+			markDateInputInvalid($input, `Your date cannot be greater than current date for this field.`);
+		} else {
+			clearDateInputError($input);
+		}
+	});
 });
 
 //date helpers methods
@@ -46,10 +65,6 @@ function toDateISOStringIfValue(value) {
 	return `${year}-${formatTo2Digits(month)}-${formatTo2Digits(day)}`;
 }
 
-function toISO8601DateTimeWithOffset(value, timeZoneOffset) {
-	return `${value}${timeZoneOffset}`
-}
-
 function dateForComparison(value) {
 	var date = initDate(value);
 	var [day, month, year] = extractDate(date);
@@ -61,12 +76,13 @@ function initDate(value) {
 	return new Date(formatDateToValid(value));
 }
 
-function toLocaleDateStringIfValue(valueInUtc) {
-	return valueInUtc ? `${valueInUtc}${getUtcTimezoneOffset()}` : valueInUtc;
+function toLocaleDateStringIfValue(valueInUtc, timeZoneOffset, returnInUtcTimeZone) {
+	timeZoneOffset = timeZoneOffset ? timeZoneOffset : userTimeZoneOffset;
+	return valueInUtc ? toValidTimezoneFormat(convertToCustomTimeZone(valueInUtc, userTimeZoneOffset, returnInUtcTimeZone)) : '';
 }
 
 function toValidTimezoneFormat(value) {
-	return value.replace(' ', '+')
+	return value.replace(' ', '+');
 }
 
 function formatDateToValid(value) {
@@ -106,15 +122,6 @@ function extractUtcTimePart(utcDatetimeValue) {
 	return utcTimePart;
 }
 
-function getUtcTimezoneOffset() {
-	var offsetInMins = new Date().getTimezoneOffset();
-	var offsetSign = offsetInMins * (-1) > 0 ? '+' : '-';
-	var offsetHours = Math.abs(offsetInMins / 60);
-	var offset = offsetSign + formatTo2Digits(offsetHours) + ":00";
-
-	return offset;
-}
-
 function formatTo2Digits(inputDigit) {
 	return ('0' + inputDigit).slice(-2);
 }
@@ -149,7 +156,7 @@ function setValueForDateTime(paramName, paramValue) {
 			break;
 		case "EntryDatetime":
 			$("#entryDatetime").val(formattedDate);
-			$("#entryDatetimeDefault").val(dateTime);
+			$("#entryDatetimeDefault").val(toValidTimezoneFormat(paramValue));
 			break;
 		case "AdmissionDate":
 			$("#admissionDate").val(formattedDate);
@@ -196,6 +203,7 @@ $(document).on("keypress", "input[data-date-input]", function (e) {
 	if (isForbiddenDateInputCharacter(e.key)) {
 		e.preventDefault();
 	}
+	$(this).data("key-action", true);
 
 	var value = $(this).val();
 	var inputLength = value.length;
@@ -214,52 +222,102 @@ $(document).on("keypress", "input[data-date-input]", function (e) {
 	$(this).val(value);
 });
 
-$(document).on("blur", "input[data-date-input]:not(.field-date-input)", function (e) {
-	validateDateInput($(this));
-	validateFutureDates($(this));
+$(document).on("blur", "input[data-date-input]", function (e) {
+	if (!$(this).val() && !$(this).data('key-action')) {
+		$(this).val($(this).data("initial-date-value"));
+		updateDatetimeIfNeeded($(this));
+	}
+	if (!$(this).attr('skip-blur')) {
+		const $input = $(this);
+
+		const isDateValid = validateDateInput($input);
+		const isFutureValid = validateFutureDates($input);
+		const isAgeValid = validateAge18($input);
+
+		if (isDateValid && isFutureValid && isAgeValid) {
+			clearErrorLabel($input);
+		} else {
+			$input.addClass("error");
+		}
+	}
 });
 
-$(document).on("change", "input[data-date-input]:not(.field-date-input)", function (e) {
-	var form = $(this).closest("form");
-	form.validate().element(this);
+$(document).on("change", "input[data-date-input]", function (e) {
+	if ($(this).hasClass('field-date-input')) {
+		removeFieldErrorIfValid($(this), $(this).attr("id"));
+		removeFieldErrorIfValidForTimeInput($(this));
+	} else {
+		if (!$(this).attr('skip-change')) {
+			var form = $(this).closest("form");
+			if (form.length) {
+				form.validate().element(this);
+			}
+		}
+	}
 });
+
+$(document).on("focus", "input[data-date-input]", function (e) {
+	$(this).data("initial-date-value", $(this).val());
+	$(this).data("key-action", false);
+	$(this).val("");
+	updateDatetimeIfNeeded($(this));
+});
+
+function updateDatetimeIfNeeded($dateInput) {
+	if (typeof handleDateHelper === 'function' && $dateInput.hasClass('date-helper')) {
+		handleDateHelper($dateInput, true);
+	}
+}
 
 function shouldPreventFutureDates($input) {
 	return $input.attr('data-preventfuturedates') === "True";
 }
 
+function shouldRestrictAge($input) {
+	return $input.attr('data-restrictage18') === "True";
+}
+
 function validateDateInput($input) {
 	var inputValue = $input.val();
 	var inputLength = inputValue.length;
-	var parsedDate = toDateStringIfValue(inputValue);
-	var invalid = inputLength > 0 && (inputLength !== getAllowedDateLength() || parsedDate === "Invalid Date");
-	if (invalid) {
-		$input.addClass("error");
-		return false;
-	} else {
-		clearErrorLabel($input);
+
+	if (inputLength === 0) {
 		return true;
 	}
+
+	var parsedDate = toDateStringIfValue(inputValue);
+	var invalid = inputLength !== getAllowedDateLength() || parsedDate === "Invalid Date";
+	return !invalid;
 }
 
 function validateFutureDates($input) {
-	if (shouldPreventFutureDates($input)) {
-		var inputValue = $input.val();
-		var parsedDate = toDateStringIfValue(inputValue);
-		var date = new Date(parsedDate);
-		var currentDate = new Date();
-		if (date > currentDate) {
-			$input.addClass("error");
-			return false;
-		}
-		else {
-			clearErrorLabel($input);
-			return true;
-		}
-	}
-	else {
+	var inputValue = $input.val();
+
+	if (inputValue.length === 0 || !shouldPreventFutureDates($input)) {
 		return true;
 	}
+
+	var parsedDate = toDateStringIfValue(inputValue);
+	var date = new Date(parsedDate);
+	var currentDate = new Date();
+	return date <= currentDate;
+}
+
+function validateAge18($input) {
+	var inputValue = $input.val();
+
+	if (inputValue.length === 0 || !shouldRestrictAge($input)) {
+		return true;
+	}
+
+	const inputDate = $input.datepicker('getDate');
+	if (!inputDate || isNaN(inputDate)) {
+		return false;
+	}
+
+	const today = new Date();
+	const minDateFor18 = new Date(today.setFullYear(today.getFullYear() - 18));
+	return inputDate <= minDateFor18;
 }
 
 function clearErrorLabel($input) {
@@ -330,10 +388,18 @@ function setDateTimeValidatorMethods() {
 		`Your date cannot be greater than current date for this field.`
 	);
 
+	$.validator.addMethod("validateAge18", function (value, element) {
+		if ($(element).is("[data-restrictage18]")) {
+			return validateAge18($(element));
+		} else {
+			return true;
+		}
+	}, "Date must indicate you are 18 or older as of today.");
+
 	$.validator.addMethod(
 		"timeInputValidation",
 		function (value, element) {
-			if ($(element).hasClass("time-part")) {
+			if ($(element).hasClass("time-helper")) {
 				return validateTimeInput($(element));
 			} else {
 				return true;
@@ -353,7 +419,8 @@ function setDateTimeValidatorMethods() {
 	$("input[data-date-input]").each(function () {
 		$(this).rules('add', {
 			dateInputValidation: true,
-			validateFutureDates: true
+			validateFutureDates: true,
+			validateAge18: true
 		});
 		let allowedDateLength = getAllowedDateLength();
 		$(this)
@@ -361,7 +428,7 @@ function setDateTimeValidatorMethods() {
 			.attr("data-maxlength", allowedDateLength);
 	});
 
-	$("input.time-part").each(function () {
+	$("input.time-helper").each(function () {
 		$(this).rules('add', {
 			timeInputValidation: true
 		});
@@ -369,7 +436,7 @@ function setDateTimeValidatorMethods() {
 }
 
 function isDateOrTimeInput(element) {
-	return element.hasClass("time-part") || element.is("[data-date-input]");
+	return element.hasClass("time-helper") || element.is("[data-date-input]");
 }
 
 function handleErrorPlacement(error, element) {
@@ -453,28 +520,23 @@ function addErrorClass(activeToDate, activeToTimeWrapper, activeToTime) {
 function calculateDateTimeWithOffset(dateFieldId, timeFieldId) {
 	var activeDateTime = new Date(getActiveDate(dateFieldId, timeFieldId));
 	var maxDate = new Date("Fri Dec 31 9999 23:59");
-	organizationOffset = decodeHtmlEntity(organizationOffset);
 	if (activeDateTime.getTime() === maxDate.getTime())
 		return getActiveDate(dateFieldId, timeFieldId) + "+00:00";
 	else {
-		var activeDate = getActiveDate(dateFieldId, timeFieldId);
-		return activeDate != "" ? activeDate + organizationOffset : "";
+		var dateValue = $(dateFieldId).siblings('.date-time-local').val();
+		return dateValue ? convertToCustomTimeZone(dateValue, organizationTimeZoneOffset) : '';
 	}
 }
 
 function calculateDateWithOffset(dateFieldId) {
-	organizationOffset = decodeHtmlEntity(organizationOffset);
-	var activeDate = toDateStringIfValue(dateFieldId);
-	if (activeDate != "")
-		return activeDate + organizationOffset;
-	else
-		return activeDate;
+	let value = $(dateFieldId).val();
+	return value ? convertToCustomTimeZone(toFullDateISO(value), organizationTimeZoneOffset) : '';
 }
 
-function decodeHtmlEntity(str) {
-	var txt = document.createElement('textarea');
-	txt.innerHTML = str;
-	return txt.value;
+function convertToCustomTimeZone(utcDateTime, timeZoneIanaCode, skipTimeZone = false) {
+	if (skipTimeZone) return `${utcDateTime}+00:00`;
+	var momentDate = moment.tz(utcDateTime, timeZoneIanaCode);
+	return momentDate.toISOString(true);
 }
 
 function getActiveDate(dateFieldId, timeFieldId) {
@@ -485,4 +547,22 @@ function getActiveDate(dateFieldId, timeFieldId) {
 		return activeDate + ' ' + activeTime;
 	else
 		return "";
+}
+
+function markDateInputInvalid($input, errorMessage) {
+	clearDateInputError($input);
+	$input.addClass("error").attr("aria-invalid", "true");
+
+	const errorId = $input.attr("id") + "-error";
+	if ($(`#${errorId}`).length === 0) {
+		$(`<label id="${errorId}" class="error" for="${$input.attr("id")}">${errorMessage}</label>`)
+			.insertAfter($input);
+	}
+}
+
+function clearDateInputError($input) {
+	$input.removeClass("error").removeAttr("aria-invalid");
+
+	const errorId = $input.attr("id") + "-error";
+	$(`#${errorId}`).remove();
 }

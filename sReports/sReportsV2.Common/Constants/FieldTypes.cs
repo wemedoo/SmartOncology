@@ -22,9 +22,11 @@ namespace sReportsV2.Common.Constants
         public const string Regex = "regex";
         public const string CustomButton = "custom-button";
         public const string Coded = "coded";
+        public const string Connected = "connected";
         public const string Paragraph = "paragraph";
         public const string Link = "link";
         public const string Audio = "audio";
+        public const string RichTextParagraph = "rich-text-paragraph";
 
         //Field types that are possibly not used
         public const string Digits = "digits";

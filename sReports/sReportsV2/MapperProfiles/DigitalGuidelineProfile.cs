@@ -8,7 +8,6 @@ using sReportsV2.DTOs.DigitalGuideline.DataIn.EvidenceProperties;
 using sReportsV2.DTOs.DigitalGuideline.DataOut;
 using sReportsV2.DTOs.DigitalGuideline.DataOut.EvidenceProperties;
 using sReportsV2.DTOs.DigitalGuideline.DTO;
-using sReportsV2.DTOs.ThesaurusEntry.DataOut;
 using System.Linq;
 
 namespace sReportsV2.MapperProfiles
@@ -21,11 +20,9 @@ namespace sReportsV2.MapperProfiles
 
             CreateMap<GuidelineDataIn, Guideline>()
                 .IgnoreAllNonExisting()
-                .ForMember(o => o.ThesaurusId, opt => opt.MapFrom(src => src.Thesaurus.Id))
                 .ReverseMap();
 
             CreateMap<Guideline, GuidelineDataOut>()
-                .ForMember(o => o.Thesaurus, opt => opt.MapFrom(src => src.ThesaurusId))
                 .ReverseMap();
 
             CreateMap<GuidelineElementsDataIn, GuidelineElements>().ReverseMap();
@@ -37,12 +34,10 @@ namespace sReportsV2.MapperProfiles
             CreateMap<GuidelineElement, GuidelineElementDataOut>().ReverseMap();
 
             CreateMap<GuidelineElementDataDataIn, GuidelineElementData>()
-                .ForMember(o => o.ThesaurusId, opt => opt.MapFrom(src => src.Thesaurus.Id))
                 .ReverseMap();
 
             CreateMap<GuidelineElementData, GuidelineElementDataDataOut>()
                 .IgnoreAllNonExisting()
-                .ForMember(o => o.Thesaurus, opt => opt.MapFrom(src => src.ThesaurusId))
                 .ReverseMap();
 
             CreateMap<GuidelineStatementElementDataDataIn, GuidelineStatementElementData>()

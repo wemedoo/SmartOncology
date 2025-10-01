@@ -1,0 +1,117 @@
+﻿@using sReportsV2.Common.Extensions
+@using sReportsV2.DTOs.Form.DataOut
+@model FormFieldSetDataOut
+
+@{
+    bool readOnly = ((bool?)ViewBag.ReadOnly).GetValueOrDefault();
+}
+
+<div class="flex padding-5">
+    <div class="matrix-container">
+        <table class="fs-matrix-table">
+            <thead>
+                <tr>
+                    <th class="cursor-default">
+                        <input class="custom-input matrix-cell" readonly/>
+                    </th>
+                    @{
+                        var groupedFields = Model.ListOfFieldSets
+                        .SelectMany(fs => fs.Fields)
+                        .GroupBy(f => f.Label)
+                        .Select(g => new
+                        {
+                            Label = g.Key,
+                            FieldIds = string.Join(",", g.Select(f => f.Id))
+                        });
+
+                        int i = 1;
+
+                        foreach (var entry in groupedFields)
+                        {
+                            var fieldIdArray = entry.FieldIds.Split(',');
+                            string specificFieldId = fieldIdArray.Length > (i - 1) ? fieldIdArray[i - 1] : "";
+
+                            <th class="cursor-default">
+                                <input class="fs-column-input matrix-cell"
+                                       data-id="@specificFieldId"
+                                       data-label="@entry.Label"
+                                       value="@entry.Label"
+                                       title="@entry.Label"
+                                       data-itemtype="field"
+                                       data-parentid="@Model.Id"
+                                       readonly>
+
+                            </th>
+
+                            i++;
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model?.ListOfFieldSets.Count > 0)
+                {
+                    foreach (var entry in Model.ListOfFieldSets)
+                    {
+                        <tr class="fs-row" id="@entry.Id">
+                            <td class="custom-dd-handle background-white">
+                                <div class="icon-container">
+                                    <div class="overlay"></div>
+                                    @{
+                                        RenderEditButton();
+                                        RenderRemoveButton(readOnly);
+                                    }
+                                </div>
+
+                                <input class="fs-column-input matrix-cell"
+                                       data-id="@entry.Id"
+                                       data-label="@entry.Label"
+                                       value="@entry.Label"
+                                       title="@entry.Label"
+                                       data-itemtype="fieldset"
+                                       data-matrixid="@entry.MatrixId" readonly @Html.Raw(entry.GetDataAttr()) />
+                            </td>
+                            @foreach (var field in entry.Fields)
+                            {
+                                <td class="custom-dd-handle matrix-cell">
+                                    <div class="icon-container">
+                                        <div class="overlay"></div>
+                                        @{
+                                            RenderEditButton();
+                                        }
+                                        <input hidden class="fs-column-input matrix-cell"
+                                               data-id="@field.Id"
+                                               data-label="@field.Label"
+                                               value="@field.Label"
+                                               title="@field.Label"
+                                               data-itemtype="field"
+                                               data-parentid="@entry.Id" readonly @Html.Raw(field.GetDataAttr()) />
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@functions {
+    private void RenderRemoveButton(bool readOnly)
+    {
+        if (!readOnly)
+        {
+            <div class="remove-matrix-button">
+                <img alt="" src="/css/img/icons/remove_simulator.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Remove" />
+            </div>
+        }
+    }
+
+    private void RenderEditButton()
+    {
+        <div class="edit-matrix-button">
+            <img alt="" src="/css/img/icons/edit_pencil_03.svg" title="@sReportsV2.Cache.Resources.TextLanguage.Edit" />
+        </div>
+    }
+}

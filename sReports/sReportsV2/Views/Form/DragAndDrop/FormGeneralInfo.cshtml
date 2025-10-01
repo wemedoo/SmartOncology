@@ -2,10 +2,12 @@
     ViewBag.Title = "FormGeneralInfo";
     string activeLanguage = ViewBag.UserCookieData.ActiveLanguage;
     bool disabled = ViewBag.Disabled == "disabled";
+    DocumentLoincPropertiesDataOut documentLoincProperties = Model.DocumentLoincProperties ?? new DocumentLoincPropertiesDataOut();
 }
 @using sReportsV2.DTOs.Form.DataOut;
 @using sReportsV2.Common.Enums;
 @using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.DTOs.DocumentProperties.DataOut;
 @model FormDataOut
 
 <form class="designer-item-form" id="formGeneralInfoForm">
@@ -120,7 +122,7 @@
             <div class="label filter-label">
                 @sReportsV2.Cache.Resources.TextLanguage.Minor
             </div>
-            <input required id="versionMinor" class="designer-form-input version" name="versionMinor" type="number" min="0" value="@(Model != null && Model.Version != null ? Model.Version.Minor.ToString() : "")" @ViewBag.Disabled />
+            <input required id="versionMinor" class="designer-form-input version" name="versionMinor" type="number" min="0" step="1" value="@(Model != null && Model.Version != null ? Model.Version.Minor.ToString() : "")" @ViewBag.Disabled />
         </div>
     </div>
     <div class="designer-form-section">
@@ -177,6 +179,7 @@
                 });
             }
         });
+        loincConfiguration(@Html.Raw(documentLoincProperties.JsonSerialize()));
     });
 </script>
 
@@ -187,21 +190,21 @@
             <div class="designer-form-section-title">
                 @sReportsV2.Cache.Resources.TextLanguage.Organizations
             </div>
-            <div id="dropdownSearch" class="position-relative dropdown-search">
-                <div id="searchOrganization">
-                    <input placeholder="@sReportsV2.Cache.Resources.TextLanguage.Select_Organization" autocomplete="off" class="designer-form-input filter-input" id="searchOrganizationByName" name="searchOrganizationByName" type="text" @ViewBag.Disabled />
+            <div class="position-relative dropdown-search">
+                <div id="searchOrganization" class="autocomplete-wrapper">
+                    <input placeholder="@sReportsV2.Cache.Resources.TextLanguage.Select_Organization" autocomplete="off" class="designer-form-input filter-input autocomplete-component" id="searchOrganizationByName" name="searchOrganizationByName" type="text" @ViewBag.Disabled />
                 </div>
-                <div id="organizationOptions" class="clinical-domain-options" aria-labelledby="search">
+                <div id="organizationOptions" class="clinical-domain-options autocomplete-options" aria-labelledby="searchOrganization">
                 </div>
             </div>
             <div id="selectedOrganizations" class="d-flex mt-2">
                 @foreach (var organization in Model.Organizations)
                 {
-                    <div class="filter-element" data-org-id="@organization.Id">
+                    <div class="filter-element" data-value="@organization.Id">
                         @organization.Name
                         @if (!disabled)
                         {
-                            <img alt="" src="/css/img/icons/Administration_remove.svg" class="ml-2 remove-form-org">
+                            <img alt="" src="/css/img/icons/Administration_remove.svg" class="ml-2 remove-form-org selected-autocomplete-remove">
                         }
                     </div>
                 }

@@ -34,6 +34,7 @@
             <div class="advanced-filter-item filter-item">
                 <div class="label filter-label">
                     @sReportsV2.Cache.Resources.TextLanguage.List_Name
+                    @await Html.PartialAsync("RequiredLabel")
                 </div>
                 <input type="text" class="filter-input" name="listName" id="listName" required value="@(Model.PatientListName ?? "")" @disabled>
                 <label id="nonUniqueListName-error" class="error" for="listName" style="display:none">@sReportsV2.Cache.Resources.TextLanguage.Not_Unique_Name</label>
@@ -51,7 +52,7 @@
                             { "class", "filter-input" },
                             { "id", "activeFrom" },
                             { "name", "activeFrom" },
-                            { "value", Model != null && Model.ActiveFrom.HasValue ? Model.ActiveFrom.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                            { "value", Model != null ? Model.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string) : "" }
                         },
                         InputBtnAttributes = new Dictionary<object, object> {
                             { "class", "date-img eoc-form-date-img" },
@@ -72,7 +73,7 @@
                                     { "class", "filter-input" },
                                     { "id", "activeTo" },
                                     { "name", "activeTo" },
-                                    { "value", Model != null && Model.ActiveTo.HasValue ? Model.ActiveTo.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                    { "value", Model != null ? Model.ActiveTo.ToDateZoned(ViewBag.DateFormat as string) : "" }
                         },
                         InputBtnAttributes = new Dictionary<object, object> {
                                     { "class", "date-img eoc-form-date-img" },
@@ -140,7 +141,7 @@
                             {
                                 InputAttributes = new Dictionary<object, object> {
                                     { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                    { "value",  Model != null && Model.AdmissionDateFrom != null ? Model.AdmissionDateFrom.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                    { "value",  Model != null ? Model.AdmissionDateFrom.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" },
                                     { "id", "periodStartDate"},
                                     { "name", "periodStartDate"},
                                     { @Html.DateDisabled(readOnly), null }
@@ -151,17 +152,16 @@
                                 <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
                             </div>
                         </div>
-                        <div class="time-wrapper w-35 input-border">
-                            <input type="text"
-                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                   class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
-                                   value="@(Model != null && Model.AdmissionDateFrom != null ? Model.AdmissionDateFrom.Value.GetTimePart() : "")"
-                                   id="periodStartTime"
-                                   name="periodStartTime">
-                            <div class="clock-wrapper">
-                                <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                       {
+                           InputAttributes = new Dictionary<object, object> {
+                            { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                            { "value", Model != null && Model.AdmissionDateFrom != null ? Model.AdmissionDateFrom.Value.GetTimePart() : "" },
+                            { "id", "periodStartTime"},
+                            { "name", "periodStartTime"}
+                            },
+                            InputBtnAttributes = new Dictionary<object, object>{{"readOnly", readOnly}}
+                       })
                     </div>
                 </div>
                 <div class="advanced-filter-item filter-item">
@@ -174,7 +174,7 @@
                        {
                            InputAttributes = new Dictionary<object, object> {
                                     { "class", "date-helper d-inline-block border-0 date-width input-padding filter-input" },
-                                    { "value", Model != null && Model.DischargeDateTo != null ? Model.DischargeDateTo.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" },
+                                    { "value", Model != null ? Model.DischargeDateTo.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "" },
                                     { "id", "periodEndDate"},
                                     { "name", "periodEndDate"},
                                     { @Html.DateDisabled(readOnly), null }
@@ -185,17 +185,16 @@
                                 <!img class=" d-inline-block" src="/css/img/icons/datetime_field.svg" @Html.DateTimeDisabled(readOnly)>
                             </div>
                         </div>
-                        <div class="time-wrapper w-35 input-border">
-                            <input type="text"
-                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                   class="time-part time-helper d-inline-block border-0 input-padding filter-input w-90"
-                                   value="@(Model != null && Model.DischargeDateTo != null ? Model.DischargeDateTo.Value.GetTimePart() : "")"
-                                   id="periodEndTime"
-                                   name="periodEndTime">
-                            <div class="clock-wrapper">
-                                <i class="fas fa-clock" @Html.TimeDisabled(readOnly)></i>
-                            </div>
-                        </div>
+                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                   {
+                       InputAttributes = new Dictionary<object, object> {
+                        { "class", "time-helper d-inline-block border-0 input-padding filter-input w-90" },
+                        { "value", Model != null && Model.DischargeDateTo != null ? Model.DischargeDateTo.Value.GetTimePart() : "" },
+                        { "id", "periodEndTime"},
+                        { "name", "periodEndTime"}
+                        },
+                       InputBtnAttributes = new Dictionary<object, object> { { "readOnly", readOnly } }
+                   })
                     </div>
                     <label id="admissionPeriod-error" class="error" for="periodEndDate" style="display:none">@sReportsV2.Cache.Resources.TextLanguage.Discharge_Error_Msg</label>
                 </div>
@@ -281,7 +280,7 @@
                         <div class="label filter-label">
                             @sReportsV2.Cache.Resources.TextLanguage.Exclude_Deceased_Patient
                         </div>
-                        <label class="form-checkbox-label">
+                        <label class="form-checkbox-label patient-list-checkbox-label">
                             <input class="form-checkbox-field" type="checkbox" data-label="@sReportsV2.Cache.Resources.TextLanguage.Exclude_Deceased_Patient" id="excludeDeceased" @(Model.ExcludeDeceasedPatient ? "checked" : "") />
                             <i class="form-checkbox-button table-checkbox"></i>
                             <span> @sReportsV2.Cache.Resources.TextLanguage.Yes</span>

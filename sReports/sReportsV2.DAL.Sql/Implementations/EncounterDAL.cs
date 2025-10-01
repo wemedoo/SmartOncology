@@ -173,7 +173,7 @@ namespace sReportsV2.SqlDomain.Implementations
                 result = SortByField(result, filter);
             else
                 result = result.OrderByDescending(x => x.PatientId)
-                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Skip(filter.GetHowManyElementsToSkip())
                     .Take(filter.PageSize);
 
             return result;
@@ -264,7 +264,7 @@ namespace sReportsV2.SqlDomain.Implementations
                                 x.GenderCD == femaleCodeId ? femaleCodeValue :
                                 x.GenderCD == otherCodeId ? otherCodeValue : unknownCodeValue
                             )
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                     else
                         return result.OrderByDescending(x =>
@@ -272,7 +272,7 @@ namespace sReportsV2.SqlDomain.Implementations
                                 x.GenderCD == femaleCodeId ? femaleCodeValue :
                                 x.GenderCD == otherCodeId ? otherCodeValue : unknownCodeValue
                             )
-                            .Skip((filterData.Page - 1) * filterData.PageSize)
+                            .Skip(filterData.GetHowManyElementsToSkip())
                             .Take(filterData.PageSize);
                 case AttributeNames.PatientNameGiven:
                     if (filterData.IsAscending)
@@ -317,7 +317,7 @@ namespace sReportsV2.SqlDomain.Implementations
                                  x.StatusCD == onleaveCodeId ? finishedCodeValue :
                                  x.StatusCD == finishedCodeId ? finishedCodeValue : cancelledCodeValue
                              )
-                             .Skip((filterData.Page - 1) * filterData.PageSize)
+                             .Skip( filterData.GetHowManyElementsToSkip())
                              .Take(filterData.PageSize);
                         else
                             return result.OrderByDescending(x =>
@@ -328,7 +328,7 @@ namespace sReportsV2.SqlDomain.Implementations
                                  x.StatusCD == onleaveCodeId ? finishedCodeValue :
                                  x.StatusCD == finishedCodeId ? finishedCodeValue : cancelledCodeValue
                              )
-                             .Skip((filterData.Page - 1) * filterData.PageSize)
+                             .Skip(filterData.GetHowManyElementsToSkip())
                              .Take(filterData.PageSize);
                 case AttributeNames.PatientNameFamily:
                     if (filterData.IsAscending)
@@ -350,7 +350,7 @@ namespace sReportsV2.SqlDomain.Implementations
                         return SortTableHelper.OrderByField(result, filterData.ColumnName, filterData.IsAscending);
                     else
                         return SortTableHelper.OrderByField(result, filterData.ColumnName, filterData.IsAscending)
-                        .Skip((filterData.Page - 1) * filterData.PageSize)
+                        .Skip(filterData.GetHowManyElementsToSkip())
                         .Take(filterData.PageSize);
             }
         }

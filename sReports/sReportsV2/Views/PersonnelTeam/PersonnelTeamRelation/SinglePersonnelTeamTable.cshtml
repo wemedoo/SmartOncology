@@ -58,7 +58,7 @@
                                 }
                             </td>
                             <td class="personnel-team-table-cells external-cell-right" style="">
-                                @if (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm)
+                                @if (!ViewBag.ReadOnly && (hasCreateUpdatePerm || hasDeletePerm || hasViewPerm))
                                 {
                                     <div class="dropdown show external-cell-right personnel-team-options-dropdown">
                                         <div class="dropdown-button" role="button" id="dropdownMenuLink-@personnelTeamRelation.PersonnelTeamRelationId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

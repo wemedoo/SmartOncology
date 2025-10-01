@@ -1,6 +1,12 @@
 ﻿@using System.Globalization
 @using sReportsV2.DTOs.CodeEntry.DataOut;
 @using sReportsV2.Common.Extensions;
+@using sReportsV2.DTOs.DTOs.User.DataIn;
+
+@{
+    PersonnelFilterDataIn filter = ViewBag.FilterData as PersonnelFilterDataIn;
+    string birthDate = filter != null ? filter.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true) : "";
+}
 
 <form id="advancedFilterForm" name="AdvancedFilterForm" onsubmit="return false">
     <div class="modal fade" id="advancedFilterModal" tabindex="-1" role="dialog" aria-labelledby="advancedFilterModalLabel" aria-hidden="true">
@@ -19,13 +25,13 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.FirstName
                             </div>
-                            <input type="text" class="filter-input" id="given" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.Given : "")">
+                            <input type="text" class="filter-input" id="given" value="@(filter != null ? filter.Given : "")">
                         </div>
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.LastName
                             </div>
-                            <input type="text" class="filter-input" id="family" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Family : "")">
+                            <input type="text" class="filter-input" id="family" value="@(filter!= null ? filter.Family : "")">
                         </div>
                     </div>
                     <div class="d-flex margin-top-10">
@@ -33,13 +39,13 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.Username
                             </div>
-                            <input type="text" class="filter-input" id="username" value="@(ViewBag.FilterData!= null ? ViewBag.FilterData.Username : "")">
+                            <input type="text" class="filter-input" id="username" value="@(filter!= null ? filter.Username : "")">
                         </div>
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.BusinessEmail
                             </div>
-                            <input type="text" class="filter-input" id="businessEmail" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.BusinessEmail : "")">
+                            <input type="text" class="filter-input" id="businessEmail" value="@(filter != null ? filter.BusinessEmail : "")">
                         </div>
                     </div>
                     <div class="d-flex margin-top-20">
@@ -52,13 +58,13 @@
                                 @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.IdentifierTypes, readOnlyMode: true))
                                 {
                                     var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
-                                    <option id="IdentifierType_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.IdentifierType == option.Id ? "selected" : "")>@optionName</option>
+                                    <option id="IdentifierType_@option.Id" data-display="@optionName" value="@option.Id" @(filter.IdentifierType == option.Id ? "selected" : "")>@optionName</option>
                                 }
                             </select>
                         </div>
                         <div class="advanced-filter-item filter-item">
                             <div class="label filter-label">@sReportsV2.Cache.Resources.TextLanguage.Identifier_value</div>
-                            <input class="filter-input " id="identifierValue" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.IdentifierValue : "")" />
+                            <input class="filter-input " id="identifierValue" value="@(filter != null ? filter.IdentifierValue : "")" />
                         </div>
                     </div>
 
@@ -67,14 +73,14 @@
                             <div class="label filter-label">
                                 @sReportsV2.Cache.Resources.TextLanguage.BirthDate
                             </div>
-                            <input type="hidden" id="birthDateDefault" value="@(ViewBag.FilterData != null && ViewBag.FilterData.BirthDate!= null ? ViewBag.FilterData.BirthDate.ToString("s") : "")">
+                            <input type="hidden" id="birthDateDefault" value="@(filter != null && filter.BirthDate!= null ? filter.BirthDate.Value.ToString("s") : "")">
                             @await Html.PartialAsync("~/Views/Shared/DateInput.cshtml", new sReportsV2.DTOs.Common.DateInputDTO()
                             {
                                 InputAttributes = new Dictionary<object, object> {
                                 { "class", "filter-input" },
                                 { "id", "birthDate" },
                                 { "name", "birthDate" },
-                                { "value", ViewBag.FilterData != null && ViewBag.FilterData.BirthDate != null ? ViewBag.FilterData.BirthDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "" }
+                                { "value", birthDate }
                             },
                                 InputBtnAttributes = new Dictionary<object, object> {
                                 { "class", "date-img" },
@@ -91,7 +97,7 @@
                                 @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.PersonnelTypes, readOnlyMode: true))
                                 {
                                     var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
-                                    <option id="PersonnelTypeId_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.PersonnelTypeCD == option.Id ? "selected" : "")>@optionName</option>
+                                    <option id="@option.Id" data-display="@optionName" @(filter.PersonnelTypeCD == option.Id ? "selected" : "")>@optionName</option>
                                 }
                             </select>
                         </div>
@@ -118,7 +124,7 @@
                                     @foreach (var option in ObjectExtension.FilterDataSource(ViewBag.PersonnelPositions, readOnlyMode: true))
                                     {
                                         var optionName = option.Thesaurus.GetPreferredTermByTranslationOrDefault(ViewBag.UserCookieData.ActiveLanguage as string);
-                                        <option id="RoleId_@option.Id" data-display="@optionName" value="@option.Id" @(ViewBag.FilterData.RoleCD == option.Id ? "selected" : "")>@optionName</option>
+                                        <option id="@option.Id" data-display="@optionName" @(filter.RoleCD == option.Id ? "selected" : "")>@optionName</option>
                                     }
                                 </select>
                             </div>
@@ -126,7 +132,7 @@
                     </div>
                     <div class="d-flex margin-top-10">
                         <div class="advanced-filter-select2-wrapper">
-                            <input type="hidden" id="countryName" value="@(ViewBag.FilterData != null ? ViewBag.FilterData.CountryName : "")">
+                            <input type="hidden" id="countryName" value="@(filter != null ? filter.CountryName : "")">
                             <div class="advanced-filter-item filter-item country-select-input">
                                 <div class="label filter-label">
                                     @sReportsV2.Cache.Resources.TextLanguage.Country
@@ -202,7 +208,7 @@
                             }
                         )
                     );
-                    $('#OrganizationTempId').initSelect2(
+                    $('#organizationTempId').initSelect2(
                         getSelect2Object(
                             {
                                 placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization',
@@ -213,7 +219,7 @@
                         )
                     );
                     if (initDataSource.length > 0) {
-                        $('#organizationId, #OrganizationTempId').val(initDataSource[0].id.toString()).trigger('change');
+                        $('#organizationId, #organizationTempId').val(initDataSource[0].id.toString()).trigger('change');
                         reloadTable();
                     }
                 },
@@ -232,7 +238,7 @@
                     }
                 )
             );
-            $('#OrganizationTempId').initSelect2(
+            $('#organizationTempId').initSelect2(
                 getSelect2Object(
                     {
                         placeholder: '@sReportsV2.Cache.Resources.TextLanguage.Organization',

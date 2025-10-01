@@ -115,9 +115,9 @@ p {
 
 .dd-handle, .dd-nohandle {
   display: block;
-  height: 30px;
+  height: 32px;
   margin: 5px 0;
-  padding: 5px 10px;
+  padding: 6px 10px;
   padding-right: 55px;
   padding-left: 24px;
   font-size: 13px;
@@ -139,33 +139,49 @@ p {
 .dd-handle:hover, .dd-nohandle:hover {
   color: #2ea8e5;
   background: #fff;
+  display: block;
+}
+
+.li-item .edit-button,
+.li-item .remove-button,
+.li-item .remove-matrix-button {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.dd-handle:hover ~ .edit-button,
+.dd-handle:hover ~ .remove-button,
+.dd-handle:hover ~ .remove-matrix-button,
+.dd-nohandle:hover ~ .edit-button,
+.dd-nohandle:hover ~ .remove-button,
+.dd-nohandle:hover ~ .remove-matrix-button,
+.li-item .edit-button:hover,
+.li-item .remove-button:hover,
+.li-item .remove-matrix-button:hover {
+  display: block !important;
+  opacity: 1;
 }
 
 .dd-item > button {
   display: block;
   position: absolute;
   cursor: pointer;
-  width: 25px;
-  height: 20px;
-  margin: 5px 0;
+  width: 24px;
+  height: 24px;
   padding: 0;
   text-indent: 100%;
-  white-space: nowrap;
   overflow: hidden;
   border: 0;
   background: transparent;
-  font-size: 12px;
-  line-height: 1;
-  text-align: center;
-  font-weight: bold;
-  left: 0;
+  margin: 3px 0;
 }
 .dd-item > button:active {
   outline: none;
 }
 
 .dd-item > button:before {
-  content: "+";
+  content: url("img/icons/plus-icon.svg");
   display: block;
   position: absolute;
   width: 100%;
@@ -174,7 +190,7 @@ p {
 }
 
 .dd-item > button[data-action=collapse]:before {
-  content: "-";
+  content: url("img/icons/minus-icon.svg");
 }
 
 #formPreviewContainer input {
@@ -185,16 +201,16 @@ p {
   user-select: none;
 }
 #formPreviewContainer .dd-item > button {
-  background-image: url("img/icons/plus_green.svg");
+  background-image: url("img/icons/plus-icon.svg");
   background-repeat: no-repeat;
   right: 0;
   left: unset;
 }
 #formPreviewContainer .dd-item > button.white {
-  background-image: url("img/icons/plus_white.svg");
+  background-image: url("img/icons/plus-icon-white.svg");
 }
 #formPreviewContainer .dd-item > button.white[data-action=collapse] {
-  background-image: url("img/icons/minus_white.svg");
+  background-image: url("img/icons/minus-icon-white.svg");
 }
 #formPreviewContainer .dd-item > button:active, #formPreviewContainer .dd-item > button:focus {
   outline: none;
@@ -203,7 +219,7 @@ p {
   content: "";
 }
 #formPreviewContainer .dd-item > button[data-action=collapse] {
-  background-image: url("img/icons/minus_green.svg");
+  background-image: url("img/icons/minus-icon.svg");
 }
 #formPreviewContainer .dd-item > button[data-action=collapse]:before {
   content: "";
@@ -212,11 +228,11 @@ p {
   display: none;
 }
 #formPreviewContainer .dd-item[data-itemtype=chapter] > button {
-  background-image: url("img/icons/plus_white.svg");
+  background-image: url("img/icons/plus-icon-white.svg");
   top: 18px;
 }
 #formPreviewContainer .dd-item[data-itemtype=chapter] > button[data-action=collapse] {
-  background-image: url("img/icons/minus_white.svg");
+  background-image: url("img/icons/minus-icon-white.svg");
 }
 #formPreviewContainer .dd-item[data-itemtype=page] > button {
   top: 11px;
@@ -341,8 +357,8 @@ p {
 }
 
 /**
- * Nestable Draggable Handles
- */
+* Nestable Draggable Handles
+*/
 .dd3-content {
   display: block;
   height: 30px;
@@ -407,15 +423,16 @@ p {
 }
 
 /**
- * Socialite
- */
+* Socialite
+*/
 .socialite {
   display: block;
   float: left;
   height: 35px;
 }
 
-.dd-item .remove-button {
+.dd-item .remove-button,
+.dd-item .remove-matrix-button {
   position: absolute;
   right: 7px;
   top: 5px;
@@ -448,11 +465,13 @@ p {
   display: inline-block;
   vertical-align: top;
 }
-.dd-item .item-settings-button .edit-button {
+.dd-item .item-settings-button .edit-button,
+.dd-item .item-settings-button .edit-matrix-button {
   display: inline-block;
   position: static;
 }
-.dd-item .item-settings-button .edit-button img {
+.dd-item .item-settings-button .edit-button img,
+.dd-item .item-settings-button .edit-matrix-button img {
   margin-bottom: 2px;
 }
 .dd-item.drag-and-drop-element [data-action=collapse] {
@@ -481,15 +500,25 @@ p {
   position: relative;
   float: right;
   text-align: right;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.form-tree-nestable {
+  height: calc(100vh - 158px);
+  overflow-y: scroll;
+  padding-right: 5px;
+}
+.form-tree-nestable.prompt-tree {
+  height: calc(100vh - 180px);
 }
 
 .dd-main-container {
   display: flex;
 }
-.dd-main-container > div {
-  height: 800px;
-  overflow: scroll;
-  padding-right: 5px;
+.dd-main-container > div.consensus-mode {
+  height: unset;
+  overflow: unset;
 }
 .dd-main-container .dd-scrollable-container {
   background-color: white;
@@ -532,7 +561,6 @@ p {
   margin-bottom: 7px;
   overflow-wrap: break-word;
   padding-bottom: 5px;
-  max-width: 70%;
 }
 .dd-main-container .dd-scrollable-container.form-preview-container .form-preview-title:hover {
   background-color: unset;
@@ -540,9 +568,9 @@ p {
 }
 .dd-main-container .dd-scrollable-container.form-preview-container .form-preview-title .form-preview-title-text {
   display: inline-block;
-  max-width: calc(90% - 30px);
+  max-width: calc(100% - 528px);
   white-space: normal;
-  line-break: anywhere;
+  line-break: auto;
 }
 .dd-main-container .nestable-main-container {
   display: inline-block;
@@ -702,6 +730,10 @@ p {
   background-color: #f1fbe1 !important;
   color: black !important;
 }
+.nestableTree [data-fsmatrixid] .dd-handle, .nestableTree [data-fsmatrixid] .dd-nohandle {
+  background-color: #f9fbe5 !important;
+  color: black !important;
+}
 .nestableTree [data-itemtype=field] .dd-handle, .nestableTree [data-itemtype=field] .dd-nohandle {
   background-color: #fcf2eb !important;
   color: black !important;
@@ -759,14 +791,18 @@ p {
   background-color: #f9f9f9 !important;
 }
 
+.child-fs-fields {
+  background-color: white !important;
+}
+
 .selectable-field.selected-item {
   margin-bottom: 1px;
   transition: 0.2s;
   border-radius: 3px;
-  background-color: #f1f1f1;
+  background-color: #edf4fa;
 }
 .selectable-field.selected-item .field-custom-dd-handle {
-  background-color: #f1f1f1 !important;
+  background-color: #edf4fa !important;
 }
 .selectable-field .field-custom-dd-handle {
   background-color: transparent;
@@ -774,6 +810,10 @@ p {
 
 .before-pastable-destination:hover, .after-pastable-destination:hover {
   text-decoration: underline;
+}
+
+.custom-dd-handle.background-white {
+  background-color: white !important;
 }
 
 .custom-dd-handle {
@@ -832,14 +872,16 @@ p {
   color: #1c94a3;
   font-size: 12px;
 }
-.custom-dd-handle .icon-container .edit-button {
+.custom-dd-handle .icon-container .edit-button,
+.custom-dd-handle .icon-container .edit-matrix-button {
   right: unset;
   top: unset;
   position: static;
   margin-left: 10px;
   display: flex;
 }
-.custom-dd-handle .icon-container .remove-button {
+.custom-dd-handle .icon-container .remove-button,
+.custom-dd-handle .icon-container .remove-matrix-button {
   display: flex;
   right: unset;
   top: unset;
@@ -868,27 +910,23 @@ p {
 }
 .custom-dd-handle.checkbox-custom-dd-handle {
   width: 32%;
+  height: max-content !important;
 }
 .custom-dd-handle.checkbox-custom-dd-handle:hover .overlay {
-  background-color: white;
+  background-color: black;
 }
 .custom-dd-handle.checkbox-custom-dd-handle:hover .checkbox-drag-item-icon i {
-  color: black;
-}
-.custom-dd-handle.checkbox-custom-dd-handle .icon-container:hover .overlay {
-  background-color: white;
+  color: white;
 }
 .custom-dd-handle.radio-custom-dd-handle {
   width: 32%;
+  height: max-content !important;
 }
 .custom-dd-handle.radio-custom-dd-handle:hover .overlay {
-  background-color: white;
+  background-color: black;
 }
 .custom-dd-handle.radio-custom-dd-handle:hover .radio-drag-item-icon i {
-  color: black;
-}
-.custom-dd-handle.radio-custom-dd-handle .icon-container:hover .overlay {
-  background-color: white;
+  color: white;
 }
 .custom-dd-handle.checkbox-value-custom-dd-handle .drag-item-icon {
   position: absolute;
@@ -1124,7 +1162,7 @@ p {
   transform: translateX(-50%);
   background-color: #f8d7da;
   color: #721c24;
-  padding: 5px 10px;
+  padding: 6px 10px;
   border-radius: 5px;
   font-size: 12px;
   white-space: nowrap;
@@ -1247,6 +1285,7 @@ p {
 }
 .predefined-item-placeholder .predefined-item-placeholder-title {
   text-align: center;
+  padding-left: 35px;
 }
 .predefined-item-placeholder:hover .overlay {
   display: block;

@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Html
 @using sReportsV2.Common.Helpers
 @using sReportsV2.DTOs.CodeEntry.DataOut;
 @using sReportsV2.Common.Extensions;
@@ -49,32 +50,32 @@ else
        })
     }
 }
-<div id="editPatientContainer" class="padding-top-30">
+<div class="padding-top-30">
     <div class="patient-background-grey">
-        <form method="post" id="idPatientInfo" class="formPatientInfo patient-create" onsubmit="return submitForm(this)" novalidate>
+        <form method="post" id="idPatientInfo" class="formPatientInfo patient-create" onsubmit="return submitPatientForm(this)" novalidate>
             <input type="hidden" class="form-control" id="patientId" name="Id" value="@( Model != null && Model.Id != 0 ? Model.Id : 0)" />
             <div>
                 <div class="info-align" id="createGroup">
-                    <div class="tab-item active" onclick="showGeneralInfo(event, this)">
-                        <i id="general-icon" class="tab-icon general-info-icon active"></i>
+                    <div class="patient-tab-item active" data-id="#patientInfoPartial">
+                        <i class="tab-icon general-info-icon active"></i>
                         <span type="text" id="generalButton">@sReportsV2.Cache.Resources.TextLanguage.GeneralInfo</span>
                     </div>
-                    <div class="tab-item" onclick="showAddressAndTelecomInfo(event, this)">
-                        <i id="telecom-icon" class="tab-icon telecom-info-icon"></i>
+                    <div class="patient-tab-item @(Model == null ? "tab-disabled" : "")" data-id="#patientAddressAndTelecomPartial" @RenderPatientTabTooltip()>
+                        <i class="tab-icon telecom-info-icon"></i>
                         <span type="text" id="telecoms">@sReportsV2.Cache.Resources.TextLanguage.ContactAndAddress</span>
                     </div>
-                    <div class="tab-item" onclick="showContactPerson(event, this)">
-                        <i id="contact-icon" class="tab-icon contact-info-icon"></i>
+                    <div class="patient-tab-item @(Model == null ? "tab-disabled" : "")" data-id="#contactPersonPartial" @RenderPatientTabTooltip()>
+                        <i class="tab-icon contact-info-icon"></i>
                         <span type="text" id="contact">@sReportsV2.Cache.Resources.TextLanguage.Contact_Person</span>
                     </div>
                 </div>
                 <div id="patientInfoPartial" class="patient-partial">
                     @await Html.PartialAsync("GeneralInfo")
                 </div>
-                <div id="patientAddressAndTelecomPartial" class="info-partial">
+                <div id="patientAddressAndTelecomPartial" class="patient-partial d-none">
                     @await Html.PartialAsync("PatientAddressAndTelecom")
                 </div>
-                <div id="contactPersonPartial" class="info-partial">
+                <div id="contactPersonPartial" class="patient-partial d-none">
                     @await Html.PartialAsync("PatientContacts", Model != null ? Model.Contacts : new List<sReportsV2.DTOs.Common.DTO.ContactDTO>())
                 </div>
 
@@ -99,3 +100,15 @@ else
 @await Html.PartialAsync("AddressModal")
 
 @Html.Raw(ScriptHelper.RenderBundle("js/patientInfo-bundle.min.js"))
+
+@functions {
+    private HtmlString RenderPatientTabTooltip()
+    {
+        string content = "";
+        if (Model == null)
+        {
+            content = $@"data-toggle=""tooltip"" title=""{@sReportsV2.Cache.Resources.TextLanguage.PatientTabTooltip}""";
+        }
+        return new HtmlString(content);
+    }
+}

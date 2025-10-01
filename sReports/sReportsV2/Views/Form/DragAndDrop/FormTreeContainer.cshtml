@@ -18,7 +18,7 @@
             <div class="expand-button" onclick="showFormJson()">@sReportsV2.Cache.Resources.TextLanguage.Show_Json</div>
         }
     </div>
-    <div id="formTreeNestable">
+    <div id="formTreeNestable" class="form-tree-nestable">
         @await Html.PartialAsync("~/Views/Form/DragAndDrop/FormTreeNestable.cshtml", Model)
     </div>
 </div>

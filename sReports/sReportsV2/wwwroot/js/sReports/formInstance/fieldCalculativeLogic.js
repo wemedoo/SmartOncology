@@ -43,7 +43,7 @@ function executeFormulaCalculation(calculationArgumentsObject) {
     try {
         executedExpression = calculationArgumentsObject.shouldResetCalculation || isSpecialValueSelected($(calculativeField)) ? "" : executeExpression(calculationArgumentsObject);
     } catch (e) {
-        console.log(e);
+        logError(e);
     }
     $(calculativeField).val(executedExpression);
     $(calculativeField).trigger('change');

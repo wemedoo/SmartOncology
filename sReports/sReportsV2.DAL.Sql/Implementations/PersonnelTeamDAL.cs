@@ -22,6 +22,7 @@ namespace sReportsV2.SqlDomain.Implementations
             var personnelTeamQuery = context.PersonnelTeams
                 .Include(x => x.Type)
                 .Include(x => x.PersonnelTeamRelations)
+                .Include(x => x.PersonnelTeamOrganizationRelations)
                 .Include("PersonnelTeamRelations.RelationType")
                 .WhereEntriesAreActive()
                 .FirstOrDefault(x => x.PersonnelTeamId == id);
@@ -68,7 +69,7 @@ namespace sReportsV2.SqlDomain.Implementations
             IQueryable<PersonnelTeam> result = GetPersonnelTeamFiltered(filter);
 
             result = result.OrderBy(x => x.PersonnelTeamId)
-                .Skip((filter.Page - 1) * filter.PageSize)
+                .Skip(filter.GetHowManyElementsToSkip())
                 .Take(filter.PageSize);
 
             result.ToList().ForEach(x => { x.PersonnelTeamRelations = 
@@ -100,6 +101,10 @@ namespace sReportsV2.SqlDomain.Implementations
                 foreach(PersonnelTeamRelation personnelTeamRelation in fromDb.PersonnelTeamRelations)
                 {
                     personnelTeamRelation.Delete();
+                }
+                foreach (PersonnelTeamOrganizationRelation personnelTeamOrganizationRelation in fromDb.PersonnelTeamOrganizationRelations)
+                {
+                    personnelTeamOrganizationRelation.Delete();
                 }
                 fromDb.Delete();
                 context.SaveChanges();

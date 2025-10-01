@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Html
+@using sReportsV2.Common.Helpers
 @using sReportsV2.DTOs.Field.DataOut
 @model FieldParagraphDataOut
 
@@ -13,32 +14,8 @@
     </div>
 </div>
 
+@Html.Raw(ScriptHelper.RenderScript(Url.Content("~/js/sReports/common/initTinyMCE.js"), "", ""))
+
 <script>
-    function initTinyMCE() {
-        tinymce.remove(); // Destroy existing TinyMCE instance
-
-        tinymce.init({
-            selector: '#paragraph',
-            height: 'calc(90vh - 437px)',
-            menubar: false,
-            plugins: 'advlist autolink lists link image charmap print preview anchor',
-            toolbar: 'undo redo | formatselect | bold italic underline | bullist numlist',
-            setup: function (editor) {
-                // Trigger the code on change event
-                editor.on('change', function () {
-                    var content = editor.getContent();
-                    document.getElementById('paragraph').value = content;
-                });
-                // Remove notifications div
-                editor.on('init', function () {
-                    var notificationsDiv = document.querySelector('.tox.tox-silver-sink.tox-tinymce-aux');
-                    if (notificationsDiv) {
-                        notificationsDiv.remove();
-                    }
-                });
-            }
-        });
-    }
-
-    initTinyMCE(); // Call the initialization function when the partial view is loaded or opened
+    initTinyMCE();
 </script>

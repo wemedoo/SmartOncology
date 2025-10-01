@@ -55,11 +55,7 @@
     </table>
     @if (Model.Data.Count == 0)
     {
-        <div class="no-result-content">
-            <img alt="" class="margin-" src="/css/img/icons/no_results.svg">
-            <br>
-            <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
-        </div>
+        @await Html.PartialAsync("NoResultFound")
     }
     @if (Model.Data.Count > 0)
     {
@@ -81,7 +77,7 @@
         <td>
             @genderTranslated
         </td>
-        <td>@(patient.BirthDate != null ? patient.BirthDate.Value.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "")</td>
+        <td>@patient.BirthDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)</td>
         <td>@patient.EntryDatetime.ToTimeZoned(ViewBag.DateFormat as string)</td>
     }
 
@@ -103,7 +99,7 @@
                         <a class="dropdown-button" href="#" data-toggle="dropdown" role="button" id="dropdownMenuButton-@patientId" aria-haspopup="true" aria-expanded="false" data-display="static">
                             <img alt="" class="dots" src="/css/img/icons/3dots.png">
                         </a>
-                        <div class="dropdown-menu patient-dropdown-menu dropdown-menu-right dropleft mr-3 mt-3" aria-labelledby="dropdownMenuButton-@patientId">
+                        <div class="dropdown-menu  dropdown-menu-right dropleft mr-3 mt-3" aria-labelledby="dropdownMenuButton-@patientId">
                             @if (hasViewPerm)
                             {
                                 <a class="dropdown-item" href="#" onclick="viewEntity(event,'@patientId')"><img alt="" class="edit-svg-size" src="/css/img/icons/info_grey.svg">@sReportsV2.Cache.Resources.TextLanguage.View @sReportsV2.Cache.Resources.TextLanguage.PatientInfo</a>

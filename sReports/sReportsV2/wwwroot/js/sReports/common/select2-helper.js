@@ -23,13 +23,7 @@ function getSelect2Object(select2Arguments) {
         select2Object.dropdownParent = $(`#${select2Arguments.modalId}`)
     }
 
-    if (select2Arguments.width) {
-        select2Object.width = select2Arguments.width;
-    }
-
-    if (select2Arguments.minimumResultsForSearch) {
-        select2Object.minimumResultsForSearch = select2Arguments.minimumResultsForSearch;
-    }
+    setSelect2PropertiesIfNecessarry(select2Object, select2Arguments);
 
     if (select2Arguments.url) {
         let ajaxObject = {
@@ -56,6 +50,18 @@ function getSelect2Object(select2Arguments) {
     }
 
     return select2Object;
+}
+
+function setSelect2PropertiesIfNecessarry(select2Object, select2Arguments) {
+    for (let property of getSelect2Properties()) {
+        if (select2Arguments[property]) {
+            select2Object[property] = select2Arguments[property];
+        }
+    }
+}
+
+function getSelect2Properties() {
+    return ['width', 'minimumResultsForSearch', 'templateResult', 'templateSelection'];
 }
 
 function initCodeSelect2(hasSelectedCode, codeId, codeName, codeDisplayName, codeSetId, modalId = '', formId = '') {

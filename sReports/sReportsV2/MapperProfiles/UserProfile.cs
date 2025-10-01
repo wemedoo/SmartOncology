@@ -4,6 +4,7 @@ using sReportsV2.Common.Extensions;
 using sReportsV2.Domain.Sql.Entities.Base;
 using sReportsV2.Domain.Sql.Entities.Common;
 using sReportsV2.Domain.Sql.Entities.User;
+using sReportsV2.DTOs.Autocomplete;
 using sReportsV2.DTOs.Common;
 using sReportsV2.DTOs.Common.DataOut;
 using sReportsV2.DTOs.DTOs.AccessManagment.DataOut;
@@ -14,8 +15,8 @@ using sReportsV2.DTOs.Organization;
 using sReportsV2.DTOs.User.DataIn;
 using sReportsV2.DTOs.User.DataOut;
 using sReportsV2.DTOs.User.DTO;
-using System;
 using System.Linq;
+using TimeZoneConverter;
 
 namespace sReportsV2.MapperProfiles
 {
@@ -33,11 +34,19 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.ActiveLanguage, opt => opt.MapFrom(src => src.PersonnelConfig.ActiveLanguage))
                 .ForMember(d => d.ActiveOrganization, opt => opt.MapFrom(src => src.PersonnelConfig.ActiveOrganizationId))
                 .ForMember(d => d.PageSize, opt => opt.MapFrom(src => src.PersonnelConfig.PageSize))
-                .ForMember(d => d.Organizations, opt => opt.MapFrom(o => o.GetOrganizations().Select(x => x.Organization)))
+                .ForMember(d => d.Organizations, opt => opt.MapFrom(o => o.GetOrganizations()))
                 .ForMember(d => d.TimeZoneOffset, opt => opt.MapFrom(o => o.PersonnelConfig.TimeZoneOffset))
                 .ForMember(d => d.SuggestedForms, opt => opt.MapFrom(o => o.PersonnelConfig.GetForms()))
                 .ForMember(d => d.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(d => d.OrganizationTimeZone, opt => opt.MapFrom(src => MapOrganizationTimeZoneOffset(src.PersonnelConfig.ActiveOrganization.TimeZone)));
+                .ForMember(d => d.OrganizationTimeZone, opt => opt.MapFrom(src => src.GetActiveOrganizationTimeZoneId()))
+                .AfterMap((entity, dto) =>
+                {
+                    if (!string.IsNullOrEmpty(dto.OrganizationTimeZone))
+                    {
+                        dto.OrganizationTimeZoneIana = TZConvert.WindowsToIana(dto.OrganizationTimeZone);
+                    }
+                })
+                ;
 
             CreateMap<PersonnelPositionPermissionView, PositionPermissionDataOut>()
                 .IgnoreAllNonExisting()
@@ -64,7 +73,6 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.ActiveOrganization, opt => opt.MapFrom(src => src.ActiveOrganization))
                 .ForMember(d => d.FirstName, opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(d => d.LastName, opt => opt.MapFrom(src => src.LastName))
-                .ForMember(d => d.Organizations, opt => opt.MapFrom(src => src.Organizations.Select(x => x.Id).ToList()))
                 .ForMember(d => d.Username, opt => opt.MapFrom(src => src.Username));
 
             CreateMap<UserShortInfoDataOut, Personnel>()
@@ -73,7 +81,6 @@ namespace sReportsV2.MapperProfiles
 
             CreateMap<UserData, UserDataOut>()
                 .IgnoreAllNonExisting()
-                .ForMember(dest => dest.Organizations, opt => opt.Ignore())
                 .ReverseMap();
 
             CreateMap<UserDataIn, Personnel>()
@@ -81,6 +88,7 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.PersonnelId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(d => d.PersonnelPositions, opt => opt.Ignore())
                 .ForMember(d => d.Organizations, opt => opt.MapFrom(src => src.UserOrganizations))
+                .ForMember(d => d.PersonnelPositions, opt => opt.MapFrom(src => src.PersonnelPositions))
                 .ForMember(d => d.PrefixCD, opt => opt.MapFrom(src => src.PrefixCD))
                 .ForMember(d => d.PersonnelTypeCD, opt => opt.MapFrom(src => src.PersonnelTypeCD))
                 .ForMember(d => d.PersonnelIdentifiers, opt => opt.MapFrom(src => src.Identifiers))
@@ -89,6 +97,11 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(d => d.Username, opt => opt.MapFrom(src => src.Username.TrimInput()))
                 .ForMember(d => d.PersonnelOccupation, opt => opt.MapFrom(src => src.PersonnelOccupation))
                 .AfterMap<CommonGlobalAfterMapping<Personnel>>();
+
+            CreateMap<PersonnelPositionDataIn, PersonnelPosition>()
+                .IgnoreAllNonExisting()
+                .ForMember(d => d.PositionCD, opt => opt.MapFrom(src => src.PositionCD))
+                .AfterMap<CommonGlobalAfterMapping<PersonnelPosition>>();
 
             CreateMap<UserCookieData, UserDataOut>()
                 .IgnoreAllNonExisting()
@@ -130,7 +143,6 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(o => o.Id, opt => opt.MapFrom(src => src));
 
             CreateMap<Personnel, UserData>()
-                .ForMember(dest => dest.Organizations, opt => opt.Ignore())
                 .IgnoreAllNonExisting()
                 .ForMember(u => u.Id, opt => opt.MapFrom(src => src.PersonnelId))
                 .ForMember(u => u.Username, opt => opt.MapFrom(src => src.Username))
@@ -199,28 +211,10 @@ namespace sReportsV2.MapperProfiles
                 .ForMember(o => o.OrganizationId, opt => opt.MapFrom(src => src.OrganizationId))
                 .ForMember(o => o.Name, opt => opt.MapFrom(src => src.Term));
 
-            CreateMap<AutoCompleteUserData, UserDataOut>()
+            CreateMap<AutoCompleteUserData, AutocompleteDataOut>()
                 .IgnoreAllNonExisting()
-                .ForMember(o => o.Id, opt => opt.MapFrom(src => src.PersonnelId));
-        }
-
-        private string MapOrganizationTimeZoneOffset(string timeZoneDisplayName)
-        {
-            TimeZoneInfo timeZone = FindTimeZoneByDisplayName(timeZoneDisplayName);
-
-            return timeZone.Id;
-        }
-
-        private TimeZoneInfo FindTimeZoneByDisplayName(string displayName)
-        {
-            foreach (TimeZoneInfo timeZone in TimeZoneInfo.GetSystemTimeZones())
-            {
-                if (timeZone.DisplayName == displayName)
-                {
-                    return timeZone;
-                }
-            }
-            return null; // Time zone not found
+                .ForMember(o => o.id, opt => opt.MapFrom(src => src.PersonnelId))
+                .ForMember(o => o.text, opt => opt.MapFrom(src => src.DisplayName));
         }
     }
 }

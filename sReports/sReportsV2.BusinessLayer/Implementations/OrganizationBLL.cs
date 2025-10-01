@@ -34,27 +34,27 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IOrganizationDAL organizationDAL;
         private readonly IOrganizationRelationDAL organizationRelationDAL;
         private readonly IPersonnelDAL personnelDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public OrganizationBLL(IOrganizationDAL organizationDAL, IOrganizationRelationDAL organizationRelationDAL, IPersonnelDAL personnelDAL, IMapper mapper)
         {
             this.organizationDAL = organizationDAL;
             this.organizationRelationDAL = organizationRelationDAL;
             this.personnelDAL = personnelDAL;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public PaginationDataOut<OrganizationDataOut, DataIn> ReloadTable(OrganizationFilterDataIn dataIn)
         {
             Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            OrganizationFilter filterData = Mapper.Map<OrganizationFilter>(dataIn);
+            OrganizationFilter filterData = mapper.Map<OrganizationFilter>(dataIn);
 
             List<Organization> organizationsFiltered = organizationDAL.GetAll(filterData);
             PaginationDataOut<OrganizationDataOut, DataIn> result = new PaginationDataOut<OrganizationDataOut, DataIn>()
             {
                 Count = (int) organizationDAL.GetAllFilteredCount(filterData),
-                Data = Mapper.Map<List<OrganizationDataOut>>(organizationsFiltered),
+                Data = mapper.Map<List<OrganizationDataOut>>(organizationsFiltered),
                 DataIn = dataIn
             };
 
@@ -64,20 +64,20 @@ namespace sReportsV2.BusinessLayer.Implementations
         #region CRUD
         public OrganizationDataOut GetOrganizationById(int organizationId)
         {
-            return Mapper.Map<OrganizationDataOut>(organizationDAL.GetById(organizationId));
+            return mapper.Map<OrganizationDataOut>(organizationDAL.GetById(organizationId));
         }
 
         public OrganizationDataOut GetOrganizationForEdit(int organizationId)
         {
             Organization organization = organizationDAL.GetById(organizationId);
-            return Mapper.Map<OrganizationDataOut>(organization);
+            return mapper.Map<OrganizationDataOut>(organization);
         }
 
         public CreateResponseResult Insert(OrganizationDataIn organizationDataIn)
         {
             try
             {
-                Organization organization = Mapper.Map<Organization>(organizationDataIn);
+                Organization organization = mapper.Map<Organization>(organizationDataIn);
                 if (organization.OrganizationId != 0)
                 {
                     Organization dbOrganization = organizationDAL.GetById(organization.OrganizationId) ?? throw new KeyNotFoundException();
@@ -85,7 +85,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                     organization = dbOrganization;
                 }
                 organizationDAL.InsertOrUpdate(organization);
-                OrganizationRelation organizationRelation = Mapper.Map<OrganizationRelation>(
+                OrganizationRelation organizationRelation = mapper.Map<OrganizationRelation>(
                     new OrganizationRelationDataIn
                     {
                         ChildId = organization.OrganizationId,
@@ -106,7 +106,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(OrganizationIdentifierDataIn identifierDataIn)
         {
-            OrganizationIdentifier organizationIdentifier = Mapper.Map<OrganizationIdentifier>(identifierDataIn);
+            OrganizationIdentifier organizationIdentifier = mapper.Map<OrganizationIdentifier>(identifierDataIn);
             OrganizationIdentifier organizationIdentifierDb = await organizationDAL.GetById(new QueryEntityParam<OrganizationIdentifier>(identifierDataIn.Id)).ConfigureAwait(false);
 
             if (organizationIdentifierDb == null)
@@ -128,7 +128,7 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<ResourceCreatedDTO> InsertOrUpdate(OrganizationTelecomDataIn telecomDataIn)
         {
-            OrganizationTelecom organizationTelecom = Mapper.Map<OrganizationTelecom>(telecomDataIn);
+            OrganizationTelecom organizationTelecom = mapper.Map<OrganizationTelecom>(telecomDataIn);
             OrganizationTelecom organizationTelecomDb = await organizationDAL.GetById(new QueryEntityParam<OrganizationTelecom>(telecomDataIn.Id)).ConfigureAwait(false);
 
             if (organizationTelecomDb == null)
@@ -152,7 +152,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                Organization organization = Mapper.Map<Organization>(organizationDataIn);
+                Organization organization = mapper.Map<Organization>(organizationDataIn);
                 organizationDAL.Delete(organization);
             }
             catch (DbUpdateConcurrencyException)
@@ -165,7 +165,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                OrganizationIdentifier organizationIdentifier = Mapper.Map<OrganizationIdentifier>(organizationIdentifierDataIn);
+                OrganizationIdentifier organizationIdentifier = mapper.Map<OrganizationIdentifier>(organizationIdentifierDataIn);
                 await organizationDAL.Delete(organizationIdentifier).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -178,7 +178,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             try
             {
-                OrganizationTelecom organizationTelecom = Mapper.Map<OrganizationTelecom>(childDataIn);
+                OrganizationTelecom organizationTelecom = mapper.Map<OrganizationTelecom>(childDataIn);
                 await organizationDAL.Delete(organizationTelecom).ConfigureAwait(false);
             }
             catch (DbUpdateConcurrencyException)
@@ -192,7 +192,9 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
             IQueryable<Organization> filtered = organizationDAL.FilterByName(dataIn.Term);
-            List<AutocompleteDataOut> organizationDataOuts = filtered.OrderBy(x => x.Name).Skip(dataIn.Page * 15).Take(15)
+            List<AutocompleteDataOut> organizationDataOuts = filtered.OrderBy(x => x.Name)
+                .Skip(dataIn.GetHowManyElementsToSkip())
+                .Take(FilterConstants.DefaultPageSize)
                 .Select(x => new AutocompleteDataOut()
                 {
                     id = x.OrganizationId.ToString(),
@@ -205,7 +207,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 pagination = new AutocompletePaginatioDataOut()
                 {
-                    more = Math.Ceiling(filtered.Count() / 15.00) > dataIn.Page,
+                    more = dataIn.ShouldLoadMore(filtered.Count())
                 },
                 results = organizationDataOuts
             };
@@ -234,7 +236,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 Id = x.Key.OrganizationId,
                 Name = x.Key.Name,
-                Users = Mapper.Map<List<UserDataOut>>(x.Select(y => y.Personnel).ToList())
+                Users = mapper.Map<List<UserDataOut>>(x.Select(y => y.Personnel).ToList())
             }).ToList();
         }
 
@@ -242,10 +244,10 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            OrganizationFilter filterData = Mapper.Map<OrganizationFilter>(dataIn);
+            OrganizationFilter filterData = mapper.Map<OrganizationFilter>(dataIn);
 
             List<OrganizationCommunicationEntity> organizationsFiltered = organizationDAL.GetOrgCommunicationByOrgId(filterData);
-            List<OrganizationCommunicationEntityDataOut> result = Mapper.Map<List<OrganizationCommunicationEntityDataOut>>(organizationsFiltered);
+            List<OrganizationCommunicationEntityDataOut> result = mapper.Map<List<OrganizationCommunicationEntityDataOut>>(organizationsFiltered);
 
             return result;
         }
@@ -253,7 +255,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         public async Task<int> InsertOrganizationCommunication(OrganizationCommunicationEntityDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            OrganizationCommunicationEntity organizationCommunicationEntity = Mapper.Map<OrganizationCommunicationEntity>(dataIn);
+            OrganizationCommunicationEntity organizationCommunicationEntity = mapper.Map<OrganizationCommunicationEntity>(dataIn);
 
             return await organizationDAL.InsertOrganizationCommunication(organizationCommunicationEntity).ConfigureAwait(false);
         }
@@ -262,7 +264,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             OrganizationCommunicationEntity organizationCommunicationEntity = await organizationDAL.GetOrgCommunicationEntityIdByIdAsync(orgCommunicationEntityId);
 
-            return Mapper.Map<OrganizationCommunicationEntityDataOut>(organizationCommunicationEntity);
+            return mapper.Map<OrganizationCommunicationEntityDataOut>(organizationCommunicationEntity);
         }
 
         private void LoadHierarchyTree(List<OrganizationRelation> hierarchyList, int parentId, List<OrganizationDataOut> hierarchy)
@@ -270,8 +272,8 @@ namespace sReportsV2.BusinessLayer.Implementations
             OrganizationRelation parentHierarchy = hierarchyList.Find(x => x.ChildId == parentId);
             if (parentHierarchy != null)
             {
-                var parent = Mapper.Map<OrganizationDataOut>(parentHierarchy.Parent);
-                var child = Mapper.Map<OrganizationDataOut>(parentHierarchy.Child);
+                var parent = mapper.Map<OrganizationDataOut>(parentHierarchy.Parent);
+                var child = mapper.Map<OrganizationDataOut>(parentHierarchy.Child);
 
                 if (!hierarchy.Exists(x => x.Id == parent.Id))
                 {
@@ -290,7 +292,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 Organization organization = organizationDAL.GetById(parentId);
                 if (organization != null)
                 {
-                    var org = Mapper.Map<OrganizationDataOut>(organization);
+                    var org = mapper.Map<OrganizationDataOut>(organization);
                     if (!hierarchy.Exists(x => x.Id == org.Id))
                     {
                         hierarchy.Add(org);
@@ -332,14 +334,9 @@ namespace sReportsV2.BusinessLayer.Implementations
             return countries;
         }
 
-        public string GetTimeZoneOffset(int organizationId)
-        {
-            return organizationDAL.GetTimeZoneOffset(organizationId);
-        }
-
         public bool ExistEntity(OrganizationIdentifierDataIn dataIn)
         {
-            OrganizationIdentifier identifier = Mapper.Map<OrganizationIdentifier>(dataIn);
+            OrganizationIdentifier identifier = mapper.Map<OrganizationIdentifier>(dataIn);
             bool result = organizationDAL.ExistIdentifier(identifier);
             return result;
         }

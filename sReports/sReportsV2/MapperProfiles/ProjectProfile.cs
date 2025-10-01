@@ -3,8 +3,6 @@ using System.Linq;
 using sReportsV2.Domain.Sql.Entities.ProjectEntry;
 using sReportsV2.DTOs.DTOs.ProjectManagement.DataIn;
 using sReportsV2.DTOs.DTOs.ProjectManagement.DataOut;
-using sReportsV2.DTOs.Organization;
-using System;
 using sReportsV2.DTOs.DTOs.Patient.DataIn;
 using sReportsV2.Common.Extensions;
 using sReportsV2.DTOs.Common;

@@ -188,7 +188,7 @@ namespace CTCAE.Controllers
 
         private void RemoveFromJsonFile(Patient patient, List<SelectItemModel> templateList, string templateId)
         {
-            string json = System.IO.File.ReadAllText($"{AppDomain.CurrentDomain.GetData("DataDirectory")}\\templates.json");
+            string json = System.IO.File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.GetData("DataDirectory").ToString(), "templates.json"));
             List<SelectJsonModel> savedTemplates = JsonConvert.DeserializeObject<List<SelectJsonModel>>(json);
             int index = 0;
             foreach (SelectItemModel item in templateList)

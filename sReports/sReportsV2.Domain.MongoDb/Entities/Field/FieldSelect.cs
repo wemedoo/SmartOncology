@@ -13,6 +13,5 @@ namespace sReportsV2.Domain.Entities.FieldEntity
     public class FieldSelect : FieldSelectable
     {
         public override string Type { get; set; } = FieldTypes.Select;
-        public override bool IsDistributiveField() => true;
     }
 }

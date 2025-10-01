@@ -10,12 +10,10 @@ using sReportsV2.DTOs.DTOs.PersonnelTeam.DataIn;
 using sReportsV2.DTOs.DTOs.PersonnelTeam.DataOut;
 using sReportsV2.DTOs.Pagination;
 using System.Collections.Generic;
-using System.Net;
 using sReportsV2.Cache.Resources;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 
 namespace sReportsV2.Controllers
@@ -28,8 +26,9 @@ namespace sReportsV2.Controllers
             IHttpContextAccessor httpContextAccessor,
             IServiceProvider serviceProvider, 
             IConfiguration configuration, 
-            IAsyncRunner asyncRunner) : 
-            base(httpContextAccessor, serviceProvider, configuration, asyncRunner)
+            IAsyncRunner asyncRunner,
+            ICacheRefreshService cacheRefreshService) : 
+            base(httpContextAccessor, serviceProvider, configuration, asyncRunner, cacheRefreshService)
         {
             this.personnelTeamBLL = personnelTeamBLL;
         }
@@ -46,10 +45,11 @@ namespace sReportsV2.Controllers
 
         [SReportsAuthorize(Permission = PermissionNames.View)]
         [SReportsAuditLog]
-        public ActionResult ReloadTable(PersonnelTeamFilterDataIn dataIn)
+        public ActionResult ReloadTable(PersonnelTeamFilterDataIn dataIn, bool readOnly)
         {
             PaginationDataOut<PersonnelTeamDataOut, DataIn> result = personnelTeamBLL.GetAllFiltered(dataIn);
             ViewBag.TeamTypes = SingletonDataContainer.Instance.GetCodesByCodeSetId((int)CodeSetList.TeamType);
+            ViewBag.ReadOnly = readOnly;
             return PartialView("PersonnelTeamTable", result);
         }
 
@@ -131,7 +131,7 @@ namespace sReportsV2.Controllers
         {
             bool isPersonnelUnique = personnelTeamBLL.IsPersonnelUnique(userId: newTeamMemberNameSelect2, personnelTeamId);
 
-            return Json(isPersonnelUnique.ToJsonString());
+            return Json(isPersonnelUnique.ToJsonUrlEncoded());
         }
 
         [SReportsAuthorize(Permission = PermissionNames.View)]
@@ -142,7 +142,7 @@ namespace sReportsV2.Controllers
 
             bool isLeaderUnique = personnelTeamBLL.IsLeaderUnique(roleCD: newTeamMemberRoleSelect2, leaderRoleCD, personnelTeamId);
 
-            return Json(isLeaderUnique.ToJsonString());
+            return Json(isLeaderUnique.ToJsonUrlEncoded());
         }
     }
 }

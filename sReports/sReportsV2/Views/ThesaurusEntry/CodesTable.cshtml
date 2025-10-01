@@ -4,7 +4,7 @@
     var userCookieData = ViewBag.UserCookieData;
 }
 <div class="eoc-information margin-bottom-20">
-    <div class="eoc-main-content umls-content" data-toggle="collapse" data-target="#collapseCodeTable" aria-expanded="false" aria-controls="collapseCodeTable" id="codesTable">
+    <div class="eoc-main-content umls-content thesaurus-collapse" data-toggle="collapse" data-target="#collapseCodeTable" aria-expanded="false" aria-controls="collapseCodeTable" id="codesTable">
         <i class="administrative-state-arrow-down arrow-icon-umls" id="codesArrow"></i>
         <span class="umls-title">@sReportsV2.Cache.Resources.TextLanguage.Codes</span>
         <span class="umls-button-margin">
@@ -35,7 +35,7 @@
                 </tr>
             </thead>
             <tbody class="identifer-table text-table">
-                @if (Model != null && Model.Codes != null)
+                @if (Model.Codes != null)
                 {
                     foreach (O4CodeableConceptDataOut entry in Model.Codes)
                     {

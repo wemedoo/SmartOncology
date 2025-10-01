@@ -41,7 +41,7 @@ namespace sReportsV2.BusinessLayer.Helpers
             string url = $"{GetDomain()}/User/Login?ReturnUrl=%2f";
             string mailContent = $@"<div> 
                 Dear {user.GetFirstAndLastName()},<br><br>
-                We received a request to reset the password for your SmartOncology(c) account. The following are your credentials to log into {EmailSenderNames.SoftwareName}.<br><br>
+                We received a request to reset the password for your {EmailSenderNames.SoftwareName} account. The following are your credentials to log into {EmailSenderNames.SoftwareName}.<br><br>
                 Your username is: <b>{user.Username}</b><br>
                 Your password is: <b>{generatedPassword}</b><br><br>
                 You can use the following link to log into the {EmailSenderNames.SoftwareName}: <a href='{url}'>Login</a><br><br>
@@ -70,7 +70,7 @@ namespace sReportsV2.BusinessLayer.Helpers
             string url = $@"{GetDomain()}/Form/Edit?thesaurusId={form.ThesaurusId}&versionId={form.Version.Id}&activeTab=comments&taggedCommentId={commentId}";
             string mailContent = $@"<div>
                 Dear {taggedUser.GetFirstAndLastName()},<br><br> 
-                We would like to inform you that the user {commentAuthor.GetFirstAndLastName()} ({commentAuthor.Username}) has mentioned you in a comment in the following document: <b>{form.Title} {form.Version.GetFullVersionString()}</b><br><br>
+                We would like to inform you that the user {commentAuthor.GetFirstAndLastName()} ({commentAuthor.Username}) has mentioned you in a comment in the following document: <b> {form.GetTitleWithVersion()}</b><br><br>
                 For additional information, please refer to the following link: <a href=""{url}"">View comment</a> <br><br>
                 {IfLoginLinkDoesNotWorkSentence}
                 {GetFooter()}
@@ -85,9 +85,9 @@ namespace sReportsV2.BusinessLayer.Helpers
             string mailContent = $@"<div>
                 Dear {userCookieData.GetFirstAndLastName()},<br><br>
                 The thesaurus merge operation you initiated has been completed. Here are the results:<br><br>
-                Operation started: <b>{startTime}</b><br>
-                Operation ended: <b>{endTime}</b><br>
-                Duration time (aprox.): <b>{actionDurationInMinutes} minutes</b><br>
+                Operation started: <b>{startTime.GetDateTimeDisplay(DateTimeConstants.DateFormat, showSeconds: true)}</b><br>
+                Operation ended: <b>{endTime.GetDateTimeDisplay(DateTimeConstants.DateFormat, showSeconds: true)}</b><br>
+                Duration time (aprox.): <b>less than {actionDurationInMinutes} minutes</b><br>
                 Outcome: <b>{outcome}</b>
                 {GetFooter()}
                 </div>";
@@ -101,7 +101,7 @@ namespace sReportsV2.BusinessLayer.Helpers
             string mailTableContent = GetConsensusTableContent(consensus, iterationState, creator, users, outsideUsers);
             string mailContent = $@"<div>
                 Dear {creator.GetFirstAndLastName()},<br><br>
-                We would like to inform you that the consensus finding process you initiated for <b>{form.Title} {form.Version.GetFullVersionString()}</b> is {GetStateConclusionDisplay(iterationState)}.<br><br>
+                We would like to inform you that the consensus finding process you initiated for <b>{form.GetTitleWithVersion()}</b> is {GetStateConclusionDisplay(iterationState)}.<br><br>
                 {mailTableContent}<br><br>
                 For additional information, please refer to the following link: <a href=""{url}"">link</a><br><br>
                 {IfLoginLinkDoesNotWorkSentence}
@@ -209,7 +209,7 @@ namespace sReportsV2.BusinessLayer.Helpers
             string mailTableContent = $@"<table border=""1"" style=""width: 50%;"">
                     <tr>
                         <th>Consensus created on</th>
-                        <td>{consensus.EntryDatetime.ToTimeZoned(creator.PersonnelConfig.TimeZoneOffset, DateConstants.DateFormat)}</td>
+                        <td>{consensus.EntryDatetime.ToTimeZoned(creator.PersonnelConfig.TimeZoneOffset, DateTimeConstants.DateFormat)}</td>
                     </tr>
                     <tr>
                         <th>Iteration order number</th>
@@ -217,7 +217,7 @@ namespace sReportsV2.BusinessLayer.Helpers
                     </tr>
                     <tr>
                         <th>Iteration started on</th>
-                        <td>{iteration.EntryDatetime.ToTimeZoned(creator.PersonnelConfig.TimeZoneOffset, DateConstants.DateFormat)}</td>
+                        <td>{iteration.EntryDatetime.ToTimeZoned(creator.PersonnelConfig.TimeZoneOffset, DateTimeConstants.DateFormat)}</td>
                     </tr>
                     <tr>
                         <th>Iteration users</th>

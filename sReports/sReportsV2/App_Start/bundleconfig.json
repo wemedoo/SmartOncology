@@ -5,6 +5,8 @@
       "js/libs/jquery-3.7.1/jquery-3.7.1.js",
       "js/libs/toastr-2.1.1/toastr.min.js",
       "js/libs/jquery-ui-1.13.2/jquery-ui-1.13.2.js",
+      "js/libs/moment-2.30.1/moment.min.js",
+      "js/libs/moment-timezone-0.5.48/moment-timezone-with-data.min.js",
       "js/libs/popper-1.16.1/umd/popper.min.js",
       "js/libs/bootstrap-4.3.1/bootstrap.bundle.js",
       "js/libs/jquery-validate-1.19.5/jquery.validate-vsdoc.js",
@@ -17,6 +19,7 @@
       "js/sReports/common/select2-helper.js",
       "js/sReports/commonModal/common-modal.js",
       "js/sReports/common/initialFormCommon.js",
+      "js/sReports/common/track-user-inactivity.js",
       "js/sReports/common/sReports.js"
     ]
   },
@@ -26,6 +29,8 @@
       "css/libs/bootstrap-4.3.1/bootstrap.css",
       "css/libs/toastr-2.1.1/toastr.min.css",
       "css/libs/jquery-ui-1.13.2/themes/base/jquery-ui.css",
+      "css/libs/fonts/nunito-sans.min.css",
+      "css/libs/fonts/inter.min.css",
       "css/form_style_1.css",
       "css/main.css",
       "css/PagedList.css",
@@ -35,7 +40,8 @@
       "css/modules/patient.css",
       "css/modules/encounter.css",
       "css/modules/field-instance-history.css",
-      "css/modules/form-instance.css"
+      "css/modules/form-instance.css",
+      "css/modules/patient-query.css"
     ]
   },
   {
@@ -61,6 +67,7 @@
     "outputFileName": "js/patientInfo-bundle.min.js",
     "inputFiles": [
       "js/sReports/patient/patient.js",
+      "js/sReports/patient/patientLanguage.js",
       "js/sReports/patient/patientContact.js",
       "js/sReports/common/datetimepicker.js",
       "js/sReports/commonModal/telecomModal.js",
@@ -74,6 +81,7 @@
       "js/sReports/common/tableCommon.js",
       "js/sReports/patient/patientTable.js",
       "js/sReports/common/datetimepicker.js",
+      "js/sReports/commonAutocomplete/autocompleteComponent.js",
       "js/sReports/commonAutocomplete/patientAutocomplete.js",
       "js/sReports/encounter/encounter.js",
       "js/sReports/encounter/encounterCommon.js"
@@ -97,10 +105,19 @@
     ]
   },
   {
+    "outputFileName": "js/queryGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/query/queryTable.js",
+      "js/sReports/query/query.js",
+      "js/sReports/common/tableCommon.js"
+    ]
+  },
+  {
     "outputFileName": "js/organization-bundle.min.js",
     "inputFiles": [
       "js/sReports/commonModal/identifierModal.js",
       "js/sReports/commonAutocomplete/clinicalDomainAutocomplete.js",
+      "js/sReports/commonAutocomplete/autocompleteComponent.js",
       "js/sReports/organization/organization.js",
       "js/sReports/commonModal/telecomModal.js",
       "js/sReports/personnelTeam/personnelTeam.js",
@@ -132,18 +149,16 @@
     "outputFileName": "js/getAllByFormThesaurus-bundle.min.js",
     "inputFiles": [
       "js/sReports/common/tableCommon.js",
-      "js/sReports/dataCapture/dataCaptureFormInstances.js",
-      "js/sReports/commonAutocomplete/userAutoComplete.js",
-      "js/sReports/commonAutocomplete/patientAutoComplete.js"
+      "js/sReports/dataCapture/dataCaptureFormInstances.js"
     ]
   },
   {
     "outputFileName": "js/createFormInstanceAutomatically-bundle.min.js",
     "inputFiles": [
       "js/sReports/formInstance/formInstanceCommon.js",
+      "js/sReports/formInstance/formInstanceDropdownCommon.js",
       "js/sReports/formInstance/formInstanceDisplayLogic.js",
-      "js/sReports/formInstance/formInstanceSubmission.js",
-      "js/sReports/dataCapture/formEngine.js"
+      "js/sReports/formInstance/formInstanceSubmission.js"
     ]
   },
   {
@@ -174,6 +189,8 @@
     "inputFiles": [
       "js/sReports/common/tableCommon.js",
       "js/sReports/thesaurus/thesaurusEntry.js",
+      "js/sReports/commonAutocomplete/autocompleteComponent.js",
+      "js/sReports/thesaurus/skosEntry.js",
       "js/sReports/thesaurus/thesaurusTree.js",
       "js/sReports/common/datetimepicker.js"
     ]
@@ -199,6 +216,7 @@
     "inputFiles": [
       "js/sReports/formInstance/audio.js",
       "js/sReports/formInstance/formInstanceCommon.js",
+      "js/sReports/formInstance/formInstanceDropdownCommon.js",
       "js/sReports/formInstance/formInstanceSubmission.js",
       "js/sReports/formInstance/fieldCalculativeLogic.js",
       "js/sReports/formInstance/dependableFieldLogic.js",
@@ -206,7 +224,10 @@
       "js/sReports/formInstance/missingValueLogic.js",
       "js/sReports/formInstance/lockUnlockLogic.js",
       "js/sReports/formInstance/formInstanceDisplayLogic.js",
-      "js/sReports/formInstance/textDataExtraction.js"
+      "js/sReports/formInstance/textDataExtraction.js",
+      "js/sReports/formInstance/aiExtraction.js",
+      "js/sReports/query/queryModal.js",
+      "js/sReports/query/query.js"
     ]
   },
   {
@@ -219,9 +240,19 @@
   {
     "outputFileName": "js/digitalGuideline-bundle.min.js",
     "inputFiles": [
+      "js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js",
+      "js/libs/ajv-6.10.2/ajv.bundle.js",
       "js/sReports/common/schema-json.js",
       "js/sReports/digitalGuideline/digital-guideline.style.js",
       "js/sReports/digitalGuideline/digital-guideline.js",
+      "js/sReports/digitalGuideline/nodes.js",
+      "js/sReports/digitalGuideline/edges.js",
+      "js/sReports/digitalGuideline/history.js",
+      "js/sReports/digitalGuideline/layout.js",
+      "js/sReports/digitalGuideline/settings.js",
+      "js/sReports/digitalGuideline/cytoscape-node-html-label.js",
+      "js/sReports/digitalGuideline/html2canvas.min.js",
+      "js/sReports/digitalGuideline/jspdf.umd.min.js",
       "js/sReports/digitalGuideline/json-editor.js"
     ]
   },
@@ -251,13 +282,16 @@
     "outputFileName": "js/dragAndDrop-bundle.min.js",
     "inputFiles": [
       "js/libs/image-map/jquery.imagemaps.js",
+      "js/libs/d3js.org/d3.v6.min.js",
+      "js/libs/d3js.org/topojson.v1.min.js",
+      "js/libs/jsoneditor-6.2.1/dist/jsoneditor.min.js",
+      "js/libs/ajv-6.10.2/ajv.bundle.js",
       "js/jquery-nestable/jquery.nestable.js",
       "js/jquery-nestable/jquery.nestable.customization.js",
       "js/sReports/designer/designer.js",
       "js/sReports/designer/validation.js",
       "js/sReports/designer/designer-items/filter.thesaurus.js",
       "js/sReports/common/tableCommon.js",
-      "js/sReports/designer/designer-items/formOrgAutocomplete.js",
       "js/sReports/designer/designer-items/formGeneralInfo.js",
       "js/sReports/designer/designer-items/chapterGeneralInfo.js",
       "js/sReports/designer/designer-items/pageGeneralInfo.js",
@@ -283,6 +317,9 @@
       "js/sReports/designer/consensus.js",
       "js/sReports/designer/consensusInstance.js",
       "js/sReports/designer/comments.js",
+      "js/sReports/designer/designer-items/formLoincConfiguration.js",
+      "js/sReports/commonAutocomplete/autocompleteComponent.js",
+      "js/sReports/designer/designer-items/formOrgAutocomplete.js",
       "js/sReports/commonAutocomplete/clinicalDomainAutocomplete.js",
       "js/sReports/designer/tagUserAutocomplete.js",
       "js/sReports/designer/copyPasteElements.js"
@@ -296,6 +333,7 @@
       "js/sReports/code/codeThesaurusModal.js",
       "js/sReports/code/code.js",
       "js/sReports/common/datetimepicker.js",
+      "js/sReports/commonAutocomplete/autocompleteComponent.js",
       "js/sReports/code/codeAssociation.js",
       "js/sReports/codeSet/codeSetValidation.js"
     ]
@@ -377,6 +415,29 @@
       "js/sReports/administrationApi/administrationApiTable.js",
       "js/sReports/common/datetimepicker.js",
       "js/sReports/common/tableCommon.js"
+    ]
+  },
+  {
+    "outputFileName": "js/prompt-bundle.min.js",
+    "inputFiles": [
+      "js/jquery-nestable/jquery.nestable.js",
+      "js/jquery-nestable/jquery.nestable.customization.js",
+      "js/sReports/promptConfiguration/promptConfiguration.js"
+    ]
+  },
+  {
+    "outputFileName": "js/uploadPatientDataGetAll-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/uploadPatientData/uploadPatientDataTable.js",
+      "js/sReports/common/datetimepicker.js"
+    ]
+  },
+  {
+    "outputFileName": "js/patientQuery-bundle.min.js",
+    "inputFiles": [
+      "js/sReports/common/tableCommon.js",
+      "js/sReports/patientQuery/patientQuery.js"
     ]
   }
 ]

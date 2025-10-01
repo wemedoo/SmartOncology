@@ -35,26 +35,28 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly IThesaurusDAL thesaurusDAL;
         private readonly ICodeDAL codeDAL;
         private readonly ICodeSystemDAL codeSystemDAL;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
         private readonly IConfiguration configuration;
+        private readonly IBlobStorageBLL blobStorageBLL;
 
-        public CodeSetBLL(ICodeSetDAL codeSetDAL, IThesaurusDAL thesaurusDAL, ICodeDAL codeDAL, ICodeSystemDAL codeSystemDAL, IMapper mapper, IConfiguration configuration)
+        public CodeSetBLL(ICodeSetDAL codeSetDAL, IThesaurusDAL thesaurusDAL, ICodeDAL codeDAL, ICodeSystemDAL codeSystemDAL, IMapper mapper, IConfiguration configuration, IBlobStorageBLL blobStorageBLL)
         {
             this.codeSetDAL = codeSetDAL;
             this.thesaurusDAL = thesaurusDAL;
             this.codeDAL = codeDAL;
             this.codeSystemDAL = codeSystemDAL;
             this.configuration = configuration;
-            Mapper = mapper;
+            this.mapper = mapper;
+            this.blobStorageBLL = blobStorageBLL;
         }
 
         public PaginationDataOut<CodeSetDataOut, DataIn> GetAllFiltered(CodeSetFilterDataIn dataIn)
         {
-            CodeSetFilter filter = Mapper.Map<CodeSetFilter>(dataIn);
+            CodeSetFilter filter = mapper.Map<CodeSetFilter>(dataIn);
             PaginationDataOut<CodeSetDataOut, DataIn> result = new PaginationDataOut<CodeSetDataOut, DataIn>()
             {
                 Count = this.codeSetDAL.GetAllEntriesCount(filter),
-                Data = Mapper.Map<List<CodeSetDataOut>>(this.codeSetDAL.GetAll(filter)),
+                Data = mapper.Map<List<CodeSetDataOut>>(this.codeSetDAL.GetAll(filter)),
                 DataIn = dataIn
             };
 
@@ -70,14 +72,14 @@ namespace sReportsV2.BusinessLayer.Implementations
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
 
-            CodeSet entry = Mapper.Map<CodeSet>(dataIn);
+            CodeSet entry = mapper.Map<CodeSet>(dataIn);
             codeSetDAL.Insert(entry);
         }
 
         public async Task InsertAsync(CodeSetDataIn dataIn)
         {
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            CodeSet entry = Mapper.Map<CodeSet>(dataIn);
+            CodeSet entry = mapper.Map<CodeSet>(dataIn);
 
             await codeSetDAL.InsertAsync(entry);
         }
@@ -100,9 +102,8 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public AutocompleteResultDataOut GetAutoCompleteCodes(AutocompleteDataIn dataIn, int codesetId, string activeLanguage)
         {
-            int defaultPageSize = 10;
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            var filter = new CodeFilter() { CodeSetId = codesetId, CodeDisplay = dataIn.Term, Page = dataIn.Page, PageSize = defaultPageSize };
+            var filter = new CodeFilter() { CodeSetId = codesetId, CodeDisplay = dataIn.Term, Page = dataIn.Page, PageSize = FilterConstants.DefaultPageSize };
             
             List<Code> filtered = codeDAL.GetAll(filter);
 
@@ -110,14 +111,14 @@ namespace sReportsV2.BusinessLayer.Implementations
                 .Select(x => new AutocompleteDataOut()
                 {
                     id = x.CodeId.ToString(),
-                    text = x.ThesaurusEntry.Codes.FirstOrDefault()?.Code + " " + x.ThesaurusEntry.GetPreferredTermByTranslationOrDefault(activeLanguage)
+                    text = x.GetDisplayAutocompleteValue(activeLanguage)
                 })
                 .ToList();
 
             AutocompleteResultDataOut result = new AutocompleteResultDataOut()
             {
                 results = autocompleteDataDataOuts,
-                pagination = new AutocompletePaginatioDataOut() { more = this.codeDAL.GetAllEntriesCount(filter) > dataIn.Page * defaultPageSize, }
+                pagination = new AutocompletePaginatioDataOut() { more = dataIn.ShouldLoadMore( this.codeDAL.GetAllEntriesCount(filter)) }
             };
 
             return result;
@@ -125,11 +126,10 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public async Task<AutocompleteResultDataOut> GetAutoCompleteNames(AutocompleteDataIn dataIn, bool onlyApplicableInDesigner, string language)
         {
-            int defaultPageSize = 10;
             dataIn = Ensure.IsNotNull(dataIn, nameof(dataIn));
-            CodeSetFilter codeSetFilter = Mapper.Map<CodeSetFilter>(dataIn);
+            CodeSetFilter codeSetFilter = mapper.Map<CodeSetFilter>(dataIn);
             codeSetFilter.OnlyApplicableInDesigner = onlyApplicableInDesigner;
-            codeSetFilter.PageSize = defaultPageSize;
+            codeSetFilter.PageSize = FilterConstants.DefaultPageSize;
 
             PaginationData<CodeSet> codeSetsAndCount = await codeSetDAL.GetAllForAutoCompleteNameAndCount(codeSetFilter);
 
@@ -140,7 +140,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                     id = x.CodeSetId.ToString(),
                     text = x.ThesaurusEntry.GetPreferredTermByTranslationOrDefault(language)
                 }).ToList(),
-                pagination = new AutocompletePaginatioDataOut() { more = codeSetsAndCount.Count > dataIn.Page * defaultPageSize }
+                pagination = new AutocompletePaginatioDataOut() { more = dataIn.ShouldLoadMore(codeSetsAndCount.Count) }
             };
             return result;
         }
@@ -152,22 +152,20 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         #region Import CodeSet from CSV
 
-        public bool ImportFileFromCsv(IFormFile file, string codesetName, bool applicableInDesigner)
+        public async Task ImportFileFromCsv(IFormFile file, string codesetName, bool applicableInDesigner)
         {
-            bool success = false;
-
             if (file != null && !string.IsNullOrWhiteSpace(codesetName))
             {
                 if (codeSetDAL.GetIdByPreferredTerm(codesetName) != 0)
                     throw new DuplicateException($"Codeset with given name ({codesetName}) is already defined!");
+                await blobStorageBLL.CreateAsync(file, StorageDirectoryNames.CodeSets);
 
                 int newCodeSetId = codeSetDAL.GetNextCodeSetId();
                 InsertCodeset(codesetName, newCodeSetId, applicableInDesigner);
                 int codeSystemId = InsertCodeSystem(codesetName);
 
-                success = ProcessCsvFileRowsInBatch(file, newCodeSetId, codeSystemId);
+                ProcessCsvFileRowsInBatch(file, newCodeSetId, codeSystemId);
             }
-            return success;
         }
 
         private int InsertCodeSystem(string codeSystemName)
@@ -188,7 +186,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             else
             {
-                ThesaurusEntry thesaurus = Mapper.Map<ThesaurusEntry>(new ThesaurusEntryDataIn()
+                ThesaurusEntry thesaurus = mapper.Map<ThesaurusEntry>(new ThesaurusEntryDataIn()
                 {
                     Translations = new List<ThesaurusEntryTranslationDataIn>()
                         {
@@ -204,7 +202,7 @@ namespace sReportsV2.BusinessLayer.Implementations
                 thesaurusId = thesaurus.ThesaurusEntryId;
             }
 
-            codeSetDAL.Insert(Mapper.Map<CodeSet>(new CodeSetDataIn()
+            codeSetDAL.Insert(mapper.Map<CodeSet>(new CodeSetDataIn()
                     {
                         CodeSetId = codesetId,
                         ThesaurusEntryId = thesaurusId,
@@ -214,7 +212,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             );
         }
 
-        private bool ProcessCsvFileRowsInBatch(IFormFile file, int codeSetId, int codeSystemId)
+        private void ProcessCsvFileRowsInBatch(IFormFile file, int codeSetId, int codeSystemId)
         {
             List<ThesaurusEntry> thesaurusEntries = new List<ThesaurusEntry>();
             List<int> thesaurusEntriesIds = new List<int>();
@@ -242,8 +240,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             BulkOperations.BulkInsert(o4CodeableConcepts, "O4CodeableConcepts", configuration);
             BulkOperations.BulkInsert(thesaurusEntryTranslations, "ThesaurusEntryTranslations", configuration);
 
-            bool success = InsertCodes(thesaurusEntries, codeSetId);
-            return success;
+            InsertCodes(thesaurusEntries, codeSetId);
         }
 
         private void ProcessCsvRow(string row, ref List<ThesaurusEntryTranslation> thesaurusEntryTranslations, ref List<O4CodeableConcept> o4CodeableConcepts, int thesaurusEntriesId, int codeSystemId)
@@ -262,11 +259,11 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
         }
 
-        private bool InsertCodes(List<ThesaurusEntry> thesauruses, int codeSetId)
+        private void InsertCodes(List<ThesaurusEntry> thesauruses, int codeSetId)
         {
             List<Code> codesToInsert = new List<Code>();
 
-            Code code = Mapper.Map<Code>(new CodeDataIn
+            Code code = mapper.Map<Code>(new CodeDataIn
             {
                 CodeSetId = codeSetId
             });
@@ -282,9 +279,10 @@ namespace sReportsV2.BusinessLayer.Implementations
 
             List<int> insertedCodeIds = BulkOperations.BulkInsert(codesToInsert, "Codes", configuration);
 
-            bool success = insertedCodeIds.Count == thesauruses.Count;
-
-            return success;
+            if(insertedCodeIds.Count != thesauruses.Count)
+            {
+                throw new UserAdministrationException(StatusCodes.Status500InternalServerError, "Error when import codeset from CSV");
+            }
         }
 
         #endregion
@@ -292,12 +290,12 @@ namespace sReportsV2.BusinessLayer.Implementations
         public CodeSetDataOut GetById(int codeSetId)
         {
             CodeSet codeSet = codeSetDAL.GetById(codeSetId);
-            return Mapper.Map<CodeSetDataOut>(codeSet);
+            return mapper.Map<CodeSetDataOut>(codeSet);
         }
 
         public List<CodeSetDataOut> GetAllByPreferredTerm(string preferredTerm)
         {
-            return Mapper.Map<List<CodeSetDataOut>>(codeSetDAL.GetAllByPreferredTerm(preferredTerm).ToList());
+            return mapper.Map<List<CodeSetDataOut>>(codeSetDAL.GetAllByPreferredTerm(preferredTerm).ToList());
         }
 
         public void Delete(int codeSetId)

@@ -41,7 +41,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             }
             catch (System.Exception ex)
             {
-                LogHelper.Error($"Error while sending request to external API: {restRequestData.BaseUrl}/{restRequestData.Endpoint}, error: {ex.Message}");
+                LogHelper.Error($"Error while sending request to external API: {restRequestData.BaseUrl}/{restRequestData.Endpoint}, error: {ex.GetExceptionStackMessages()}");
                 return null;
             }
         }

@@ -25,11 +25,11 @@ namespace sReportsV2.SqlDomain.Implementations
 
             if (filter.ColumnName != null)
                 result = SortTableHelper.OrderByField(result, filter.ColumnName, filter.IsAscending)
-                            .Skip((filter.Page - 1) * filter.PageSize)
+                            .Skip(filter.GetHowManyElementsToSkip())
                             .Take(filter.PageSize);
             else
                 result = result.OrderByDescending(x => x.EntryDatetime)
-                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Skip(filter.GetHowManyElementsToSkip())
                     .Take(filter.PageSize);
 
             return result.ToList();

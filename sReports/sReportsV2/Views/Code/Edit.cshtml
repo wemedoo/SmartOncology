@@ -2,13 +2,17 @@
 @using System.Globalization
 @using sReportsV2.Common.Constants;
 @using sReportsV2.Common.Helpers
-
+@using sReportsV2.Common.Extensions
+@model sReportsV2.Domain.Sql.Entities.Common.Code
 @{
-    ViewBag.Title = @ViewBag.IsEdit ? "Edit Code" : "Create code";
-    var activeFromDate = Model != null ? Model.ActiveFrom.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "";
-    var activeFromTime = Model != null ? Model.ActiveFrom.ToString("HH:mm") : "";
-    var activeToDate = Model != null ? Model.ActiveTo.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture) : "";
-    var activeToTime = Model != null ? Model.ActiveTo.ToString("HH:mm") : "";
+    bool isEdit = ViewBag.IsEdit;
+    ViewBag.Title = isEdit ? "Edit Code" : "Create code";
+    var activeFrom = Model != null ? Model.ActiveFrom.ToString("s") : "";
+    var activeFromDate = Model != null ? Model.ActiveFrom.ToDateZoned(ViewBag.DateFormat as string) : "";
+    var activeFromTime = Model != null ? Model.ActiveFrom.GetTimePart() : "";
+    var activeTo = Model != null ? Model.ActiveTo.ToString("s"): "";
+    var activeToDate = Model != null ? Model.ActiveTo.ToDateZoned(ViewBag.DateFormat as string) : "";
+    var activeToTime = Model != null ? Model.ActiveTo.GetTimePart(): "";
     var userCookieData = ViewBag.UserCookieData;
     bool hasViewAliasPerm = userCookieData.UserHasPermission(PermissionNames.ViewAlias, ModuleNames.CodeSet);
 }
@@ -18,8 +22,8 @@
     { "level1", @sReportsV2.Cache.Resources.TextLanguage.Code_Set_Management },
     { "linkLevel1", "/CodeSet/GetAll" },
     { "level2", @ViewBag.FilterData.CodeSetDisplay },
-    { "linkLevel2", "/Code/GetAll?CodeSetId=" + @ViewBag.FilterData.CodeSetId + "&CodeSetDisplay=" + System.Net.WebUtility.UrlEncode(System.Net.WebUtility.UrlEncode(@ViewBag.FilterData.CodeSetDisplay)) },
-    { "level3", @ViewBag.IsEdit ? @ViewBag.FilterData.CodeDisplay : "Create code" },
+    { "linkLevel2", "/Code/GetAll?CodeSetId=" + @ViewBag.FilterData.CodeSetId + "&CodeSetDisplay=" + @ViewBag.FilterData.CodeSetDisplay },
+    { "level3", isEdit ? @ViewBag.FilterData.CodeDisplay : "Create code" },
     { "activeLevel", 3 }
 })
 <input id="thesaurusIdCode" value="@(Model != null ? Model.ThesaurusEntryId : null)" hidden />
@@ -40,7 +44,7 @@
 
         <div class="code-getall-size">
             <form method="post" id="idCodes" class="formOrganization alias-space code-tab active" onsubmit="return false" novalidate>
-                <div class="display-flex alias-border padding-right-30 code-tabs">
+                <div class="display-flex alias-border padding-right-30 custom-tabs">
                     <div id="codeValueTab" class="alias-title padding-left-20 code-active-tab" onclick="showCodeValues(event, this)">@sReportsV2.Cache.Resources.TextLanguage.CodeValue</div>
 
                     @if (hasViewAliasPerm)
@@ -53,7 +57,7 @@
                         }
                         else
                         {
-                            <div id="aliasesTab" class="alias-title padding-left-20 code-tab-disabled" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.CodeTabsTooltip">
+                            <div id="aliasesTab" class="alias-title padding-left-20 tab-disabled" data-toggle="tooltip" title="@sReportsV2.Cache.Resources.TextLanguage.CodeTabsTooltip">
                                 @sReportsV2.Cache.Resources.TextLanguage.Aliases
                             </div>
                         }
@@ -78,7 +82,7 @@
                                 <div class="advanced-filter-item input-margin">
                                     <div class="label filter-label">
                                         @sReportsV2.Cache.Resources.TextLanguage.CodeValueDisplay
-                                        <img alt="" class="mr-1 margin-bottom-2" id="codeThesaurusLink" src="/css/img/icons/@(ViewBag.IsEdit ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToCodeThesaurus('@ViewBag.IsEdit' ? true : false)">
+                                        <img alt="" class="mr-1 margin-bottom-2 codeThesaurusLink" id="codeThesaurusLink" src="/css/img/icons/@(isEdit ? "thesaurus_green.svg": "thesaurus_grey.svg")" onclick="goToCodeThesaurus(@ViewBag.IsEdit.ToString().ToLower())">
                                     </div>
                                     <input required class="filter-input code-value-search" type="text" id="codeValueDisplay" name="CodeValueDisplay" value="@ViewBag.FilterData.CodeDisplay" />
                                     <img alt="" class="search-code-button" id="codeValueImg" onclick="thesaurusFilterModal()" src="/css/img/icons/search_green.svg" />
@@ -109,22 +113,22 @@
                                                              { "onClick", "showDatePicker(event)"}
                                                          },
                                          })
-                                        <input type="text" class="date-time-local d-none form-element-field" value="@(activeFromDate + "T" + activeFromTime)" />
+                                        <input type="text" class="date-time-local d-none form-element-field" value="@activeFrom" />
                                     </div>
                                     <div class="advanced-filter-item input-margin w-35 padding-top-21">
-                                        <div class="time-wrapper input-border w-100 h-100">
-                                            <input type="text"
-                                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                                   name="activeFromTime"
-                                                   id="activeFromTime"
-                                                   class="time-part time-helper d-inline-block border-0 field-time-input time-input-padding"
-                                                   value="@activeFromTime"
-                                                   data-parent-field=".datetime-picker-container"
-                                                   onchange="timeSelected(event)" />
-                                            <div class="field-time-btn clock-wrapper">
-                                                <i class="fas fa-clock" onclick="openDateTimeTimePicker(event)"></i>
-                                            </div>
-                                        </div>
+                                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                                        {
+                                            FullWidthHeight = true,
+                                            InputAttributes = new Dictionary<object, object> {
+                                                { "class", "time-helper d-inline-block border-0 field-time-input time-input-padding" },
+                                                { "value", activeFromTime },
+                                                { "id", "activeFromTime"},
+                                                { "name", "activeFromTime"},
+                                                { "data-range-valid-form-id", "idCodes"},
+                                                { "data-parent-field", ".datetime-picker-container"},
+                                                { "onchange", "timeSelected(event)"}
+                                            }
+                                        })
                                     </div>
                                 </div>
                             </div>
@@ -150,22 +154,23 @@
                                                              { "onClick", "showDatePicker(event)"}
                                                          },
                                          })
-                                        <input type="text" class="date-time-local d-none form-element-field" value="@(activeToDate + "T" + activeToTime)" />
+                                        <input type="text" class="date-time-local d-none form-element-field" value="@activeTo" />
                                     </div>
                                     <div class="advanced-filter-item input-margin w-35 padding-top-21">
-                                        <div class="time-wrapper input-border w-100 h-100" id="activeToTimeWrapper">
-                                            <input type="text"
-                                                   placeholder="@DateConstants.TimeFormatDisplay"
-                                                   name="activeToTime"
-                                                   id="activeToTime"
-                                                   class="time-part time-helper d-inline-block border-0 field-time-input time-input-padding"
-                                                   value="@activeToTime"
-                                                   data-parent-field=".datetime-picker-container" 
-                                                   onchange="timeSelected(event)" />
-                                            <div class="field-time-btn clock-wrapper">
-                                                <i class="fas fa-clock" onclick="openDateTimeTimePicker(event)"></i>
-                                            </div>
-                                        </div>
+                                        @await Html.PartialAsync("~/Views/Shared/TimeInput.cshtml", new sReportsV2.DTOs.Common.TimeInputDTO()
+                                        {
+                                            FullWidthHeight = true,
+                                            ContainerId = "activeToTimeWrapper",
+                                            InputAttributes = new Dictionary<object, object> {
+                                                { "class", "time-helper d-inline-block border-0 field-time-input time-input-padding" },
+                                                { "value", activeToTime },
+                                                { "id", "activeToTime"},
+                                                { "name", "activeToTime"},
+                                                { "data-range-valid-form-id", "idCodes"},
+                                                { "data-parent-field", ".datetime-picker-container"},
+                                                { "onchange", "timeSelected(event)"}
+                                            }
+                                        })
                                     </div>
                                 </div>
 
@@ -178,10 +183,10 @@
                 </div>
 
                 <div class="button-partial padding-alias margin-right-0">
-                    <button class="submit-patient right-button" type="button" onclick="submitCodeForm(true, @Html.Raw(@ViewBag.IsEdit.ToString().ToLower()))" style="outline: none;">
+                    <button class="submit-patient right-button" type="button" onclick="submitCodeForm(true, @Html.Raw(@isEdit.ToString().ToLower()))" style="outline: none;">
                         <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.SaveAndClose</span>
                     </button>
-                    <button class="submit-patient right-button" type="button" onclick="submitCodeForm(false, @Html.Raw(@ViewBag.IsEdit.ToString().ToLower()))" style="outline: none;">
+                    <button class="submit-patient right-button" type="button" onclick="submitCodeForm(false, @Html.Raw(@isEdit.ToString().ToLower()))" style="outline: none;">
                         <span class="submit-patient-info">@sReportsV2.Cache.Resources.TextLanguage.ApplyChanges</span>
                     </button>
                     <button class="submit-patient right-button" type="button" onclick="cancelCode()" style="outline: none;">

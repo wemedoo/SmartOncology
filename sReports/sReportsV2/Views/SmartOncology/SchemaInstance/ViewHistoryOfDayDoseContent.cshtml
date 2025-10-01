@@ -12,7 +12,7 @@
         @sReportsV2.Cache.Resources.TextLanguage.DAY
         <span class="num">@Model.FirstDelayDay</span>
     </div>
-    <span class="modal-title">@sReportsV2.Cache.Resources.TextLanguage.Date: @Model.StartDayDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</span>
+    <span class="modal-title">@sReportsV2.Cache.Resources.TextLanguage.Date: @Model.StartDayDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)</span>
 </div>
 <div class="margin-bottom-20 margin-top-20">
     <div class="row">
@@ -58,7 +58,7 @@
                     }
                 </div>
             </div>
-            <div class="col"><div class="version-data">@version.DelayedDate.ToString(ViewBag.DateFormat, CultureInfo.InvariantCulture)</div></div>
+            <div class="col"><div class="version-data">@version.DelayedDate.GetDateTimeDisplay(ViewBag.DateFormat as string, excludeTimePart: true)</div></div>
         </div>
     }
 </div>

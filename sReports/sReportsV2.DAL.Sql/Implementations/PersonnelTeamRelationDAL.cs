@@ -73,7 +73,7 @@ namespace sReportsV2.SqlDomain.Implementations
             IQueryable<PersonnelTeamRelation> result = GetPersonnelTeamFiltered(filter);
 
             result = result.OrderBy(x => x.PersonnelTeamId)
-                .Skip((filter.Page - 1) * filter.PageSize)
+                .Skip(filter.GetHowManyElementsToSkip())
                 .Take(filter.PageSize);
 
             return result.ToList();

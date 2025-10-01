@@ -27,7 +27,7 @@ namespace sReportsV2.BusinessLayer.Implementations
         private readonly ICodeDAL codeDAL;
         private readonly IEmailSender emailSender;
         private readonly IConfiguration configuration;
-        private readonly IMapper Mapper;
+        private readonly IMapper mapper;
 
         public GlobalUserBLL(IGlobalThesaurusUserDAL globalUserDAL, IGlobalThesaurusRoleDAL globalThesaurusRoleDAL, ICodeDAL codeDAL, IEmailSender emailSender, IConfiguration configuration, IMapper mapper)
         {
@@ -36,7 +36,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             this.codeDAL = codeDAL;
             this.emailSender = emailSender;
             this.configuration = configuration;
-            Mapper = mapper;
+            this.mapper = mapper;
         }
 
         public void ActivateUser(string email)
@@ -59,12 +59,12 @@ namespace sReportsV2.BusinessLayer.Implementations
 
         public GlobalThesaurusUserDataOut GetByEmail(string email)
         {
-            return Mapper.Map<GlobalThesaurusUserDataOut>(globalUserDAL.GetByEmail(email));
+            return mapper.Map<GlobalThesaurusUserDataOut>(globalUserDAL.GetByEmail(email));
         }
 
         public List<RoleDataOut> GetRoles()
         {
-            return Mapper.Map<List<RoleDataOut>>(globalThesaurusRoleDAL.GetAll());
+            return mapper.Map<List<RoleDataOut>>(globalThesaurusRoleDAL.GetAll());
         }
 
         public List<GlobalThesaurusUserDataOut> GetUsers()
@@ -77,18 +77,18 @@ namespace sReportsV2.BusinessLayer.Implementations
                     filteredUsers.Add(user);
                 }
             }
-            return Mapper.Map<List<GlobalThesaurusUserDataOut>>(filteredUsers);
+            return mapper.Map<List<GlobalThesaurusUserDataOut>>(filteredUsers);
         }
 
         public GlobalThesaurusUserDataOut InsertOrUpdate(GlobalThesaurusUserDataIn user)
         {
-            GlobalThesaurusUser userDb = Mapper.Map<GlobalThesaurusUser>(user);
+            GlobalThesaurusUser userDb = mapper.Map<GlobalThesaurusUser>(user);
             if (userDb.GlobalThesaurusUserId == 0)
             {
                 SetPredifinedRole(userDb, PredifinedGlobalUserRole.Viewer);
                 SendActivationLink(userDb);
             }
-            return Mapper.Map<GlobalThesaurusUserDataOut>(globalUserDAL.InsertOrUpdate(userDb));
+            return mapper.Map<GlobalThesaurusUserDataOut>(globalUserDAL.InsertOrUpdate(userDb));
         }
 
         public bool IsReCaptchaInputValid(string response, string secretKey)
@@ -133,7 +133,7 @@ namespace sReportsV2.BusinessLayer.Implementations
             {
                 user = globalUserDAL.GetByEmail(username);
             }
-            return Mapper.Map<GlobalThesaurusUserDataOut>(user);
+            return mapper.Map<GlobalThesaurusUserDataOut>(user);
         }
 
         public void UpdateRoles(GlobalThesaurusUserDataIn user)

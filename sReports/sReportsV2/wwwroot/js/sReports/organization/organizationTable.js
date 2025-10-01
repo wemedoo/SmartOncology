@@ -34,13 +34,7 @@ function removeOrganizationEntry(event, id, rowVersion) {
 }
 
 function reloadTable() {
-    hideAdvancedFilterModal();
-    setFilterFromUrl();
-    let requestObject = getFilterParametersObject();
-    setFilterTagsFromObj(requestObject);
-    setAdvancedFilterBtnStyle(requestObject, ['Name', 'ClinicalDomainCD', 'Type', 'Page', 'PageSize']);
-    checkUrlPageParams();
-    setTableProperties(requestObject);
+    let requestObject = applyActionsBeforeServerReload(['Name', 'ClinicalDomainCD', 'Type', 'page', 'pageSize']);
     requestObject.ClinicalDomainCD = $('#organizationClinicalDomain').find(':selected').attr('id');
 
     if (!requestObject.Page) {
@@ -64,7 +58,7 @@ function getFilterParametersObject() {
     let result = {};
     var name = $("#organizationName").val();
     var type = $("#organizationType").val();
-    var clinicalDomainCD = $("#organizationClinicalDomain").val();
+    var clinicalDomainCD = $("#clinicalDomainCD").val();
     var alias = $("#alias").val();
     var identifierType = $("#identifierType").val();
     var identifierValue = $("#identifierValue").val();
@@ -124,32 +118,15 @@ function getFilterParametersObjectForDisplay(filterObject) {
 function mainFilter() {
     $('#name').val($('#organizationName').val());
     $('#type').val($('#organizationType').val());
-    $('#clinicalDomain').val($('#organizationClinicalDomain').val());
+    $('#clinicalDomainCD').val($('#organizationClinicalDomain').val());
 
     filterData();
-    //clearFilters();
 }
 
 function advanceFilter() {
     $('#organizationName').val($('#name').val());
     $('#organizationType').val($('#type').val());
-    $('#organizationClinicalDomain').val($('#clinicalDomain').val());
+    $('#organizationClinicalDomain').val($('#clinicalDomainCD').val());
 
     filterData();
-    //clearFilters();
-}
-
-function clearFilters() {
-    $('#name').val('');
-    $('#city').val('');
-    $('#checkBoxGroup').val('');
-    $('#clinicalDomain').val('');
-    $('#alias').val('');
-    $('#identifierType').val('');
-    $('#identifierValue').val('');
-    $('#state').val('');
-    $('#country').val('');
-    $('#postalCode').val('');
-    $('#street').val('');
-    $('#parentId').val('');
 }

@@ -1,0 +1,8 @@
+﻿@{
+    string containerId = ViewBag.ContainerId != null ? string.Format(@"id=""{0}""", ViewBag.ContainerId) : "";
+}
+<div class="no-result-content" @Html.Raw(containerId)>
+    <img alt="" src="/css/img/icons/no_results.svg">
+    <br>
+    <div class="no-result-text">@sReportsV2.Cache.Resources.TextLanguage.NoResultFound</div>
+</div>

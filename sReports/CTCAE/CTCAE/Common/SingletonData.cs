@@ -77,7 +77,7 @@ namespace CTCAE.Common
 
         public List<SelectItemModel> GetTemplateList() 
         {
-            string json = File.ReadAllText($"{AppDomain.CurrentDomain.GetData("DataDirectory")}\\templates.json");
+            string json = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.GetData("DataDirectory").ToString(), "templates.json"));
             List<SelectJsonModel> savedTemplates = JsonConvert.DeserializeObject<List<SelectJsonModel>>(json);
             List<SelectItemModel> templatesForRead = MappingFromJsonObject(savedTemplates);
 

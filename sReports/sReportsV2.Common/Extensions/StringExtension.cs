@@ -64,6 +64,11 @@ namespace sReportsV2.Common.Extensions
             return retText;
         }
 
+        public static string CapitalizeFirstLetterInEveryWord(this string input)
+        {
+            return string.IsNullOrEmpty(input) ? input : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
+        }
+
         public static string TrimInput(this string inputText)
         {
             return string.IsNullOrEmpty(inputText) ? string.Empty : inputText.Trim();
@@ -75,7 +80,18 @@ namespace sReportsV2.Common.Extensions
             if (!string.IsNullOrWhiteSpace(uri))
             {
                 string resourceNameRaw = GetResourceNameFromUri(uri);
-                fileName = excludeGUIDPartFromName ? string.Join("", resourceNameRaw.Split('_').Skip(1)) : resourceNameRaw; // The first is always the GUID
+                if (excludeGUIDPartFromName)
+                {
+                    int indexOfGuidSeparator = resourceNameRaw.IndexOf('_'); // The first is always the GUID
+                    if (-1 < indexOfGuidSeparator && indexOfGuidSeparator < resourceNameRaw.Length)
+                    {
+                        fileName = resourceNameRaw.Substring(indexOfGuidSeparator + 1);
+                    }
+                }
+                else
+                {
+                    fileName = resourceNameRaw;
+                }
             }
             return fileName;
         }
@@ -267,6 +283,35 @@ namespace sReportsV2.Common.Extensions
             string extractedText = Regex.Replace(decodedHtml, "<.*?>", String.Empty);  // Remove HTML tags
             extractedText = extractedText.Replace("\u00A0", " ");  // Handle non-breaking spaces
             return extractedText;
+        }
+
+        public static string GetSafeFileName(this string input)
+        {
+            if (!string.IsNullOrEmpty(input))
+            {
+                string invalidCharacters = @"[\\/:*?""<>|]";
+                string safeFileName = Regex.Replace(input, invalidCharacters, "_");
+                if (safeFileName.Length > 255)
+                {
+                    safeFileName = safeFileName.Substring(0, 255);
+                }
+                return safeFileName;
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        public static string StringShortener(this string input, int charLimit)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
+            if (input.Length > charLimit)
+                input = input.Substring(0, charLimit - 3) + "...";
+
+            return input;
         }
     }
 }
